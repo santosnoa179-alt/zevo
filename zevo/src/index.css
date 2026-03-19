@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* Couleurs Zevo — Tailwind v4 (@theme remplace tailwind.config.js) */
+@theme {
+  --color-zevo-orange: #FF6B2B;
+  --color-zevo-orange-light: #FF9A6C;
+  --color-zevo-black: #0D0D0D;
+  --color-zevo-card: #1E1E1E;
+  --color-zevo-surface: #2A2A2A;
+  --color-zevo-text: #F5F5F3;
+}
+
+/* Variables CSS dynamiques — surchargées par le thème coach */
+:root {
+  --color-primary: #FF6B2B;
+  --color-primary-light: #FF9A6C;
+}
+
+/* Thème sombre global */
+body {
+  background-color: #0D0D0D;
+  color: #F5F5F3;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1E1E1E;
+}
+::-webkit-scrollbar-thumb {
+  background: #2A2A2A;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF6B2B;
+}

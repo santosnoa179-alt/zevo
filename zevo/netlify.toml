@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Redirige toutes les routes vers index.html pour React Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Dossier pour les Netlify Functions (Stripe webhooks — Phase 7)
+[functions]
+  directory = "netlify/functions"
