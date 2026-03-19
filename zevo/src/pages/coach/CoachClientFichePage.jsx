@@ -9,7 +9,7 @@ import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import {
   ArrowLeft, CheckCircle2, Circle, Target, MessageSquare,
-  Plus, Lock, TrendingUp
+  Plus, Lock, TrendingUp, Layers, Play, Pause, CheckSquare
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
@@ -32,9 +32,17 @@ export default function CoachClientFichePage() {
   const [humeurLog, setHumeurLog] = useState([])
   const [messages, setMessages] = useState([])
 
+  // Programme assigné
+  const [assignation, setAssignation] = useState(null)
+  const [programmePhases, setProgrammePhases] = useState([])
+  const [programmeTitre, setProgrammeTitre] = useState('')
+
   // Modals assignation
   const [modalHab, setModalHab] = useState(false)
   const [modalObj, setModalObj] = useState(false)
+  const [modalProg, setModalProg] = useState(false)
+  const [programmes, setProgrammes] = useState([])
+  const [loadingProgs, setLoadingProgs] = useState(false)
   const [nomHab, setNomHab] = useState('')
   const [couleurHab, setCouleurHab] = useState(COULEURS_HAB[0])
   const [titreObj, setTitreObj] = useState('')
@@ -103,6 +111,27 @@ export default function CoachClientFichePage() {
     }
     setScoresSemaine(scores)
 
+    // Charge le programme assigné au client (en cours)
+    const { data: assignData } = await supabase
+      .from('programme_assignations')
+      .select('*, programmes(titre, duree_semaines)')
+      .eq('client_id', clientId)
+      .eq('statut', 'en_cours')
+      .limit(1)
+      .single()
+
+    if (assignData) {
+      setAssignation(assignData)
+      setProgrammeTitre(assignData.programmes?.titre || '')
+      // Charge les phases du programme
+      const { data: phasesData } = await supabase
+        .from('programme_phases')
+        .select('*')
+        .eq('programme_id', assignData.programme_id)
+        .order('ordre')
+      setProgrammePhases(phasesData || [])
+    }
+
     // Marque les messages du client comme lus
     await supabase.from('messages')
       .update({ lu: true })
@@ -150,6 +179,70 @@ export default function CoachClientFichePage() {
       setTitreObj(''); setDescObj(''); setDateCibleObj(''); setModalObj(false)
     }
     setSavingObj(false)
+  }
+
+  // Ouvre le modal de sélection de programme
+  const ouvrirModalProgramme = async () => {
+    setLoadingProgs(true)
+    setModalProg(true)
+    const { data } = await supabase
+      .from('programmes')
+      .select('id, titre, duree_semaines, categorie')
+      .eq('coach_id', user.id)
+      .eq('actif', true)
+      .order('created_at', { ascending: false })
+    setProgrammes(data || [])
+    setLoadingProgs(false)
+  }
+
+  // Assigner un programme au client
+  const assignerProgramme = async (progId) => {
+    // Charge les phases pour créer automatiquement les habitudes/objectifs de la phase 1
+    const { data: phasesData } = await supabase
+      .from('programme_phases')
+      .select('*')
+      .eq('programme_id', progId)
+      .order('ordre')
+
+    const phase1 = phasesData?.[0]
+
+    // Crée l'assignation
+    const { data: newAssign } = await supabase
+      .from('programme_assignations')
+      .insert({
+        programme_id: progId,
+        client_id: clientId,
+        coach_id: user.id,
+        phase_actuelle: 1,
+      })
+      .select('*, programmes(titre, duree_semaines)')
+      .single()
+
+    // Crée automatiquement les habitudes de la phase 1
+    if (phase1?.habitudes?.length) {
+      const habInserts = phase1.habitudes.map(h => ({
+        client_id: clientId,
+        assigned_by: user.id,
+        nom: h.nom,
+        couleur: h.couleur || '#FF6B2B',
+      }))
+      await supabase.from('habitudes').insert(habInserts)
+    }
+
+    // Crée automatiquement les objectifs de la phase 1
+    if (phase1?.objectifs?.length) {
+      const objInserts = phase1.objectifs.map(o => ({
+        client_id: clientId,
+        assigned_by: user.id,
+        titre: o.titre,
+        peut_supprimer: false,
+      }))
+      await supabase.from('objectifs').insert(objInserts)
+    }
+
+    setModalProg(false)
+    // Recharger les données pour voir le programme et les nouvelles habitudes/objectifs
+    chargerDonnees()
   }
 
   // Envoie un message au client
@@ -270,6 +363,45 @@ export default function CoachClientFichePage() {
               </CardBody>
             </Card>
           </div>
+
+          {/* Programme en cours */}
+          {assignation ? (
+            <Card>
+              <CardBody>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Layers size={16} className="text-[#FF6B2B]" />
+                    <p className="text-white/40 text-[11px] uppercase tracking-wider">Programme en cours</p>
+                  </div>
+                  <span className="text-xs text-white/30">Phase {assignation.phase_actuelle}/{programmePhases.length}</span>
+                </div>
+                <p className="text-[#F5F5F3] font-semibold text-sm mb-2">{programmeTitre}</p>
+                {/* Barre progression phases */}
+                <div className="flex gap-1">
+                  {programmePhases.map((ph, i) => (
+                    <div
+                      key={ph.id}
+                      className="h-1.5 rounded-full flex-1"
+                      style={{
+                        backgroundColor: i < assignation.phase_actuelle ? '#FF6B2B' : 'rgba(255,255,255,0.08)',
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="text-white/30 text-xs mt-2">
+                  {programmePhases[assignation.phase_actuelle - 1]?.titre || ''}
+                </p>
+              </CardBody>
+            </Card>
+          ) : (
+            <button
+              onClick={ouvrirModalProgramme}
+              className="w-full py-3 rounded-xl border border-dashed border-white/[0.12] text-white/40 text-sm hover:text-white/70 hover:border-white/[0.2] transition-colors flex items-center justify-center gap-2"
+            >
+              <Layers size={16} />
+              Assigner un programme
+            </button>
+          )}
         </div>
       )}
 
@@ -425,6 +557,42 @@ export default function CoachClientFichePage() {
             <Button type="submit" loading={savingHab} className="flex-1">Assigner</Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal assigner programme */}
+      <Modal isOpen={modalProg} onClose={() => setModalProg(false)} title="Assigner un programme">
+        {loadingProgs ? (
+          <div className="py-8 flex justify-center">
+            <div className="w-6 h-6 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : programmes.length === 0 ? (
+          <div className="text-center py-8">
+            <Layers size={28} className="text-white/15 mx-auto mb-2" />
+            <p className="text-white/30 text-sm mb-3">Aucun programme créé</p>
+            <Button size="sm" onClick={() => { setModalProg(false); window.location.href = '/coach/programmes' }}>
+              Créer un programme
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {programmes.map((prog) => (
+              <button
+                key={prog.id}
+                onClick={() => assignerProgramme(prog.id)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-[#2A2A2A]/50 hover:bg-[#2A2A2A] text-left transition-colors"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                  <Layers size={18} className="text-[#FF6B2B]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[#F5F5F3] text-sm font-medium truncate">{prog.titre}</p>
+                  <p className="text-white/30 text-xs">{prog.duree_semaines} sem. {prog.categorie ? `· ${prog.categorie}` : ''}</p>
+                </div>
+                <Play size={14} className="text-[#FF6B2B] shrink-0" />
+              </button>
+            ))}
+          </div>
+        )}
       </Modal>
 
       {/* Modal assigner objectif */}

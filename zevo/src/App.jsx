@@ -26,6 +26,7 @@ import CoachDashboardPage from './pages/coach/CoachDashboardPage'
 import CoachClientsPage from './pages/coach/CoachClientsPage'
 import CoachClientFichePage from './pages/coach/CoachClientFichePage'
 import CoachMessagesPage from './pages/coach/CoachMessagesPage'
+import CoachProgrammesPage from './pages/coach/CoachProgrammesPage'
 import CoachParametresPage from './pages/coach/CoachParametresPage'
 
 // Pages admin
@@ -78,6 +79,7 @@ export default function App() {
             <Route path="dashboard" element={<CoachDashboardPage />} />
             <Route path="clients" element={<CoachClientsPage />} />
             <Route path="clients/:clientId" element={<CoachClientFichePage />} />
+            <Route path="programmes" element={<CoachProgrammesPage />} />
             <Route path="messages" element={<CoachMessagesPage />} />
             <Route path="parametres" element={<CoachParametresPage />} />
           </Route>

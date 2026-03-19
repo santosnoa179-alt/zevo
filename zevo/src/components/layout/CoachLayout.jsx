@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Users, MessageSquare, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, Users, MessageSquare, Settings, LogOut, Layers } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { ZevoLogo } from '../ui/ZevoLogo'
 
@@ -7,6 +7,7 @@ import { ZevoLogo } from '../ui/ZevoLogo'
 const navItems = [
   { to: '/coach/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/coach/clients', icon: Users, label: 'Clients' },
+  { to: '/coach/programmes', icon: Layers, label: 'Programmes' },
   { to: '/coach/messages', icon: MessageSquare, label: 'Messages' },
   { to: '/coach/parametres', icon: Settings, label: 'Paramètres' },
 ]

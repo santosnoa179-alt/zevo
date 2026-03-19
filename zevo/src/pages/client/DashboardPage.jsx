@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { calculerScoreBienEtre, couleurScore, labelScore } from '../../utils/wellbeing'
 import { Card, CardBody } from '../../components/ui/Card'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { CheckCircle2, Circle, AlertTriangle, Flame } from 'lucide-react'
+import { CheckCircle2, Circle, AlertTriangle, Flame, Layers } from 'lucide-react'
 
 // ── Jauge circulaire SVG pour le score bien-être ──
 function ScoreGauge({ score, couleur }) {
@@ -56,6 +56,10 @@ export default function DashboardPage() {
   const [sport, setSport] = useState(null)
   const [weekData, setWeekData] = useState([])
   const [toggling, setToggling] = useState(null)
+
+  // Programme en cours
+  const [programme, setProgramme] = useState(null)
+  const [programmePhases, setProgrammePhases] = useState([])
 
   const today = new Date().toISOString().split('T')[0]
 
@@ -115,6 +119,26 @@ export default function DashboardPage() {
     setSport(sportRes.data ?? null)
 
     await chargerComparatif(user.id, habs.length)
+
+    // Charge le programme en cours
+    const { data: assignData } = await supabase
+      .from('programme_assignations')
+      .select('*, programmes(titre, duree_semaines)')
+      .eq('client_id', user.id)
+      .eq('statut', 'en_cours')
+      .limit(1)
+      .maybeSingle()
+
+    if (assignData) {
+      setProgramme(assignData)
+      const { data: phasesData } = await supabase
+        .from('programme_phases')
+        .select('id, titre, ordre')
+        .eq('programme_id', assignData.programme_id)
+        .order('ordre')
+      setProgrammePhases(phasesData || [])
+    }
+
     setLoading(false)
   }, [user, today, chargerComparatif])
 
@@ -276,6 +300,40 @@ export default function DashboardPage() {
                 </li>
               ))}
             </ul>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* ── Mon programme ── */}
+      {programme && (
+        <Card>
+          <CardBody>
+            <div className="flex items-center gap-2 mb-3">
+              <Layers size={14} className="text-[#FF6B2B]" />
+              <p className="text-white/40 text-[11px] uppercase tracking-wider">Mon programme</p>
+            </div>
+            <p className="text-[#F5F5F3] font-semibold text-sm mb-1">{programme.programmes?.titre}</p>
+            <p className="text-white/30 text-xs mb-3">
+              Phase {programme.phase_actuelle}/{programmePhases.length}
+              {programmePhases[programme.phase_actuelle - 1] && (
+                <> — {programmePhases[programme.phase_actuelle - 1].titre}</>
+              )}
+            </p>
+            {/* Barre de progression des phases */}
+            <div className="flex gap-1">
+              {programmePhases.map((ph, i) => (
+                <div
+                  key={ph.id}
+                  className="h-2 rounded-full flex-1 transition-all"
+                  style={{
+                    backgroundColor: i < programme.phase_actuelle ? '#FF6B2B' : 'rgba(255,255,255,0.08)',
+                  }}
+                />
+              ))}
+            </div>
+            <p className="text-white/20 text-xs mt-2">
+              {Math.round((programme.phase_actuelle / programmePhases.length) * 100)}% du programme complété
+            </p>
           </CardBody>
         </Card>
       )}
