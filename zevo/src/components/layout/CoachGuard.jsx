@@ -18,14 +18,22 @@ export function CoachGuard({ children }) {
   useEffect(() => {
     if (!user) return
     const check = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('coaches')
         .select('abonnement_actif, stripe_customer_id')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
+
+      if (error) {
+        // Erreur RLS ou réseau — on ne bloque pas le coach
+        console.error('CoachGuard: erreur requête coaches:', error)
+        setAbonnementActif(true)
+        return
+      }
 
       if (data) {
-        setAbonnementActif(data.abonnement_actif)
+        // abonnement_actif peut être null si la colonne n'a pas encore de valeur
+        setAbonnementActif(data.abonnement_actif === true)
         setStripeCustomerId(data.stripe_customer_id)
       } else {
         // Pas encore de ligne dans coaches — probablement un nouveau coach sans abonnement
