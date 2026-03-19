@@ -20,6 +20,7 @@ import HabitudesPage from './pages/client/HabitudesPage'
 import ObjectifsPage from './pages/client/ObjectifsPage'
 import MessagesClientPage from './pages/client/MessagesPage'
 import ProfilPage from './pages/client/ProfilPage'
+import RessourcesPage from './pages/client/RessourcesPage'
 
 // Pages coach
 import CoachDashboardPage from './pages/coach/CoachDashboardPage'
@@ -27,6 +28,7 @@ import CoachClientsPage from './pages/coach/CoachClientsPage'
 import CoachClientFichePage from './pages/coach/CoachClientFichePage'
 import CoachMessagesPage from './pages/coach/CoachMessagesPage'
 import CoachProgrammesPage from './pages/coach/CoachProgrammesPage'
+import CoachBibliothequePage from './pages/coach/CoachBibliothequePage'
 import CoachParametresPage from './pages/coach/CoachParametresPage'
 
 // Pages admin
@@ -62,6 +64,7 @@ export default function App() {
             <Route path="objectifs" element={<ObjectifsPage />} />
             <Route path="messages" element={<MessagesClientPage />} />
             <Route path="profil" element={<ProfilPage />} />
+            <Route path="ressources" element={<RessourcesPage />} />
           </Route>
 
           {/* ── Section coach — protégée par rôle + guard abonnement ── */}
@@ -80,6 +83,7 @@ export default function App() {
             <Route path="clients" element={<CoachClientsPage />} />
             <Route path="clients/:clientId" element={<CoachClientFichePage />} />
             <Route path="programmes" element={<CoachProgrammesPage />} />
+            <Route path="bibliotheque" element={<CoachBibliothequePage />} />
             <Route path="messages" element={<CoachMessagesPage />} />
             <Route path="parametres" element={<CoachParametresPage />} />
           </Route>
