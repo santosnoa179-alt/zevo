@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Target, CheckSquare, MessageSquare, User, LogOut, BookOpen } from 'lucide-react'
+import { LayoutDashboard, Target, CheckSquare, MessageSquare, User, LogOut, BookOpen, ClipboardList } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useCoachTheme } from '../../hooks/useCoachTheme'
@@ -14,6 +14,7 @@ const ALL_NAV_ITEMS = [
   { to: '/app/objectifs', icon: Target, label: 'Objectifs', alwaysVisible: true },
   { to: '/app/messages', icon: MessageSquare, label: 'Messages', alwaysVisible: true },
   { to: '/app/ressources', icon: BookOpen, label: 'Ressources', alwaysVisible: true },
+  { to: '/app/formulaires', icon: ClipboardList, label: 'Formulaires', alwaysVisible: true },
   { to: '/app/profil', icon: User, label: 'Profil', alwaysVisible: true },
 ]
 
