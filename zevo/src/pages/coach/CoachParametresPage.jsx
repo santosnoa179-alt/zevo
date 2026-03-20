@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import { Save, Upload, ExternalLink, Loader2, Check } from 'lucide-react'
+import { Save, Upload, ExternalLink, Loader2, Check, Link2, CheckCircle } from 'lucide-react'
 
 // Couleurs prédéfinies proposées au coach
 const PRESETS = ['#FF6B2B', '#3B82F6', '#10B981', '#8B5CF6', '#EC4899', '#F59E0B', '#EF4444', '#06B6D4']
@@ -26,6 +26,9 @@ export default function CoachParametresPage() {
   const [plan, setPlan] = useState('starter')
 
   const [stripeCustomerId, setStripeCustomerId] = useState(null)
+  const [stripeAccountId, setStripeAccountId] = useState(null)
+  const [stripeOnboardingComplete, setStripeOnboardingComplete] = useState(false)
+  const [connectLoading, setConnectLoading] = useState(false)
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -39,7 +42,7 @@ export default function CoachParametresPage() {
     const load = async () => {
       const { data } = await supabase
         .from('coaches')
-        .select('nom_app, logo_url, couleur_primaire, message_bienvenue, modules, plan, stripe_customer_id')
+        .select('nom_app, logo_url, couleur_primaire, message_bienvenue, modules, plan, stripe_customer_id, stripe_account_id, stripe_onboarding_complete')
         .eq('id', user.id)
         .single()
 
@@ -50,6 +53,8 @@ export default function CoachParametresPage() {
         setMessageBienvenue(data.message_bienvenue || '')
         setPlan(data.plan || 'starter')
         setStripeCustomerId(data.stripe_customer_id || null)
+        setStripeAccountId(data.stripe_account_id || null)
+        setStripeOnboardingComplete(data.stripe_onboarding_complete || false)
         if (data.modules) {
           // Fusion pour garantir toutes les clés
           setModules(prev => ({ ...prev, ...data.modules }))
@@ -122,7 +127,7 @@ export default function CoachParametresPage() {
     if (!stripeCustomerId) return
     setPortalLoading(true)
     try {
-      const res = await fetch('/.netlify/functions/create-portal-session', {
+      const res = await fetch('/api/create-portal-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customerId: stripeCustomerId }),
@@ -133,6 +138,34 @@ export default function CoachParametresPage() {
     } catch (err) {
       console.error('Erreur Customer Portal:', err)
       setPortalLoading(false)
+    }
+  }
+
+  // Vérifie le retour d'onboarding Stripe Connect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('stripe_connect') === 'success') {
+      setStripeOnboardingComplete(true)
+      // Nettoyer l'URL
+      window.history.replaceState({}, '', '/coach/parametres')
+    }
+  }, [])
+
+  // Lancer l'onboarding Stripe Connect
+  const handleConnectStripe = async () => {
+    setConnectLoading(true)
+    try {
+      const res = await fetch('/api/connect-onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coachId: user.id }),
+      })
+      const { url, error } = await res.json()
+      if (error) throw new Error(error)
+      window.location.href = url
+    } catch (err) {
+      console.error('Erreur Stripe Connect:', err)
+      setConnectLoading(false)
     }
   }
 
@@ -284,6 +317,35 @@ export default function CoachParametresPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* ── Section Paiements en ligne (Stripe Connect) ── */}
+      <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-4">
+        <h2 className="text-[#F5F5F3] font-semibold text-lg">Paiements en ligne</h2>
+        <p className="text-white/40 text-sm -mt-2">Connectez votre compte Stripe pour recevoir les paiements de vos clients</p>
+
+        {stripeOnboardingComplete ? (
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/20">
+            <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+            <div>
+              <p className="text-green-400 text-sm font-medium">Paiements activés</p>
+              <p className="text-green-400/60 text-xs">Votre compte Stripe est connecté. Vos clients peuvent payer en ligne.</p>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={handleConnectStripe}
+            disabled={connectLoading}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[#635BFF] text-white text-sm font-semibold hover:bg-[#5851e6] transition-colors disabled:opacity-50"
+          >
+            {connectLoading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Link2 size={16} />
+            )}
+            {connectLoading ? 'Redirection...' : 'Connecter mon compte Stripe'}
+          </button>
+        )}
       </section>
 
       {/* ── Section Abonnement ── */}

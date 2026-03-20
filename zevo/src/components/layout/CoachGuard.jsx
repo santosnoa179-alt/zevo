@@ -62,7 +62,7 @@ export function CoachGuard({ children }) {
     if (stripeCustomerId) {
       setPortalLoading(true)
       try {
-        const res = await fetch('/.netlify/functions/create-portal-session', {
+        const res = await fetch('/api/create-portal-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ customerId: stripeCustomerId }),
