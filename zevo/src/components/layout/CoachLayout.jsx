@@ -7,6 +7,7 @@ import { ZevoLogo } from '../ui/ZevoLogo'
 const navItems = [
   { to: '/coach/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/coach/clients', icon: Users, label: 'Clients' },
+  { to: '/coach/messages', icon: MessageSquare, label: 'Messages' },
   { to: '/coach/programmes', icon: Layers, label: 'Programmes' },
   { to: '/coach/bibliotheque', icon: BookOpen, label: 'Bibliothèque' },
   { to: '/coach/formulaires', icon: ClipboardList, label: 'Formulaires' },
@@ -14,7 +15,6 @@ const navItems = [
   { to: '/coach/statistiques', icon: BarChart3, label: 'Statistiques' },
   { to: '/coach/abonnements', icon: CreditCard, label: 'Abonnements' },
   { to: '/coach/app-builder', icon: Paintbrush, label: 'App Builder' },
-  { to: '/coach/messages', icon: MessageSquare, label: 'Messages' },
   { to: '/coach/parametres', icon: Settings, label: 'Paramètres' },
 ]
 

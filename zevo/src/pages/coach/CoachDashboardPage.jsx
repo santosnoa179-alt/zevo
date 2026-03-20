@@ -175,7 +175,7 @@ export default function CoachDashboardPage() {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6 max-w-5xl animate-pulse">
+      <div className="p-6 space-y-6 w-full animate-pulse">
         <div className="h-8 w-48 bg-[#2A2A2A] rounded" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-[#2A2A2A] rounded-xl" />)}
@@ -190,7 +190,7 @@ export default function CoachDashboardPage() {
   const alertes = clients.filter(c => c.decrochage)
 
   return (
-    <div className="p-6 max-w-5xl space-y-6">
+    <div className="p-6 w-full space-y-6">
 
       {/* ── En-tête ── */}
       <div>
