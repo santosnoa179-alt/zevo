@@ -5,8 +5,18 @@ import { useToast } from '../../components/ui/Toast'
 import {
   Plus, ChevronRight, ChevronDown, Trash2, Users,
   Calendar, Layers, Loader2, Save, X, ArrowLeft, Edit3,
-  Dumbbell, Search, Apple, Image as ImageIcon
+  Dumbbell, Search, Apple, Image as ImageIcon,
+  BookOpen, FileText, Video, Link as LinkIcon, CheckSquare
 } from 'lucide-react'
+
+// Icônes & couleurs par type de ressource
+const RESSOURCE_ICONS = {
+  pdf: { icon: FileText, color: 'text-red-400', bg: 'bg-red-500/10' },
+  video: { icon: Video, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+  lien: { icon: LinkIcon, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  image: { icon: ImageIcon, color: 'text-green-400', bg: 'bg-green-500/10' },
+  guide: { icon: BookOpen, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+}
 
 const CATEGORIES = ['Remise en forme', 'Perte de poids', 'Prise de masse', 'Bien-être', 'Nutrition', 'Mindset', 'Autre']
 
@@ -25,11 +35,14 @@ export default function CoachProgrammesPage() {
 
   // Bibliothèque d'exercices
   const [allExercises, setAllExercises] = useState([])
+  // Bibliothèque de ressources du coach
+  const [allRessources, setAllRessources] = useState([])
 
   useEffect(() => {
     if (!user) return
     loadProgrammes()
     loadExercises()
+    loadRessources()
   }, [user])
 
   const loadExercises = async () => {
@@ -38,6 +51,15 @@ export default function CoachProgrammesPage() {
       .select('*')
       .order('category, name')
     setAllExercises(data || [])
+  }
+
+  const loadRessources = async () => {
+    const { data } = await supabase
+      .from('ressources')
+      .select('id, titre, type, url, categorie, description')
+      .eq('coach_id', user.id)
+      .order('created_at', { ascending: false })
+    setAllRessources(data || [])
   }
 
   const loadProgrammes = async () => {
@@ -74,7 +96,7 @@ export default function CoachProgrammesPage() {
     setPhases([{
       id: crypto.randomUUID(), titre: 'Phase 1', description: '',
       ordre: 1, duree_semaines: 1,
-      habitudes: [], objectifs: [], exercices: [],
+      habitudes: [], objectifs: [], exercices: [], ressources_attachees: [],
       calories_objectif: null, proteines_g: null, glucides_g: null, lipides_g: null,
       consignes_nutrition: '',
       isNew: true,
@@ -141,6 +163,7 @@ export default function CoachProgrammesPage() {
           habitudes: p.habitudes || [],
           objectifs: p.objectifs || [],
           exercices: p.exercices || [],
+          ressources_attachees: p.ressources_attachees || [],
           calories_objectif: p.calories_objectif || null,
           proteines_g: p.proteines_g || null,
           glucides_g: p.glucides_g || null,
@@ -173,7 +196,7 @@ export default function CoachProgrammesPage() {
       id: crypto.randomUUID(),
       titre: `Phase ${prev.length + 1}`,
       description: '', ordre: prev.length + 1, duree_semaines: 1,
-      habitudes: [], objectifs: [], exercices: [],
+      habitudes: [], objectifs: [], exercices: [], ressources_attachees: [],
       calories_objectif: null, proteines_g: null, glucides_g: null, lipides_g: null,
       consignes_nutrition: '',
       isNew: true,
@@ -286,6 +309,7 @@ export default function CoachProgrammesPage() {
                 index={index}
                 isLast={index === phases.length - 1}
                 allExercises={allExercises}
+                allRessources={allRessources}
                 onUpdate={(field, value) => updatePhase(index, field, value)}
                 onRemove={() => removePhase(index)}
                 onRemoveItem={(type, itemIndex) => removeFromPhase(index, type, itemIndex)}
@@ -402,9 +426,10 @@ export default function CoachProgrammesPage() {
 // ═══════════════════════════════════════
 // COMPOSANT PHASE EDITOR — Premium
 // ═══════════════════════════════════════
-function PhaseEditor({ phase, index, isLast, allExercises, onUpdate, onRemove, onRemoveItem, canRemove, setPhases }) {
+function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpdate, onRemove, onRemoveItem, canRemove, setPhases }) {
   const [expanded, setExpanded] = useState(true)
   const [showExercisePicker, setShowExercisePicker] = useState(false)
+  const [showResourcePicker, setShowResourcePicker] = useState(false)
   const [showNutrition, setShowNutrition] = useState(
     !!(phase.calories_objectif || phase.proteines_g || phase.consignes_nutrition)
   )
@@ -456,6 +481,26 @@ function PhaseEditor({ phase, index, isLast, allExercises, onUpdate, onRemove, o
       const updated = [...(p.exercices || [])]
       updated[exIndex] = { ...updated[exIndex], [field]: value }
       return { ...p, exercices: updated }
+    }))
+  }
+
+  const toggleResource = (ressource) => {
+    setPhases(prev => prev.map((p, i) => {
+      if (i !== index) return p
+      const current = p.ressources_attachees || []
+      const exists = current.some(r => r.id === ressource.id)
+      if (exists) {
+        return { ...p, ressources_attachees: current.filter(r => r.id !== ressource.id) }
+      } else {
+        return { ...p, ressources_attachees: [...current, {
+          id: ressource.id,
+          titre: ressource.titre,
+          type: ressource.type,
+          url: ressource.url,
+          categorie: ressource.categorie,
+          description: ressource.description,
+        }]}
+      }
     }))
   }
 
@@ -639,6 +684,55 @@ function PhaseEditor({ phase, index, isLast, allExercises, onUpdate, onRemove, o
                 </div>
               </div>
 
+              {/* ── Ressources additionnelles ── */}
+              <div className="bg-[#0D0D0D] rounded-xl border border-white/[0.06] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <BookOpen size={14} className="text-blue-400" />
+                    <label className="text-xs text-white/50 font-semibold uppercase tracking-wider">Ressources</label>
+                  </div>
+                  <button onClick={() => setShowResourcePicker(true)}
+                    className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                    <BookOpen size={14} /> Parcourir ma bibliothèque
+                  </button>
+                </div>
+
+                {(phase.ressources_attachees || []).length === 0 ? (
+                  <p className="text-white/20 text-xs text-center py-3">Aucune ressource attachée</p>
+                ) : (
+                  <div className="space-y-2">
+                    {(phase.ressources_attachees || []).map((res) => {
+                      const typeInfo = RESSOURCE_ICONS[res.type] || RESSOURCE_ICONS.lien
+                      const Icon = typeInfo.icon
+                      return (
+                        <div key={res.id} className="flex items-center gap-3 bg-[#1E1E1E] rounded-xl p-3 group">
+                          <div className={`w-10 h-10 rounded-lg ${typeInfo.bg} flex items-center justify-center flex-shrink-0`}>
+                            <Icon size={16} className={typeInfo.color} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[#F5F5F3] text-sm font-medium truncate">{res.titre}</p>
+                            <p className="text-white/30 text-xs capitalize">{res.type}{res.categorie ? ` · ${res.categorie}` : ''}</p>
+                          </div>
+                          <button onClick={() => toggleResource(res)}
+                            className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
+                            <X size={12} />
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {showResourcePicker && (
+                  <ResourcePicker
+                    ressources={allRessources}
+                    selected={phase.ressources_attachees || []}
+                    onToggle={toggleResource}
+                    onClose={() => setShowResourcePicker(false)}
+                  />
+                )}
+              </div>
+
               {/* ── Nutrition Toggle ── */}
               <div>
                 <button onClick={() => setShowNutrition(prev => !prev)}
@@ -791,6 +885,119 @@ function ExercisePicker({ exercises, onSelect, onClose }) {
               ))}
             </div>
           )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+// ═══════════════════════════════════════
+// RESOURCE PICKER — Parcourir la bibliothèque
+// ═══════════════════════════════════════
+function ResourcePicker({ ressources, selected, onToggle, onClose }) {
+  const [search, setSearch] = useState('')
+  const [filterType, setFilterType] = useState('')
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
+
+  const types = [...new Set(ressources.map(r => r.type))].sort()
+  const selectedIds = new Set(selected.map(r => r.id))
+
+  const filtered = ressources.filter(r => {
+    const matchSearch = !search ||
+      r.titre.toLowerCase().includes(search.toLowerCase()) ||
+      (r.categorie || '').toLowerCase().includes(search.toLowerCase())
+    const matchType = !filterType || r.type === filterType
+    return matchSearch && matchType
+  })
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.08] w-full max-w-xl max-h-[80vh] flex flex-col shadow-2xl"
+        onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
+          <div>
+            <h3 className="text-[#F5F5F3] font-semibold text-lg">Ma bibliothèque</h3>
+            <p className="text-white/30 text-xs mt-0.5">
+              {ressources.length} ressource{ressources.length > 1 ? 's' : ''} · {selected.length} sélectionnée{selected.length > 1 ? 's' : ''}
+            </p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Search + Filter */}
+        <div className="px-6 py-3 border-b border-white/[0.06] flex gap-3">
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+            <input ref={inputRef} type="text" value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher une ressource..."
+              className="w-full bg-[#0D0D0D] border border-white/[0.06] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:border-blue-500/50" />
+          </div>
+          <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
+            className="bg-[#0D0D0D] border border-white/[0.06] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-blue-500/50">
+            <option value="">Tous types</option>
+            {types.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+          </select>
+        </div>
+
+        {/* Resource List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {filtered.length === 0 ? (
+            <div className="text-center py-8">
+              <BookOpen size={32} className="text-white/15 mx-auto mb-3" />
+              <p className="text-white/30 text-sm">
+                {ressources.length === 0 ? 'Aucune ressource dans ta bibliothèque' : 'Aucun résultat'}
+              </p>
+              {ressources.length === 0 && (
+                <p className="text-white/20 text-xs mt-1">Ajoute des ressources depuis l'onglet Bibliothèque</p>
+              )}
+            </div>
+          ) : (
+            filtered.map((res) => {
+              const isSelected = selectedIds.has(res.id)
+              const typeInfo = RESSOURCE_ICONS[res.type] || RESSOURCE_ICONS.lien
+              const Icon = typeInfo.icon
+              return (
+                <button key={res.id} onClick={() => onToggle(res)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
+                    isSelected
+                      ? 'bg-blue-500/10 border border-blue-500/30'
+                      : 'bg-[#0D0D0D] border border-white/[0.04] hover:border-white/[0.1]'
+                  }`}>
+                  <div className={`w-10 h-10 rounded-lg ${typeInfo.bg} flex items-center justify-center flex-shrink-0`}>
+                    <Icon size={16} className={typeInfo.color} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[#F5F5F3] text-sm font-medium truncate">{res.titre}</p>
+                    <p className="text-white/30 text-xs capitalize mt-0.5">
+                      {res.type}{res.categorie ? ` · ${res.categorie}` : ''}
+                    </p>
+                  </div>
+                  <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all ${
+                    isSelected ? 'bg-blue-500' : 'border border-white/20'
+                  }`}>
+                    {isSelected && <CheckSquare size={12} className="text-white" />}
+                  </div>
+                </button>
+              )
+            })
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-3 border-t border-white/[0.06] flex justify-end">
+          <button onClick={onClose}
+            className="px-5 py-2.5 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20">
+            Valider ({selected.length})
+          </button>
         </div>
       </div>
     </div>

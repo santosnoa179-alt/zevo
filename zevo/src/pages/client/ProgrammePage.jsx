@@ -4,8 +4,17 @@ import { supabase } from '../../lib/supabase'
 import { Card, CardBody } from '../../components/ui/Card'
 import {
   Layers, ChevronRight, ChevronDown, Dumbbell, Apple,
-  Loader2, CheckCircle2, Image as ImageIcon
+  Loader2, CheckCircle2, Image as ImageIcon,
+  BookOpen, FileText, Video, Link as LinkIcon, ExternalLink, Download
 } from 'lucide-react'
+
+const RESSOURCE_ICONS = {
+  pdf: { icon: FileText, color: 'text-red-400', bg: 'bg-red-500/10', action: Download },
+  video: { icon: Video, color: 'text-purple-400', bg: 'bg-purple-500/10', action: ExternalLink },
+  lien: { icon: LinkIcon, color: 'text-blue-400', bg: 'bg-blue-500/10', action: ExternalLink },
+  image: { icon: ImageIcon, color: 'text-green-400', bg: 'bg-green-500/10', action: Download },
+  guide: { icon: BookOpen, color: 'text-yellow-400', bg: 'bg-yellow-500/10', action: ExternalLink },
+}
 
 export default function ProgrammePage() {
   const { user } = useAuth()
@@ -272,6 +281,42 @@ export default function ProgrammePage() {
                             &#x1F3AF; {o.titre}
                           </span>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Ressources du Coach */}
+                  {(phase.ressources_attachees?.length || 0) > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <BookOpen size={14} className="text-blue-400" />
+                        <p className="text-white/50 text-[11px] uppercase tracking-wider font-semibold">
+                          Ressources du coach ({phase.ressources_attachees.length})
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {phase.ressources_attachees.map((res, ri) => {
+                          const typeInfo = RESSOURCE_ICONS[res.type] || RESSOURCE_ICONS.lien
+                          const Icon = typeInfo.icon
+                          const ActionIcon = typeInfo.action
+                          return (
+                            <a key={ri} href={res.url} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-3 bg-[#0D0D0D] rounded-xl p-3 border border-white/[0.04] hover:border-white/[0.12] transition-all group">
+                              <div className={`w-10 h-10 rounded-lg ${typeInfo.bg} flex items-center justify-center flex-shrink-0`}>
+                                <Icon size={16} className={typeInfo.color} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[#F5F5F3] text-sm font-medium truncate group-hover:text-blue-400 transition-colors">
+                                  {res.titre}
+                                </p>
+                                <p className="text-white/25 text-[10px] capitalize mt-0.5">
+                                  {res.type}{res.categorie ? ` · ${res.categorie}` : ''}
+                                </p>
+                              </div>
+                              <ActionIcon size={14} className="text-white/20 group-hover:text-white/50 transition-colors flex-shrink-0" />
+                            </a>
+                          )
+                        })}
                       </div>
                     </div>
                   )}
