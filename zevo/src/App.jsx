@@ -35,6 +35,7 @@ import CoachFormulairesPage from './pages/coach/CoachFormulairesPage'
 import CoachRapportsPage from './pages/coach/CoachRapportsPage'
 import CoachStatistiquesPage from './pages/coach/CoachStatistiquesPage'
 import CoachAbonnementsPage from './pages/coach/CoachAbonnementsPage'
+import CoachAppBuilderPage from './pages/coach/CoachAppBuilderPage'
 import CoachParametresPage from './pages/coach/CoachParametresPage'
 
 // Pages admin
@@ -96,6 +97,7 @@ export default function App() {
             <Route path="rapports" element={<CoachRapportsPage />} />
             <Route path="statistiques" element={<CoachStatistiquesPage />} />
             <Route path="abonnements" element={<CoachAbonnementsPage />} />
+            <Route path="app-builder" element={<CoachAppBuilderPage />} />
             <Route path="messages" element={<CoachMessagesPage />} />
             <Route path="parametres" element={<CoachParametresPage />} />
           </Route>
