@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Users, MessageSquare, Settings, LogOut, Layers, BookOpen, ClipboardList, FileText } from 'lucide-react'
+import { LayoutDashboard, Users, MessageSquare, Settings, LogOut, Layers, BookOpen, ClipboardList, FileText, BarChart3 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { ZevoLogo } from '../ui/ZevoLogo'
 
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/coach/bibliotheque', icon: BookOpen, label: 'Bibliothèque' },
   { to: '/coach/formulaires', icon: ClipboardList, label: 'Formulaires' },
   { to: '/coach/rapports', icon: FileText, label: 'Rapports' },
+  { to: '/coach/statistiques', icon: BarChart3, label: 'Statistiques' },
   { to: '/coach/messages', icon: MessageSquare, label: 'Messages' },
   { to: '/coach/parametres', icon: Settings, label: 'Paramètres' },
 ]
