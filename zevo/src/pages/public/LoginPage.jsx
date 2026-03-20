@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useRole } from '../../hooks/useRole'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
-import { supabase } from '../../lib/supabase'
 
 // Page de connexion — design Zevo noir/orange
 export default function LoginPage() {
@@ -14,8 +14,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [forgotMode, setForgotMode] = useState(false)
   const [resetSent, setResetSent] = useState(false)
-  const { login, resetPassword } = useAuth()
+  const { user, loading: authLoading, login, resetPassword } = useAuth()
+  const { role, loading: roleLoading } = useRole()
   const navigate = useNavigate()
+
+  // Si l'utilisateur est déjà connecté, redirige vers sa section
+  // Ceci évite la boucle : user arrive sur /login alors qu'il est déjà auth
+  useEffect(() => {
+    if (authLoading || roleLoading) return
+    if (!user || !role) return
+
+    console.log('LoginPage — user déjà connecté, rôle:', role, '→ redirection')
+    const redirects = { admin: '/admin', coach: '/coach', client: '/app' }
+    navigate(redirects[role] ?? '/app', { replace: true })
+  }, [user, role, authLoading, roleLoading, navigate])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -23,21 +35,14 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // login() retourne { user, session }
-      const { user } = await login(email, password)
-
-      // Récupère le rôle via user.id (respecte la RLS — ne pas utiliser l'email)
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      const redirects = { admin: '/admin', coach: '/coach', client: '/app' }
-      navigate(redirects[profile?.role] ?? '/app', { replace: true })
+      console.log('LoginPage — tentative de connexion:', email)
+      await login(email, password)
+      console.log('LoginPage — login réussi, useRole va détecter le rôle automatiquement')
+      // Pas besoin de rediriger ici — le useEffect ci-dessus s'en charge
+      // quand useRole aura résolu le rôle après que useAuth ait mis à jour le user
     } catch (err) {
+      console.error('LoginPage — erreur login:', err)
       setError('Email ou mot de passe incorrect.')
-    } finally {
       setLoading(false)
     }
   }
@@ -53,6 +58,15 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Pendant le chargement initial (refresh page alors qu'on est déjà connecté)
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (

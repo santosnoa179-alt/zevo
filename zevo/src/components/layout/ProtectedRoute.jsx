@@ -7,7 +7,9 @@ export function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading: authLoading } = useAuth()
   const { role, loading: roleLoading } = useRole()
 
-  // Affiche un spinner pendant le chargement
+  console.log('ProtectedRoute — authLoading:', authLoading, '| roleLoading:', roleLoading, '| user:', !!user, '| role:', role, '| allowed:', allowedRoles)
+
+  // Affiche un spinner tant que auth OU role n'est pas résolu
   if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
@@ -18,13 +20,16 @@ export function ProtectedRoute({ children, allowedRoles }) {
 
   // Non connecté → page de login
   if (!user) {
+    console.log('ProtectedRoute — pas de user → /login')
     return <Navigate to="/login" replace />
   }
 
   // Mauvais rôle → redirection vers la bonne section
   if (allowedRoles && !allowedRoles.includes(role)) {
     const redirects = { admin: '/admin', coach: '/coach', client: '/app' }
-    return <Navigate to={redirects[role] ?? '/login'} replace />
+    const target = redirects[role]
+    console.log('ProtectedRoute — mauvais rôle, redirect vers:', target || '/login')
+    return <Navigate to={target ?? '/login'} replace />
   }
 
   return children
