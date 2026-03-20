@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import { Plus, Lock, Archive, Target, Calendar } from 'lucide-react'
+import { Confetti } from '../../components/ui/Confetti'
 
 // Barre de progression colorée selon le score
 function ProgressBar({ score }) {
@@ -33,6 +34,7 @@ export default function ObjectifsPage() {
   const [description, setDescription] = useState('')
   const [dateCible, setDateCible] = useState('')
   const [ajout, setAjout] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   const chargerObjectifs = useCallback(async () => {
     if (!user) return
@@ -57,6 +59,11 @@ export default function ObjectifsPage() {
     setObjectifs(prev => prev.map(o => o.id === objectifId ? { ...o, score } : o))
     setEditScore(prev => ({ ...prev, [objectifId]: undefined }))
     setSaving(null)
+    // Confettis quand 100% atteint !
+    if (score === 100) {
+      setShowConfetti(false)
+      setTimeout(() => setShowConfetti(true), 50)
+    }
   }
 
   // Archive un objectif accompli
@@ -100,6 +107,7 @@ export default function ObjectifsPage() {
 
   return (
     <div className="p-4 space-y-4 max-w-2xl">
+      <Confetti active={showConfetti} />
 
       {/* ── En-tête ── */}
       <div className="pt-4 flex items-center justify-between">

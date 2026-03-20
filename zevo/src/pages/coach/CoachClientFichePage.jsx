@@ -9,8 +9,9 @@ import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import {
   ArrowLeft, CheckCircle2, Circle, Target, MessageSquare,
-  Plus, Lock, TrendingUp, Layers, Play, Pause, CheckSquare
+  Plus, Lock, TrendingUp, Layers, Play, Pause, CheckSquare, Download
 } from 'lucide-react'
+import { exportHabitudes, exportObjectifs } from '../../utils/exportCsv'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 const ONGLETS = ['Aperçu', 'Habitudes', 'Objectifs', 'Messages']
@@ -319,6 +320,27 @@ export default function CoachClientFichePage() {
             {o}
           </button>
         ))}
+      </div>
+
+      {/* ── Export CSV ── */}
+      <div className="flex gap-2 justify-end">
+        <button
+          onClick={() => {
+            const il30j = new Date(); il30j.setDate(il30j.getDate() - 30)
+            exportHabitudes(supabase, clientId, profil?.nom, il30j.toISOString().split('T')[0], new Date().toISOString().split('T')[0])
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-white/[0.04] border border-white/[0.08] transition-colors"
+        >
+          <Download size={12} />
+          Export habitudes (30j)
+        </button>
+        <button
+          onClick={() => exportObjectifs(supabase, clientId, profil?.nom)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-white/[0.04] border border-white/[0.08] transition-colors"
+        >
+          <Download size={12} />
+          Export objectifs
+        </button>
       </div>
 
       {/* ══════════ ONGLET APERÇU ══════════ */}

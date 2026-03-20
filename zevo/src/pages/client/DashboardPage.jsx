@@ -5,6 +5,7 @@ import { calculerScoreBienEtre, couleurScore, labelScore } from '../../utils/wel
 import { Card, CardBody } from '../../components/ui/Card'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { CheckCircle2, Circle, AlertTriangle, Flame, Layers } from 'lucide-react'
+import { Confetti, StreakMilestone } from '../../components/ui/Confetti'
 
 // ── Jauge circulaire SVG pour le score bien-être ──
 function ScoreGauge({ score, couleur }) {
@@ -56,6 +57,9 @@ export default function DashboardPage() {
   const [sport, setSport] = useState(null)
   const [weekData, setWeekData] = useState([])
   const [toggling, setToggling] = useState(null)
+
+  const [streak, setStreak] = useState(0)
+  const [showAllDoneConfetti, setShowAllDoneConfetti] = useState(false)
 
   // Programme en cours
   const [programme, setProgramme] = useState(null)
@@ -120,6 +124,27 @@ export default function DashboardPage() {
 
     await chargerComparatif(user.id, habs.length)
 
+    // Calcule le streak (jours consécutifs avec au moins 1 habitude cochée)
+    if (habs.length > 0) {
+      const { data: streakLogs } = await supabase
+        .from('habitudes_log')
+        .select('date')
+        .eq('client_id', user.id)
+        .gte('date', new Date(Date.now() - 120 * 86400000).toISOString().split('T')[0])
+        .order('date', { ascending: false })
+      const dates = [...new Set((streakLogs || []).map(l => l.date))].sort().reverse()
+      let s = 0
+      for (let i = 0; i < 120; i++) {
+        const d = new Date()
+        d.setDate(d.getDate() - i)
+        const ds = d.toISOString().split('T')[0]
+        if (dates.includes(ds)) { s++ }
+        else if (i === 0) { continue } // aujourd'hui pas encore rempli = ok
+        else { break }
+      }
+      setStreak(s)
+    }
+
     // Charge le programme en cours
     const { data: assignData } = await supabase
       .from('programme_assignations')
@@ -158,7 +183,15 @@ export default function DashboardPage() {
     } else {
       await supabase.from('habitudes_log')
         .insert({ habitude_id: habitudeId, client_id: user.id, date: today })
-      setLogAujourdhui(prev => [...prev, habitudeId])
+      setLogAujourdhui(prev => {
+        const next = [...prev, habitudeId]
+        // Confetti si toutes les habitudes sont cochées !
+        if (next.length === habitudes.length && habitudes.length > 0) {
+          setShowAllDoneConfetti(false)
+          setTimeout(() => setShowAllDoneConfetti(true), 50)
+        }
+        return next
+      })
     }
     setToggling(null)
   }
@@ -186,6 +219,8 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 space-y-4 max-w-2xl">
+      <Confetti active={showAllDoneConfetti} />
+      <StreakMilestone streak={streak} />
 
       {/* ── En-tête ── */}
       <div className="pt-4">

@@ -38,3 +38,43 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #FF6B2B;
 }
+
+/* ── Animations ── */
+
+/* Confetti — chute depuis le haut */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(var(--translate-y, 400px)) translateX(var(--translate-x, 0px)) rotate(var(--rotate, 720deg));
+    opacity: 0;
+  }
+}
+
+.animate-confetti-fall {
+  animation: confetti-fall 2.5s ease-out forwards;
+}
+
+/* Bounce-in pour les milestones */
+@keyframes bounce-in {
+  0% { transform: translateX(-50%) scale(0.3) translateY(-30px); opacity: 0; }
+  50% { transform: translateX(-50%) scale(1.05) translateY(0); opacity: 1; }
+  70% { transform: translateX(-50%) scale(0.95); }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Fade-in up pour les éléments */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out forwards;
+}
