@@ -218,10 +218,9 @@ create table if not exists messages (
 -- ============================================================
 -- 15. TABLE ADMIN
 -- ============================================================
-create table if not exists admin (
-  id uuid references profiles(id) primary key,
-  email text unique not null
-);
+-- Table admin déplacée dans schema-admin.sql
+-- Utilise "admins" (pluriel) + is_admin() SECURITY DEFINER
+-- Voir schema-admin.sql pour la définition
 
 
 -- ============================================================
@@ -259,7 +258,7 @@ alter table sport_log enable row level security;
 alter table routines enable row level security;
 alter table budget enable row level security;
 alter table messages enable row level security;
-alter table admin enable row level security;
+-- admin RLS géré dans schema-admin.sql (RLS désactivé sur admins)
 
 
 -- ── PROFILES ──
@@ -268,7 +267,7 @@ alter table admin enable row level security;
 create policy "profiles_select_own" on profiles
   for select using (
     auth.uid() = id
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "profiles_update_own" on profiles
@@ -281,7 +280,7 @@ create policy "profiles_update_own" on profiles
 create policy "coaches_select" on coaches
   for select using (
     auth.uid() = id
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "coaches_update_own" on coaches
@@ -299,7 +298,7 @@ create policy "clients_select" on clients
   for select using (
     auth.uid() = id
     or auth.uid() = coach_id
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "clients_update_own" on clients
@@ -315,7 +314,7 @@ create policy "clients_insert" on clients
 create policy "invitations_select" on invitations
   for select using (
     auth.uid() = coach_id
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "invitations_insert" on invitations
@@ -324,7 +323,7 @@ create policy "invitations_insert" on invitations
 create policy "invitations_update" on invitations
   for update using (
     auth.uid() = coach_id
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 -- Politique spéciale : lecture publique du token pour la page /invite/:token
@@ -338,7 +337,7 @@ create policy "habitudes_select" on habitudes
     auth.uid() = client_id
     or auth.uid() = assigned_by
     or exists (select 1 from clients c where c.id = client_id and c.coach_id = auth.uid())
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "habitudes_insert" on habitudes
@@ -365,7 +364,7 @@ create policy "habitudes_log_select" on habitudes_log
   for select using (
     auth.uid() = client_id
     or exists (select 1 from clients c where c.id = client_id and c.coach_id = auth.uid())
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "habitudes_log_insert" on habitudes_log
@@ -381,7 +380,7 @@ create policy "objectifs_select" on objectifs
     auth.uid() = client_id
     or auth.uid() = assigned_by
     or exists (select 1 from clients c where c.id = client_id and c.coach_id = auth.uid())
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "objectifs_insert" on objectifs
@@ -407,7 +406,7 @@ create policy "taches_select" on taches
   for select using (
     auth.uid() = client_id
     or exists (select 1 from clients c where c.id = client_id and c.coach_id = auth.uid())
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "taches_insert" on taches
@@ -425,7 +424,7 @@ create policy "sommeil_log_select" on sommeil_log
   for select using (
     auth.uid() = client_id
     or exists (select 1 from clients c where c.id = client_id and c.coach_id = auth.uid())
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "sommeil_log_insert" on sommeil_log
@@ -440,7 +439,7 @@ create policy "humeur_log_select" on humeur_log
   for select using (
     auth.uid() = client_id
     or exists (select 1 from clients c where c.id = client_id and c.coach_id = auth.uid())
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "humeur_log_insert" on humeur_log
@@ -455,7 +454,7 @@ create policy "sport_log_select" on sport_log
   for select using (
     auth.uid() = client_id
     or exists (select 1 from clients c where c.id = client_id and c.coach_id = auth.uid())
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "sport_log_insert" on sport_log
@@ -470,7 +469,7 @@ create policy "routines_select" on routines
   for select using (
     auth.uid() = client_id
     or exists (select 1 from clients c where c.id = client_id and c.coach_id = auth.uid())
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "routines_insert" on routines
@@ -485,7 +484,7 @@ create policy "budget_select" on budget
   for select using (
     auth.uid() = client_id
     or exists (select 1 from clients c where c.id = client_id and c.coach_id = auth.uid())
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "budget_insert" on budget
@@ -500,7 +499,7 @@ create policy "messages_select" on messages
   for select using (
     auth.uid() = coach_id
     or auth.uid() = client_id
-    or exists (select 1 from admin where id = auth.uid())
+    or is_admin()
   );
 
 create policy "messages_insert" on messages
@@ -515,11 +514,7 @@ create policy "messages_update_lu" on messages
 
 
 -- ── ADMIN ──
--- Seuls les admins existants peuvent lire la table admin
-create policy "admin_select" on admin
-  for select using (
-    exists (select 1 from admin where id = auth.uid())
-  );
+-- Géré dans schema-admin.sql (RLS désactivé + is_admin() SECURITY DEFINER)
 
 
 -- ============================================================

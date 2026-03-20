@@ -64,7 +64,7 @@ create policy "Coach supprime ses ressources"
 -- Admin voit tout
 create policy "Admin voit toutes les ressources"
   on ressources for select
-  using (exists (select 1 from admin where id = auth.uid()));
+  using (is_admin());
 
 
 -- Partages : coach voit les siens, client voit les siens

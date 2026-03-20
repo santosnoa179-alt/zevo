@@ -93,7 +93,7 @@ create policy "Coach supprime ses programmes"
 -- Admin voit tout
 create policy "Admin voit tous les programmes"
   on programmes for select
-  using (exists (select 1 from admin where id = auth.uid()));
+  using (is_admin());
 
 
 -- Phases : accessibles via le programme (même coach)
@@ -154,4 +154,4 @@ create policy "Coach supprime ses assignations"
 -- Admin voit toutes les assignations
 create policy "Admin voit toutes les assignations"
   on programme_assignations for select
-  using (exists (select 1 from admin where id = auth.uid()));
+  using (is_admin());

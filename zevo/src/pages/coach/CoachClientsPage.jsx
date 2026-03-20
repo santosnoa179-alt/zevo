@@ -35,6 +35,7 @@ export default function CoachClientsPage() {
   const [envoi, setEnvoi] = useState(false)
   const [invitSuccess, setInvitSuccess] = useState(null)
   const [invitationsEnAttente, setInvitationsEnAttente] = useState([])
+  const [invitError, setInvitError] = useState('')
 
   const today = new Date().toISOString().split('T')[0]
 
@@ -96,18 +97,33 @@ export default function CoachClientsPage() {
   const envoyerInvitation = async (e) => {
     e.preventDefault()
     setEnvoi(true)
+    setInvitError('')
 
-    const { data, error } = await supabase
-      .from('invitations')
-      .insert({ coach_id: user.id, email: invitEmail.trim() })
-      .select()
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('invitations')
+        .insert({ coach_id: user.id, email: invitEmail.trim() })
+        .select()
+        .single()
 
-    if (!error && data) {
-      const lien = `${window.location.origin}/invite/${data.token}`
-      setInvitSuccess({ email: invitEmail, lien, prenom: invitPrenom })
-      setInvitEmail(''); setInvitPrenom('')
-      setInvitationsEnAttente(prev => [data, ...prev])
+      if (error) {
+        console.error('Erreur invitation:', error)
+        setInvitError(error.message?.includes('duplicate')
+          ? 'Une invitation a déjà été envoyée à cet email.'
+          : 'Erreur lors de la création de l\'invitation. Réessayez.')
+        setEnvoi(false)
+        return
+      }
+
+      if (data) {
+        const lien = `${window.location.origin}/invite/${data.token}`
+        setInvitSuccess({ email: invitEmail, lien, prenom: invitPrenom })
+        setInvitEmail(''); setInvitPrenom('')
+        setInvitationsEnAttente(prev => [data, ...prev])
+      }
+    } catch (err) {
+      console.error('Erreur inattendue invitation:', err)
+      setInvitError('Erreur réseau. Vérifiez votre connexion.')
     }
 
     setEnvoi(false)
@@ -143,7 +159,7 @@ export default function CoachClientsPage() {
           <h1 className="text-[#F5F5F3] text-2xl font-bold">Clients</h1>
           <p className="text-white/40 text-sm mt-0.5">{clients.length} client{clients.length !== 1 ? 's' : ''}</p>
         </div>
-        <Button onClick={() => { setModalInvit(true); setInvitSuccess(null) }}>
+        <Button onClick={() => { setModalInvit(true); setInvitSuccess(null); setInvitError('') }}>
           <UserPlus size={15} /> Inviter
         </Button>
       </div>
@@ -257,6 +273,11 @@ export default function CoachClientsPage() {
               onChange={(e) => setInvitEmail(e.target.value)}
               required
             />
+            {invitError && (
+              <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                {invitError}
+              </p>
+            )}
             <p className="text-white/30 text-xs">
               Un lien d'invitation valable 7 jours sera généré. Copiez-le et envoyez-le à votre client.
             </p>
