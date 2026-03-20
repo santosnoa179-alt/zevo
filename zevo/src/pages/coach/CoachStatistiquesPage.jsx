@@ -239,7 +239,7 @@ export default function CoachStatistiquesPage() {
 
   if (loading) {
     return (
-      <div className="p-6 max-w-6xl mx-auto">
+      <div className="p-6 w-full">
         <div className="h-8 w-48 bg-[#1E1E1E] rounded-lg animate-pulse mb-8" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-[#1E1E1E] rounded-xl animate-pulse" />)}
@@ -252,7 +252,7 @@ export default function CoachStatistiquesPage() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 w-full">
       {/* Header + filtres */}
       <div className="flex items-center justify-between mb-8">
         <div>

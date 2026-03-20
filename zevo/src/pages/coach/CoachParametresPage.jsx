@@ -178,7 +178,7 @@ export default function CoachParametresPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-8">
+    <div className="p-6 w-full max-w-2xl space-y-8">
       {/* Titre */}
       <div>
         <h1 className="text-[#F5F5F3] text-2xl font-bold mb-1">Paramètres</h1>

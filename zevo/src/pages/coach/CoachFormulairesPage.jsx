@@ -377,7 +377,7 @@ export default function CoachFormulairesPage() {
   // ═══════════════════════════════════════
   if (vue === 'liste') {
     return (
-      <div className="p-6 max-w-6xl mx-auto">
+      <div className="p-6 w-full">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-[#F5F5F3]">Formulaires</h1>
@@ -561,7 +561,7 @@ export default function CoachFormulairesPage() {
   // ═══════════════════════════════════════
   if (vue === 'reponses') {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-6 w-full max-w-4xl">
         <button
           onClick={() => setVue('liste')}
           className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-6 transition-colors"
@@ -637,7 +637,7 @@ export default function CoachFormulairesPage() {
   // RENDER — Vue éditeur (builder)
   // ═══════════════════════════════════════
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 w-full max-w-4xl">
       <button
         onClick={() => setVue('liste')}
         className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-6 transition-colors"

@@ -114,7 +114,7 @@ export default function CoachAppBuilderPage() {
   // ── UPSELL : plan inférieur ──
   if (!isUnlimited) {
     return (
-      <div className="p-6 max-w-3xl mx-auto">
+      <div className="p-6 w-full max-w-3xl">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-[#F5F5F3]">App Builder</h1>
           <p className="text-white/50 text-sm mt-1">Personnalisez l'app de vos clients en détail</p>

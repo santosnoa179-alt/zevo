@@ -120,7 +120,7 @@ export default function CoachAbonnementsPage() {
     .reduce((s, p) => s + (p.montant || 0), 0) / 100
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 w-full">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#F5F5F3]">Abonnements</h1>
         <p className="text-white/50 text-sm mt-1">Gérez vos offres de coaching et suivez les paiements</p>

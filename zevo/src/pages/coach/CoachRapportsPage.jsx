@@ -424,7 +424,7 @@ export default function CoachRapportsPage() {
   // RENDER
   // ═══════════════════════════════════════
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 w-full">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#F5F5F3]">Rapports</h1>
         <p className="text-white/50 text-sm mt-1">Générez des rapports PDF professionnels pour vos clients</p>

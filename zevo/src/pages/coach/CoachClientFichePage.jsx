@@ -274,7 +274,7 @@ export default function CoachClientFichePage() {
 
   if (loading) {
     return (
-      <div className="p-6 max-w-3xl animate-pulse space-y-4">
+      <div className="p-6 w-full max-w-4xl animate-pulse space-y-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-[#2A2A2A] rounded" />
           <div className="h-7 w-48 bg-[#2A2A2A] rounded" />
@@ -286,7 +286,7 @@ export default function CoachClientFichePage() {
   }
 
   return (
-    <div className="p-6 max-w-3xl space-y-5">
+    <div className="p-6 w-full max-w-4xl space-y-5">
 
       {/* ── En-tête ── */}
       <div className="flex items-center gap-3">

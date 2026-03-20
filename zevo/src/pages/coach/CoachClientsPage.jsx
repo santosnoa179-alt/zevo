@@ -123,7 +123,7 @@ export default function CoachClientsPage() {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-4 max-w-4xl animate-pulse">
+      <div className="p-6 space-y-4 w-full animate-pulse">
         <div className="flex justify-between items-center">
           <div className="h-8 w-32 bg-[#2A2A2A] rounded" />
           <div className="h-10 w-36 bg-[#2A2A2A] rounded-lg" />
@@ -135,7 +135,7 @@ export default function CoachClientsPage() {
   }
 
   return (
-    <div className="p-6 max-w-4xl space-y-5">
+    <div className="p-6 w-full space-y-5">
 
       {/* ── En-tête ── */}
       <div className="flex items-center justify-between">

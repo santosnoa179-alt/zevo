@@ -243,7 +243,7 @@ export default function CoachProgrammesPage() {
   // ═══════════════════════════════════════
   if (view === 'editor') {
     return (
-      <div className="p-6 max-w-3xl mx-auto space-y-6">
+      <div className="p-6 w-full max-w-3xl space-y-6">
         {/* Header éditeur */}
         <div className="flex items-center gap-3">
           <button
@@ -366,7 +366,7 @@ export default function CoachProgrammesPage() {
   // VUE LISTE
   // ═══════════════════════════════════════
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 w-full space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
