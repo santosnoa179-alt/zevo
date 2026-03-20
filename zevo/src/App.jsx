@@ -38,6 +38,7 @@ const ProfilPage = lazy(() => import('./pages/client/ProfilPage'))
 const RessourcesPage = lazy(() => import('./pages/client/RessourcesPage'))
 const FormulairesPage = lazy(() => import('./pages/client/FormulairesPage'))
 const AbonnementPage = lazy(() => import('./pages/client/AbonnementPage'))
+const ProgrammePage = lazy(() => import('./pages/client/ProgrammePage'))
 
 // ── Pages coach (lazy) ──
 const CoachDashboardPage = lazy(() => import('./pages/coach/CoachDashboardPage'))
@@ -89,6 +90,7 @@ export default function App() {
               <Route path="ressources" element={<RessourcesPage />} />
               <Route path="formulaires" element={<FormulairesPage />} />
               <Route path="abonnement" element={<AbonnementPage />} />
+              <Route path="programme" element={<ProgrammePage />} />
             </Route>
 
             {/* ── Section coach — protégée par rôle + guard abonnement ── */}

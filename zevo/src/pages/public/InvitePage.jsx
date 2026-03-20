@@ -66,10 +66,12 @@ export default function InvitePage() {
         .update({ nom: prenom, role: 'client' })
         .eq('id', authData.user.id)
 
-      // Crée l'entrée dans la table clients
+      // Crée l'entrée dans la table clients (actif dès l'inscription)
       await supabase.from('clients').insert({
         id: authData.user.id,
         coach_id: invitation.coach_id,
+        actif: true,
+        onboarding_complete: true,
       })
 
       // Marque l'invitation comme acceptée
