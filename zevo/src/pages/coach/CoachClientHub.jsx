@@ -54,6 +54,66 @@ function StatCard({ icon: Icon, label, value, sub, accent = false }) {
 }
 
 // ══════════════════════════════════════
+// PROCHAINES SÉANCES — Card pour overview
+// ══════════════════════════════════════
+
+function ProchainesSeancesCard({ clientId }) {
+  const [seances, setSeances] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!clientId) return
+    setLoading(true)
+    const today = new Date().toISOString().split('T')[0]
+    supabase
+      .from('seances')
+      .select('id, titre, date_prevue')
+      .eq('client_id', clientId)
+      .eq('is_template', false)
+      .gte('date_prevue', today)
+      .order('date_prevue', { ascending: true })
+      .limit(3)
+      .then(({ data }) => {
+        setSeances(data ?? [])
+        setLoading(false)
+      })
+  }, [clientId])
+
+  return (
+    <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
+      <h3 className="text-[#F5F5F3] text-sm font-semibold mb-4 flex items-center gap-2">
+        <Dumbbell size={14} className="text-[#FF6B2B]" />
+        Programmes & Prochaines séances
+      </h3>
+      {loading ? (
+        <div className="space-y-3 animate-pulse">
+          {[1, 2, 3].map(i => <div key={i} className="h-10 bg-[#27272a]/50 rounded-lg" />)}
+        </div>
+      ) : seances.length === 0 ? (
+        <p className="text-white/15 text-xs text-center py-4">Aucune séance planifiée</p>
+      ) : (
+        <div className="space-y-2">
+          {seances.map((s) => (
+            <div key={s.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#09090b] border border-[#27272a]/50">
+              <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                <Dumbbell size={14} className="text-[#FF6B2B]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[#F5F5F3] text-sm font-medium truncate">{s.titre}</p>
+                <p className="text-white/25 text-[10px] mt-0.5">
+                  {new Date(s.date_prevue).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                </p>
+              </div>
+              <Calendar size={13} className="text-white/15 flex-shrink-0" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ══════════════════════════════════════
 // BIBLIOTHÈQUE D'EXERCICES — Config
 // ══════════════════════════════════════
 
@@ -1953,6 +2013,9 @@ export default function CoachClientHub() {
                       </div>
                     )}
                   </div>
+
+                  {/* Carte Programmes & Prochaines séances */}
+                  <ProchainesSeancesCard clientId={selectedId} />
                 </div>
               </div>
             )}

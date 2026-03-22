@@ -395,7 +395,7 @@ export default function CoachDashboardPage() {
 
             {/* Voir le calendrier */}
             <button
-              onClick={() => navigate('/coach/client-hub')}
+              onClick={() => navigate('/coach/calendar')}
               className="w-full mt-3 py-2.5 rounded-xl border border-[#27272a] text-white/30 text-xs font-medium hover:text-white/50 hover:border-[#27272a]/80 transition-colors flex items-center justify-center gap-2"
             >
               <Calendar size={13} />

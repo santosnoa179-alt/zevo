@@ -57,6 +57,7 @@ const CoachProspectsPage = lazy(() => import('./pages/coach/CoachProspectsPage')
 const CoachClientHub = lazy(() => import('./pages/coach/CoachClientHub'))
 const CoachOnboarding = lazy(() => import('./pages/coach/CoachOnboarding'))
 const CoachDrivePage = lazy(() => import('./pages/coach/CoachDrivePage'))
+const CoachGlobalCalendarPage = lazy(() => import('./pages/coach/CoachGlobalCalendarPage'))
 
 // ── Pages admin (lazy) ──
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
@@ -134,6 +135,7 @@ export default function App() {
               <Route path="parametres" element={<CoachParametresPage />} />
               <Route path="prospects" element={<CoachProspectsPage />} />
               <Route path="drive" element={<CoachDrivePage />} />
+              <Route path="calendar" element={<CoachGlobalCalendarPage />} />
             </Route>
 
             {/* ── Section admin ── */}

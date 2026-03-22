@@ -21,6 +21,7 @@ const NAV_SECTIONS = [
     items: [
       { to: '/coach/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
       { to: '/coach/client-hub', icon: Users, label: 'Clients' },
+      { to: '/coach/calendar', icon: CalendarDays, label: 'Calendrier' },
       { to: '/coach/prospects', icon: UserPlus, label: 'Prospects', badge: 'Nouveau' },
       { to: '/coach/programmes', icon: Layers, label: 'Programmes' },
     ],
@@ -69,6 +70,7 @@ const PAGE_TITLES = {
   '/coach/app-builder': 'App Builder',
   '/coach/parametres': 'Paramètres',
   '/coach/drive': 'Drive',
+  '/coach/calendar': 'Calendrier',
 }
 
 // ══════════════════════════════════════
@@ -81,6 +83,8 @@ function MessagingDrawer({ open, onClose }) {
   const [selectedContact, setSelectedContact] = useState(null)
   const [messageInput, setMessageInput] = useState('')
   const [messages, setMessages] = useState({})
+  const [isComposingNew, setIsComposingNew] = useState(false)
+  const [newMsgSearch, setNewMsgSearch] = useState('')
 
   const TABS = [
     { id: 'actifs', label: 'Actifs' },
@@ -135,9 +139,17 @@ function MessagingDrawer({ open, onClose }) {
     ? filteredContacts.filter((c) => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : filteredContacts
 
+  // Tous les contacts individuels (pour la vue "Nouveau message")
+  const allIndividualContacts = FAKE_CONTACTS.filter(c => !c.group)
+  const filteredNewContacts = newMsgSearch
+    ? allIndividualContacts.filter(c => c.name.toLowerCase().includes(newMsgSearch.toLowerCase()))
+    : allIndividualContacts
+
   // Sélection d'un contact
   const openConversation = (contact) => {
     setSelectedContact(contact)
+    setIsComposingNew(false)
+    setNewMsgSearch('')
     if (!messages[contact.id]) {
       setMessages((prev) => ({ ...prev, [contact.id]: FAKE_MESSAGES[contact.id] || [] }))
     }
@@ -147,6 +159,8 @@ function MessagingDrawer({ open, onClose }) {
   const backToList = () => {
     setSelectedContact(null)
     setMessageInput('')
+    setIsComposingNew(false)
+    setNewMsgSearch('')
   }
 
   // Envoi d'un message
@@ -171,6 +185,8 @@ function MessagingDrawer({ open, onClose }) {
       setTimeout(() => {
         setSelectedContact(null)
         setMessageInput('')
+        setIsComposingNew(false)
+        setNewMsgSearch('')
       }, 300)
     }
   }, [open])
@@ -263,6 +279,68 @@ function MessagingDrawer({ open, onClose }) {
               </div>
             </div>
           </>
+        ) : isComposingNew ? (
+          /* ── VUE NOUVEAU MESSAGE ── */
+          <>
+            {/* Header */}
+            <div className="px-4 py-3.5 border-b border-[#27272a] flex items-center gap-3">
+              <button
+                onClick={() => { setIsComposingNew(false); setNewMsgSearch('') }}
+                className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <h2 className="text-[#F5F5F3] font-semibold text-base flex-1">Nouveau message</h2>
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Barre "À :" */}
+            <div className="px-5 py-3 border-b border-[#27272a]">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm font-medium">À :</span>
+                <input
+                  type="text"
+                  value={newMsgSearch}
+                  onChange={(e) => setNewMsgSearch(e.target.value)}
+                  placeholder="Rechercher un client..."
+                  autoFocus
+                  className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-10 pr-4 py-2 text-sm text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Liste des clients */}
+            <div className="flex-1 overflow-y-auto">
+              {filteredNewContacts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+                  <Users size={28} className="text-white/10 mb-3" />
+                  <p className="text-white/25 text-xs">Aucun client trouvé</p>
+                </div>
+              ) : (
+                filteredNewContacts.map((contact) => (
+                  <button
+                    key={contact.id}
+                    onClick={() => openConversation(contact)}
+                    className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/50"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-[#FF6B2B]/15 flex items-center justify-center flex-shrink-0">
+                      <span className="text-[#FF6B2B] text-sm font-bold">{contact.initials}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[#F5F5F3] text-sm font-medium truncate">{contact.name}</p>
+                      <p className="text-white/20 text-[10px] mt-0.5">Démarrer une conversation</p>
+                    </div>
+                    <Send size={14} className="text-white/15 flex-shrink-0" />
+                  </button>
+                ))
+              )}
+            </div>
+          </>
         ) : (
           /* ── VUE LISTE DES CONTACTS ── */
           <>
@@ -273,7 +351,10 @@ function MessagingDrawer({ open, onClose }) {
                 <BookOpen size={16} className="text-white/30" />
               </div>
               <div className="flex items-center gap-2">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#e55e24] transition-colors">
+                <button
+                  onClick={() => setIsComposingNew(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#e55e24] transition-colors"
+                >
                   Nouveau
                   <ChevronDown size={12} />
                 </button>
