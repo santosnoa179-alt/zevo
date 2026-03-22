@@ -2,9 +2,9 @@
 // Variante "full" affiche le nom à côté, "icon" affiche uniquement l'icône
 export function ZevoLogo({ size = 'md', variant = 'full', className = '' }) {
   const sizes = {
-    sm: { h: 'h-7 w-7', font: 'text-base', gap: 'gap-2' },
-    md: { h: 'h-9 w-9', font: 'text-xl',   gap: 'gap-3' },
-    lg: { h: 'h-12 w-12', font: 'text-2xl',  gap: 'gap-3.5' },
+    sm: { h: 'h-9 w-9', font: 'text-lg', gap: 'gap-2.5' },
+    md: { h: 'h-11 w-11', font: 'text-2xl',   gap: 'gap-3.5' },
+    lg: { h: 'h-14 w-14', font: 'text-3xl',  gap: 'gap-4' },
   }
   const s = sizes[size]
 

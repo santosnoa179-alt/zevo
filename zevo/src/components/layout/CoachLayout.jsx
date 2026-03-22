@@ -618,9 +618,9 @@ export function CoachLayout() {
           <img
             src="/icons/Gemini_Generated_Image_vsyssevsyssevsys-Photoroom.png"
             alt="Zevo"
-            className="h-8 w-8 rounded-xl object-contain flex-shrink-0"
+            className="h-10 w-10 rounded-xl object-contain flex-shrink-0"
           />
-          <span className="font-extrabold tracking-tight text-[#F5F5F3] text-lg">Zevo</span>
+          <span className="font-extrabold tracking-tight text-[#F5F5F3] text-xl">Zevo</span>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -690,16 +690,16 @@ export function CoachLayout() {
       <aside className="hidden md:flex w-64 flex-shrink-0 bg-[#09090b] border-r border-[#27272a] flex-col sticky top-0 h-screen">
 
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-[#27272a]">
-          <div className="flex items-center gap-3.5">
+        <div className="px-5 py-6 border-b border-[#27272a]">
+          <div className="flex items-center gap-4">
             <img
               src="/icons/Gemini_Generated_Image_vsyssevsyssevsys-Photoroom.png"
               alt="Zevo"
-              className="h-9 w-9 rounded-xl object-contain flex-shrink-0"
+              className="h-12 w-12 rounded-xl object-contain flex-shrink-0"
             />
             <div className="flex flex-col">
-              <p className="text-[#F5F5F3] font-extrabold text-xl tracking-tight leading-none">Zevo</p>
-              <p className="text-zinc-500 text-[11px] font-medium mt-1 tracking-wide">Espace coach</p>
+              <p className="text-[#F5F5F3] font-extrabold text-2xl tracking-tight leading-none">Zevo</p>
+              <p className="text-zinc-500 text-xs font-medium mt-1.5 tracking-wide">Espace coach</p>
             </div>
           </div>
         </div>
