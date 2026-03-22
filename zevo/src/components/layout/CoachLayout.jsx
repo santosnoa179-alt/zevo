@@ -618,9 +618,9 @@ export function CoachLayout() {
           <img
             src="/icons/Gemini_Generated_Image_vsyssevsyssevsys-Photoroom.png"
             alt="Zevo"
-            className="h-8 w-auto rounded-lg object-contain"
+            className="h-8 w-8 rounded-xl object-contain flex-shrink-0"
           />
-          <span className="font-bold tracking-tight text-[#F5F5F3] text-base">Zevo</span>
+          <span className="font-extrabold tracking-tight text-[#F5F5F3] text-lg">Zevo</span>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -691,15 +691,15 @@ export function CoachLayout() {
 
         {/* Logo */}
         <div className="px-5 py-5 border-b border-[#27272a]">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3.5">
             <img
               src="/icons/Gemini_Generated_Image_vsyssevsyssevsys-Photoroom.png"
               alt="Zevo"
-              className="h-10 w-auto rounded-lg object-contain"
+              className="h-9 w-9 rounded-xl object-contain flex-shrink-0"
             />
-            <div>
-              <p className="text-[#F5F5F3] font-bold text-lg tracking-tight leading-none">Zevo</p>
-              <p className="text-white/25 text-[10px] mt-0.5">Espace coach</p>
+            <div className="flex flex-col">
+              <p className="text-[#F5F5F3] font-extrabold text-xl tracking-tight leading-none">Zevo</p>
+              <p className="text-zinc-500 text-[11px] font-medium mt-1 tracking-wide">Espace coach</p>
             </div>
           </div>
         </div>
