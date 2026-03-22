@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../components/ui/Toast'
 import { Save, Upload, ExternalLink, Loader2, Check, Link2, CheckCircle } from 'lucide-react'
 
 // Couleurs prédéfinies proposées au coach
@@ -16,6 +17,7 @@ const MODULES_CONFIG = [
 
 export default function CoachParametresPage() {
   const { user } = useAuth()
+  const toast = useToast()
 
   // État du formulaire
   const [nomApp, setNomApp] = useState('Zevo')
@@ -101,25 +103,39 @@ export default function CoachParametresPage() {
 
   // Sauvegarde dans Supabase
   const handleSave = async () => {
+    const data = {
+      nom_app: nomApp,
+      logo_url: logoUrl,
+      couleur_primaire: couleur,
+      message_bienvenue: messageBienvenue,
+      modules,
+    }
+    console.log('Début sauvegarde', data)
+
     setSaving(true)
     setSaved(false)
 
-    const { error } = await supabase
-      .from('coaches')
-      .update({
-        nom_app: nomApp,
-        logo_url: logoUrl,
-        couleur_primaire: couleur,
-        message_bienvenue: messageBienvenue,
-        modules,
-      })
-      .eq('id', user.id)
+    try {
+      const { error } = await supabase
+        .from('coaches')
+        .update(data)
+        .eq('id', user.id)
+
+      if (error) {
+        console.error('Erreur sauvegarde:', error)
+        toast.error(`Erreur : ${error.message}`)
+      } else {
+        console.log('Sauvegarde réussie')
+        toast.success('Paramètres mis à jour avec succès !')
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2500)
+      }
+    } catch (err) {
+      console.error('Erreur inattendue:', err)
+      toast.error('Erreur réseau. Vérifiez votre connexion.')
+    }
 
     setSaving(false)
-    if (!error) {
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2500)
-    }
   }
 
   // Ouvre le Stripe Customer Portal pour gérer l'abonnement
