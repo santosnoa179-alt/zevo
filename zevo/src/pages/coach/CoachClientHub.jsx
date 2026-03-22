@@ -10,7 +10,8 @@ import {
   Calendar, Eye, Share2, ChevronRight, Loader2,
   User, Heart, Flame, BarChart3, Clock,
   Plus, X, Save, Trash2, Filter, Info, GripVertical,
-  PlayCircle, ChevronLeft, Star, Video, Sparkles
+  PlayCircle, ChevronLeft, Star, Video, Sparkles,
+  Copy, CalendarPlus, Layers, PanelRightOpen, PanelRightClose
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -685,14 +686,32 @@ function CalendarTab({ clientId, clientName, coachId }) {
   const [detailExercices, setDetailExercices] = useState([])
   const [loadingDetail, setLoadingDetail] = useState(false)
 
-  // Éditeur de séance (modale plein écran)
-  const [editingSeance, setEditingSeance] = useState(null)
+  // ── Templates (Modèles) ──
+  const [templates, setTemplates] = useState([])
+  const [loadingTemplates, setLoadingTemplates] = useState(true)
+  const [panelOpen, setPanelOpen] = useState(true)
+
+  // Modale : créer un modèle
+  const [modalTemplate, setModalTemplate] = useState(false)
+  const [newTemplateTitre, setNewTemplateTitre] = useState('')
+  const [newTemplateNotes, setNewTemplateNotes] = useState('')
+  const [creatingTemplate, setCreatingTemplate] = useState(false)
+
+  // Modale : ajouter un modèle au calendrier
+  const [modalPlanifier, setModalPlanifier] = useState(null)
+  const [planifDate, setPlanifDate] = useState('')
+  const [planifying, setPlanifying] = useState(false)
+
+  // Preview exercices d'un template
+  const [previewTemplate, setPreviewTemplate] = useState(null)
+  const [previewExos, setPreviewExos] = useState([])
+  const [loadingPreview, setLoadingPreview] = useState(false)
 
   const weekDates = getWeekDates(weekOffset)
   const weekStart = formatDateISO(weekDates[0])
   const weekEnd = formatDateISO(weekDates[6])
 
-  // Charger les séances de la semaine
+  // ── Charger les séances de la semaine ──
   useEffect(() => {
     if (!clientId || !coachId) return
     const load = async () => {
@@ -702,6 +721,7 @@ function CalendarTab({ clientId, clientName, coachId }) {
         .select('id, titre, date_prevue, notes')
         .eq('coach_id', coachId)
         .eq('client_id', clientId)
+        .eq('is_template', false)
         .gte('date_prevue', weekStart)
         .lte('date_prevue', weekEnd)
         .order('date_prevue')
@@ -711,7 +731,24 @@ function CalendarTab({ clientId, clientName, coachId }) {
     load()
   }, [clientId, coachId, weekStart, weekEnd])
 
-  // Créer une séance
+  // ── Charger les modèles du coach ──
+  useEffect(() => {
+    if (!coachId) return
+    const load = async () => {
+      setLoadingTemplates(true)
+      const { data } = await supabase
+        .from('seances')
+        .select('id, titre, notes, created_at')
+        .eq('coach_id', coachId)
+        .eq('is_template', true)
+        .order('created_at', { ascending: false })
+      setTemplates(data || [])
+      setLoadingTemplates(false)
+    }
+    load()
+  }, [coachId])
+
+  // ── Créer une séance ──
   const creerSeance = async (e) => {
     e.preventDefault()
     if (!newSeanceTitre.trim()) return
@@ -724,6 +761,7 @@ function CalendarTab({ clientId, clientName, coachId }) {
         titre: newSeanceTitre.trim(),
         date_prevue: modalDate,
         notes: newSeanceNotes.trim() || null,
+        is_template: false,
       })
       .select()
       .single()
@@ -739,7 +777,36 @@ function CalendarTab({ clientId, clientName, coachId }) {
     setCreatingSeance(false)
   }
 
-  // Supprimer une séance
+  // ── Créer un modèle ──
+  const creerTemplate = async (e) => {
+    e.preventDefault()
+    if (!newTemplateTitre.trim()) return
+    setCreatingTemplate(true)
+    const { data, error } = await supabase
+      .from('seances')
+      .insert({
+        coach_id: coachId,
+        client_id: null,
+        date_prevue: null,
+        titre: newTemplateTitre.trim(),
+        notes: newTemplateNotes.trim() || null,
+        is_template: true,
+      })
+      .select()
+      .single()
+    if (error) {
+      toast.error('Erreur lors de la création du modèle')
+    } else {
+      setTemplates(prev => [data, ...prev])
+      toast.success(`Modèle "${data.titre}" créé !`)
+      setModalTemplate(false)
+      setNewTemplateTitre('')
+      setNewTemplateNotes('')
+    }
+    setCreatingTemplate(false)
+  }
+
+  // ── Supprimer une séance ──
   const supprimerSeance = async (id) => {
     const { error } = await supabase.from('seances').delete().eq('id', id)
     if (!error) {
@@ -749,7 +816,16 @@ function CalendarTab({ clientId, clientName, coachId }) {
     }
   }
 
-  // Charger le détail d'une séance (exercices)
+  // ── Supprimer un modèle ──
+  const supprimerTemplate = async (id) => {
+    const { error } = await supabase.from('seances').delete().eq('id', id)
+    if (!error) {
+      setTemplates(prev => prev.filter(t => t.id !== id))
+      toast.success('Modèle supprimé')
+    }
+  }
+
+  // ── Charger le détail d'une séance (exercices) ──
   const voirDetail = async (seance) => {
     setDetailSeance(seance)
     setLoadingDetail(true)
@@ -762,112 +838,220 @@ function CalendarTab({ clientId, clientName, coachId }) {
     setLoadingDetail(false)
   }
 
-  // Mois / année de la semaine
+  // ── Preview d'un template ──
+  const voirPreview = async (template) => {
+    setPreviewTemplate(template)
+    setLoadingPreview(true)
+    const { data } = await supabase
+      .from('seance_exercices')
+      .select('*, exercices(nom, muscle_group, equipment)')
+      .eq('seance_id', template.id)
+      .order('ordre')
+    setPreviewExos(data || [])
+    setLoadingPreview(false)
+  }
+
+  // ── Planifier un modèle : copier la séance + ses exercices ──
+  const planifierTemplate = async () => {
+    if (!modalPlanifier || !planifDate) return
+    setPlanifying(true)
+
+    // 1. Créer la copie de la séance
+    const { data: newSeance, error: errSeance } = await supabase
+      .from('seances')
+      .insert({
+        coach_id: coachId,
+        client_id: clientId,
+        titre: modalPlanifier.titre,
+        date_prevue: planifDate,
+        notes: modalPlanifier.notes,
+        is_template: false,
+      })
+      .select()
+      .single()
+
+    if (errSeance || !newSeance) {
+      toast.error('Erreur lors de la planification')
+      setPlanifying(false)
+      return
+    }
+
+    // 2. Copier tous les exercices du template
+    const { data: templateExos } = await supabase
+      .from('seance_exercices')
+      .select('exercice_id, series, reps, poids, repos, ordre')
+      .eq('seance_id', modalPlanifier.id)
+      .order('ordre')
+
+    if (templateExos && templateExos.length > 0) {
+      const copies = templateExos.map(ex => ({
+        seance_id: newSeance.id,
+        exercice_id: ex.exercice_id,
+        series: ex.series,
+        reps: ex.reps,
+        poids: ex.poids,
+        repos: ex.repos,
+        ordre: ex.ordre,
+      }))
+      await supabase.from('seance_exercices').insert(copies)
+    }
+
+    // 3. Mettre à jour le calendrier si la date est dans la semaine affichée
+    if (planifDate >= weekStart && planifDate <= weekEnd) {
+      setSeances(prev => [...prev, newSeance])
+    }
+
+    const exoCount = templateExos?.length || 0
+    toast.success(`"${modalPlanifier.titre}" planifié le ${new Date(planifDate + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} (${exoCount} exercice${exoCount > 1 ? 's' : ''} copiés)`)
+    setModalPlanifier(null)
+    setPlanifDate('')
+    setPlanifying(false)
+  }
+
+  // Helpers
   const moisAnnee = weekDates[0].toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
   const today = formatDateISO(new Date())
 
   return (
-    <div className="space-y-4">
+    <div className="flex gap-4 h-[calc(100vh-16rem)] min-h-[500px]">
 
-      {/* ── Header semaine ── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-[#F5F5F3] text-lg font-bold capitalize">{moisAnnee}</h3>
-          <p className="text-white/20 text-xs mt-0.5">Programmation hebdomadaire de {clientName}</p>
+      {/* ══════════════════════════════════════ */}
+      {/* ZONE GAUCHE — Calendrier              */}
+      {/* ══════════════════════════════════════ */}
+      <div className={`flex-1 flex flex-col overflow-hidden transition-all ${panelOpen ? '' : ''}`}>
+
+        {/* Header semaine */}
+        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+          <div>
+            <h3 className="text-[#F5F5F3] text-lg font-bold capitalize">{moisAnnee}</h3>
+            <p className="text-white/20 text-xs mt-0.5">Programmation de {clientName}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setWeekOffset(0)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${weekOffset === 0 ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]' : 'bg-[#27272a] text-white/30 hover:text-white/50'}`}>
+              Aujourd'hui
+            </button>
+            <button onClick={() => setWeekOffset(w => w - 1)} className="p-2 rounded-lg bg-[#27272a] text-white/30 hover:text-white/60 transition-colors">
+              <ChevronLeft size={15} />
+            </button>
+            <button onClick={() => setWeekOffset(w => w + 1)} className="p-2 rounded-lg bg-[#27272a] text-white/30 hover:text-white/60 transition-colors">
+              <ChevronRight size={15} />
+            </button>
+            <div className="w-px h-5 bg-[#27272a] mx-1" />
+            <button onClick={() => setPanelOpen(p => !p)}
+              className={`p-2 rounded-lg transition-colors ${panelOpen ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]' : 'bg-[#27272a] text-white/30 hover:text-white/50'}`}
+              title={panelOpen ? 'Masquer les modèles' : 'Afficher les modèles'}>
+              {panelOpen ? <PanelRightClose size={15} /> : <PanelRightOpen size={15} />}
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setWeekOffset(0)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              weekOffset === 0
-                ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
-                : 'bg-[#27272a] text-white/30 hover:text-white/50'
-            }`}
-          >
-            Aujourd'hui
-          </button>
-          <button
-            onClick={() => setWeekOffset(w => w - 1)}
-            className="p-2 rounded-lg bg-[#27272a] text-white/30 hover:text-white/60 transition-colors"
-          >
-            <ChevronLeft size={15} />
-          </button>
-          <button
-            onClick={() => setWeekOffset(w => w + 1)}
-            className="p-2 rounded-lg bg-[#27272a] text-white/30 hover:text-white/60 transition-colors"
-          >
-            <ChevronRight size={15} />
-          </button>
+
+        {/* Grille 7 jours */}
+        <div className="grid grid-cols-7 gap-2 flex-1 overflow-hidden">
+          {weekDates.map((date, i) => {
+            const dateStr = formatDateISO(date)
+            const isToday = dateStr === today
+            const jourSeances = seances.filter(s => s.date_prevue === dateStr)
+
+            return (
+              <div key={i} className={`bg-[#18181b] border rounded-xl flex flex-col overflow-hidden transition-colors ${isToday ? 'border-[#FF6B2B]/30' : 'border-[#27272a]'}`}>
+                <div className={`px-2 py-2 border-b text-center flex-shrink-0 ${isToday ? 'border-[#FF6B2B]/20 bg-[#FF6B2B]/5' : 'border-[#27272a]'}`}>
+                  <p className={`text-[9px] uppercase tracking-widest font-semibold ${isToday ? 'text-[#FF6B2B]' : 'text-white/20'}`}>{JOURS_COURTS[i]}</p>
+                  <p className={`text-base font-bold ${isToday ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{date.getDate()}</p>
+                </div>
+                <div className="flex-1 p-1.5 space-y-1 overflow-y-auto">
+                  {loadingSeances ? (
+                    <div className="flex items-center justify-center py-4"><Loader2 size={12} className="animate-spin text-white/10" /></div>
+                  ) : (
+                    jourSeances.map((s) => (
+                      <button key={s.id} onClick={() => voirDetail(s)}
+                        className="w-full text-left bg-[#FF6B2B]/10 border border-[#FF6B2B]/15 rounded-lg px-2 py-1.5 hover:bg-[#FF6B2B]/15 transition-colors">
+                        <div className="flex items-center gap-1">
+                          <Dumbbell size={9} className="text-[#FF6B2B] flex-shrink-0" />
+                          <p className="text-[#F5F5F3] text-[10px] font-medium truncate">{s.titre}</p>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+                <div className="px-1.5 pb-1.5 flex-shrink-0">
+                  <button onClick={() => { setModalDate(dateStr); setModalSeance(true) }}
+                    className="w-full flex items-center justify-center gap-1 py-1 rounded-lg border border-dashed border-[#27272a] text-white/12 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-colors text-[9px]">
+                    <Plus size={9} /> Ajouter
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
 
-      {/* ── Grille 7 jours ── */}
-      <div className="grid grid-cols-7 gap-2">
-        {weekDates.map((date, i) => {
-          const dateStr = formatDateISO(date)
-          const isToday = dateStr === today
-          const jourSeances = seances.filter(s => s.date_prevue === dateStr)
-
-          return (
-            <div
-              key={i}
-              className={`bg-[#18181b] border rounded-xl flex flex-col min-h-[280px] transition-colors ${
-                isToday ? 'border-[#FF6B2B]/30' : 'border-[#27272a]'
-              }`}
-            >
-              {/* En-tête du jour */}
-              <div className={`px-3 py-2.5 border-b text-center ${
-                isToday ? 'border-[#FF6B2B]/20 bg-[#FF6B2B]/5' : 'border-[#27272a]'
-              }`}>
-                <p className={`text-[10px] uppercase tracking-widest font-semibold ${
-                  isToday ? 'text-[#FF6B2B]' : 'text-white/20'
-                }`}>
-                  {JOURS_COURTS[i]}
-                </p>
-                <p className={`text-lg font-bold ${isToday ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>
-                  {date.getDate()}
-                </p>
-              </div>
-
-              {/* Séances du jour */}
-              <div className="flex-1 p-2 space-y-1.5 overflow-y-auto">
-                {loadingSeances ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 size={14} className="animate-spin text-white/10" />
-                  </div>
-                ) : (
-                  jourSeances.map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => voirDetail(s)}
-                      className="w-full text-left bg-[#FF6B2B]/10 border border-[#FF6B2B]/15 rounded-lg px-2.5 py-2 hover:bg-[#FF6B2B]/15 transition-colors group"
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <Dumbbell size={10} className="text-[#FF6B2B] flex-shrink-0" />
-                        <p className="text-[#F5F5F3] text-[11px] font-medium truncate">{s.titre}</p>
-                      </div>
-                      {s.notes && (
-                        <p className="text-white/15 text-[9px] truncate mt-0.5 ml-4">{s.notes}</p>
-                      )}
-                    </button>
-                  ))
-                )}
-              </div>
-
-              {/* Bouton ajouter */}
-              <div className="px-2 pb-2">
-                <button
-                  onClick={() => { setModalDate(dateStr); setModalSeance(true) }}
-                  className="w-full flex items-center justify-center gap-1 py-1.5 rounded-lg border border-dashed border-[#27272a] text-white/15 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-colors text-[10px]"
-                >
-                  <Plus size={10} />
-                  Ajouter
-                </button>
-              </div>
+      {/* ══════════════════════════════════════ */}
+      {/* PANNEAU DROIT — Modèles de séances    */}
+      {/* ══════════════════════════════════════ */}
+      {panelOpen && (
+        <div className="w-72 flex-shrink-0 bg-[#18181b] border border-[#27272a] rounded-xl flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="p-4 border-b border-[#27272a]">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-[#F5F5F3] text-sm font-semibold flex items-center gap-2">
+                <Layers size={14} className="text-[#FF6B2B]" />
+                Mes Modèles
+                <span className="text-white/15 text-[10px] font-normal">{templates.length}</span>
+              </h3>
+              <button onClick={() => setModalTemplate(true)}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FF6B2B] text-white text-[9px] font-semibold hover:bg-[#e55e24] transition-colors">
+                <Plus size={10} /> Nouveau
+              </button>
             </div>
-          )
-        })}
-      </div>
+            <p className="text-white/15 text-[10px]">Glissez vos modèles dans le calendrier</p>
+          </div>
+
+          {/* Liste des modèles */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {loadingTemplates ? (
+              <div className="flex items-center justify-center py-8"><Loader2 size={16} className="animate-spin text-white/10" /></div>
+            ) : templates.length === 0 ? (
+              <div className="text-center py-8">
+                <Layers size={28} className="text-white/8 mx-auto mb-3" />
+                <p className="text-white/15 text-xs mb-1">Aucun modèle</p>
+                <p className="text-white/10 text-[10px]">Créez des modèles de séances pour les réutiliser facilement</p>
+              </div>
+            ) : (
+              templates.map((tpl) => (
+                <div key={tpl.id} className="bg-[#09090b] border border-[#27272a] rounded-xl p-3 group hover:border-[#FF6B2B]/20 transition-colors">
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                      <Dumbbell size={15} className="text-[#FF6B2B]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <button onClick={() => voirPreview(tpl)} className="text-[#F5F5F3] text-xs font-medium hover:text-[#FF6B2B] transition-colors text-left truncate block w-full">
+                        {tpl.titre}
+                      </button>
+                      {tpl.notes && (
+                        <p className="text-white/15 text-[9px] truncate mt-0.5">{tpl.notes}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1.5 mt-2.5">
+                    <button onClick={() => { setModalPlanifier(tpl); setPlanifDate(formatDateISO(new Date())) }}
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-[9px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
+                      <CalendarPlus size={10} />
+                      Ajouter au calendrier
+                    </button>
+                    <button onClick={() => supprimerTemplate(tpl.id)}
+                      className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════ */}
       {/* MODAL — Créer une séance              */}
@@ -876,40 +1060,24 @@ function CalendarTab({ clientId, clientName, coachId }) {
         <form onSubmit={creerSeance} className="space-y-4">
           <div>
             <label className="block text-sm text-white/50 mb-1.5">Titre de la séance</label>
-            <input
-              type="text"
-              value={newSeanceTitre}
-              onChange={(e) => setNewSeanceTitre(e.target.value)}
-              placeholder="Ex: Upper Body Jour 1"
-              autoFocus
-              required
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors"
-            />
+            <input type="text" value={newSeanceTitre} onChange={(e) => setNewSeanceTitre(e.target.value)}
+              placeholder="Ex: Upper Body Jour 1" autoFocus required
+              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
           </div>
           <div>
             <label className="block text-sm text-white/50 mb-1.5">Date</label>
-            <input
-              type="date"
-              value={modalDate || ''}
-              onChange={(e) => setModalDate(e.target.value)}
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors"
-            />
+            <input type="date" value={modalDate || ''} onChange={(e) => setModalDate(e.target.value)}
+              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors" />
           </div>
           <div>
             <label className="block text-sm text-white/50 mb-1.5">Notes (optionnel)</label>
-            <textarea
-              value={newSeanceNotes}
-              onChange={(e) => setNewSeanceNotes(e.target.value)}
-              placeholder="Instructions spécifiques..."
-              rows={3}
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none"
-            />
+            <textarea value={newSeanceNotes} onChange={(e) => setNewSeanceNotes(e.target.value)}
+              placeholder="Instructions spécifiques..." rows={3}
+              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none" />
           </div>
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={() => setModalSeance(false)}
-              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">
-              Annuler
-            </button>
+              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
             <button type="submit" disabled={creatingSeance}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
               {creatingSeance ? <Loader2 size={15} className="animate-spin" /> : <Calendar size={15} />}
@@ -920,15 +1088,89 @@ function CalendarTab({ clientId, clientName, coachId }) {
       </Modal>
 
       {/* ══════════════════════════════════════ */}
+      {/* MODAL — Créer un modèle              */}
+      {/* ══════════════════════════════════════ */}
+      <Modal isOpen={modalTemplate} onClose={() => setModalTemplate(false)} title="Nouveau modèle de séance">
+        <form onSubmit={creerTemplate} className="space-y-4">
+          <div className="bg-[#09090b] rounded-lg p-3 flex items-start gap-2.5">
+            <Layers size={16} className="text-[#FF6B2B] mt-0.5 flex-shrink-0" />
+            <p className="text-white/30 text-xs leading-relaxed">Un modèle est une séance type réutilisable. Créez-le ici, puis ajoutez-lui des exercices via l'onglet Sport.</p>
+          </div>
+          <div>
+            <label className="block text-sm text-white/50 mb-1.5">Titre du modèle *</label>
+            <input type="text" value={newTemplateTitre} onChange={(e) => setNewTemplateTitre(e.target.value)}
+              placeholder="Ex: Push Day, Full Body débutant, Cardio HIIT..." autoFocus required
+              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+          </div>
+          <div>
+            <label className="block text-sm text-white/50 mb-1.5">Notes (optionnel)</label>
+            <textarea value={newTemplateNotes} onChange={(e) => setNewTemplateNotes(e.target.value)}
+              placeholder="Description ou objectifs de cette séance..." rows={3}
+              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none" />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button type="button" onClick={() => setModalTemplate(false)}
+              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
+            <button type="submit" disabled={creatingTemplate}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
+              {creatingTemplate ? <Loader2 size={15} className="animate-spin" /> : <Layers size={15} />}
+              Créer le modèle
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ══════════════════════════════════════ */}
+      {/* MODAL — Planifier un modèle           */}
+      {/* ══════════════════════════════════════ */}
+      <Modal isOpen={!!modalPlanifier} onClose={() => setModalPlanifier(null)} title="Ajouter au calendrier">
+        {modalPlanifier && (
+          <div className="space-y-4">
+            {/* Résumé du modèle */}
+            <div className="bg-[#09090b] rounded-xl p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                <Copy size={16} className="text-[#FF6B2B]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[#F5F5F3] text-sm font-semibold truncate">{modalPlanifier.titre}</p>
+                <p className="text-white/20 text-[10px]">Ce modèle et tous ses exercices seront copiés</p>
+              </div>
+            </div>
+
+            {/* Client cible */}
+            <div className="bg-[#09090b] rounded-lg p-3 flex items-center gap-2">
+              <User size={14} className="text-[#FF6B2B]" />
+              <span className="text-[#F5F5F3] text-sm">{clientName}</span>
+              <span className="text-white/15 text-[10px] ml-auto">Client sélectionné</span>
+            </div>
+
+            {/* Sélection de la date */}
+            <div>
+              <label className="block text-sm text-white/50 mb-1.5">Date de la séance *</label>
+              <input type="date" value={planifDate} onChange={(e) => setPlanifDate(e.target.value)} required
+                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => setModalPlanifier(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">
+                Annuler
+              </button>
+              <button onClick={planifierTemplate} disabled={planifying || !planifDate}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
+                {planifying ? <Loader2 size={15} className="animate-spin" /> : <CalendarPlus size={15} />}
+                Confirmer
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ══════════════════════════════════════ */}
       {/* MODAL — Détail d'une séance           */}
       {/* ══════════════════════════════════════ */}
-      <Modal
-        isOpen={!!detailSeance}
-        onClose={() => setDetailSeance(null)}
-        title={detailSeance?.titre || 'Séance'}
-      >
+      <Modal isOpen={!!detailSeance} onClose={() => setDetailSeance(null)} title={detailSeance?.titre || 'Séance'}>
         <div className="space-y-4">
-          {/* Infos séance */}
           <div className="flex items-center gap-3 bg-[#09090b] rounded-lg p-3">
             <Calendar size={14} className="text-[#FF6B2B]" />
             <span className="text-[#F5F5F3] text-sm">
@@ -937,20 +1179,13 @@ function CalendarTab({ clientId, clientName, coachId }) {
                 : ''}
             </span>
           </div>
-
           {detailSeance?.notes && (
             <p className="text-white/30 text-xs bg-[#09090b] rounded-lg p-3">{detailSeance.notes}</p>
           )}
-
-          {/* Exercices de la séance */}
           <div>
-            <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">
-              Exercices ({detailExercices.length})
-            </p>
+            <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">Exercices ({detailExercices.length})</p>
             {loadingDetail ? (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 size={18} className="animate-spin text-white/10" />
-              </div>
+              <div className="flex items-center justify-center py-6"><Loader2 size={18} className="animate-spin text-white/10" /></div>
             ) : detailExercices.length === 0 ? (
               <div className="text-center py-6 bg-[#09090b] rounded-lg">
                 <Dumbbell size={20} className="text-white/10 mx-auto mb-2" />
@@ -961,43 +1196,78 @@ function CalendarTab({ clientId, clientName, coachId }) {
               <div className="space-y-2">
                 {detailExercices.map((ex, i) => (
                   <div key={ex.id} className="flex items-center gap-3 bg-[#09090b] rounded-lg p-3">
-                    <span className="w-5 h-5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center flex-shrink-0">
-                      {i + 1}
-                    </span>
+                    <span className="w-5 h-5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-[#F5F5F3] text-sm font-medium truncate">{ex.exercices?.nom || 'Exercice'}</p>
-                      <p className="text-white/20 text-[10px]">
-                        {ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''} {ex.repos ? `· ${ex.repos}s repos` : ''}
-                      </p>
+                      <p className="text-white/20 text-[10px]">{ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''} {ex.repos ? `· ${ex.repos}s repos` : ''}</p>
                     </div>
                     {ex.exercices?.muscle_group && (
-                      <span className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400">
-                        {ex.exercices.muscle_group}
-                      </span>
+                      <span className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400">{ex.exercices.muscle_group}</span>
                     )}
                   </div>
                 ))}
               </div>
             )}
           </div>
-
-          {/* Actions */}
           <div className="flex gap-2 pt-1">
-            <button
-              onClick={() => supprimerSeance(detailSeance?.id)}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-400 bg-red-500/10 hover:bg-red-500/15 transition-colors"
-            >
-              <Trash2 size={14} />
-              Supprimer
+            <button onClick={() => supprimerSeance(detailSeance?.id)}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-400 bg-red-500/10 hover:bg-red-500/15 transition-colors">
+              <Trash2 size={14} /> Supprimer
             </button>
-            <button
-              onClick={() => setDetailSeance(null)}
-              className="flex-1 py-2.5 rounded-xl bg-[#27272a] text-white/40 text-sm hover:bg-[#3f3f46] transition-colors"
-            >
-              Fermer
-            </button>
+            <button onClick={() => setDetailSeance(null)}
+              className="flex-1 py-2.5 rounded-xl bg-[#27272a] text-white/40 text-sm hover:bg-[#3f3f46] transition-colors">Fermer</button>
           </div>
         </div>
+      </Modal>
+
+      {/* ══════════════════════════════════════ */}
+      {/* MODAL — Preview d'un modèle           */}
+      {/* ══════════════════════════════════════ */}
+      <Modal isOpen={!!previewTemplate} onClose={() => setPreviewTemplate(null)} title={previewTemplate?.titre || 'Modèle'}>
+        {previewTemplate && (
+          <div className="space-y-4">
+            <div className="bg-[#09090b] rounded-lg p-3 flex items-center gap-2">
+              <Layers size={14} className="text-[#FF6B2B]" />
+              <span className="text-[#FF6B2B] text-[10px] font-bold">MODÈLE</span>
+              {previewTemplate.notes && <span className="text-white/20 text-xs ml-auto truncate">{previewTemplate.notes}</span>}
+            </div>
+            <div>
+              <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">Exercices ({previewExos.length})</p>
+              {loadingPreview ? (
+                <div className="flex items-center justify-center py-6"><Loader2 size={18} className="animate-spin text-white/10" /></div>
+              ) : previewExos.length === 0 ? (
+                <div className="text-center py-6 bg-[#09090b] rounded-lg">
+                  <Dumbbell size={20} className="text-white/10 mx-auto mb-2" />
+                  <p className="text-white/15 text-xs">Aucun exercice dans ce modèle</p>
+                  <p className="text-white/10 text-[10px] mt-1">Ajoutez des exercices via l'onglet Sport</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {previewExos.map((ex, i) => (
+                    <div key={ex.id} className="flex items-center gap-3 bg-[#09090b] rounded-lg p-3">
+                      <span className="w-5 h-5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[#F5F5F3] text-sm font-medium truncate">{ex.exercices?.nom || 'Exercice'}</p>
+                        <p className="text-white/20 text-[10px]">{ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''} {ex.repos ? `· ${ex.repos}s repos` : ''}</p>
+                      </div>
+                      {ex.exercices?.muscle_group && (
+                        <span className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400">{ex.exercices.muscle_group}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => { setModalPlanifier(previewTemplate); setPreviewTemplate(null); setPlanifDate(formatDateISO(new Date())) }}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors">
+                <CalendarPlus size={15} /> Planifier
+              </button>
+              <button onClick={() => setPreviewTemplate(null)}
+                className="px-4 py-2.5 rounded-xl bg-[#27272a] text-white/40 text-sm hover:bg-[#3f3f46] transition-colors">Fermer</button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   )
