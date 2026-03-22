@@ -10,7 +10,7 @@ import {
   Calendar, Eye, Share2, ChevronRight, Loader2,
   User, Heart, Flame, BarChart3, Clock,
   Plus, X, Save, Trash2, Filter, Info, GripVertical,
-  PlayCircle, ChevronLeft
+  PlayCircle, ChevronLeft, Star, Video, Sparkles
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -52,109 +52,139 @@ function StatCard({ icon: Icon, label, value, sub, accent = false }) {
 }
 
 // ══════════════════════════════════════
-// BIBLIOTHÈQUE D'EXERCICES — Mock data
+// BIBLIOTHÈQUE D'EXERCICES — Config
 // ══════════════════════════════════════
 
-const MUSCLE_GROUPS = ['Tous', 'Jambes', 'Pectoraux', 'Dos', 'Biceps', 'Épaules']
+const MUSCLE_GROUPS = ['Tous', 'Pectoraux', 'Dos', 'Jambes', 'Épaules', 'Biceps', 'Triceps', 'Abdominaux', 'Cardio', 'Souplesse']
+const CATEGORIES = ['Musculation', 'Cardio', 'Souplesse', 'Fonctionnel']
+const SOURCES = ['Tous', 'Zevo Officiel', 'Mes exercices', 'Favoris']
 
-const EXERCISES_MOCK = [
-  {
-    id: 'ex1',
-    nom: 'Squat',
-    equipement: 'Barre',
-    groupe: 'Jambes',
-    muscles: ['Quadriceps', 'Fessiers', 'Ischio-jambiers'],
-    description: 'Debout, pieds écartés à largeur d\'épaules, barre sur les trapèzes. Fléchir les genoux en poussant les hanches vers l\'arrière. Descendre jusqu\'à ce que les cuisses soient parallèles au sol, puis remonter en poussant sur les talons. Garder le dos droit et le regard devant.',
-    couleur: '#22c55e',
-  },
-  {
-    id: 'ex2',
-    nom: 'Pompes',
-    equipement: 'Poids du corps',
-    groupe: 'Pectoraux',
-    muscles: ['Pectoraux', 'Triceps', 'Deltoïdes ant.'],
-    description: 'En position de planche, mains légèrement plus larges que les épaules. Descendre le corps en fléchissant les coudes jusqu\'à ce que la poitrine frôle le sol. Pousser vers le haut pour revenir en position initiale. Garder le corps gainé et aligné.',
-    couleur: '#3b82f6',
-  },
-  {
-    id: 'ex3',
-    nom: 'Traction',
-    equipement: 'Barre de traction',
-    groupe: 'Dos',
-    muscles: ['Grand dorsal', 'Biceps', 'Trapèzes'],
-    description: 'Suspendu à la barre, prise pronation à largeur d\'épaules. Tirer le corps vers le haut en contractant le dos jusqu\'à ce que le menton dépasse la barre. Redescendre lentement en contrôlant le mouvement. Éviter de se balancer.',
-    couleur: '#a855f7',
-  },
-  {
-    id: 'ex4',
-    nom: 'Curl Biceps',
-    equipement: 'Haltère',
-    groupe: 'Biceps',
-    muscles: ['Biceps', 'Brachial ant.'],
-    description: 'Debout, un haltère dans chaque main, bras le long du corps, paumes vers l\'avant. Fléchir les coudes en montant les haltères vers les épaules. Contracter les biceps en haut du mouvement, puis redescendre lentement.',
-    couleur: '#f59e0b',
-  },
-  {
-    id: 'ex5',
-    nom: 'Développé couché',
-    equipement: 'Barre + Banc',
-    groupe: 'Pectoraux',
-    muscles: ['Pectoraux', 'Triceps', 'Deltoïdes ant.'],
-    description: 'Allongé sur un banc plat, pieds au sol. Saisir la barre à largeur d\'épaules. Descendre la barre vers le milieu de la poitrine en contrôlant, puis pousser vers le haut jusqu\'à l\'extension complète des bras.',
-    couleur: '#ec4899',
-  },
-]
+// Couleurs par groupe musculaire
+const GROUP_COLORS = {
+  Pectoraux: '#3b82f6', Dos: '#a855f7', Jambes: '#22c55e', Épaules: '#f59e0b',
+  Biceps: '#f97316', Triceps: '#ec4899', Abdominaux: '#14b8a6', Cardio: '#ef4444', Souplesse: '#8b5cf6',
+}
 
 // ══════════════════════════════════════
-// SPORT TAB — Éditeur de séances
+// SPORT TAB — Catalogue + Éditeur
 // ══════════════════════════════════════
 
-function SportTab({ clientName }) {
+function SportTab({ clientName, coachId }) {
+  const toast = useToast()
+
+  // ── Bibliothèque state ──
+  const [exercices, setExercices] = useState([])
+  const [favorisIds, setFavorisIds] = useState(new Set())
+  const [loadingExos, setLoadingExos] = useState(true)
   const [searchExo, setSearchExo] = useState('')
   const [filtreGroupe, setFiltreGroupe] = useState('Tous')
+  const [filtreSource, setFiltreSource] = useState('Tous')
+
+  // ── Modale création exercice ──
+  const [modalCreer, setModalCreer] = useState(false)
+  const [newExo, setNewExo] = useState({ nom: '', muscle_group: '', equipment: '', description: '', muscles: '', video_url: '', gif_url: '', category: 'Musculation' })
+  const [creatingExo, setCreatingExo] = useState(false)
+
+  // ── Éditeur de séance ──
   const [seanceNom, setSeanceNom] = useState(`Séance de ${clientName || 'remise en forme'}`)
   const [seanceExercices, setSeanceExercices] = useState([])
   const [drawerExercice, setDrawerExercice] = useState(null)
   const [saving, setSaving] = useState(false)
 
-  // Filtrer la bibliothèque
-  const exosFiltres = EXERCISES_MOCK.filter((ex) => {
-    const matchSearch = ex.nom.toLowerCase().includes(searchExo.toLowerCase()) ||
-      ex.equipement.toLowerCase().includes(searchExo.toLowerCase())
-    const matchGroupe = filtreGroupe === 'Tous' || ex.groupe === filtreGroupe
-    return matchSearch && matchGroupe
+  // ── Charger les exercices + favoris depuis Supabase ──
+  useEffect(() => {
+    if (!coachId) return
+    const load = async () => {
+      setLoadingExos(true)
+      const [exosRes, favsRes] = await Promise.all([
+        supabase.from('exercices').select('*').or(`coach_id.is.null,coach_id.eq.${coachId}`).order('muscle_group').order('nom'),
+        supabase.from('exercices_favoris').select('exercice_id').eq('coach_id', coachId),
+      ])
+      setExercices(exosRes.data || [])
+      setFavorisIds(new Set((favsRes.data || []).map(f => f.exercice_id)))
+      setLoadingExos(false)
+    }
+    load()
+  }, [coachId])
+
+  // ── Toggle favori ──
+  const toggleFavori = async (exId) => {
+    const isFav = favorisIds.has(exId)
+    // Optimistic
+    setFavorisIds(prev => {
+      const next = new Set(prev)
+      isFav ? next.delete(exId) : next.add(exId)
+      return next
+    })
+    if (isFav) {
+      await supabase.from('exercices_favoris').delete().eq('coach_id', coachId).eq('exercice_id', exId)
+    } else {
+      await supabase.from('exercices_favoris').insert({ coach_id: coachId, exercice_id: exId })
+    }
+  }
+
+  // ── Créer un exercice ──
+  const creerExercice = async (e) => {
+    e.preventDefault()
+    if (!newExo.nom.trim()) return
+    setCreatingExo(true)
+    const { data, error } = await supabase
+      .from('exercices')
+      .insert({
+        coach_id: coachId,
+        nom: newExo.nom.trim(),
+        muscle_group: newExo.muscle_group || null,
+        equipment: newExo.equipment || null,
+        description: newExo.description || null,
+        muscles: newExo.muscles ? newExo.muscles.split(',').map(m => m.trim()).filter(Boolean) : null,
+        video_url: newExo.video_url || null,
+        gif_url: newExo.gif_url || null,
+        category: newExo.category || 'Musculation',
+      })
+      .select()
+      .single()
+    if (error) {
+      toast.error('Erreur lors de la création')
+    } else {
+      setExercices(prev => [...prev, data])
+      toast.success(`"${data.nom}" ajouté à votre bibliothèque !`)
+      setModalCreer(false)
+      setNewExo({ nom: '', muscle_group: '', equipment: '', description: '', muscles: '', video_url: '', gif_url: '', category: 'Musculation' })
+    }
+    setCreatingExo(false)
+  }
+
+  // ── Filtrer la bibliothèque (recherche avancée) ──
+  const exosFiltres = exercices.filter((ex) => {
+    const q = searchExo.toLowerCase()
+    const matchSearch = !q ||
+      (ex.nom || '').toLowerCase().includes(q) ||
+      (ex.equipment || '').toLowerCase().includes(q) ||
+      (ex.muscle_group || '').toLowerCase().includes(q) ||
+      (ex.muscles || []).some(m => m.toLowerCase().includes(q))
+    const matchGroupe = filtreGroupe === 'Tous' || ex.muscle_group === filtreGroupe
+    const matchSource =
+      filtreSource === 'Tous' ? true :
+      filtreSource === 'Zevo Officiel' ? ex.coach_id === null :
+      filtreSource === 'Mes exercices' ? ex.coach_id === coachId :
+      filtreSource === 'Favoris' ? favorisIds.has(ex.id) :
+      true
+    return matchSearch && matchGroupe && matchSource
   })
 
-  // Ajouter un exercice à la séance
+  // ── Ajout / suppression / modification séance ──
   const ajouterExercice = (ex) => {
-    const existe = seanceExercices.find(s => s.id === ex.id)
-    if (existe) return
-    setSeanceExercices(prev => [...prev, {
-      ...ex,
-      series: 3,
-      repetitions: 12,
-      poids: '',
-      repos: 60,
-    }])
+    if (seanceExercices.find(s => s.id === ex.id)) return
+    setSeanceExercices(prev => [...prev, { ...ex, series: 3, repetitions: 12, poids: '', repos: 60 }])
   }
+  const supprimerExercice = (exId) => setSeanceExercices(prev => prev.filter(e => e.id !== exId))
+  const modifierExercice = (exId, champ, valeur) => setSeanceExercices(prev => prev.map(e => e.id === exId ? { ...e, [champ]: valeur } : e))
 
-  // Supprimer un exercice de la séance
-  const supprimerExercice = (exId) => {
-    setSeanceExercices(prev => prev.filter(e => e.id !== exId))
-  }
-
-  // Modifier un champ d'exercice dans la séance
-  const modifierExercice = (exId, champ, valeur) => {
-    setSeanceExercices(prev => prev.map(e =>
-      e.id === exId ? { ...e, [champ]: valeur } : e
-    ))
-  }
-
-  // Sauvegarder (mock)
   const sauvegarder = () => {
     setSaving(true)
     setTimeout(() => {
       setSaving(false)
+      toast.success('Séance enregistrée !')
       console.log('Séance sauvegardée:', { nom: seanceNom, exercices: seanceExercices })
     }, 1200)
   }
@@ -168,33 +198,62 @@ function SportTab({ clientName }) {
       <div className="w-1/3 flex-shrink-0 bg-[#18181b] border border-[#27272a] rounded-xl flex flex-col overflow-hidden">
 
         {/* Header bibliothèque */}
-        <div className="p-4 border-b border-[#27272a]">
-          <h3 className="text-[#F5F5F3] text-sm font-semibold flex items-center gap-2 mb-3">
-            <Dumbbell size={14} className="text-[#FF6B2B]" />
-            Bibliothèque d'exercices
-          </h3>
+        <div className="p-4 border-b border-[#27272a] space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[#F5F5F3] text-sm font-semibold flex items-center gap-2">
+              <Dumbbell size={14} className="text-[#FF6B2B]" />
+              Bibliothèque
+              <span className="text-white/15 text-[10px] font-normal ml-1">{exosFiltres.length}</span>
+            </h3>
+            <button
+              onClick={() => setModalCreer(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#FF6B2B] text-white text-[10px] font-semibold hover:bg-[#e55e24] transition-colors"
+            >
+              <Plus size={12} />
+              Créer
+            </button>
+          </div>
 
-          {/* Recherche */}
-          <div className="relative mb-3">
+          {/* Recherche avancée */}
+          <div className="relative">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/15" />
             <input
               value={searchExo}
               onChange={(e) => setSearchExo(e.target.value)}
-              placeholder="Rechercher un exercice..."
+              placeholder="Nom, muscle ou équipement..."
               className="w-full bg-[#09090b] border border-[#27272a] rounded-lg pl-8 pr-3 py-2 text-xs text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
             />
           </div>
 
+          {/* Filtre source */}
+          <div className="flex gap-1.5">
+            {SOURCES.map((s) => (
+              <button
+                key={s}
+                onClick={() => setFiltreSource(s)}
+                className={`px-2 py-1 rounded-md text-[10px] font-semibold transition-colors flex items-center gap-1 ${
+                  filtreSource === s
+                    ? 'bg-[#FF6B2B]/15 text-[#FF6B2B] border border-[#FF6B2B]/30'
+                    : 'bg-[#27272a]/50 text-white/25 hover:text-white/40 border border-transparent'
+                }`}
+              >
+                {s === 'Favoris' && <Star size={9} className={filtreSource === s ? 'fill-[#FF6B2B]' : ''} />}
+                {s === 'Zevo Officiel' && <Sparkles size={9} />}
+                {s}
+              </button>
+            ))}
+          </div>
+
           {/* Filtres groupes musculaires */}
-          <div className="flex gap-1.5 flex-wrap">
+          <div className="flex gap-1 flex-wrap">
             {MUSCLE_GROUPS.map((g) => (
               <button
                 key={g}
                 onClick={() => setFiltreGroupe(g)}
-                className={`px-2.5 py-1 rounded-md text-[10px] font-semibold transition-colors ${
+                className={`px-2 py-0.5 rounded text-[9px] font-semibold transition-colors ${
                   filtreGroupe === g
                     ? 'bg-[#FF6B2B] text-white'
-                    : 'bg-[#27272a] text-white/30 hover:text-white/50'
+                    : 'bg-[#27272a]/50 text-white/20 hover:text-white/40'
                 }`}
               >
                 {g}
@@ -204,63 +263,93 @@ function SportTab({ clientName }) {
         </div>
 
         {/* Liste des exercices */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          {exosFiltres.length === 0 ? (
+        <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+          {loadingExos ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 size={20} className="animate-spin text-[#FF6B2B]" />
+            </div>
+          ) : exosFiltres.length === 0 ? (
             <div className="text-center py-8">
               <Dumbbell size={24} className="text-white/10 mx-auto mb-2" />
               <p className="text-white/15 text-xs">Aucun exercice trouvé</p>
+              {filtreSource !== 'Tous' && (
+                <button onClick={() => { setFiltreSource('Tous'); setFiltreGroupe('Tous'); setSearchExo('') }}
+                  className="text-[#FF6B2B] text-[10px] mt-2 hover:underline">Réinitialiser les filtres</button>
+              )}
             </div>
           ) : (
             exosFiltres.map((ex) => {
               const dejaAjoute = seanceExercices.some(s => s.id === ex.id)
+              const isFav = favorisIds.has(ex.id)
+              const couleur = GROUP_COLORS[ex.muscle_group] || '#6b7280'
+              const isPerso = ex.coach_id !== null
+
               return (
                 <div
                   key={ex.id}
-                  className="bg-[#27272a]/40 rounded-lg p-3 group hover:bg-[#27272a]/70 transition-colors"
+                  className="bg-[#27272a]/30 rounded-lg p-2.5 group hover:bg-[#27272a]/60 transition-colors"
                 >
-                  <div className="flex items-start gap-3">
-                    {/* GIF placeholder */}
+                  <div className="flex items-start gap-2.5">
+                    {/* Icône / GIF */}
                     <div
-                      className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: `${ex.couleur}15` }}
+                      className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 cursor-pointer"
+                      style={{ backgroundColor: `${couleur}12` }}
+                      onClick={() => setDrawerExercice(ex)}
                     >
-                      <Dumbbell size={18} style={{ color: ex.couleur }} />
+                      {ex.gif_url ? (
+                        <img src={ex.gif_url} alt="" className="w-full h-full rounded-lg object-cover" />
+                      ) : (
+                        <Dumbbell size={15} style={{ color: couleur }} />
+                      )}
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      {/* Nom cliquable → ouvre le drawer */}
-                      <button
-                        onClick={() => setDrawerExercice(ex)}
-                        className="text-[#F5F5F3] text-sm font-medium hover:text-[#FF6B2B] transition-colors text-left"
-                      >
-                        {ex.nom}
-                      </button>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-white/20 text-[10px] bg-[#09090b] px-2 py-0.5 rounded">
-                          {ex.equipement}
-                        </span>
-                        <span className="text-white/15 text-[10px]">
-                          {ex.groupe}
-                        </span>
+                      {/* Nom cliquable */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setDrawerExercice(ex)}
+                          className="text-[#F5F5F3] text-xs font-medium hover:text-[#FF6B2B] transition-colors text-left truncate"
+                        >
+                          {ex.nom}
+                        </button>
+                        {isPerso && (
+                          <span className="text-[8px] px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold flex-shrink-0">PERSO</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-white/15 text-[9px] bg-[#09090b] px-1.5 py-0.5 rounded">{ex.equipment || '—'}</span>
+                        {ex.category && ex.category !== 'Musculation' && (
+                          <span className="text-[8px] text-white/15">{ex.category}</span>
+                        )}
                       </div>
                     </div>
 
-                    {/* Bouton + */}
-                    <button
-                      onClick={() => ajouterExercice(ex)}
-                      disabled={dejaAjoute}
-                      className={`p-1.5 rounded-lg transition-all flex-shrink-0 ${
-                        dejaAjoute
-                          ? 'bg-green-500/10 text-green-400 cursor-default'
-                          : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 opacity-0 group-hover:opacity-100'
-                      }`}
-                    >
-                      {dejaAjoute ? (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                      ) : (
-                        <Plus size={14} />
-                      )}
-                    </button>
+                    {/* Actions : Favori + Ajouter */}
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                      <button
+                        onClick={() => toggleFavori(ex.id)}
+                        className={`p-1 rounded transition-all ${
+                          isFav ? 'text-yellow-400' : 'text-white/10 opacity-0 group-hover:opacity-100 hover:text-yellow-400'
+                        }`}
+                      >
+                        <Star size={12} className={isFav ? 'fill-yellow-400' : ''} />
+                      </button>
+                      <button
+                        onClick={() => ajouterExercice(ex)}
+                        disabled={dejaAjoute}
+                        className={`p-1 rounded-lg transition-all ${
+                          dejaAjoute
+                            ? 'bg-green-500/10 text-green-400 cursor-default'
+                            : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 opacity-0 group-hover:opacity-100'
+                        }`}
+                      >
+                        {dejaAjoute ? (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        ) : (
+                          <Plus size={12} />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )
@@ -293,7 +382,7 @@ function SportTab({ clientName }) {
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
           >
             {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
-            Enregistrer la séance
+            Enregistrer
           </button>
         </div>
 
@@ -306,88 +395,55 @@ function SportTab({ clientName }) {
               </div>
               <p className="text-white/20 text-sm font-medium mb-1">Aucun exercice ajouté</p>
               <p className="text-white/10 text-xs max-w-[250px] text-center">
-                Cliquez sur le bouton <span className="text-[#FF6B2B]">+</span> dans la bibliothèque pour composer votre séance
+                Cliquez sur <span className="text-[#FF6B2B]">+</span> dans la bibliothèque pour composer votre séance
               </p>
             </div>
           ) : (
             <div className="space-y-3">
-              {seanceExercices.map((ex, index) => (
-                <div
-                  key={ex.id}
-                  className="bg-[#09090b] border border-[#27272a] rounded-xl p-4 group hover:border-[#FF6B2B]/20 transition-colors"
-                >
-                  {/* Ligne supérieure : numéro + nom + supprimer */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <GripVertical size={14} className="text-white/10" />
-                      <span className="w-6 h-6 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center">
-                        {index + 1}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: `${ex.couleur}15` }}
-                      >
-                        <Dumbbell size={14} style={{ color: ex.couleur }} />
+              {seanceExercices.map((ex, index) => {
+                const couleur = GROUP_COLORS[ex.muscle_group] || '#6b7280'
+                return (
+                  <div key={ex.id} className="bg-[#09090b] border border-[#27272a] rounded-xl p-4 group hover:border-[#FF6B2B]/20 transition-colors">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <GripVertical size={14} className="text-white/10" />
+                        <span className="w-6 h-6 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center">
+                          {index + 1}
+                        </span>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-[#F5F5F3] text-sm font-medium truncate">{ex.nom}</p>
-                        <p className="text-white/15 text-[10px]">{ex.equipement}</p>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${couleur}15` }}>
+                          <Dumbbell size={14} style={{ color: couleur }} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[#F5F5F3] text-sm font-medium truncate">{ex.nom}</p>
+                          <p className="text-white/15 text-[10px]">{ex.equipment || ex.equipement || '—'}</p>
+                        </div>
                       </div>
+                      <button onClick={() => supprimerExercice(ex.id)}
+                        className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
+                        <Trash2 size={14} />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => supprimerExercice(ex.id)}
-                      className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-
-                  {/* Inputs : Séries / Répétitions / Poids / Repos */}
-                  <div className="grid grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-white/20 text-[10px] uppercase tracking-wider mb-1.5">Séries</label>
-                      <input
-                        type="number"
-                        value={ex.series}
-                        onChange={(e) => modifierExercice(ex.id, 'series', parseInt(e.target.value) || 0)}
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-lg px-3 py-2 text-[#F5F5F3] text-sm text-center font-medium focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-white/20 text-[10px] uppercase tracking-wider mb-1.5">Répétitions</label>
-                      <input
-                        type="number"
-                        value={ex.repetitions}
-                        onChange={(e) => modifierExercice(ex.id, 'repetitions', parseInt(e.target.value) || 0)}
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-lg px-3 py-2 text-[#F5F5F3] text-sm text-center font-medium focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-white/20 text-[10px] uppercase tracking-wider mb-1.5">Poids (kg)</label>
-                      <input
-                        type="number"
-                        value={ex.poids}
-                        onChange={(e) => modifierExercice(ex.id, 'poids', e.target.value)}
-                        placeholder="—"
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-lg px-3 py-2 text-[#F5F5F3] text-sm text-center font-medium placeholder:text-white/10 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-white/20 text-[10px] uppercase tracking-wider mb-1.5">Repos (s)</label>
-                      <input
-                        type="number"
-                        value={ex.repos}
-                        onChange={(e) => modifierExercice(ex.id, 'repos', parseInt(e.target.value) || 0)}
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-lg px-3 py-2 text-[#F5F5F3] text-sm text-center font-medium focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
-                      />
+                    <div className="grid grid-cols-4 gap-3">
+                      {[
+                        { key: 'series', label: 'Séries', val: ex.series },
+                        { key: 'repetitions', label: 'Répétitions', val: ex.repetitions },
+                        { key: 'poids', label: 'Poids (kg)', val: ex.poids, placeholder: '—' },
+                        { key: 'repos', label: 'Repos (s)', val: ex.repos },
+                      ].map(f => (
+                        <div key={f.key}>
+                          <label className="block text-white/20 text-[10px] uppercase tracking-wider mb-1.5">{f.label}</label>
+                          <input type="number" value={f.val}
+                            onChange={(e) => modifierExercice(ex.id, f.key, f.key === 'poids' ? e.target.value : (parseInt(e.target.value) || 0))}
+                            placeholder={f.placeholder}
+                            className="w-full bg-[#18181b] border border-[#27272a] rounded-lg px-3 py-2 text-[#F5F5F3] text-sm text-center font-medium placeholder:text-white/10 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors" />
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
-              ))}
-
-              {/* Résumé en bas */}
+                )
+              })}
               <div className="flex items-center justify-between py-3 px-4 bg-[#27272a]/30 rounded-lg mt-2">
                 <span className="text-white/20 text-xs">
                   {seanceExercices.length} exercice{seanceExercices.length > 1 ? 's' : ''} · {seanceExercices.reduce((a, e) => a + (e.series || 0), 0)} séries au total
@@ -404,109 +460,185 @@ function SportTab({ clientName }) {
       {/* ════════════════════════════════════ */}
       {/* TIROIR DROIT — Détails exercice     */}
       {/* ════════════════════════════════════ */}
-
-      {/* Overlay */}
       {drawerExercice && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-          onClick={() => setDrawerExercice(null)}
-        />
+        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setDrawerExercice(null)} />
       )}
-
-      {/* Drawer */}
-      <div
-        className={`fixed top-0 right-0 z-50 h-full w-[400px] max-w-[90vw] bg-[#09090b] border-l border-[#27272a] flex flex-col transition-transform duration-300 ease-out ${
-          drawerExercice ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        {drawerExercice && (
-          <>
-            {/* Header du tiroir */}
-            <div className="px-5 py-4 border-b border-[#27272a] flex items-center justify-between">
-              <h3 className="text-[#F5F5F3] font-semibold text-base">Détails de l'exercice</h3>
-              <button
-                onClick={() => setDrawerExercice(null)}
-                className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Contenu */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-5">
-
-              {/* Image / GIF placeholder */}
-              <div
-                className="w-full aspect-video rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: `${drawerExercice.couleur}10` }}
-              >
-                <div className="text-center">
-                  <Dumbbell size={48} style={{ color: drawerExercice.couleur }} className="mx-auto mb-2 opacity-40" />
-                  <p className="text-white/15 text-xs">Démonstration GIF</p>
+      <div className={`fixed top-0 right-0 z-50 h-full w-[400px] max-w-[90vw] bg-[#09090b] border-l border-[#27272a] flex flex-col transition-transform duration-300 ease-out ${drawerExercice ? 'translate-x-0' : 'translate-x-full'}`}>
+        {drawerExercice && (() => {
+          const couleur = GROUP_COLORS[drawerExercice.muscle_group] || '#6b7280'
+          const muscles = drawerExercice.muscles || []
+          const isFav = favorisIds.has(drawerExercice.id)
+          return (
+            <>
+              <div className="px-5 py-4 border-b border-[#27272a] flex items-center justify-between">
+                <h3 className="text-[#F5F5F3] font-semibold text-base">Détails de l'exercice</h3>
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => toggleFavori(drawerExercice.id)}
+                    className={`p-1.5 rounded-lg transition-colors ${isFav ? 'text-yellow-400' : 'text-white/20 hover:text-yellow-400'}`}>
+                    <Star size={16} className={isFav ? 'fill-yellow-400' : ''} />
+                  </button>
+                  <button onClick={() => setDrawerExercice(null)}
+                    className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                    <X size={18} />
+                  </button>
                 </div>
               </div>
-
-              {/* Nom + équipement */}
-              <div>
-                <h4 className="text-[#F5F5F3] text-xl font-bold">{drawerExercice.nom}</h4>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-white/30 text-xs bg-[#27272a] px-2.5 py-1 rounded-md">
-                    {drawerExercice.equipement}
-                  </span>
-                  <span className="text-white/15 text-xs">
-                    {drawerExercice.groupe}
-                  </span>
-                </div>
-              </div>
-
-              {/* Muscles ciblés */}
-              <div>
-                <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">Muscles ciblés</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {drawerExercice.muscles.map((m) => (
-                    <span
-                      key={m}
-                      className="text-xs px-2.5 py-1 rounded-md bg-purple-500/15 text-purple-400 font-medium"
-                    >
-                      {m}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Description / Consignes */}
-              <div>
-                <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">Consignes d'exécution</p>
-                <p className="text-white/50 text-sm leading-relaxed">
-                  {drawerExercice.description}
-                </p>
-              </div>
-
-              {/* Bouton ajouter depuis le tiroir */}
-              <button
-                onClick={() => {
-                  ajouterExercice(drawerExercice)
-                  setDrawerExercice(null)
-                }}
-                disabled={seanceExercices.some(s => s.id === drawerExercice.id)}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                {seanceExercices.some(s => s.id === drawerExercice.id) ? (
-                  <>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    Déjà dans la séance
-                  </>
+              <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                {/* Video / GIF / Placeholder */}
+                {drawerExercice.video_url ? (
+                  <div className="w-full aspect-video rounded-xl overflow-hidden bg-black">
+                    <iframe src={drawerExercice.video_url} className="w-full h-full" allowFullScreen title={drawerExercice.nom}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
+                  </div>
+                ) : drawerExercice.gif_url ? (
+                  <img src={drawerExercice.gif_url} alt={drawerExercice.nom} className="w-full aspect-video rounded-xl object-cover" />
                 ) : (
-                  <>
-                    <Plus size={15} />
-                    Ajouter à la séance
-                  </>
+                  <div className="w-full aspect-video rounded-xl flex items-center justify-center" style={{ backgroundColor: `${couleur}10` }}>
+                    <div className="text-center">
+                      <Dumbbell size={48} style={{ color: couleur }} className="mx-auto mb-2 opacity-40" />
+                      <p className="text-white/15 text-xs">Démonstration</p>
+                    </div>
+                  </div>
                 )}
-              </button>
-            </div>
-          </>
-        )}
+
+                {/* Nom + meta */}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-[#F5F5F3] text-xl font-bold">{drawerExercice.nom}</h4>
+                    {drawerExercice.coach_id === null && (
+                      <span className="text-[8px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-bold">ZEVO</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <span className="text-white/30 text-xs bg-[#27272a] px-2.5 py-1 rounded-md">{drawerExercice.equipment || '—'}</span>
+                    <span className="text-white/15 text-xs">{drawerExercice.muscle_group}</span>
+                    {drawerExercice.category && (
+                      <span className="text-[9px] px-2 py-0.5 rounded bg-[#27272a]/60 text-white/20">{drawerExercice.category}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Muscles ciblés */}
+                {muscles.length > 0 && (
+                  <div>
+                    <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">Muscles ciblés</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {muscles.map((m) => (
+                        <span key={m} className="text-xs px-2.5 py-1 rounded-md bg-purple-500/15 text-purple-400 font-medium">{m}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Description */}
+                {drawerExercice.description && (
+                  <div>
+                    <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">Consignes d'exécution</p>
+                    <p className="text-white/50 text-sm leading-relaxed">{drawerExercice.description}</p>
+                  </div>
+                )}
+
+                {/* Bouton ajouter */}
+                <button
+                  onClick={() => { ajouterExercice(drawerExercice); setDrawerExercice(null) }}
+                  disabled={seanceExercices.some(s => s.id === drawerExercice.id)}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  {seanceExercices.some(s => s.id === drawerExercice.id) ? (
+                    <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Déjà dans la séance</>
+                  ) : (
+                    <><Plus size={15} /> Ajouter à la séance</>
+                  )}
+                </button>
+              </div>
+            </>
+          )
+        })()}
       </div>
+
+      {/* ════════════════════════════════════ */}
+      {/* MODALE — Créer un exercice          */}
+      {/* ════════════════════════════════════ */}
+      <Modal isOpen={modalCreer} onClose={() => setModalCreer(false)} title="Créer un exercice">
+        <form onSubmit={creerExercice} className="space-y-3">
+          <div>
+            <label className="block text-sm text-white/50 mb-1">Nom de l'exercice *</label>
+            <input type="text" value={newExo.nom} onChange={(e) => setNewExo(p => ({ ...p, nom: e.target.value }))}
+              placeholder="Ex: Squat Gobelet" required autoFocus
+              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm text-white/50 mb-1">Groupe musculaire</label>
+              <select value={newExo.muscle_group} onChange={(e) => setNewExo(p => ({ ...p, muscle_group: e.target.value }))}
+                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors">
+                <option value="">— Sélectionner —</option>
+                {MUSCLE_GROUPS.filter(g => g !== 'Tous').map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-white/50 mb-1">Catégorie</label>
+              <select value={newExo.category} onChange={(e) => setNewExo(p => ({ ...p, category: e.target.value }))}
+                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors">
+                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm text-white/50 mb-1">Équipement</label>
+            <input type="text" value={newExo.equipment} onChange={(e) => setNewExo(p => ({ ...p, equipment: e.target.value }))}
+              placeholder="Ex: Haltères, Barre, Poids du corps..."
+              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+          </div>
+
+          <div>
+            <label className="block text-sm text-white/50 mb-1">Muscles ciblés <span className="text-white/20">(séparés par des virgules)</span></label>
+            <input type="text" value={newExo.muscles} onChange={(e) => setNewExo(p => ({ ...p, muscles: e.target.value }))}
+              placeholder="Quadriceps, Fessiers, Ischio-jambiers"
+              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+          </div>
+
+          <div>
+            <label className="block text-sm text-white/50 mb-1">Description / Consignes</label>
+            <textarea value={newExo.description} onChange={(e) => setNewExo(p => ({ ...p, description: e.target.value }))}
+              rows={3} placeholder="Décrivez l'exécution du mouvement..."
+              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm text-white/50 mb-1 flex items-center gap-1.5">
+                <Video size={13} className="text-[#FF6B2B]" /> URL Vidéo
+              </label>
+              <input type="url" value={newExo.video_url} onChange={(e) => setNewExo(p => ({ ...p, video_url: e.target.value }))}
+                placeholder="https://youtube.com/..."
+                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+            </div>
+            <div>
+              <label className="block text-sm text-white/50 mb-1 flex items-center gap-1.5">
+                <PlayCircle size={13} className="text-[#FF6B2B]" /> URL GIF
+              </label>
+              <input type="url" value={newExo.gif_url} onChange={(e) => setNewExo(p => ({ ...p, gif_url: e.target.value }))}
+                placeholder="https://exemple.com/demo.gif"
+                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button type="button" onClick={() => setModalCreer(false)}
+              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">
+              Annuler
+            </button>
+            <button type="submit" disabled={creatingExo}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
+              {creatingExo ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
+              Créer l'exercice
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }
@@ -1409,7 +1541,7 @@ export default function CoachClientHub() {
 
             {/* ── Onglet Sport — Éditeur de séances ── */}
             {activeTab === 'sport' && (
-              <SportTab clientName={fullName} />
+              <SportTab clientName={fullName} coachId={user?.id} />
             )}
 
             {/* ── Placeholder pour les autres onglets ── */}

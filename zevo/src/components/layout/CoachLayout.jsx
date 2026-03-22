@@ -23,7 +23,6 @@ const NAV_SECTIONS = [
       { to: '/coach/client-hub', icon: Users, label: 'Clients' },
       { to: '/coach/prospects', icon: UserPlus, label: 'Prospects', badge: 'Nouveau' },
       { to: '/coach/programmes', icon: Layers, label: 'Programmes' },
-      { to: '/coach/messages', icon: MessageCircle, label: 'Messages' },
     ],
   },
   {
@@ -45,12 +44,12 @@ const NAV_SECTIONS = [
   },
 ]
 
-// Items pour la bottom nav mobile
+// Items pour la bottom nav mobile (Messages est un bouton spécial, pas un NavLink)
 const MOBILE_NAV = [
   { to: '/coach/dashboard', icon: LayoutDashboard, label: 'Accueil' },
   { to: '/coach/client-hub', icon: Users, label: 'Clients' },
   { to: '/coach/programmes', icon: Layers, label: 'Programmes' },
-  { to: '/coach/messages', icon: MessageCircle, label: 'Messages' },
+  { to: null, icon: MessageCircle, label: 'Messages', action: 'openMessages' },
   { to: '/coach/parametres', icon: Settings, label: 'Plus' },
 ]
 
@@ -61,7 +60,6 @@ const PAGE_TITLES = {
   '/coach/client-hub': 'Hub Client 360°',
   '/coach/prospects': 'Prospects',
   '/coach/programmes': 'Programmes',
-  '/coach/messages': 'Messages',
   '/coach/bibliotheque': 'Bibliothèque',
   '/coach/formulaires': 'Formulaires',
   '/coach/rapports': 'Rapports',
@@ -200,6 +198,7 @@ export function CoachLayout() {
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [msgDrawerOpen, setMsgDrawerOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
   const [coachProfile, setCoachProfile] = useState(null)
 
   // Charge le profil coach pour afficher nom + avatar
@@ -427,17 +426,60 @@ export function CoachLayout() {
             </button>
 
             {/* Notifications */}
-            <button className="p-2 rounded-lg text-white/30 hover:text-white/60 hover:bg-[#27272a]/50 transition-colors relative">
-              <Bell size={17} />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setNotifOpen(!notifOpen)}
+                className={`p-2 rounded-lg transition-colors relative ${
+                  notifOpen ? 'text-[#FF6B2B] bg-[#27272a]/50' : 'text-white/30 hover:text-white/60 hover:bg-[#27272a]/50'
+                }`}
+              >
+                <Bell size={17} />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" />
+              </button>
+
+              {/* Dropdown notifications */}
+              {notifOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 z-50 w-80 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
+                    <div className="px-4 py-3 border-b border-[#27272a] flex items-center justify-between">
+                      <h3 className="text-[#F5F5F3] text-sm font-semibold">Notifications</h3>
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">3 nouvelles</span>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                      {[
+                        { text: 'Nouveau client inscrit via votre lien', time: 'Il y a 2h', dot: true },
+                        { text: 'Rapport hebdomadaire prêt à télécharger', time: 'Il y a 5h', dot: true },
+                        { text: 'Mise à jour du programme "Remise en forme"', time: 'Hier', dot: true },
+                        { text: 'Paiement reçu — Abonnement Pro', time: 'Il y a 3j', dot: false },
+                      ].map((n, i) => (
+                        <button key={i} className="w-full flex items-start gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/30">
+                          {n.dot && <div className="w-2 h-2 rounded-full bg-[#FF6B2B] mt-1.5 flex-shrink-0" />}
+                          {!n.dot && <div className="w-2 h-2 mt-1.5 flex-shrink-0" />}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[#F5F5F3] text-xs">{n.text}</p>
+                            <p className="text-white/20 text-[10px] mt-0.5">{n.time}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="px-4 py-2.5 border-t border-[#27272a]">
+                      <button className="text-[#FF6B2B] text-xs font-medium hover:underline w-full text-center">
+                        Tout marquer comme lu
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Messagerie */}
             <button
-              onClick={() => setMsgDrawerOpen(true)}
-              className="p-2 rounded-lg text-white/30 hover:text-white/60 hover:bg-[#27272a]/50 transition-colors"
+              onClick={() => { setMsgDrawerOpen(true); setNotifOpen(false) }}
+              className="p-2 rounded-lg text-white/30 hover:text-white/60 hover:bg-[#27272a]/50 transition-colors relative"
             >
               <MessageCircle size={17} />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" />
             </button>
           </div>
         </header>
@@ -453,19 +495,30 @@ export function CoachLayout() {
       {/* ══════════════════════════════════════ */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b] border-t border-[#27272a]">
         <ul className="flex items-center justify-around h-14">
-          {MOBILE_NAV.map(({ to, icon: Icon, label }) => (
-            <li key={to}>
-              <NavLink
-                to={to}
-                className={({ isActive }) =>
-                  `flex flex-col items-center gap-0.5 px-2 py-1.5 transition-colors ${
-                    isActive ? 'text-[#FF6B2B]' : 'text-white/30'
-                  }`
-                }
-              >
-                <Icon size={18} />
-                <span className="text-[9px] font-medium">{label}</span>
-              </NavLink>
+          {MOBILE_NAV.map(({ to, icon: Icon, label, action }) => (
+            <li key={to || action}>
+              {action === 'openMessages' ? (
+                <button
+                  onClick={() => setMsgDrawerOpen(true)}
+                  className="flex flex-col items-center gap-0.5 px-2 py-1.5 transition-colors text-white/30 hover:text-[#FF6B2B] relative"
+                >
+                  <Icon size={18} />
+                  <span className="text-[9px] font-medium">{label}</span>
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" />
+                </button>
+              ) : (
+                <NavLink
+                  to={to}
+                  className={({ isActive }) =>
+                    `flex flex-col items-center gap-0.5 px-2 py-1.5 transition-colors ${
+                      isActive ? 'text-[#FF6B2B]' : 'text-white/30'
+                    }`
+                  }
+                >
+                  <Icon size={18} />
+                  <span className="text-[9px] font-medium">{label}</span>
+                </NavLink>
+              )}
             </li>
           ))}
         </ul>
