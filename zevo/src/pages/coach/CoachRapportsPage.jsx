@@ -210,196 +210,286 @@ export default function CoachRapportsPage() {
     }
   }
 
-  // ── Générer et télécharger le PDF ──
+  // ── Générer et télécharger le PDF (Premium + White-label) ──
   const telechargerPDF = async () => {
     if (!preview) return
 
-    // Import dynamique de jsPDF
     const { default: jsPDF } = await import('jspdf')
 
     const doc = new jsPDF('p', 'mm', 'a4')
     const couleur = coachInfo?.couleur_primaire || '#FF6B2B'
     const nomApp = coachInfo?.nom_app || 'Zevo'
     const pageW = doc.internal.pageSize.getWidth()
+    const pageH = doc.internal.pageSize.getHeight()
+    const margin = 20
 
-    // ── Helper couleur hex vers RGB ──
     const hexToRgb = (hex) => {
       const r = parseInt(hex.slice(1, 3), 16)
       const g = parseInt(hex.slice(3, 5), 16)
       const b = parseInt(hex.slice(5, 7), 16)
       return [r, g, b]
     }
-
     const [cr, cg, cb] = hexToRgb(couleur)
-    let y = 15
 
-    // ── Header avec couleur du coach ──
-    doc.setFillColor(cr, cg, cb)
-    doc.rect(0, 0, pageW, 30, 'F')
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(18)
-    doc.setFont('helvetica', 'bold')
-    doc.text(nomApp, 15, 12)
-
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
     const dateStr = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-    doc.text(`Généré le ${dateStr}`, 15, 20)
-
-    // Type de rapport
     const typeLabel = TYPES_RAPPORT.find(t => t.id === preview.type)?.label || 'Rapport'
-    doc.text(typeLabel, 15, 27)
-    y = 40
 
+    // ── Helper : barre de progression ──
+    const drawProgressBar = (x, yPos, w, percent, height = 4) => {
+      doc.setFillColor(230, 230, 230)
+      doc.roundedRect(x, yPos, w, height, height / 2, height / 2, 'F')
+      if (percent > 0) {
+        doc.setFillColor(cr, cg, cb)
+        doc.roundedRect(x, yPos, Math.max(w * percent / 100, height), height, height / 2, height / 2, 'F')
+      }
+    }
+
+    // ── Helper : section title avec pastille couleur ──
+    const drawSectionTitle = (title, yPos) => {
+      doc.setFillColor(cr, cg, cb)
+      doc.circle(margin + 2, yPos - 1.5, 2, 'F')
+      doc.setFontSize(13)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(30, 30, 30)
+      doc.text(title, margin + 8, yPos)
+      return yPos + 8
+    }
+
+    // ── Helper : stat card ──
+    const drawStatCard = (x, yPos, w, h, label, value, unit = '') => {
+      doc.setFillColor(248, 248, 248)
+      doc.roundedRect(x, yPos, w, h, 3, 3, 'F')
+      doc.setFontSize(18)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(cr, cg, cb)
+      doc.text(`${value}`, x + w / 2, yPos + h / 2 - 1, { align: 'center' })
+      if (unit) {
+        doc.setFontSize(9)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(100, 100, 100)
+        doc.text(unit, x + w / 2 + doc.getTextWidth(`${value}`) / 2 + 2, yPos + h / 2 - 1)
+      }
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(120, 120, 120)
+      doc.text(label, x + w / 2, yPos + h / 2 + 7, { align: 'center' })
+    }
+
+    // ── Helper : variation badge ──
+    const drawVariation = (x, yPos, val, suffix = '') => {
+      if (val === null || val === undefined) return
+      const n = parseFloat(val)
+      const text = `${n >= 0 ? '+' : ''}${val}${suffix}`
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'bold')
+      if (n >= 0) {
+        doc.setTextColor(34, 139, 34)
+      } else {
+        doc.setTextColor(220, 53, 69)
+      }
+      doc.text(text, x, yPos)
+      doc.setTextColor(30, 30, 30)
+    }
+
+    let y = 0
+
+    // ══════════════════════════════════════
+    // HEADER — White background + logo + fine separator
+    // ══════════════════════════════════════
+
+    // Charger le logo du coach si disponible
+    let logoImg = null
+    if (coachInfo?.logo_url) {
+      try {
+        const response = await fetch(coachInfo.logo_url)
+        const blob = await response.blob()
+        const reader = new FileReader()
+        logoImg = await new Promise((resolve) => {
+          reader.onload = () => resolve(reader.result)
+          reader.readAsDataURL(blob)
+        })
+      } catch { /* logo non chargeable, on continue sans */ }
+    }
+
+    y = 15
+    if (logoImg) {
+      try {
+        doc.addImage(logoImg, 'PNG', margin, y, 0, 12)
+        y += 16
+      } catch {
+        // Fallback : texte du nom si l'image ne charge pas
+        doc.setFontSize(20)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(cr, cg, cb)
+        doc.text(nomApp, margin, y + 8)
+        y += 16
+      }
+    } else {
+      doc.setFontSize(20)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(cr, cg, cb)
+      doc.text(nomApp, margin, y + 8)
+      y += 16
+    }
+
+    // Fine separator line
+    doc.setDrawColor(cr, cg, cb)
+    doc.setLineWidth(0.8)
+    doc.line(margin, y, pageW - margin, y)
+    y += 10
+
+    // Titre du rapport
+    doc.setFontSize(22)
+    doc.setFont('helvetica', 'bold')
     doc.setTextColor(30, 30, 30)
+    doc.text(typeLabel, margin, y)
+    y += 7
+
+    // Badge période
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(100, 100, 100)
+    doc.text(dateStr, margin, y)
+    y += 12
+
+    // ══════════════════════════════════════
+    // BODY
+    // ══════════════════════════════════════
 
     if (preview.type === 'financier') {
-      // ── Rapport financier ──
-      doc.setFontSize(14)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Rapport financier', 15, y)
-      y += 12
-
+      y = drawSectionTitle('Vue financiere', y)
       const d = preview.data
-      const lignes = [
-        ['Clients actifs', `${d.nbClients}`],
-        ['CA du mois', `${d.caMois.toFixed(2)} €`],
-        ['Paiements ce mois', `${d.nbPaiements}`],
-        ['Total paiements reçus', `${d.totalPaiements}`],
-      ]
-
-      doc.setFontSize(11)
-      lignes.forEach(([label, val]) => {
-        doc.setFont('helvetica', 'normal')
-        doc.text(label, 20, y)
-        doc.setFont('helvetica', 'bold')
-        doc.text(val, 120, y)
-        y += 8
-      })
+      const cardW = (pageW - margin * 2 - 6) / 2
+      drawStatCard(margin, y, cardW, 30, 'Clients actifs', d.nbClients)
+      drawStatCard(margin + cardW + 6, y, cardW, 30, 'CA du mois', `${d.caMois.toFixed(2)}`, '\u20AC')
+      y += 36
+      drawStatCard(margin, y, cardW, 30, 'Paiements ce mois', d.nbPaiements)
+      drawStatCard(margin + cardW + 6, y, cardW, 30, 'Total paiements', d.totalPaiements)
+      y += 36
     } else {
-      // ── Rapport client ──
       const nomClient = preview.client?.profiles?.nom || preview.client?.profiles?.email || 'Client'
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text(`Client : ${nomClient}`, 15, y)
-      y += 5
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(100, 100, 100)
-      doc.text(`Période : ${preview.jours} derniers jours`, 15, y)
-      y += 12
-      doc.setTextColor(30, 30, 30)
-
       const d = preview.data
 
-      // Section Habitudes
-      doc.setFillColor(cr, cg, cb)
-      doc.rect(15, y - 4, 3, 8, 'F')
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Habitudes', 22, y + 2)
-      y += 10
+      // Client info
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(80, 80, 80)
+      doc.text(`Client : ${nomClient}  |  Periode : ${preview.jours} jours`, margin, y)
+      y += 12
 
+      // ── Stats grid (4 colonnes) ──
+      const cardW = (pageW - margin * 2 - 18) / 4
+      drawStatCard(margin, y, cardW, 32, 'Habitudes', `${d.tauxHabitudes}%`)
+      drawStatCard(margin + cardW + 6, y, cardW, 32, 'Sommeil', `${d.moyenneSommeil}`, 'h')
+      drawStatCard(margin + (cardW + 6) * 2, y, cardW, 32, 'Qualite', `${d.moyenneQualite}`, '/5')
+      drawStatCard(margin + (cardW + 6) * 3, y, cardW, 32, 'Humeur', `${d.moyenneHumeur}`, '/10')
+      y += 38
+
+      // Variations si mensuel
+      if (d.comparaison) {
+        drawVariation(margin + cardW / 2 - 8, y, d.comparaison.habitudes, '%')
+        if (d.comparaison.sommeil) drawVariation(margin + cardW + 6 + cardW / 2 - 8, y, d.comparaison.sommeil, 'h')
+        if (d.comparaison.humeur) drawVariation(margin + (cardW + 6) * 3 + cardW / 2 - 8, y, d.comparaison.humeur)
+        y += 8
+      }
+
+      // ── Section Habitudes ──
+      y = drawSectionTitle('Habitudes', y)
       doc.setFontSize(10)
       doc.setFont('helvetica', 'normal')
-      doc.text(`Taux de complétion : ${d.tauxHabitudes}%`, 20, y)
-      if (d.comparaison?.habitudes !== undefined) {
-        const diff = d.comparaison.habitudes
-        doc.setTextColor(diff >= 0 ? 34 : 220, diff >= 0 ? 139 : 53, diff >= 0 ? 34 : 69)
-        doc.text(`  (${diff >= 0 ? '+' : ''}${diff}% vs mois précédent)`, 80, y)
-        doc.setTextColor(30, 30, 30)
-      }
-      y += 6
+      doc.setTextColor(80, 80, 80)
+      doc.text(`Taux de completion : ${d.tauxHabitudes}%`, margin + 8, y)
+      y += 5
+      drawProgressBar(margin + 8, y, pageW - margin * 2 - 8, d.tauxHabitudes, 5)
+      y += 10
 
       d.habitudes.forEach(h => {
-        doc.text(`• ${h.nom}`, 25, y)
+        doc.setFontSize(9)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(60, 60, 60)
+        doc.text(`\u2022  ${h.nom}`, margin + 12, y)
         y += 5
       })
       y += 6
 
-      // Section Objectifs
-      doc.setFillColor(cr, cg, cb)
-      doc.rect(15, y - 4, 3, 8, 'F')
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Objectifs', 22, y + 2)
-      y += 10
-
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
+      // ── Section Objectifs ──
+      y = drawSectionTitle('Objectifs', y)
       if (d.objectifs.length === 0) {
-        doc.text('Aucun objectif actif', 20, y)
-        y += 6
+        doc.setFontSize(9)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(150, 150, 150)
+        doc.text('Aucun objectif actif', margin + 8, y)
+        y += 8
       } else {
         d.objectifs.forEach(o => {
-          doc.text(`• ${o.titre} — ${o.score}%`, 25, y)
-          y += 5
+          doc.setFontSize(10)
+          doc.setFont('helvetica', 'normal')
+          doc.setTextColor(50, 50, 50)
+          doc.text(o.titre, margin + 8, y)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(cr, cg, cb)
+          doc.text(`${o.score}%`, pageW - margin - 15, y, { align: 'right' })
+          y += 4
+          drawProgressBar(margin + 8, y, pageW - margin * 2 - 30, o.score, 3.5)
+          y += 8
         })
       }
-      y += 6
+      y += 4
 
-      // Section Sommeil
-      doc.setFillColor(cr, cg, cb)
-      doc.rect(15, y - 4, 3, 8, 'F')
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Sommeil', 22, y + 2)
-      y += 10
+      // ── Section Sommeil ──
+      y = drawSectionTitle('Sommeil', y)
+      const sommeilW = (pageW - margin * 2 - 14) / 2
+      drawStatCard(margin + 8, y, sommeilW, 26, 'Moyenne / nuit', d.moyenneSommeil, 'h')
+      drawStatCard(margin + 8 + sommeilW + 6, y, sommeilW, 26, 'Qualite moyenne', d.moyenneQualite, '/5')
+      y += 32
 
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Moyenne : ${d.moyenneSommeil}h / nuit`, 20, y)
-      if (d.comparaison?.sommeil) {
-        const diff = parseFloat(d.comparaison.sommeil)
-        doc.setTextColor(diff >= 0 ? 34 : 220, diff >= 0 ? 139 : 53, diff >= 0 ? 34 : 69)
-        doc.text(`  (${diff >= 0 ? '+' : ''}${diff}h)`, 80, y)
-        doc.setTextColor(30, 30, 30)
-      }
-      y += 6
-      doc.text(`Qualité moyenne : ${d.moyenneQualite}/5`, 20, y)
-      y += 10
+      // ── Section Humeur ──
+      y = drawSectionTitle('Humeur', y)
+      drawStatCard(margin + 8, y, sommeilW, 26, 'Score moyen', d.moyenneHumeur, '/10')
+      y += 32
 
-      // Section Humeur
-      doc.setFillColor(cr, cg, cb)
-      doc.rect(15, y - 4, 3, 8, 'F')
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Humeur', 22, y + 2)
-      y += 10
-
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Score moyen : ${d.moyenneHumeur}/10`, 20, y)
-      if (d.comparaison?.humeur) {
-        const diff = parseFloat(d.comparaison.humeur)
-        doc.setTextColor(diff >= 0 ? 34 : 220, diff >= 0 ? 139 : 53, diff >= 0 ? 34 : 69)
-        doc.text(`  (${diff >= 0 ? '+' : ''}${diff})`, 80, y)
-        doc.setTextColor(30, 30, 30)
-      }
-      y += 10
-
-      // Commentaire du coach
+      // ── Commentaire du coach ──
       if (commentaire.trim()) {
+        // Vérifier si on a assez de place, sinon nouvelle page
+        if (y > pageH - 60) {
+          doc.addPage()
+          y = 20
+        }
+        y = drawSectionTitle('Commentaire du coach', y)
         doc.setFillColor(cr, cg, cb)
-        doc.rect(15, y - 4, 3, 8, 'F')
-        doc.setFontSize(12)
-        doc.setFont('helvetica', 'bold')
-        doc.text('Commentaire du coach', 22, y + 2)
-        y += 10
+        doc.setGState(new doc.GState({ opacity: 0.08 }))
+        doc.roundedRect(margin + 8, y - 3, pageW - margin * 2 - 8, 4 + commentaire.length * 0.15, 3, 3, 'F')
+        doc.setGState(new doc.GState({ opacity: 1 }))
+
+        doc.setDrawColor(cr, cg, cb)
+        doc.setLineWidth(0.6)
+        doc.line(margin + 8, y - 3, margin + 8, y + 3 + commentaire.length * 0.12)
 
         doc.setFontSize(10)
         doc.setFont('helvetica', 'normal')
-        const lines = doc.splitTextToSize(commentaire, pageW - 40)
-        doc.text(lines, 20, y)
-        y += lines.length * 5
+        doc.setTextColor(50, 50, 50)
+        const lines = doc.splitTextToSize(commentaire, pageW - margin * 2 - 20)
+        doc.text(lines, margin + 14, y + 2)
+        y += lines.length * 5 + 8
       }
     }
 
-    // ── Footer ──
-    const pageH = doc.internal.pageSize.getHeight()
+    // ══════════════════════════════════════
+    // FOOTER — Professional styled
+    // ══════════════════════════════════════
+    doc.setDrawColor(220, 220, 220)
+    doc.setLineWidth(0.3)
+    doc.line(margin, pageH - 20, pageW - margin, pageH - 20)
+
     doc.setFontSize(8)
+    doc.setFont('helvetica', 'normal')
     doc.setTextColor(150, 150, 150)
-    doc.text(`${nomApp} — Rapport généré automatiquement`, 15, pageH - 10)
+    doc.text(`${nomApp}`, margin, pageH - 14)
+    doc.text('Rapport genere automatiquement', margin, pageH - 10)
+    doc.text(dateStr, pageW - margin, pageH - 14, { align: 'right' })
+    doc.setTextColor(cr, cg, cb)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Confidentiel', pageW - margin, pageH - 10, { align: 'right' })
 
     // Télécharger
     const nomFichier = preview.type === 'financier'

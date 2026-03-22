@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import {
-  Plus, Trash2, CreditCard, DollarSign, Filter,
+  Plus, Trash2, CreditCard, Euro, Filter,
   CheckCircle, Clock, XCircle, RefreshCw, Eye, EyeOff
 } from 'lucide-react'
 
@@ -132,7 +132,7 @@ export default function CoachAbonnementsPage() {
           <p className="text-white/40 text-xs uppercase tracking-wider font-semibold">Encaissé ce mois</p>
           <p className="text-3xl font-bold text-[#F5F5F3] mt-1">{totalMois.toFixed(2)} €</p>
         </div>
-        <DollarSign size={32} className="text-[#FF6B2B]/30" />
+        <Euro size={32} className="text-[#FF6B2B]/30" />
       </div>
 
       {/* ── Section Offres ── */}

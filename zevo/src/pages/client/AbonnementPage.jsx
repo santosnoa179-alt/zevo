@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import { CreditCard, CheckCircle, Clock, ExternalLink, Package } from 'lucide-react'
+import { useToast } from '../../components/ui/Toast'
+import { CreditCard, CheckCircle, Clock, ExternalLink, Package, Loader2 } from 'lucide-react'
 
 const FREQ_LABELS = {
   unique: 'Paiement unique',
@@ -12,6 +14,8 @@ const FREQ_LABELS = {
 
 export default function AbonnementPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const toast = useToast()
   const [offres, setOffres] = useState([])
   const [paiements, setPaiements] = useState([])
   const [loading, setLoading] = useState(true)
@@ -58,29 +62,32 @@ export default function AbonnementPage() {
     setLoading(false)
   }
 
-  // ── Payer une offre ──
+  // ── Payer une offre (paiement simulé) ──
   const payer = async (offre) => {
     setProcessing(offre.id)
 
+    // Simule un délai de traitement bancaire
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
     try {
-      const res = await fetch('/api/client-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          offreId: offre.id,
-          clientId: user.id,
-        }),
+      // Insère le paiement dans la DB avec statut payé
+      const { error } = await supabase.from('paiements_clients').insert({
+        client_id: user.id,
+        coach_id: offre.coach_id,
+        offre_id: offre.id,
+        montant: offre.prix,
+        statut: 'paye',
+        date_paiement: new Date().toISOString(),
       })
 
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        alert('Erreur lors de la création du paiement')
-      }
+      if (error) throw error
+
+      toast.success('Paiement effectue avec succes !')
+      // Recharger les données pour afficher le paiement dans l'historique
+      await chargerDonnees()
     } catch (err) {
       console.error('Erreur paiement:', err)
-      alert('Erreur de connexion')
+      toast.error('Erreur lors du paiement. Reessayez.')
     }
 
     setProcessing(null)
@@ -141,7 +148,10 @@ export default function AbonnementPage() {
                     className="flex items-center gap-2 bg-[#FF6B2B] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-50"
                   >
                     {processing === o.id ? (
-                      'Redirection...'
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        Paiement en cours...
+                      </>
                     ) : (
                       <>
                         <CreditCard size={16} />

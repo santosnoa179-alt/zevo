@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, Zap, Star, Crown, ArrowLeft, Loader2 } from 'lucide-react'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
-import { getStripe } from '../../lib/stripe'
+import { useAuth } from '../../hooks/useAuth'
+import { supabase } from '../../lib/supabase'
+import { useToast } from '../../components/ui/Toast'
 
 // Définition des 3 plans — tarification mise à jour
 const PLANS = [
@@ -64,27 +66,33 @@ const PLANS = [
 
 export default function PricingPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const toast = useToast()
   const [loadingPlan, setLoadingPlan] = useState(null)
 
-  // Redirige vers Stripe Checkout via la Netlify Function
+  // Met à jour le plan du coach dans la DB et redirige
   const handleSelectPlan = async (planId) => {
+    // Si pas connecté, redirige vers login
+    if (!user) {
+      navigate('/login')
+      return
+    }
+
     setLoadingPlan(planId)
 
     try {
-      const response = await fetch('/api/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planId }),
-      })
+      const { error } = await supabase
+        .from('coaches')
+        .update({ plan: planId })
+        .eq('id', user.id)
 
-      const { sessionId, error } = await response.json()
-      if (error) throw new Error(error)
+      if (error) throw error
 
-      // Redirige vers Stripe Checkout
-      const stripe = await getStripe()
-      await stripe.redirectToCheckout({ sessionId })
+      toast.success(`Plan ${planId.charAt(0).toUpperCase() + planId.slice(1)} active !`)
+      navigate('/coach/dashboard')
     } catch (err) {
-      console.error('Erreur checkout:', err)
+      console.error('Erreur plan:', err)
+      toast.error('Erreur lors de la mise a jour du plan.')
       setLoadingPlan(null)
     }
   }

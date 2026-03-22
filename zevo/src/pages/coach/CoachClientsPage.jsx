@@ -9,10 +9,17 @@ import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import { UserPlus, Search, ChevronRight, Mail, Users } from 'lucide-react'
 
-// Initiales colorées
-function Initiales({ nom, couleur }) {
-  const parts = (nom ?? '?').trim().split(' ')
-  const initiales = parts.length >= 2 ? `${parts[0][0]}${parts[parts.length - 1][0]}` : (nom ?? '?')[0]
+// Avatar avec fallback initiales
+function Avatar({ nom, prenom, avatarUrl, couleur }) {
+  if (avatarUrl) {
+    return (
+      <img src={avatarUrl} alt={prenom || nom || ''}
+        className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+    )
+  }
+  const displayName = [prenom, nom].filter(Boolean).join(' ') || '?'
+  const parts = displayName.trim().split(' ')
+  const initiales = parts.length >= 2 ? `${parts[0][0]}${parts[parts.length - 1][0]}` : displayName[0]
   return (
     <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold text-white"
       style={{ backgroundColor: couleur ?? '#FF6B2B' }}>
@@ -45,7 +52,7 @@ export default function CoachClientsPage() {
 
     const { data: clientsData } = await supabase
       .from('clients')
-      .select('id, created_at, actif, profiles(nom, email)')
+      .select('id, created_at, actif, profiles(nom, prenom, email, avatar_url)')
       .eq('coach_id', user.id)
       .order('created_at', { ascending: false })
 
@@ -202,12 +209,17 @@ export default function CoachClientsPage() {
                 onClick={() => navigate(`/coach/clients/${c.id}`)}
               >
                 <CardBody className="flex items-center gap-3 py-3">
-                  <Initiales nom={c.profiles?.nom} couleur={c.couleurAvatar} />
+                  <Avatar
+                    nom={c.profiles?.nom}
+                    prenom={c.profiles?.prenom}
+                    avatarUrl={c.profiles?.avatar_url}
+                    couleur={c.couleurAvatar}
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-[#F5F5F3] text-sm font-medium truncate">
-                      {c.profiles?.nom ?? c.profiles?.email}
+                      {[c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || c.profiles?.email}
                     </p>
-                    {c.profiles?.nom && (
+                    {(c.profiles?.prenom || c.profiles?.nom) && (
                       <p className="text-white/30 text-xs truncate">{c.profiles.email}</p>
                     )}
                   </div>
