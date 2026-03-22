@@ -9,8 +9,10 @@ import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import {
   ArrowLeft, CheckCircle2, Circle, Target, MessageSquare,
-  Plus, Lock, TrendingUp, Layers, Play, Pause, CheckSquare, Download
+  Plus, Lock, TrendingUp, Layers, Play, Pause, CheckSquare, Download,
+  ChevronRight, Loader2, Dumbbell
 } from 'lucide-react'
+import { useToast } from '../../components/ui/Toast'
 import { exportHabitudes, exportObjectifs } from '../../utils/exportCsv'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
@@ -21,6 +23,7 @@ export default function CoachClientFichePage() {
   const { clientId } = useParams()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const toast = useToast()
 
   const [onglet, setOnglet] = useState('Aperçu')
   const [loading, setLoading] = useState(true)
@@ -51,6 +54,8 @@ export default function CoachClientFichePage() {
   const [dateCibleObj, setDateCibleObj] = useState('')
   const [savingHab, setSavingHab] = useState(false)
   const [savingObj, setSavingObj] = useState(false)
+  const [assigningProg, setAssigningProg] = useState(null)
+  const [advancingPhase, setAdvancingPhase] = useState(false)
 
   // Saisie message
   const [texteMsg, setTexteMsg] = useState('')
@@ -196,54 +201,181 @@ export default function CoachClientFichePage() {
     setLoadingProgs(false)
   }
 
-  // Assigner un programme au client
-  const assignerProgramme = async (progId) => {
-    // Charge les phases pour créer automatiquement les habitudes/objectifs de la phase 1
-    const { data: phasesData } = await supabase
-      .from('programme_phases')
-      .select('*')
-      .eq('programme_id', progId)
-      .order('ordre')
+  // ── Helper : peupler le dashboard du client avec les données d'une phase ──
+  const peuplerPhase = async (phase, progId) => {
+    if (!phase) return { habitudes: 0, objectifs: 0, taches: 0 }
 
-    const phase1 = phasesData?.[0]
+    let nbHab = 0, nbObj = 0, nbTaches = 0
 
-    // Crée l'assignation
-    const { data: newAssign } = await supabase
-      .from('programme_assignations')
-      .insert({
-        programme_id: progId,
-        client_id: clientId,
-        coach_id: user.id,
-        phase_actuelle: 1,
-      })
-      .select('*, programmes(titre, duree_semaines)')
-      .single()
-
-    // Crée automatiquement les habitudes de la phase 1
-    if (phase1?.habitudes?.length) {
-      const habInserts = phase1.habitudes.map(h => ({
+    // Crée les habitudes de la phase
+    if (phase.habitudes?.length) {
+      const habInserts = phase.habitudes.map(h => ({
         client_id: clientId,
         assigned_by: user.id,
         nom: h.nom,
         couleur: h.couleur || '#FF6B2B',
+        programme_id: progId,
       }))
       await supabase.from('habitudes').insert(habInserts)
+      nbHab = habInserts.length
     }
 
-    // Crée automatiquement les objectifs de la phase 1
-    if (phase1?.objectifs?.length) {
-      const objInserts = phase1.objectifs.map(o => ({
+    // Crée les objectifs de la phase
+    if (phase.objectifs?.length) {
+      const objInserts = phase.objectifs.map(o => ({
         client_id: clientId,
         assigned_by: user.id,
         titre: o.titre,
         peut_supprimer: false,
+        programme_id: progId,
       }))
       await supabase.from('objectifs').insert(objInserts)
+      nbObj = objInserts.length
     }
 
-    setModalProg(false)
-    // Recharger les données pour voir le programme et les nouvelles habitudes/objectifs
-    chargerDonnees()
+    // Crée des tâches depuis les exercices de la phase
+    if (phase.exercices?.length) {
+      const tacheInserts = phase.exercices.map(ex => ({
+        client_id: clientId,
+        assigned_by: user.id,
+        titre: `${ex.nom || ex.name}${ex.series && ex.reps ? ` — ${ex.series}×${ex.reps}` : ''}`,
+        priorite: 'normal',
+        statut: 'en_cours',
+        programme_id: progId,
+      }))
+      await supabase.from('taches').insert(tacheInserts)
+      nbTaches = tacheInserts.length
+    }
+
+    return { habitudes: nbHab, objectifs: nbObj, taches: nbTaches }
+  }
+
+  // ── Assigner un programme au client ──
+  const assignerProgramme = async (progId) => {
+    setAssigningProg(progId)
+
+    try {
+      // Charge les phases pour créer automatiquement les données de la phase 1
+      const { data: phasesData } = await supabase
+        .from('programme_phases')
+        .select('*')
+        .eq('programme_id', progId)
+        .order('ordre')
+
+      const phase1 = phasesData?.[0]
+
+      // Crée l'assignation
+      const { data: newAssign, error: assignError } = await supabase
+        .from('programme_assignations')
+        .insert({
+          programme_id: progId,
+          client_id: clientId,
+          coach_id: user.id,
+          phase_actuelle: 1,
+        })
+        .select('*, programmes(titre, duree_semaines)')
+        .single()
+
+      if (assignError) throw assignError
+
+      // Peuple le dashboard avec les données de la phase 1
+      const counts = await peuplerPhase(phase1, progId)
+
+      setModalProg(false)
+
+      // Toast de succès détaillé
+      const details = []
+      if (counts.habitudes > 0) details.push(`${counts.habitudes} habitude${counts.habitudes > 1 ? 's' : ''}`)
+      if (counts.objectifs > 0) details.push(`${counts.objectifs} objectif${counts.objectifs > 1 ? 's' : ''}`)
+      if (counts.taches > 0) details.push(`${counts.taches} tache${counts.taches > 1 ? 's' : ''}`)
+
+      toast.success(
+        `Programme "${newAssign.programmes?.titre}" assigne !${details.length ? ` ${details.join(', ')} crees.` : ''}`
+      )
+
+      // Recharger les données
+      chargerDonnees()
+    } catch (err) {
+      console.error('Erreur assignation programme:', err)
+      toast.error('Erreur lors de l\'assignation du programme.')
+      setAssigningProg(null)
+    }
+  }
+
+  // ── Passer à la phase suivante ──
+  const changerPhase = async () => {
+    if (!assignation || advancingPhase) return
+
+    const phaseActuelle = assignation.phase_actuelle
+    const totalPhases = programmePhases.length
+
+    // Vérifier qu'on n'est pas déjà à la dernière phase
+    if (phaseActuelle >= totalPhases) {
+      // Marquer le programme comme terminé
+      await supabase
+        .from('programme_assignations')
+        .update({ statut: 'termine' })
+        .eq('id', assignation.id)
+
+      toast.success('Programme termine ! Bravo au client 🎉')
+      chargerDonnees()
+      return
+    }
+
+    setAdvancingPhase(true)
+
+    try {
+      const nouvellePhase = phaseActuelle + 1
+
+      // Désactiver les habitudes de l'ancien programme/phase (soft delete)
+      await supabase
+        .from('habitudes')
+        .update({ actif: false })
+        .eq('client_id', clientId)
+        .eq('programme_id', assignation.programme_id)
+
+      // Archiver les objectifs de l'ancien programme/phase
+      await supabase
+        .from('objectifs')
+        .update({ archive: true })
+        .eq('client_id', clientId)
+        .eq('programme_id', assignation.programme_id)
+
+      // Terminer les tâches de l'ancien programme
+      await supabase
+        .from('taches')
+        .update({ statut: 'termine' })
+        .eq('client_id', clientId)
+        .eq('programme_id', assignation.programme_id)
+        .eq('statut', 'en_cours')
+
+      // Mettre à jour la phase actuelle dans l'assignation
+      await supabase
+        .from('programme_assignations')
+        .update({ phase_actuelle: nouvellePhase })
+        .eq('id', assignation.id)
+
+      // Peupler le dashboard avec les données de la nouvelle phase
+      const newPhaseData = programmePhases.find(p => p.ordre === nouvellePhase)
+      const counts = await peuplerPhase(newPhaseData, assignation.programme_id)
+
+      const phaseTitre = newPhaseData?.titre || `Phase ${nouvellePhase}`
+      const details = []
+      if (counts.habitudes > 0) details.push(`${counts.habitudes} habitude${counts.habitudes > 1 ? 's' : ''}`)
+      if (counts.objectifs > 0) details.push(`${counts.objectifs} objectif${counts.objectifs > 1 ? 's' : ''}`)
+      if (counts.taches > 0) details.push(`${counts.taches} tache${counts.taches > 1 ? 's' : ''}`)
+
+      toast.success(
+        `Phase "${phaseTitre}" activee !${details.length ? ` ${details.join(', ')} crees.` : ''}`
+      )
+
+      chargerDonnees()
+    } catch (err) {
+      console.error('Erreur changement de phase:', err)
+      toast.error('Erreur lors du changement de phase.')
+    }
+
+    setAdvancingPhase(false)
   }
 
   // Envoie un message au client
@@ -413,6 +545,37 @@ export default function CoachClientFichePage() {
                 <p className="text-white/30 text-xs mt-2">
                   {programmePhases[assignation.phase_actuelle - 1]?.titre || ''}
                 </p>
+
+                {/* Boutons de gestion de phase */}
+                <div className="flex gap-2 mt-4">
+                  {assignation.phase_actuelle < programmePhases.length ? (
+                    <button
+                      onClick={changerPhase}
+                      disabled={advancingPhase}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-50"
+                    >
+                      {advancingPhase ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <ChevronRight size={13} />
+                      )}
+                      {advancingPhase ? 'Transition...' : 'Phase suivante'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={changerPhase}
+                      disabled={advancingPhase}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+                    >
+                      {advancingPhase ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <CheckSquare size={13} />
+                      )}
+                      Terminer le programme
+                    </button>
+                  )}
+                </div>
               </CardBody>
             </Card>
           ) : (
@@ -601,16 +764,25 @@ export default function CoachClientFichePage() {
               <button
                 key={prog.id}
                 onClick={() => assignerProgramme(prog.id)}
-                className="w-full flex items-center gap-3 p-3 rounded-xl bg-[#2A2A2A]/50 hover:bg-[#2A2A2A] text-left transition-colors"
+                disabled={assigningProg !== null}
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-[#2A2A2A]/50 hover:bg-[#2A2A2A] text-left transition-colors disabled:opacity-50"
               >
                 <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
-                  <Layers size={18} className="text-[#FF6B2B]" />
+                  {assigningProg === prog.id ? (
+                    <Loader2 size={18} className="text-[#FF6B2B] animate-spin" />
+                  ) : (
+                    <Layers size={18} className="text-[#FF6B2B]" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[#F5F5F3] text-sm font-medium truncate">{prog.titre}</p>
                   <p className="text-white/30 text-xs">{prog.duree_semaines} sem. {prog.categorie ? `· ${prog.categorie}` : ''}</p>
                 </div>
-                <Play size={14} className="text-[#FF6B2B] shrink-0" />
+                {assigningProg === prog.id ? (
+                  <span className="text-[#FF6B2B] text-xs shrink-0">Assignation...</span>
+                ) : (
+                  <Play size={14} className="text-[#FF6B2B] shrink-0" />
+                )}
               </button>
             ))}
           </div>

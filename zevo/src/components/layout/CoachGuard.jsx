@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { ZevoLogo } from '../ui/ZevoLogo'
@@ -12,6 +12,7 @@ export function CoachGuard({ children }) {
   const navigate = useNavigate()
 
   const [abonnementActif, setAbonnementActif] = useState(null) // null = chargement
+  const [onboardingDone, setOnboardingDone] = useState(null) // null = chargement
   const [stripeCustomerId, setStripeCustomerId] = useState(null)
   const [portalLoading, setPortalLoading] = useState(false)
 
@@ -20,36 +21,42 @@ export function CoachGuard({ children }) {
     const check = async () => {
       const { data, error } = await supabase
         .from('coaches')
-        .select('abonnement_actif, stripe_customer_id')
+        .select('abonnement_actif, stripe_customer_id, onboarding_complete')
         .eq('id', user.id)
         .maybeSingle()
 
       if (error) {
-        // Erreur RLS ou réseau — on ne bloque pas le coach
         console.error('CoachGuard: erreur requête coaches:', error)
         setAbonnementActif(true)
+        setOnboardingDone(true)
         return
       }
 
       if (data) {
-        // abonnement_actif peut être null si la colonne n'a pas encore de valeur
         setAbonnementActif(data.abonnement_actif === true)
         setStripeCustomerId(data.stripe_customer_id)
+        // onboarding_complete peut être null → considéré comme non fait
+        setOnboardingDone(data.onboarding_complete === true)
       } else {
-        // Pas encore de ligne dans coaches — probablement un nouveau coach sans abonnement
         setAbonnementActif(false)
+        setOnboardingDone(false)
       }
     }
     check()
   }, [user])
 
   // Chargement
-  if (abonnementActif === null) {
+  if (abonnementActif === null || onboardingDone === null) {
     return (
       <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
       </div>
     )
+  }
+
+  // Onboarding pas encore terminé → redirige vers onboarding
+  if (!onboardingDone) {
+    return <Navigate to="/coach/onboarding" replace />
   }
 
   // Abonnement actif → accès normal au dashboard

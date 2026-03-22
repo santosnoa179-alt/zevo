@@ -53,6 +53,7 @@ const CoachStatistiquesPage = lazy(() => import('./pages/coach/CoachStatistiques
 const CoachAbonnementsPage = lazy(() => import('./pages/coach/CoachAbonnementsPage'))
 const CoachAppBuilderPage = lazy(() => import('./pages/coach/CoachAppBuilderPage'))
 const CoachParametresPage = lazy(() => import('./pages/coach/CoachParametresPage'))
+const CoachOnboarding = lazy(() => import('./pages/coach/CoachOnboarding'))
 
 // ── Pages admin (lazy) ──
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
@@ -92,6 +93,16 @@ export default function App() {
               <Route path="abonnement" element={<AbonnementPage />} />
               <Route path="programme" element={<ProgrammePage />} />
             </Route>
+
+            {/* ── Onboarding coach (hors layout) ── */}
+            <Route
+              path="/coach/onboarding"
+              element={
+                <ProtectedRoute allowedRoles={['coach']}>
+                  <CoachOnboarding />
+                </ProtectedRoute>
+              }
+            />
 
             {/* ── Section coach — protégée par rôle + guard abonnement ── */}
             <Route

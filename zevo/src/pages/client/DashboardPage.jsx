@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { calculerScoreBienEtre, couleurScore, labelScore } from '../../utils/wellbeing'
 import { Card, CardBody } from '../../components/ui/Card'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { CheckCircle2, Circle, AlertTriangle, Flame, Layers } from 'lucide-react'
+import { CheckCircle2, Circle, AlertTriangle, Flame, Layers, Dumbbell, Check } from 'lucide-react'
 import { Confetti, StreakMilestone } from '../../components/ui/Confetti'
 
 // ── Jauge circulaire SVG pour le score bien-être ──
@@ -52,6 +52,7 @@ export default function DashboardPage() {
   const [habitudes, setHabitudes] = useState([])
   const [logAujourdhui, setLogAujourdhui] = useState([])
   const [tachesUrgentes, setTachesUrgentes] = useState([])
+  const [tachesProgramme, setTachesProgramme] = useState([])
   const [sommeil, setSommeil] = useState(null)
   const [humeur, setHumeur] = useState(null)
   const [sport, setSport] = useState(null)
@@ -118,6 +119,16 @@ export default function DashboardPage() {
     setHabitudes(habs)
     setLogAujourdhui((logRes.data ?? []).map(l => l.habitude_id))
     setTachesUrgentes(tachesRes.data ?? [])
+
+    // Charger les tâches du programme (exercices générés automatiquement)
+    const { data: tachesProgData } = await supabase
+      .from('taches')
+      .select('*')
+      .eq('client_id', user.id)
+      .eq('statut', 'en_cours')
+      .not('programme_id', 'is', null)
+      .order('created_at')
+    setTachesProgramme(tachesProgData ?? [])
     setSommeil(sommeilRes.data ?? null)
     setHumeur(humeurRes.data ?? null)
     setSport(sportRes.data ?? null)
@@ -332,6 +343,36 @@ export default function DashboardPage() {
                       </p>
                     )}
                   </div>
+                </li>
+              ))}
+            </ul>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* ── Exercices du programme ── */}
+      {tachesProgramme.length > 0 && (
+        <Card>
+          <CardBody>
+            <div className="flex items-center gap-2 mb-3">
+              <Dumbbell size={13} className="text-[#FF6B2B]" />
+              <p className="text-white/40 text-[11px] uppercase tracking-wider">
+                Exercices du programme
+              </p>
+              <span className="text-[#FF6B2B] text-xs font-semibold ml-auto">
+                {tachesProgramme.length}
+              </span>
+            </div>
+            <ul className="space-y-1.5">
+              {tachesProgramme.map((t) => (
+                <li key={t.id} className="flex items-center gap-3 py-1.5 px-1 rounded-lg hover:bg-white/[0.03] transition-colors">
+                  <div className="w-5 h-5 rounded-md bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                    <Dumbbell size={11} className="text-[#FF6B2B]" />
+                  </div>
+                  <span className="text-[#F5F5F3] text-sm flex-1">{t.titre}</span>
+                  <span className="text-[10px] text-[#FF6B2B]/70 bg-[#FF6B2B]/10 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                    Programme
+                  </span>
                 </li>
               ))}
             </ul>
