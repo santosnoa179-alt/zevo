@@ -616,7 +616,7 @@ export function CoachLayout() {
       <header className="md:hidden sticky top-0 z-50 bg-[#09090b] border-b border-[#27272a] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <img
-            src="/icons/Gemini_Generated_Image_mlzr5umlzr5umlzr.png"
+            src="/icons/Gemini_Generated_Image_vsyssevsyssevsys-Photoroom.png"
             alt="Zevo"
             className="h-8 w-auto rounded-lg object-contain"
           />
@@ -693,7 +693,7 @@ export function CoachLayout() {
         <div className="px-5 py-5 border-b border-[#27272a]">
           <div className="flex items-center gap-3">
             <img
-              src="/icons/Gemini_Generated_Image_mlzr5umlzr5umlzr.png"
+              src="/icons/Gemini_Generated_Image_vsyssevsyssevsys-Photoroom.png"
               alt="Zevo"
               className="h-10 w-auto rounded-lg object-contain"
             />

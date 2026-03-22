@@ -11,7 +11,7 @@ export function ZevoLogo({ size = 'md', variant = 'full', className = '' }) {
   return (
     <div className={`inline-flex items-center ${s.gap} ${className}`}>
       <img
-        src="/icons/Gemini_Generated_Image_mlzr5umlzr5umlzr.png"
+        src="/icons/Gemini_Generated_Image_vsyssevsyssevsys-Photoroom.png"
         alt="Zevo"
         className={`${s.h} w-auto rounded-lg object-contain`}
       />
