@@ -409,7 +409,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
   }
 
   return (
-    <div className="flex gap-0 h-[calc(100vh-16rem)] min-h-[500px]">
+    <div className="flex flex-col md:flex-row gap-0 md:h-[calc(100vh-16rem)] min-h-[500px]">
 
       {/* ════════════════════════════════════ */}
       {/* PANNEAU GAUCHE — Bibliothèque       */}
@@ -668,7 +668,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                         <Trash2 size={14} />
                       </button>
                     </div>
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {[
                         { key: 'series', label: 'Séries', val: ex.series },
                         { key: 'repetitions', label: 'Répétitions', val: ex.repetitions },
@@ -1191,7 +1191,8 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         </div>
 
         {/* Grille 7 jours */}
-        <div className="grid grid-cols-7 gap-2 flex-1 overflow-hidden">
+        <div className="flex-1 overflow-x-auto">
+          <div className="grid grid-cols-7 gap-2 min-w-[700px]">
           {weekDates.map((date, i) => {
             const dateStr = formatDateISO(date)
             const isToday = dateStr === today
@@ -1237,12 +1238,13 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
           })}
         </div>
       </div>
+      </div>
 
       {/* ══════════════════════════════════════ */}
       {/* PANNEAU DROIT — Modèles de séances    */}
       {/* ══════════════════════════════════════ */}
       {panelOpen && (
-        <div className="w-72 flex-shrink-0 bg-[#18181b] border border-[#27272a] rounded-xl flex flex-col overflow-hidden">
+        <div className="hidden md:flex w-72 flex-shrink-0 bg-[#18181b] border border-[#27272a] rounded-xl flex-col overflow-hidden">
           {/* Header */}
           <div className="p-4 border-b border-[#27272a]">
             <div className="flex items-center justify-between mb-2">
@@ -1574,7 +1576,8 @@ export default function CoachClientHub() {
       couleurAvatar: AVATAR_COLORS[i % AVATAR_COLORS.length],
     }))
     setClients(cl)
-    if (cl.length > 0 && !selectedId) {
+    // Auto-select first client only on desktop (md+)
+    if (cl.length > 0 && !selectedId && window.innerWidth >= 768) {
       setSelectedId(cl[0].id)
     }
     setLoading(false)
@@ -1676,12 +1679,12 @@ export default function CoachClientHub() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-3.5rem)] overflow-hidden">
 
       {/* ══════════════════════════════════════ */}
       {/* SIDEBAR — Liste des clients           */}
       {/* ══════════════════════════════════════ */}
-      <div className="w-72 flex-shrink-0 bg-[#09090b] border-r border-[#27272a] flex flex-col overflow-hidden">
+      <div className={`${selectedId ? 'hidden md:flex' : 'flex'} w-full md:w-72 flex-shrink-0 bg-[#09090b] border-r border-[#27272a] flex-col overflow-hidden`}>
 
         {/* Header */}
         <div className="p-4 border-b border-[#27272a]">
@@ -1759,7 +1762,7 @@ export default function CoachClientHub() {
       {/* ══════════════════════════════════════ */}
       {/* ZONE PRINCIPALE — Dashboard client    */}
       {/* ══════════════════════════════════════ */}
-      <div className="flex-1 overflow-y-auto bg-[#18181b]">
+      <div className={`${selectedId ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto bg-[#18181b] flex-col`}>
         {!selectedId || loadingProfile ? (
           <div className="flex items-center justify-center h-full">
             {loadingProfile ? (
@@ -1772,10 +1775,18 @@ export default function CoachClientHub() {
             )}
           </div>
         ) : (
-          <div className="p-6 space-y-6">
+          <div className="p-4 md:p-6 space-y-6">
+
+            {/* ── Bouton retour mobile ── */}
+            <button
+              onClick={() => setSelectedId(null)}
+              className="md:hidden flex items-center gap-2 text-white/40 text-sm hover:text-white transition-colors -mb-2"
+            >
+              <ChevronLeft size={16} /> Retour aux clients
+            </button>
 
             {/* ── En-tête client ── */}
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
               <div className="flex items-center gap-4">
                 {/* Gros avatar */}
                 {p?.avatar_url ? (

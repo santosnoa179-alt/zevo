@@ -295,7 +295,7 @@ export default function CoachDashboardPage() {
               </div>
             </div>
 
-            <div className="flex justify-center py-2">
+            <div className="flex justify-center py-2 overflow-x-auto">
               <RevenueChart data={revenueData} />
             </div>
           </div>
