@@ -12,7 +12,7 @@ import {
   Plus, X, Save, Trash2, Filter, Info, GripVertical,
   PlayCircle, ChevronLeft, Star, Video, Sparkles,
   Copy, CalendarPlus, Layers, PanelRightOpen, PanelRightClose,
-  Pencil, ExternalLink
+  Pencil, ExternalLink, Coffee, UtensilsCrossed, Moon, Cookie, Minus
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -1530,6 +1530,461 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
 }
 
 // ══════════════════════════════════════
+// NUTRITION TAB — Builder
+// ══════════════════════════════════════
+const REPAS_TYPES = [
+  { id: 'petit_dej', label: 'Petit-déjeuner', icon: Coffee },
+  { id: 'dejeuner', label: 'Déjeuner', icon: UtensilsCrossed },
+  { id: 'diner', label: 'Dîner', icon: Moon },
+  { id: 'collation', label: 'Collation', icon: Cookie },
+]
+
+const ALIMENT_CATEGORIES = ['Tous', 'Protéine', 'Féculent', 'Légume', 'Fruit', 'Lipide', 'Laitier', 'Légumineuse']
+
+function NutritionTab({ coachId, clientId, clientName }) {
+  const toast = useToast()
+
+  // Bibliothèque
+  const [aliments, setAliments] = useState([])
+  const [searchAliment, setSearchAliment] = useState('')
+  const [catFilter, setCatFilter] = useState('Tous')
+  const [loadingAliments, setLoadingAliments] = useState(true)
+
+  // Plan
+  const [activeRepas, setActiveRepas] = useState('petit_dej')
+  const [planItems, setPlanItems] = useState({
+    petit_dej: [],
+    dejeuner: [],
+    diner: [],
+    collation: [],
+  })
+  const [planDate, setPlanDate] = useState(new Date().toISOString().split('T')[0])
+  const [saving, setSaving] = useState(false)
+  const [existingPlanId, setExistingPlanId] = useState(null)
+
+  // Charger aliments
+  useEffect(() => {
+    if (!coachId) return
+    const load = async () => {
+      setLoadingAliments(true)
+      const { data } = await supabase
+        .from('aliments')
+        .select('*')
+        .or(`coach_id.is.null,coach_id.eq.${coachId}`)
+        .order('categorie, nom')
+      setAliments(data || [])
+      setLoadingAliments(false)
+    }
+    load()
+  }, [coachId])
+
+  // Charger plan existant pour cette date
+  useEffect(() => {
+    if (!coachId || !clientId || !planDate) return
+    const loadPlan = async () => {
+      const { data: plans } = await supabase
+        .from('client_nutrition_plans')
+        .select('id')
+        .eq('coach_id', coachId)
+        .eq('client_id', clientId)
+        .eq('date_plan', planDate)
+        .limit(1)
+
+      if (plans && plans.length > 0) {
+        const planId = plans[0].id
+        setExistingPlanId(planId)
+
+        // Charger les repas + aliments
+        const { data: repasData } = await supabase
+          .from('plan_repas')
+          .select('id, type, repas_aliments(id, aliment_id, quantite_g, ordre, aliments(*))')
+          .eq('plan_id', planId)
+          .order('ordre')
+
+        const loaded = { petit_dej: [], dejeuner: [], diner: [], collation: [] }
+        ;(repasData || []).forEach(r => {
+          if (loaded[r.type]) {
+            loaded[r.type] = (r.repas_aliments || [])
+              .sort((a, b) => a.ordre - b.ordre)
+              .map(ra => ({
+                ...ra.aliments,
+                quantite: ra.quantite_g,
+                _ra_id: ra.id,
+              }))
+          }
+        })
+        setPlanItems(loaded)
+      } else {
+        setExistingPlanId(null)
+        setPlanItems({ petit_dej: [], dejeuner: [], diner: [], collation: [] })
+      }
+    }
+    loadPlan()
+  }, [coachId, clientId, planDate])
+
+  // Ajouter un aliment au repas actif
+  const addAliment = (aliment) => {
+    setPlanItems(prev => ({
+      ...prev,
+      [activeRepas]: [...prev[activeRepas], { ...aliment, quantite: 100 }],
+    }))
+  }
+
+  // Modifier la quantité
+  const updateQuantite = (repasType, index, newQty) => {
+    setPlanItems(prev => ({
+      ...prev,
+      [repasType]: prev[repasType].map((item, i) =>
+        i === index ? { ...item, quantite: Math.max(0, newQty) } : item
+      ),
+    }))
+  }
+
+  // Supprimer un aliment du repas
+  const removeAliment = (repasType, index) => {
+    setPlanItems(prev => ({
+      ...prev,
+      [repasType]: prev[repasType].filter((_, i) => i !== index),
+    }))
+  }
+
+  // Calcul des macros pour un item
+  const macrosForItem = (item) => {
+    const ratio = (item.quantite || 0) / 100
+    return {
+      kcal: Math.round((item.kcal_100g || 0) * ratio),
+      prot: Math.round((item.proteines || 0) * ratio * 10) / 10,
+      gluc: Math.round((item.glucides || 0) * ratio * 10) / 10,
+      lip: Math.round((item.lipides || 0) * ratio * 10) / 10,
+    }
+  }
+
+  // Totaux par repas
+  const repasTotal = (type) => {
+    return (planItems[type] || []).reduce(
+      (acc, item) => {
+        const m = macrosForItem(item)
+        return { kcal: acc.kcal + m.kcal, prot: acc.prot + m.prot, gluc: acc.gluc + m.gluc, lip: acc.lip + m.lip }
+      },
+      { kcal: 0, prot: 0, gluc: 0, lip: 0 }
+    )
+  }
+
+  // Total général
+  const totalMacros = Object.keys(planItems).reduce(
+    (acc, type) => {
+      const t = repasTotal(type)
+      return { kcal: acc.kcal + t.kcal, prot: acc.prot + t.prot, gluc: acc.gluc + t.gluc, lip: acc.lip + t.lip }
+    },
+    { kcal: 0, prot: 0, gluc: 0, lip: 0 }
+  )
+
+  // Filtrage
+  const filteredAliments = aliments.filter(a => {
+    const matchSearch = a.nom.toLowerCase().includes(searchAliment.toLowerCase())
+    const matchCat = catFilter === 'Tous' || a.categorie === catFilter
+    return matchSearch && matchCat
+  })
+
+  // Sauvegarder le plan
+  const sauvegarderPlan = async () => {
+    setSaving(true)
+    try {
+      let planId = existingPlanId
+
+      if (planId) {
+        // Supprimer les anciens repas (cascade supprime les repas_aliments)
+        await supabase.from('plan_repas').delete().eq('plan_id', planId)
+      } else {
+        const { data, error } = await supabase
+          .from('client_nutrition_plans')
+          .insert({ coach_id: coachId, client_id: clientId, date_plan: planDate, nom: 'Plan du jour' })
+          .select()
+          .single()
+        if (error) throw error
+        planId = data.id
+        setExistingPlanId(planId)
+      }
+
+      // Insérer les repas
+      for (const type of Object.keys(planItems)) {
+        const items = planItems[type]
+        if (items.length === 0) continue
+
+        const { data: repasRow, error: rErr } = await supabase
+          .from('plan_repas')
+          .insert({ plan_id: planId, type, ordre: REPAS_TYPES.findIndex(r => r.id === type) })
+          .select()
+          .single()
+
+        if (rErr) throw rErr
+
+        const rows = items.map((item, idx) => ({
+          repas_id: repasRow.id,
+          aliment_id: item.id,
+          quantite_g: item.quantite,
+          ordre: idx,
+        }))
+        await supabase.from('repas_aliments').insert(rows)
+      }
+
+      toast.success('Plan nutritionnel sauvegardé !')
+    } catch (err) {
+      console.error('Erreur sauvegarde plan:', err)
+      toast.error('Erreur lors de la sauvegarde.')
+    }
+    setSaving(false)
+  }
+
+  const currentRepasItems = planItems[activeRepas] || []
+  const currentRepasInfo = REPAS_TYPES.find(r => r.id === activeRepas)
+
+  return (
+    <div className="flex flex-col lg:flex-row gap-4 h-full" style={{ minHeight: 'calc(100vh - 200px)' }}>
+
+      {/* ═══════════════════════════════════
+          COLONNE GAUCHE — Bibliothèque
+          ═══════════════════════════════════ */}
+      <div className="w-full lg:w-[380px] flex-shrink-0 flex flex-col bg-[#18181b] rounded-2xl border border-[#27272a] overflow-hidden">
+        {/* Header */}
+        <div className="px-4 py-3.5 border-b border-[#27272a]">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[#F5F5F3] text-sm font-bold">Aliments</h3>
+            <span className="text-[10px] text-white/30 font-medium">{filteredAliments.length} résultats</span>
+          </div>
+          {/* Search */}
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+            <input
+              type="text"
+              value={searchAliment}
+              onChange={e => setSearchAliment(e.target.value)}
+              placeholder="Rechercher un aliment..."
+              className="w-full bg-[#09090b] border border-[#27272a] rounded-xl pl-9 pr-4 py-2 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all"
+            />
+          </div>
+          {/* Category chips */}
+          <div className="flex gap-1.5 mt-2.5 overflow-x-auto pb-1 no-scrollbar">
+            {ALIMENT_CATEGORIES.map(cat => (
+              <button key={cat} onClick={() => setCatFilter(cat)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all ${
+                  catFilter === cat
+                    ? 'bg-[#FF6B2B] text-white'
+                    : 'bg-[#27272a] text-white/40 hover:text-white/60'
+                }`}>
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Liste aliments */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {loadingAliments ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
+            </div>
+          ) : filteredAliments.length === 0 ? (
+            <div className="text-center py-12">
+              <Apple size={28} className="text-white/10 mx-auto mb-2" />
+              <p className="text-white/20 text-xs">Aucun aliment trouvé</p>
+            </div>
+          ) : (
+            <div className="p-2 space-y-1">
+              {filteredAliments.map(aliment => (
+                <button key={aliment.id} onClick={() => addAliment(aliment)}
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/[0.04] transition-all text-left group">
+                  {/* Icône catégorie */}
+                  <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                    <Apple size={16} className="text-[#FF6B2B]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[#F5F5F3] text-sm font-medium truncate">{aliment.nom}</p>
+                    <div className="flex items-center gap-2.5 mt-0.5">
+                      <span className="text-[10px] text-white/30 font-medium">100g</span>
+                      <span className="text-[10px] text-[#FF6B2B] font-bold">{aliment.kcal_100g}kcal</span>
+                      <span className="text-[10px] text-blue-400">P{aliment.proteines}</span>
+                      <span className="text-[10px] text-amber-400">G{aliment.glucides}</span>
+                      <span className="text-[10px] text-rose-400">L{aliment.lipides}</span>
+                    </div>
+                  </div>
+                  {/* Bouton + au hover */}
+                  <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    <Plus size={14} className="text-[#FF6B2B]" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════
+          COLONNE DROITE — Plan du jour
+          ═══════════════════════════════════ */}
+      <div className="flex-1 flex flex-col bg-[#18181b] rounded-2xl border border-[#27272a] overflow-hidden min-w-0">
+        {/* Header plan */}
+        <div className="px-5 py-3.5 border-b border-[#27272a]">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <input
+                type="date"
+                value={planDate}
+                onChange={e => setPlanDate(e.target.value)}
+                className="bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-1.5 text-[#F5F5F3] text-xs focus:outline-none focus:border-[#FF6B2B]/50 transition-all"
+              />
+              {existingPlanId && (
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold">Sauvegardé</span>
+              )}
+            </div>
+            {/* Total macros */}
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FF6B2B]/10">
+                <Flame size={11} className="text-[#FF6B2B]" />
+                <span className="text-[11px] text-[#FF6B2B] font-bold">{totalMacros.kcal}kcal</span>
+              </div>
+              <span className="text-[10px] text-blue-400 font-semibold">P {Math.round(totalMacros.prot)}g</span>
+              <span className="text-[10px] text-amber-400 font-semibold">G {Math.round(totalMacros.gluc)}g</span>
+              <span className="text-[10px] text-rose-400 font-semibold">L {Math.round(totalMacros.lip)}g</span>
+            </div>
+          </div>
+
+          {/* Tabs repas */}
+          <div className="flex gap-1">
+            {REPAS_TYPES.map(r => {
+              const rTotal = repasTotal(r.id)
+              const count = (planItems[r.id] || []).length
+              return (
+                <button key={r.id} onClick={() => setActiveRepas(r.id)}
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                    activeRepas === r.id
+                      ? 'bg-[#FF6B2B] text-white'
+                      : 'bg-[#27272a]/50 text-white/40 hover:text-white/60'
+                  }`}>
+                  <r.icon size={13} />
+                  <span className="hidden sm:inline">{r.label}</span>
+                  {count > 0 && (
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                      activeRepas === r.id ? 'bg-white/20' : 'bg-white/[0.06]'
+                    }`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Zone de contenu du repas */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {currentRepasItems.length === 0 ? (
+            /* Empty state */
+            <div className="flex flex-col items-center justify-center h-full py-16 px-6">
+              <div className="w-16 h-16 rounded-2xl bg-[#27272a] flex items-center justify-center mb-4">
+                <currentRepasInfo.icon size={28} className="text-white/10" />
+              </div>
+              <h4 className="text-[#F5F5F3] text-base font-semibold mb-1">
+                Il n'y a pas d'aliments dans ce repas
+              </h4>
+              <p className="text-white/30 text-sm text-center max-w-xs">
+                Cliquez sur un aliment dans la bibliothèque pour l'ajouter au {currentRepasInfo.label.toLowerCase()}
+              </p>
+              <p className="text-[#FF6B2B] text-xs mt-3 font-medium">
+                Il sera ajouté au « {currentRepasInfo.label} »
+              </p>
+            </div>
+          ) : (
+            <div className="p-3 space-y-1.5">
+              {currentRepasItems.map((item, idx) => {
+                const m = macrosForItem(item)
+                return (
+                  <div key={`${item.id}-${idx}`}
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#09090b] border border-[#27272a] hover:border-[#27272a]/80 transition-all group">
+                    {/* Icône */}
+                    <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                      <Apple size={14} className="text-[#FF6B2B]" />
+                    </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[#F5F5F3] text-sm font-medium truncate">{item.nom}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] text-[#FF6B2B] font-bold">{m.kcal}kcal</span>
+                        <span className="text-[10px] text-blue-400">P{m.prot}</span>
+                        <span className="text-[10px] text-amber-400">G{m.gluc}</span>
+                        <span className="text-[10px] text-rose-400">L{m.lip}</span>
+                      </div>
+                    </div>
+                    {/* Quantité */}
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button onClick={() => updateQuantite(activeRepas, idx, item.quantite - 10)}
+                        className="w-6 h-6 rounded-md bg-[#27272a] flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                        <Minus size={10} />
+                      </button>
+                      <input
+                        type="number"
+                        value={item.quantite}
+                        onChange={e => updateQuantite(activeRepas, idx, parseInt(e.target.value) || 0)}
+                        className="w-14 bg-[#27272a] border border-[#27272a] rounded-lg px-2 py-1 text-center text-[#F5F5F3] text-xs font-medium focus:outline-none focus:border-[#FF6B2B]/50"
+                      />
+                      <button onClick={() => updateQuantite(activeRepas, idx, item.quantite + 10)}
+                        className="w-6 h-6 rounded-md bg-[#27272a] flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                        <Plus size={10} />
+                      </button>
+                      <span className="text-[10px] text-white/20 w-4">g</span>
+                    </div>
+                    {/* Supprimer */}
+                    <button onClick={() => removeAliment(activeRepas, idx)}
+                      className="p-1.5 rounded-lg text-white/15 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0">
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                )
+              })}
+
+              {/* Sous-total du repas */}
+              {currentRepasItems.length > 0 && (
+                <div className="flex items-center justify-between px-4 py-2.5 mt-2 rounded-xl bg-[#27272a]/50 border border-[#27272a]/30">
+                  <span className="text-xs text-white/30 font-medium">Sous-total {currentRepasInfo.label}</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xs text-[#FF6B2B] font-bold">{repasTotal(activeRepas).kcal}kcal</span>
+                    <span className="text-[10px] text-blue-400 font-semibold">P{Math.round(repasTotal(activeRepas).prot)}g</span>
+                    <span className="text-[10px] text-amber-400 font-semibold">G{Math.round(repasTotal(activeRepas).gluc)}g</span>
+                    <span className="text-[10px] text-rose-400 font-semibold">L{Math.round(repasTotal(activeRepas).lip)}g</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer — Sauvegarder */}
+        <div className="px-5 py-3.5 border-t border-[#27272a] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* Résumé repas */}
+            {REPAS_TYPES.map(r => {
+              const count = (planItems[r.id] || []).length
+              if (count === 0) return null
+              return (
+                <span key={r.id} className="text-[10px] text-white/25 font-medium">
+                  {r.label.slice(0, 3)}. {count}
+                </span>
+              )
+            })}
+          </div>
+          <button onClick={sauvegarderPlan} disabled={saving || totalMacros.kcal === 0}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-[#FF6B2B]/20">
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+            {saving ? 'Sauvegarde...' : 'Sauvegarder le plan'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+// ══════════════════════════════════════
 // MAIN COMPONENT
 // ══════════════════════════════════════
 export default function CoachClientHub() {
@@ -2095,8 +2550,19 @@ export default function CoachClientHub() {
               />
             )}
 
+            {activeTab === 'nutrition' && (
+              <NutritionTab
+                coachId={user?.id}
+                clientId={selectedId}
+                clientName={(() => {
+                  const c = clients.find(c => c.profiles?.id === selectedId)
+                  return c?.profiles?.nom || 'Client'
+                })()}
+              />
+            )}
+
             {/* ── Placeholder pour les autres onglets ── */}
-            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && (
+            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
                   <BarChart3 size={36} className="text-white/10 mx-auto mb-3" />
