@@ -85,6 +85,9 @@ function MessagingDrawer({ open, onClose }) {
   const [messages, setMessages] = useState({})
   const [isComposingNew, setIsComposingNew] = useState(false)
   const [newMsgSearch, setNewMsgSearch] = useState('')
+  const [composeMode, setComposeMode] = useState('direct') // 'direct' | 'group'
+  const [groupName, setGroupName] = useState('')
+  const [selectedMembers, setSelectedMembers] = useState(new Set())
 
   const TABS = [
     { id: 'actifs', label: 'Actifs' },
@@ -155,12 +158,45 @@ function MessagingDrawer({ open, onClose }) {
     }
   }
 
+  // Toggle member selection for group
+  const toggleMember = (id) => {
+    setSelectedMembers(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  // Create group
+  const createGroup = () => {
+    if (!groupName.trim() || selectedMembers.size === 0) return
+    const memberNames = allIndividualContacts
+      .filter(c => selectedMembers.has(c.id))
+      .map(c => c.name.split(' ')[0])
+      .join(', ')
+    const newGroup = {
+      id: `group_${Date.now()}`,
+      initials: groupName.slice(0, 2).toUpperCase(),
+      name: groupName.trim(),
+      message: `Groupe créé avec ${memberNames}`,
+      time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      unread: false,
+      status: 'actif',
+      group: true,
+    }
+    openConversation(newGroup)
+  }
+
   // Retour à la liste
   const backToList = () => {
     setSelectedContact(null)
     setMessageInput('')
     setIsComposingNew(false)
     setNewMsgSearch('')
+    setComposeMode('direct')
+    setGroupName('')
+    setSelectedMembers(new Set())
   }
 
   // Envoi d'un message
@@ -187,6 +223,9 @@ function MessagingDrawer({ open, onClose }) {
         setMessageInput('')
         setIsComposingNew(false)
         setNewMsgSearch('')
+        setComposeMode('direct')
+        setGroupName('')
+        setSelectedMembers(new Set())
       }, 300)
     }
   }, [open])
@@ -280,17 +319,19 @@ function MessagingDrawer({ open, onClose }) {
             </div>
           </>
         ) : isComposingNew ? (
-          /* ── VUE NOUVEAU MESSAGE ── */
+          /* ── VUE NOUVEAU MESSAGE / CRÉER GROUPE ── */
           <>
             {/* Header */}
             <div className="px-4 py-3.5 border-b border-[#27272a] flex items-center gap-3">
               <button
-                onClick={() => { setIsComposingNew(false); setNewMsgSearch('') }}
+                onClick={backToList}
                 className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
               >
                 <ChevronLeft size={18} />
               </button>
-              <h2 className="text-[#F5F5F3] font-semibold text-base flex-1">Nouveau message</h2>
+              <h2 className="text-[#F5F5F3] font-semibold text-base flex-1">
+                {composeMode === 'direct' ? 'Nouveau message' : 'Créer un groupe'}
+              </h2>
               <button
                 onClick={onClose}
                 className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors"
@@ -299,20 +340,77 @@ function MessagingDrawer({ open, onClose }) {
               </button>
             </div>
 
-            {/* Barre "À :" */}
-            <div className="px-5 py-3 border-b border-[#27272a]">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm font-medium">À :</span>
+            {/* Toggle Direct / Groupe */}
+            <div className="px-5 py-3 flex gap-0 border-b border-[#27272a]">
+              {[
+                { id: 'direct', label: 'Message direct' },
+                { id: 'group', label: 'Créer un groupe' },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => { setComposeMode(m.id); setNewMsgSearch(''); setSelectedMembers(new Set()); setGroupName('') }}
+                  className={`flex-1 py-2 text-xs font-medium transition-colors relative ${
+                    composeMode === m.id ? 'text-[#FF6B2B]' : 'text-white/40 hover:text-white/60'
+                  }`}
+                >
+                  {m.label}
+                  {composeMode === m.id && (
+                    <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-[#FF6B2B] rounded-full" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {composeMode === 'group' && (
+              /* Nom du groupe */
+              <div className="px-5 py-3 border-b border-[#27272a]">
                 <input
                   type="text"
-                  value={newMsgSearch}
-                  onChange={(e) => setNewMsgSearch(e.target.value)}
-                  placeholder="Rechercher un client..."
-                  autoFocus
-                  className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-10 pr-4 py-2 text-sm text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  placeholder="Nom du groupe..."
+                  className="w-full bg-[#18181b] border border-[#27272a] rounded-lg px-4 py-2 text-sm text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
                 />
               </div>
-            </div>
+            )}
+
+            {composeMode === 'direct' && (
+              /* Barre "À :" pour message direct */
+              <div className="px-5 py-3 border-b border-[#27272a]">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm font-medium">À :</span>
+                  <input
+                    type="text"
+                    value={newMsgSearch}
+                    onChange={(e) => setNewMsgSearch(e.target.value)}
+                    placeholder="Rechercher un client..."
+                    autoFocus
+                    className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-10 pr-4 py-2 text-sm text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                  />
+                </div>
+              </div>
+            )}
+
+            {composeMode === 'group' && (
+              /* Recherche membres */
+              <div className="px-5 py-2">
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                  <input
+                    type="text"
+                    value={newMsgSearch}
+                    onChange={(e) => setNewMsgSearch(e.target.value)}
+                    placeholder="Rechercher des membres..."
+                    className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-9 pr-4 py-2 text-sm text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                  />
+                </div>
+                {selectedMembers.size > 0 && (
+                  <p className="text-[#FF6B2B] text-[10px] font-medium mt-1.5">
+                    {selectedMembers.size} membre{selectedMembers.size > 1 ? 's' : ''} sélectionné{selectedMembers.size > 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Liste des clients */}
             <div className="flex-1 overflow-y-auto">
@@ -325,21 +423,48 @@ function MessagingDrawer({ open, onClose }) {
                 filteredNewContacts.map((contact) => (
                   <button
                     key={contact.id}
-                    onClick={() => openConversation(contact)}
-                    className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/50"
+                    onClick={() => composeMode === 'direct' ? openConversation(contact) : toggleMember(contact.id)}
+                    className={`w-full flex items-center gap-3 px-5 py-3.5 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/50 ${
+                      selectedMembers.has(contact.id) ? 'bg-[#FF6B2B]/[0.04]' : ''
+                    }`}
                   >
+                    {composeMode === 'group' && (
+                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                        selectedMembers.has(contact.id) ? 'bg-[#FF6B2B] border-[#FF6B2B]' : 'border-[#27272a]'
+                      }`}>
+                        {selectedMembers.has(contact.id) && (
+                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        )}
+                      </div>
+                    )}
                     <div className="w-10 h-10 rounded-full bg-[#FF6B2B]/15 flex items-center justify-center flex-shrink-0">
                       <span className="text-[#FF6B2B] text-sm font-bold">{contact.initials}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[#F5F5F3] text-sm font-medium truncate">{contact.name}</p>
-                      <p className="text-white/20 text-[10px] mt-0.5">Démarrer une conversation</p>
+                      <p className="text-white/20 text-[10px] mt-0.5">
+                        {composeMode === 'direct' ? 'Démarrer une conversation' : 'Ajouter au groupe'}
+                      </p>
                     </div>
-                    <Send size={14} className="text-white/15 flex-shrink-0" />
+                    {composeMode === 'direct' && <Send size={14} className="text-white/15 flex-shrink-0" />}
                   </button>
                 ))
               )}
             </div>
+
+            {/* Bouton "Créer le groupe" */}
+            {composeMode === 'group' && (
+              <div className="px-5 py-3 border-t border-[#27272a]">
+                <button
+                  onClick={createGroup}
+                  disabled={!groupName.trim() || selectedMembers.size === 0}
+                  className="w-full py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <Users size={15} />
+                  Créer le groupe ({selectedMembers.size})
+                </button>
+              </div>
+            )}
           </>
         ) : (
           /* ── VUE LISTE DES CONTACTS ── */

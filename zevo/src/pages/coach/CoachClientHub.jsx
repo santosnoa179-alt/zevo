@@ -54,10 +54,10 @@ function StatCard({ icon: Icon, label, value, sub, accent = false }) {
 }
 
 // ══════════════════════════════════════
-// PROCHAINES SÉANCES — Card pour overview
+// CARTE PROGRAMME — Premium card pour overview
 // ══════════════════════════════════════
 
-function ProchainesSeancesCard({ clientId }) {
+function ProchainesSeancesCard({ clientId, onOpenSport }) {
   const [seances, setSeances] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -72,43 +72,85 @@ function ProchainesSeancesCard({ clientId }) {
       .eq('is_template', false)
       .gte('date_prevue', today)
       .order('date_prevue', { ascending: true })
-      .limit(3)
+      .limit(4)
       .then(({ data }) => {
         setSeances(data ?? [])
         setLoading(false)
       })
   }, [clientId])
 
+  const nbSeances = seances.length
+  const nbSemaines = Math.max(1, Math.ceil(nbSeances / 3))
+
   return (
-    <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
-      <h3 className="text-[#F5F5F3] text-sm font-semibold mb-4 flex items-center gap-2">
-        <Dumbbell size={14} className="text-[#FF6B2B]" />
-        Programmes & Prochaines séances
-      </h3>
-      {loading ? (
-        <div className="space-y-3 animate-pulse">
-          {[1, 2, 3].map(i => <div key={i} className="h-10 bg-[#27272a]/50 rounded-lg" />)}
-        </div>
-      ) : seances.length === 0 ? (
-        <p className="text-white/15 text-xs text-center py-4">Aucune séance planifiée</p>
-      ) : (
-        <div className="space-y-2">
-          {seances.map((s) => (
-            <div key={s.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#09090b] border border-[#27272a]/50">
-              <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                <Dumbbell size={14} className="text-[#FF6B2B]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[#F5F5F3] text-sm font-medium truncate">{s.titre}</p>
-                <p className="text-white/25 text-[10px] mt-0.5">
-                  {new Date(s.date_prevue).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
-                </p>
-              </div>
-              <Calendar size={13} className="text-white/15 flex-shrink-0" />
+    <div className="bg-[#18181b] border border-[#27272a] border-t-2 border-t-[#FF6B2B] rounded-xl overflow-hidden">
+      {/* Header */}
+      <div className="p-5 pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+              <Layers size={18} className="text-[#FF6B2B]" />
             </div>
-          ))}
+            <div>
+              <h3 className="text-[#F5F5F3] text-sm font-semibold">Programme actif</h3>
+              <p className="text-white/25 text-[10px] mt-0.5">
+                {nbSeances > 0 ? `${nbSeances} séance${nbSeances > 1 ? 's' : ''} planifiée${nbSeances > 1 ? 's' : ''}` : 'Aucune séance'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="p-1.5 rounded-lg text-white/20 hover:text-white/40 hover:bg-white/[0.04] transition-colors">
+              <Pencil size={13} />
+            </button>
+            <button className="p-1.5 rounded-lg text-white/20 hover:text-red-400/60 hover:bg-red-500/[0.04] transition-colors">
+              <Trash2 size={13} />
+            </button>
+          </div>
         </div>
-      )}
+
+        {/* Badges */}
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#27272a] text-white/40 font-medium">{nbSemaines} sem.</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#27272a] text-white/40 font-medium">Remise en forme</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#27272a] text-white/40 font-medium">1 client</span>
+        </div>
+      </div>
+
+      {/* Séances à venir */}
+      <div className="px-5 pb-3">
+        {loading ? (
+          <div className="space-y-2 animate-pulse">
+            {[1, 2, 3].map(i => <div key={i} className="h-10 bg-[#27272a]/40 rounded-lg" />)}
+          </div>
+        ) : seances.length === 0 ? (
+          <p className="text-white/15 text-xs text-center py-4">Aucune séance planifiée</p>
+        ) : (
+          <div className="space-y-1.5">
+            {seances.map((s) => (
+              <div key={s.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#09090b] border border-[#27272a]/40">
+                <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                  <Dumbbell size={12} className="text-[#FF6B2B]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[#F5F5F3] text-xs font-medium truncate">{s.titre}</p>
+                </div>
+                <span className="text-white/20 text-[10px] flex-shrink-0">
+                  {new Date(s.date_prevue).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Bouton ouvrir */}
+      <button
+        onClick={onOpenSport}
+        className="w-full py-3 bg-[#27272a] hover:bg-[#3f3f46] text-[#F5F5F3] text-xs font-medium transition-colors flex items-center justify-center gap-2"
+      >
+        Ouvrir le programme
+        <ChevronRight size={13} />
+      </button>
     </div>
   )
 }
@@ -2014,8 +2056,8 @@ export default function CoachClientHub() {
                     )}
                   </div>
 
-                  {/* Carte Programmes & Prochaines séances */}
-                  <ProchainesSeancesCard clientId={selectedId} />
+                  {/* Carte Programme */}
+                  <ProchainesSeancesCard clientId={selectedId} onOpenSport={() => setActiveTab('sport')} />
                 </div>
               </div>
             )}
