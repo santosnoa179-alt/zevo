@@ -11,7 +11,8 @@ import {
   User, Heart, Flame, BarChart3, Clock,
   Plus, X, Save, Trash2, Filter, Info, GripVertical,
   PlayCircle, ChevronLeft, Star, Video, Sparkles,
-  Copy, CalendarPlus, Layers, PanelRightOpen, PanelRightClose
+  Copy, CalendarPlus, Layers, PanelRightOpen, PanelRightClose,
+  Pencil, ExternalLink
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -70,7 +71,7 @@ const GROUP_COLORS = {
 // SPORT TAB — Catalogue + Éditeur
 // ══════════════════════════════════════
 
-function SportTab({ clientName, coachId }) {
+function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSaved, onClearEditing }) {
   const toast = useToast()
 
   // ── Bibliothèque state ──
@@ -87,10 +88,12 @@ function SportTab({ clientName, coachId }) {
   const [creatingExo, setCreatingExo] = useState(false)
 
   // ── Éditeur de séance ──
+  const [currentSeanceId, setCurrentSeanceId] = useState(null)
   const [seanceNom, setSeanceNom] = useState(`Séance de ${clientName || 'remise en forme'}`)
   const [seanceExercices, setSeanceExercices] = useState([])
   const [drawerExercice, setDrawerExercice] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [loadingSeance, setLoadingSeance] = useState(false)
 
   // ── Charger les exercices + favoris depuis Supabase ──
   useEffect(() => {
@@ -107,6 +110,59 @@ function SportTab({ clientName, coachId }) {
     }
     load()
   }, [coachId])
+
+  // ── Charger une séance existante quand editingSeanceId change ──
+  useEffect(() => {
+    if (!editingSeanceId) {
+      // Pas de séance à éditer → reset si on avait une séance chargée
+      if (currentSeanceId) {
+        setCurrentSeanceId(null)
+        setSeanceNom(`Séance de ${clientName || 'remise en forme'}`)
+        setSeanceExercices([])
+      }
+      return
+    }
+    if (editingSeanceId === currentSeanceId) return // déjà chargée
+
+    const load = async () => {
+      setLoadingSeance(true)
+      // Charger la séance
+      const { data: seance } = await supabase
+        .from('seances')
+        .select('id, titre, notes')
+        .eq('id', editingSeanceId)
+        .single()
+
+      if (seance) {
+        setCurrentSeanceId(seance.id)
+        setSeanceNom(seance.titre)
+
+        // Charger ses exercices
+        const { data: seanceExos } = await supabase
+          .from('seance_exercices')
+          .select('id, exercice_id, series, reps, poids, repos, ordre, exercices(*)')
+          .eq('seance_id', seance.id)
+          .order('ordre')
+
+        if (seanceExos && seanceExos.length > 0) {
+          // Transformer pour l'éditeur : on garde les infos de l'exercice + les params de la séance
+          const mapped = seanceExos.map(se => ({
+            ...se.exercices,
+            _seance_exercice_id: se.id,
+            series: se.series,
+            repetitions: se.reps,
+            poids: se.poids || '',
+            repos: se.repos,
+          }))
+          setSeanceExercices(mapped)
+        } else {
+          setSeanceExercices([])
+        }
+      }
+      setLoadingSeance(false)
+    }
+    load()
+  }, [editingSeanceId])
 
   // ── Toggle favori ──
   const toggleFavori = async (exId) => {
@@ -181,13 +237,73 @@ function SportTab({ clientName, coachId }) {
   const supprimerExercice = (exId) => setSeanceExercices(prev => prev.filter(e => e.id !== exId))
   const modifierExercice = (exId, champ, valeur) => setSeanceExercices(prev => prev.map(e => e.id === exId ? { ...e, [champ]: valeur } : e))
 
-  const sauvegarder = () => {
+  const sauvegarder = async () => {
     setSaving(true)
-    setTimeout(() => {
-      setSaving(false)
-      toast.success('Séance enregistrée !')
-      console.log('Séance sauvegardée:', { nom: seanceNom, exercices: seanceExercices })
-    }, 1200)
+    try {
+      if (currentSeanceId) {
+        // ── Mode édition : mise à jour d'une séance existante ──
+        // 1. Mettre à jour le titre
+        await supabase.from('seances').update({ titre: seanceNom }).eq('id', currentSeanceId)
+
+        // 2. Supprimer tous les anciens exercices de la séance
+        await supabase.from('seance_exercices').delete().eq('seance_id', currentSeanceId)
+
+        // 3. Réinsérer les exercices avec les nouvelles valeurs
+        if (seanceExercices.length > 0) {
+          const rows = seanceExercices.map((ex, i) => ({
+            seance_id: currentSeanceId,
+            exercice_id: ex.id,
+            series: ex.series || 3,
+            reps: ex.repetitions || 12,
+            poids: ex.poids ? parseFloat(ex.poids) : null,
+            repos: ex.repos || 60,
+            ordre: i,
+          }))
+          await supabase.from('seance_exercices').insert(rows)
+        }
+
+        toast.success(`"${seanceNom}" mis à jour (${seanceExercices.length} exercices)`)
+        if (onSeanceSaved) onSeanceSaved()
+      } else if (clientId && coachId) {
+        // ── Mode création : nouvelle séance ──
+        const { data: newSeance, error } = await supabase
+          .from('seances')
+          .insert({
+            coach_id: coachId,
+            client_id: clientId,
+            titre: seanceNom,
+            date_prevue: formatDateISO(new Date()),
+            is_template: false,
+          })
+          .select()
+          .single()
+
+        if (error) throw error
+
+        if (seanceExercices.length > 0) {
+          const rows = seanceExercices.map((ex, i) => ({
+            seance_id: newSeance.id,
+            exercice_id: ex.id,
+            series: ex.series || 3,
+            reps: ex.repetitions || 12,
+            poids: ex.poids ? parseFloat(ex.poids) : null,
+            repos: ex.repos || 60,
+            ordre: i,
+          }))
+          await supabase.from('seance_exercices').insert(rows)
+        }
+
+        setCurrentSeanceId(newSeance.id)
+        toast.success(`"${seanceNom}" créée (${seanceExercices.length} exercices)`)
+        if (onSeanceSaved) onSeanceSaved()
+      } else {
+        toast.error('Client non sélectionné')
+      }
+    } catch (err) {
+      toast.error('Erreur lors de la sauvegarde')
+      console.error(err)
+    }
+    setSaving(false)
   }
 
   return (
@@ -364,26 +480,50 @@ function SportTab({ clientName, coachId }) {
       {/* ════════════════════════════════════ */}
       <div className="flex-1 flex flex-col ml-4 bg-[#18181b] border border-[#27272a] rounded-xl overflow-hidden">
 
+        {/* Bandeau mode édition */}
+        {currentSeanceId && (
+          <div className="px-4 py-2 bg-[#FF6B2B]/5 border-b border-[#FF6B2B]/15 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Pencil size={12} className="text-[#FF6B2B]" />
+              <span className="text-[#FF6B2B] text-[10px] font-semibold uppercase tracking-wider">Mode édition</span>
+              <span className="text-white/20 text-[10px]">— Séance liée au calendrier</span>
+            </div>
+            <button
+              onClick={() => { setCurrentSeanceId(null); setSeanceNom(`Séance de ${clientName || 'remise en forme'}`); setSeanceExercices([]); if (onClearEditing) onClearEditing() }}
+              className="text-white/25 text-[10px] hover:text-white/50 transition-colors flex items-center gap-1"
+            >
+              <Plus size={10} /> Nouvelle séance
+            </button>
+          </div>
+        )}
+
         {/* Header éditeur */}
         <div className="p-4 border-b border-[#27272a] flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-              <Calendar size={15} className="text-[#FF6B2B]" />
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${currentSeanceId ? 'bg-[#FF6B2B]/15' : 'bg-[#FF6B2B]/10'}`}>
+              {currentSeanceId ? <Pencil size={15} className="text-[#FF6B2B]" /> : <Calendar size={15} className="text-[#FF6B2B]" />}
             </div>
-            <input
-              value={seanceNom}
-              onChange={(e) => setSeanceNom(e.target.value)}
-              className="bg-transparent border-none text-[#F5F5F3] text-sm font-semibold focus:outline-none flex-1 min-w-0 placeholder:text-white/20"
-              placeholder="Nom de la séance..."
-            />
+            {loadingSeance ? (
+              <div className="flex items-center gap-2">
+                <Loader2 size={14} className="animate-spin text-[#FF6B2B]" />
+                <span className="text-white/20 text-sm">Chargement...</span>
+              </div>
+            ) : (
+              <input
+                value={seanceNom}
+                onChange={(e) => setSeanceNom(e.target.value)}
+                className="bg-transparent border-none text-[#F5F5F3] text-sm font-semibold focus:outline-none flex-1 min-w-0 placeholder:text-white/20"
+                placeholder="Nom de la séance..."
+              />
+            )}
           </div>
           <button
             onClick={sauvegarder}
-            disabled={saving || seanceExercices.length === 0}
+            disabled={saving || seanceExercices.length === 0 || loadingSeance}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
           >
             {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
-            Enregistrer
+            {currentSeanceId ? 'Mettre à jour' : 'Enregistrer'}
           </button>
         </div>
 
@@ -668,7 +808,7 @@ function formatDateISO(d) {
   return d.toISOString().split('T')[0]
 }
 
-function CalendarTab({ clientId, clientName, coachId }) {
+function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   const toast = useToast()
   const [weekOffset, setWeekOffset] = useState(0)
   const [seances, setSeances] = useState([])
@@ -769,10 +909,12 @@ function CalendarTab({ clientId, clientName, coachId }) {
       toast.error('Erreur lors de la création')
     } else {
       setSeances(prev => [...prev, data])
-      toast.success('Séance créée !')
+      toast.success('Séance créée ! Ajoutez des exercices.')
       setModalSeance(false)
       setNewSeanceTitre('')
       setNewSeanceNotes('')
+      // Basculer vers l'éditeur Sport avec cette séance
+      if (onEditSeance) onEditSeance(data.id)
     }
     setCreatingSeance(false)
   }
@@ -964,13 +1106,21 @@ function CalendarTab({ clientId, clientName, coachId }) {
                     <div className="flex items-center justify-center py-4"><Loader2 size={12} className="animate-spin text-white/10" /></div>
                   ) : (
                     jourSeances.map((s) => (
-                      <button key={s.id} onClick={() => voirDetail(s)}
-                        className="w-full text-left bg-[#FF6B2B]/10 border border-[#FF6B2B]/15 rounded-lg px-2 py-1.5 hover:bg-[#FF6B2B]/15 transition-colors">
+                      <div key={s.id} className="w-full bg-[#FF6B2B]/10 border border-[#FF6B2B]/15 rounded-lg px-2 py-1.5 hover:bg-[#FF6B2B]/15 transition-colors group/card">
                         <div className="flex items-center gap-1">
                           <Dumbbell size={9} className="text-[#FF6B2B] flex-shrink-0" />
-                          <p className="text-[#F5F5F3] text-[10px] font-medium truncate">{s.titre}</p>
+                          <button onClick={() => voirDetail(s)} className="text-[#F5F5F3] text-[10px] font-medium truncate text-left flex-1 min-w-0">
+                            {s.titre}
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); if (onEditSeance) onEditSeance(s.id) }}
+                            className="p-0.5 rounded text-white/0 group-hover/card:text-white/25 hover:!text-[#FF6B2B] transition-all flex-shrink-0"
+                            title="Modifier les exercices"
+                          >
+                            <Pencil size={9} />
+                          </button>
                         </div>
-                      </button>
+                      </div>
                     ))
                   )}
                 </div>
@@ -1214,8 +1364,10 @@ function CalendarTab({ clientId, clientName, coachId }) {
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-400 bg-red-500/10 hover:bg-red-500/15 transition-colors">
               <Trash2 size={14} /> Supprimer
             </button>
-            <button onClick={() => setDetailSeance(null)}
-              className="flex-1 py-2.5 rounded-xl bg-[#27272a] text-white/40 text-sm hover:bg-[#3f3f46] transition-colors">Fermer</button>
+            <button onClick={() => { if (onEditSeance) onEditSeance(detailSeance?.id); setDetailSeance(null) }}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors">
+              <Pencil size={14} /> Modifier les exercices
+            </button>
           </div>
         </div>
       </Modal>
@@ -1288,6 +1440,7 @@ export default function CoachClientHub() {
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [recherche, setRecherche] = useState('')
   const [activeTab, setActiveTab] = useState('overview')
+  const [editingSeanceId, setEditingSeanceId] = useState(null)
 
   // Stats du client sélectionné
   const [habitudes, setHabitudes] = useState([])
@@ -1466,7 +1619,7 @@ export default function CoachClientHub() {
               return (
                 <button
                   key={c.id}
-                  onClick={() => { setSelectedId(c.id); setActiveTab('overview') }}
+                  onClick={() => { setSelectedId(c.id); setActiveTab('overview'); setEditingSeanceId(null) }}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all ${
                     isSelected
                       ? 'bg-[#18181b] border-l-2 border-[#FF6B2B]'
@@ -1806,12 +1959,24 @@ export default function CoachClientHub() {
 
             {/* ── Onglet Calendrier — Vue hebdomadaire ── */}
             {activeTab === 'calendar' && (
-              <CalendarTab clientId={selectedId} clientName={fullName} coachId={user?.id} />
+              <CalendarTab
+                clientId={selectedId}
+                clientName={fullName}
+                coachId={user?.id}
+                onEditSeance={(seanceId) => { setEditingSeanceId(seanceId); setActiveTab('sport') }}
+              />
             )}
 
             {/* ── Onglet Sport — Éditeur de séances ── */}
             {activeTab === 'sport' && (
-              <SportTab clientName={fullName} coachId={user?.id} />
+              <SportTab
+                clientName={fullName}
+                coachId={user?.id}
+                clientId={selectedId}
+                editingSeanceId={editingSeanceId}
+                onSeanceSaved={() => {}}
+                onClearEditing={() => setEditingSeanceId(null)}
+              />
             )}
 
             {/* ── Placeholder pour les autres onglets ── */}
