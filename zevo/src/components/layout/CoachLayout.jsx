@@ -96,12 +96,13 @@ function MessagingDrawer({ open, onClose }) {
     { id: 'groupes', label: 'Groupes' },
   ]
 
-  const FAKE_CONTACTS = [
+  const INITIAL_CONTACTS = [
     { id: 'noa', initials: 'NS', name: 'Noa SANTOS', message: 'Nouvelle conversation', time: '12:48', unread: true, status: 'actif', group: false },
     { id: 'marie', initials: 'ML', name: 'Marie LEFORT', message: 'Merci pour le programme !', time: '11:22', unread: false, status: 'actif', group: false },
     { id: 'thomas', initials: 'TD', name: 'Thomas DUBOIS', message: 'J\'ai une question sur...', time: 'Hier', unread: true, status: 'inactif', group: false },
     { id: 'groupe1', initials: 'GP', name: 'Groupe Remise en Forme', message: 'Prochaine séance lundi', time: 'Lun', unread: false, status: 'actif', group: true },
   ]
+  const [contacts, setContacts] = useState(INITIAL_CONTACTS)
 
   // Messages fictifs par contact
   const FAKE_MESSAGES = {
@@ -130,7 +131,7 @@ function MessagingDrawer({ open, onClose }) {
   }
 
   // Filtrage par onglet
-  const filteredContacts = FAKE_CONTACTS.filter((c) => {
+  const filteredContacts = contacts.filter((c) => {
     if (tab === 'actifs') return c.status === 'actif' && !c.group
     if (tab === 'non_lus') return c.unread
     if (tab === 'groupes') return c.group
@@ -143,7 +144,7 @@ function MessagingDrawer({ open, onClose }) {
     : filteredContacts
 
   // Tous les contacts individuels (pour la vue "Nouveau message")
-  const allIndividualContacts = FAKE_CONTACTS.filter(c => !c.group)
+  const allIndividualContacts = contacts.filter(c => !c.group)
   const filteredNewContacts = newMsgSearch
     ? allIndividualContacts.filter(c => c.name.toLowerCase().includes(newMsgSearch.toLowerCase()))
     : allIndividualContacts
@@ -185,6 +186,8 @@ function MessagingDrawer({ open, onClose }) {
       status: 'actif',
       group: true,
     }
+    // Ajouter le groupe à la liste des contacts
+    setContacts(prev => [newGroup, ...prev])
     openConversation(newGroup)
   }
 
@@ -259,12 +262,18 @@ function MessagingDrawer({ open, onClose }) {
               >
                 <ChevronLeft size={18} />
               </button>
-              <div className="w-9 h-9 rounded-full bg-[#FF6B2B]/15 flex items-center justify-center flex-shrink-0">
-                <span className="text-[#FF6B2B] text-sm font-bold">{selectedContact.initials}</span>
-              </div>
+              {selectedContact.group ? (
+                <div className="w-9 h-9 rounded-full bg-purple-500/15 flex items-center justify-center flex-shrink-0">
+                  <UsersRound size={16} className="text-purple-400" />
+                </div>
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-[#FF6B2B]/15 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[#FF6B2B] text-sm font-bold">{selectedContact.initials}</span>
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="text-[#F5F5F3] text-sm font-semibold truncate">{selectedContact.name}</p>
-                <p className="text-white/25 text-[10px]">En ligne</p>
+                <p className="text-white/25 text-[10px]">{selectedContact.group ? `${selectedContact.initials ? '' : ''}Groupe` : 'En ligne'}</p>
               </div>
               <button
                 onClick={onClose}
@@ -541,12 +550,23 @@ function MessagingDrawer({ open, onClose }) {
                     onClick={() => openConversation(contact)}
                     className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/50"
                   >
-                    <div className="w-10 h-10 rounded-full bg-[#FF6B2B]/15 flex items-center justify-center flex-shrink-0">
-                      <span className="text-[#FF6B2B] text-sm font-bold">{contact.initials}</span>
-                    </div>
+                    {contact.group ? (
+                      <div className="w-10 h-10 rounded-full bg-purple-500/15 flex items-center justify-center flex-shrink-0">
+                        <UsersRound size={18} className="text-purple-400" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-[#FF6B2B]/15 flex items-center justify-center flex-shrink-0">
+                        <span className="text-[#FF6B2B] text-sm font-bold">{contact.initials}</span>
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className="text-[#F5F5F3] text-sm font-medium truncate">{contact.name}</p>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <p className="text-[#F5F5F3] text-sm font-medium truncate">{contact.name}</p>
+                          {contact.group && (
+                            <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-semibold flex-shrink-0">GROUPE</span>
+                          )}
+                        </div>
                         <span className="text-white/20 text-[10px] flex-shrink-0 ml-2">{contact.time}</span>
                       </div>
                       <p className="text-white/35 text-xs truncate mt-0.5">{contact.message}</p>
