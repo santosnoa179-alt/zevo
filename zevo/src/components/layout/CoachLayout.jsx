@@ -32,6 +32,7 @@ const NAV_SECTIONS = [
       { to: '/coach/formulaires', icon: ClipboardList, label: 'Formulaires' },
       { to: '/coach/rapports', icon: FileText, label: 'Rapports' },
       { to: '/coach/statistiques', icon: BarChart3, label: 'Statistiques' },
+      { to: '/coach/drive', icon: HardDrive, label: 'Drive' },
     ],
   },
   {
@@ -67,6 +68,7 @@ const PAGE_TITLES = {
   '/coach/abonnements': 'Abonnements',
   '/coach/app-builder': 'App Builder',
   '/coach/parametres': 'Paramètres',
+  '/coach/drive': 'Drive',
 }
 
 // ══════════════════════════════════════
