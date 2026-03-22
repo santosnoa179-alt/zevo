@@ -94,7 +94,7 @@ export default function CoachGlobalCalendarPage() {
         .order('date_prevue', { ascending: true }),
       supabase
         .from('coach_events')
-        .select('id, title, event_date, event_type, client_id, notes, profiles:client_id(nom)')
+        .select('id, title, event_date, event_type, client_id, notes')
         .eq('coach_id', user.id)
         .gte('event_date', start)
         .lte('event_date', end)
@@ -162,6 +162,13 @@ export default function CoachGlobalCalendarPage() {
     setSaving(false)
     setModalOpen(false)
     fetchData()
+  }
+
+  // Client name lookup from loaded clients list
+  function getClientName(clientId) {
+    if (!clientId) return null
+    const c = clients.find(cl => cl.id === clientId)
+    return c?.profiles?.nom || null
   }
 
   // Event type info
@@ -299,8 +306,8 @@ export default function CoachGlobalCalendarPage() {
                             <span className="text-[10px] font-medium" style={{ color: typeInfo.color }}>{formatHHmm(item.event_date)}</span>
                           </div>
                           <p className="text-xs font-medium text-[#F5F5F3] leading-snug truncate">{item.title}</p>
-                          {item.profiles?.nom && (
-                            <p className="text-[10px] text-white/35 mt-0.5 truncate">({item.profiles.nom})</p>
+                          {getClientName(item.client_id) && (
+                            <p className="text-[10px] text-white/35 mt-0.5 truncate">({getClientName(item.client_id)})</p>
                           )}
                         </div>
                       )
