@@ -12,7 +12,9 @@ import {
   Plus, X, Save, Trash2, Filter, Info, GripVertical,
   PlayCircle, ChevronLeft, Star, Video, Sparkles,
   Copy, CalendarPlus, Layers, PanelRightOpen, PanelRightClose,
-  Pencil, ExternalLink, Coffee, UtensilsCrossed, Moon, Cookie, Minus
+  Pencil, ExternalLink, Coffee, UtensilsCrossed, Moon, Cookie, Minus,
+  Wheat, Beef, Fish, Egg, Carrot, Grape, Droplets, TrendingUp, TrendingDown,
+  Ruler, Weight, ChevronUp, ChevronDown as ChevronDownIcon
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -1530,6 +1532,491 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
 }
 
 // ══════════════════════════════════════
+// FOOD ICON MAPPER
+// ══════════════════════════════════════
+const FOOD_ICONS = {
+  'Protéine':     { icon: Beef,     color: 'text-red-400',    bg: 'bg-red-500/10' },
+  'Féculent':     { icon: Wheat,    color: 'text-amber-400',  bg: 'bg-amber-500/10' },
+  'Légume':       { icon: Carrot,   color: 'text-green-400',  bg: 'bg-green-500/10' },
+  'Fruit':        { icon: Apple,    color: 'text-pink-400',   bg: 'bg-pink-500/10' },
+  'Lipide':       { icon: Droplets, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+  'Laitier':      { icon: Egg,      color: 'text-sky-400',    bg: 'bg-sky-500/10' },
+  'Légumineuse':  { icon: Grape,    color: 'text-purple-400', bg: 'bg-purple-500/10' },
+  'Snack':        { icon: Cookie,   color: 'text-orange-300', bg: 'bg-orange-500/10' },
+}
+
+function FoodIcon({ categorie, size = 16, className = '' }) {
+  const config = FOOD_ICONS[categorie] || { icon: Apple, color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10' }
+  const Icon = config.icon
+  return <Icon size={size} className={`${config.color} ${className}`} />
+}
+
+function FoodIconBg({ categorie }) {
+  return (FOOD_ICONS[categorie] || { bg: 'bg-[#FF6B2B]/10' }).bg
+}
+
+// ══════════════════════════════════════
+// INFOS TAB — Dossier Client
+// ══════════════════════════════════════
+const NIVEAUX_ACTIVITE = ['Sédentaire', 'Légèrement actif', 'Modérément actif', 'Très actif', 'Extrêmement actif']
+const SEXE_OPTIONS = ['Homme', 'Femme', 'Autre']
+
+function InfosTab({ coachId, clientId }) {
+  const toast = useToast()
+  const [profile, setProfile] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState({
+    age: '', sexe: '', taille: '', poids_depart: '',
+    poids_cible: '', date_limite: '', niveau_activite: '',
+    notes_coach: '',
+  })
+
+  useEffect(() => {
+    if (!clientId) return
+    const load = async () => {
+      setLoading(true)
+      const { data } = await supabase.from('profiles').select('*').eq('id', clientId).single()
+      if (data) {
+        setProfile(data)
+        setForm({
+          age: data.age || '',
+          sexe: data.sexe || '',
+          taille: data.taille || '',
+          poids_depart: data.poids_depart || '',
+          poids_cible: data.poids_cible || '',
+          date_limite: data.date_limite || '',
+          niveau_activite: data.niveau_activite || '',
+          notes_coach: data.notes_coach || '',
+        })
+      }
+      setLoading(false)
+    }
+    load()
+  }, [clientId])
+
+  const handleSave = async () => {
+    setSaving(true)
+    const { error } = await supabase.from('profiles').update({
+      age: form.age ? parseInt(form.age) : null,
+      sexe: form.sexe || null,
+      taille: form.taille ? parseFloat(form.taille) : null,
+      poids_depart: form.poids_depart ? parseFloat(form.poids_depart) : null,
+      poids_cible: form.poids_cible ? parseFloat(form.poids_cible) : null,
+      date_limite: form.date_limite || null,
+      niveau_activite: form.niveau_activite || null,
+      notes_coach: form.notes_coach || null,
+    }).eq('id', clientId)
+
+    if (error) {
+      toast.error('Erreur lors de la sauvegarde')
+    } else {
+      toast.success('Informations client mises à jour !')
+    }
+    setSaving(false)
+  }
+
+  const updateField = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="animate-spin text-[#FF6B2B]" size={28} />
+      </div>
+    )
+  }
+
+  const inputClass = "w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+  const labelClass = "block text-xs text-white/40 mb-1.5 font-medium"
+
+  return (
+    <div className="space-y-5 max-w-3xl">
+      {/* Métriques corporelles */}
+      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center gap-2">
+          <Ruler size={15} className="text-[#FF6B2B]" />
+          <h3 className="text-[#F5F5F3] text-sm font-bold">Métriques corporelles</h3>
+        </div>
+        <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label className={labelClass}>Âge</label>
+            <input type="number" value={form.age} onChange={e => updateField('age', e.target.value)}
+              placeholder="25" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Sexe</label>
+            <select value={form.sexe} onChange={e => updateField('sexe', e.target.value)} className={inputClass}>
+              <option value="">—</option>
+              {SEXE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Taille (cm)</label>
+            <input type="number" value={form.taille} onChange={e => updateField('taille', e.target.value)}
+              placeholder="175" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Poids de départ (kg)</label>
+            <input type="number" step="0.1" value={form.poids_depart} onChange={e => updateField('poids_depart', e.target.value)}
+              placeholder="80" className={inputClass} />
+          </div>
+        </div>
+      </div>
+
+      {/* Objectifs */}
+      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center gap-2">
+          <Target size={15} className="text-[#FF6B2B]" />
+          <h3 className="text-[#F5F5F3] text-sm font-bold">Objectifs</h3>
+        </div>
+        <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className={labelClass}>Poids cible (kg)</label>
+            <input type="number" step="0.1" value={form.poids_cible} onChange={e => updateField('poids_cible', e.target.value)}
+              placeholder="72" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Date limite</label>
+            <input type="date" value={form.date_limite} onChange={e => updateField('date_limite', e.target.value)}
+              className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Niveau d'activité</label>
+            <select value={form.niveau_activite} onChange={e => updateField('niveau_activite', e.target.value)} className={inputClass}>
+              <option value="">—</option>
+              {NIVEAUX_ACTIVITE.map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Notes */}
+      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center gap-2">
+          <Info size={15} className="text-[#FF6B2B]" />
+          <h3 className="text-[#F5F5F3] text-sm font-bold">Notes du coach</h3>
+        </div>
+        <div className="p-5">
+          <textarea
+            value={form.notes_coach}
+            onChange={e => updateField('notes_coach', e.target.value)}
+            placeholder="Notes internes, objectifs personnels, restrictions alimentaires, historique médical..."
+            rows={5}
+            className={`${inputClass} resize-none`}
+          />
+        </div>
+      </div>
+
+      {/* Sauvegarder */}
+      <div className="flex justify-end">
+        <button onClick={handleSave} disabled={saving}
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-50 shadow-lg shadow-[#FF6B2B]/20">
+          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+          {saving ? 'Sauvegarde...' : 'Enregistrer'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+
+// ══════════════════════════════════════
+// SUIVI TAB — Poids & évolution
+// ══════════════════════════════════════
+function SuiviTab({ coachId, clientId }) {
+  const toast = useToast()
+  const [pesees, setPesees] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [newPoids, setNewPoids] = useState('')
+  const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0])
+  const [newNote, setNewNote] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [profile, setProfile] = useState(null)
+
+  useEffect(() => {
+    if (!clientId || !coachId) return
+    const load = async () => {
+      setLoading(true)
+      const [peseesRes, profileRes] = await Promise.all([
+        supabase.from('suivi_poids').select('*').eq('client_id', clientId).eq('coach_id', coachId).order('date_pesee', { ascending: true }),
+        supabase.from('profiles').select('poids_depart, poids_cible, poids_actuel').eq('id', clientId).single(),
+      ])
+      setPesees(peseesRes.data || [])
+      setProfile(profileRes.data)
+      setLoading(false)
+    }
+    load()
+  }, [clientId, coachId])
+
+  const ajouterPesee = async () => {
+    if (!newPoids) return
+    setSaving(true)
+    const { error } = await supabase.from('suivi_poids').upsert({
+      client_id: clientId,
+      coach_id: coachId,
+      date_pesee: newDate,
+      poids: parseFloat(newPoids),
+      notes: newNote || null,
+    }, { onConflict: 'client_id,date_pesee' })
+
+    if (error) {
+      toast.error('Erreur lors de l\'ajout')
+    } else {
+      // Mettre à jour poids_actuel sur le profil
+      await supabase.from('profiles').update({ poids_actuel: parseFloat(newPoids) }).eq('id', clientId)
+      toast.success('Pesée enregistrée !')
+      setShowModal(false)
+      setNewPoids('')
+      setNewNote('')
+      // Recharger
+      const { data } = await supabase.from('suivi_poids').select('*').eq('client_id', clientId).eq('coach_id', coachId).order('date_pesee', { ascending: true })
+      setPesees(data || [])
+    }
+    setSaving(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="animate-spin text-[#FF6B2B]" size={28} />
+      </div>
+    )
+  }
+
+  const dernierPoids = pesees.length > 0 ? pesees[pesees.length - 1].poids : (profile?.poids_actuel || profile?.poids_depart || null)
+  const premierPoids = pesees.length > 0 ? pesees[0].poids : (profile?.poids_depart || null)
+  const evolution = dernierPoids && premierPoids ? (dernierPoids - premierPoids).toFixed(1) : null
+  const objectif = profile?.poids_cible
+
+  // Simple SVG chart
+  const chartHeight = 200
+  const chartWidth = 600
+  const chartPadding = 40
+
+  const renderChart = () => {
+    if (pesees.length < 2) return null
+    const poids = pesees.map(p => p.poids)
+    const minP = Math.min(...poids) - 1
+    const maxP = Math.max(...poids) + 1
+    const rangeP = maxP - minP || 1
+
+    const points = pesees.map((p, i) => {
+      const x = chartPadding + (i / (pesees.length - 1)) * (chartWidth - chartPadding * 2)
+      const y = chartPadding + (1 - (p.poids - minP) / rangeP) * (chartHeight - chartPadding * 2)
+      return { x, y, poids: p.poids, date: p.date_pesee }
+    })
+
+    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+    // Gradient area
+    const areaD = `${pathD} L ${points[points.length - 1].x} ${chartHeight - chartPadding} L ${points[0].x} ${chartHeight - chartPadding} Z`
+
+    return (
+      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+        <defs>
+          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FF6B2B" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#FF6B2B" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {/* Grid lines */}
+        {[0, 0.25, 0.5, 0.75, 1].map(pct => {
+          const y = chartPadding + pct * (chartHeight - chartPadding * 2)
+          const val = (maxP - pct * rangeP).toFixed(1)
+          return (
+            <g key={pct}>
+              <line x1={chartPadding} y1={y} x2={chartWidth - chartPadding} y2={y} stroke="rgba(255,255,255,0.05)" />
+              <text x={chartPadding - 8} y={y + 4} textAnchor="end" fill="rgba(255,255,255,0.2)" fontSize="9">{val}</text>
+            </g>
+          )
+        })}
+        {/* Objectif line */}
+        {objectif && objectif >= minP && objectif <= maxP && (
+          <>
+            <line
+              x1={chartPadding} y1={chartPadding + (1 - (objectif - minP) / rangeP) * (chartHeight - chartPadding * 2)}
+              x2={chartWidth - chartPadding} y2={chartPadding + (1 - (objectif - minP) / rangeP) * (chartHeight - chartPadding * 2)}
+              stroke="#22c55e" strokeDasharray="4 4" strokeWidth="1" opacity="0.5"
+            />
+            <text x={chartWidth - chartPadding + 5} y={chartPadding + (1 - (objectif - minP) / rangeP) * (chartHeight - chartPadding * 2) + 3}
+              fill="#22c55e" fontSize="9" opacity="0.6">Objectif</text>
+          </>
+        )}
+        {/* Area */}
+        <path d={areaD} fill="url(#chartGrad)" />
+        {/* Line */}
+        <path d={pathD} fill="none" stroke="#FF6B2B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Points */}
+        {points.map((p, i) => (
+          <g key={i}>
+            <circle cx={p.x} cy={p.y} r="4" fill="#09090b" stroke="#FF6B2B" strokeWidth="2" />
+            {(i === 0 || i === points.length - 1) && (
+              <text x={p.x} y={p.y - 10} textAnchor="middle" fill="#F5F5F3" fontSize="9" fontWeight="600">{p.poids}kg</text>
+            )}
+          </g>
+        ))}
+        {/* Date labels */}
+        {points.filter((_, i) => i === 0 || i === points.length - 1 || i % Math.ceil(points.length / 5) === 0).map((p, i) => (
+          <text key={i} x={p.x} y={chartHeight - 10} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="8">
+            {new Date(p.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+          </text>
+        ))}
+      </svg>
+    )
+  }
+
+  return (
+    <div className="space-y-5 max-w-4xl">
+      {/* Stats summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 text-center">
+          <p className="text-white/30 text-[10px] font-medium mb-1">Poids actuel</p>
+          <p className="text-[#F5F5F3] text-2xl font-bold">{dernierPoids ? `${dernierPoids}` : '—'}<span className="text-sm text-white/30 ml-1">kg</span></p>
+        </div>
+        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 text-center">
+          <p className="text-white/30 text-[10px] font-medium mb-1">Objectif</p>
+          <p className="text-[#F5F5F3] text-2xl font-bold">{objectif ? `${objectif}` : '—'}<span className="text-sm text-white/30 ml-1">kg</span></p>
+        </div>
+        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 text-center">
+          <p className="text-white/30 text-[10px] font-medium mb-1">Évolution totale</p>
+          <p className={`text-2xl font-bold ${evolution && parseFloat(evolution) < 0 ? 'text-green-400' : evolution && parseFloat(evolution) > 0 ? 'text-red-400' : 'text-[#F5F5F3]'}`}>
+            {evolution ? `${parseFloat(evolution) > 0 ? '+' : ''}${evolution}` : '—'}<span className="text-sm text-white/30 ml-1">kg</span>
+          </p>
+        </div>
+        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 text-center">
+          <p className="text-white/30 text-[10px] font-medium mb-1">Pesées</p>
+          <p className="text-[#F5F5F3] text-2xl font-bold">{pesees.length}</p>
+        </div>
+      </div>
+
+      {/* Graphique */}
+      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
+          <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+            <Activity size={15} className="text-[#FF6B2B]" />
+            Courbe de poids
+          </h3>
+          <button onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
+            <Plus size={13} /> Nouvelle pesée
+          </button>
+        </div>
+        <div className="p-5">
+          {pesees.length < 2 ? (
+            <div className="text-center py-12">
+              <Scale size={32} className="text-white/10 mx-auto mb-3" />
+              <p className="text-white/20 text-sm">Ajoutez au moins 2 pesées pour voir le graphique</p>
+              <button onClick={() => setShowModal(true)}
+                className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold hover:bg-[#FF6B2B]/20 transition-all">
+                <Plus size={13} /> Ajouter une pesée
+              </button>
+            </div>
+          ) : (
+            renderChart()
+          )}
+        </div>
+      </div>
+
+      {/* Historique */}
+      {pesees.length > 0 && (
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-[#27272a]">
+            <h3 className="text-[#F5F5F3] text-sm font-bold">Historique des pesées</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#27272a]">
+                  <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Date</th>
+                  <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Poids</th>
+                  <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Évolution</th>
+                  <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...pesees].reverse().map((p, i, arr) => {
+                  const prev = arr[i + 1]
+                  const diff = prev ? (p.poids - prev.poids).toFixed(1) : null
+                  return (
+                    <tr key={p.id} className="border-b border-[#27272a]/30 hover:bg-white/[0.02] transition-colors">
+                      <td className="px-5 py-3 text-[#F5F5F3] text-xs">
+                        {new Date(p.date_pesee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </td>
+                      <td className="px-5 py-3 text-[#F5F5F3] text-xs font-semibold">{p.poids} kg</td>
+                      <td className="px-5 py-3">
+                        {diff !== null ? (
+                          <span className={`inline-flex items-center gap-1 text-xs font-semibold ${
+                            parseFloat(diff) < 0 ? 'text-green-400' : parseFloat(diff) > 0 ? 'text-red-400' : 'text-white/30'
+                          }`}>
+                            {parseFloat(diff) < 0 ? <TrendingDown size={12} /> : parseFloat(diff) > 0 ? <TrendingUp size={12} /> : null}
+                            {parseFloat(diff) > 0 ? '+' : ''}{diff} kg
+                          </span>
+                        ) : (
+                          <span className="text-white/15 text-xs">—</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3 text-white/30 text-xs truncate max-w-[200px]">{p.notes || '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal nouvelle pesée */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-sm bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}>
+            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+            <div className="px-6 pt-5 pb-4 border-b border-white/[0.06] flex items-center justify-between">
+              <h2 className="text-[#F5F5F3] text-lg font-bold">Nouvelle pesée</h2>
+              <button onClick={() => setShowModal(false)} className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs text-white/40 mb-1.5 font-medium">Poids (kg)</label>
+                <input type="number" step="0.1" value={newPoids} onChange={e => setNewPoids(e.target.value)}
+                  placeholder="75.5" autoFocus
+                  className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-lg font-bold text-center placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all" />
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 mb-1.5 font-medium">Date</label>
+                <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
+                  className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 mb-1.5 font-medium">Notes (optionnel)</label>
+                <input type="text" value={newNote} onChange={e => setNewNote(e.target.value)}
+                  placeholder="Après le sport, à jeun..."
+                  className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+              </div>
+            </div>
+            <div className="px-6 pb-6 flex gap-3">
+              <button onClick={() => setShowModal(false)}
+                className="flex-1 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-all border border-white/[0.04]">
+                Annuler
+              </button>
+              <button onClick={ajouterPesee} disabled={!newPoids || saving}
+                className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// ══════════════════════════════════════
 // NUTRITION TAB — Builder
 // ══════════════════════════════════════
 const REPAS_TYPES = [
@@ -1539,7 +2026,7 @@ const REPAS_TYPES = [
   { id: 'collation', label: 'Collation', icon: Cookie },
 ]
 
-const ALIMENT_CATEGORIES = ['Tous', 'Protéine', 'Féculent', 'Légume', 'Fruit', 'Lipide', 'Laitier', 'Légumineuse']
+const ALIMENT_CATEGORIES = ['Tous', 'Protéine', 'Féculent', 'Légume', 'Fruit', 'Lipide', 'Laitier', 'Légumineuse', 'Snack']
 
 function NutritionTab({ coachId, clientId, clientName }) {
   const toast = useToast()
@@ -1795,8 +2282,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
                 <button key={aliment.id} onClick={() => addAliment(aliment)}
                   className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/[0.04] transition-all text-left group">
                   {/* Icône catégorie */}
-                  <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                    <Apple size={16} className="text-[#FF6B2B]" />
+                  <div className={`w-10 h-10 rounded-xl ${FoodIconBg(aliment.categorie)} flex items-center justify-center flex-shrink-0`}>
+                    <FoodIcon categorie={aliment.categorie} size={16} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[#F5F5F3] text-sm font-medium truncate">{aliment.nom}</p>
@@ -1902,8 +2389,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
                   <div key={`${item.id}-${idx}`}
                     className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#09090b] border border-[#27272a] hover:border-[#27272a]/80 transition-all group">
                     {/* Icône */}
-                    <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                      <Apple size={14} className="text-[#FF6B2B]" />
+                    <div className={`w-9 h-9 rounded-xl ${FoodIconBg(item.categorie)} flex items-center justify-center flex-shrink-0`}>
+                      <FoodIcon categorie={item.categorie} size={14} />
                     </div>
                     {/* Info */}
                     <div className="flex-1 min-w-0">
@@ -2561,8 +3048,16 @@ export default function CoachClientHub() {
               />
             )}
 
+            {activeTab === 'infos' && (
+              <InfosTab coachId={user?.id} clientId={selectedId} />
+            )}
+
+            {activeTab === 'suivi' && (
+              <SuiviTab coachId={user?.id} clientId={selectedId} />
+            )}
+
             {/* ── Placeholder pour les autres onglets ── */}
-            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && (
+            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && activeTab !== 'infos' && activeTab !== 'suivi' && (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
                   <BarChart3 size={36} className="text-white/10 mx-auto mb-3" />
