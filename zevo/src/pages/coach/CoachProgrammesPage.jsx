@@ -6,7 +6,8 @@ import {
   Plus, ChevronRight, ChevronDown, Trash2, Users,
   Calendar, Layers, Loader2, Save, X, ArrowLeft, Edit3,
   Dumbbell, Search, Apple, Image as ImageIcon,
-  BookOpen, FileText, Video, Link as LinkIcon, CheckSquare
+  BookOpen, FileText, Video, Link as LinkIcon, CheckSquare,
+  UserPlus, Send, Rocket
 } from 'lucide-react'
 
 // Icônes & couleurs par type de ressource
@@ -38,12 +39,27 @@ export default function CoachProgrammesPage() {
   // Bibliothèque de ressources du coach
   const [allRessources, setAllRessources] = useState([])
 
+  // Assignation
+  const [assignModal, setAssignModal] = useState(null) // programme object or null
+  const [clients, setClients] = useState([])
+  const [deploying, setDeploying] = useState(false)
+
   useEffect(() => {
     if (!user) return
     loadProgrammes()
     loadExercises()
     loadRessources()
+    loadClients()
   }, [user])
+
+  const loadClients = async () => {
+    const { data } = await supabase
+      .from('clients')
+      .select('id, profiles(id, nom, email)')
+      .eq('coach_id', user.id)
+      .eq('actif', true)
+    setClients(data || [])
+  }
 
   const loadExercises = async () => {
     const { data } = await supabase
@@ -188,6 +204,100 @@ export default function CoachProgrammesPage() {
     await supabase.from('programmes').delete().eq('id', progId)
     setProgrammes(prev => prev.filter(p => p.id !== progId))
     toast.success('Programme supprimé.')
+  }
+
+  // ── Déployer un programme chez un client ──
+  const handleDeploy = async (programmeId, clientProfileId, dateDebut) => {
+    setDeploying(true)
+    try {
+      // 1. Récupérer les phases du programme (ordonnées)
+      const { data: phasesData, error: phErr } = await supabase
+        .from('programme_phases')
+        .select('*')
+        .eq('programme_id', programmeId)
+        .order('ordre', { ascending: true })
+
+      if (phErr) throw phErr
+
+      // 2. Pour chaque phase, créer des séances à partir des exercices
+      const startDate = new Date(dateDebut)
+      let dayOffset = 0
+
+      for (const phase of (phasesData || [])) {
+        const exercicesInPhase = phase.exercices || [] // JSON array [{exercice_id, series, reps, ...}]
+        const phaseDurationDays = (phase.duree_semaines || 1) * 7
+
+        if (exercicesInPhase.length > 0) {
+          // Créer une séance par semaine de la phase, répartissant les exercices
+          const weeksInPhase = phase.duree_semaines || 1
+          for (let w = 0; w < weeksInPhase; w++) {
+            const seanceDate = new Date(startDate)
+            seanceDate.setDate(seanceDate.getDate() + dayOffset + (w * 7))
+            const dateStr = seanceDate.toISOString().split('T')[0]
+
+            // Créer la séance
+            const { data: newSeance, error: sErr } = await supabase
+              .from('seances')
+              .insert({
+                coach_id: user.id,
+                client_id: clientProfileId,
+                titre: `${phase.titre} — Semaine ${w + 1}`,
+                date_prevue: dateStr,
+                notes: phase.description || null,
+                is_template: false,
+              })
+              .select()
+              .single()
+
+            if (sErr) throw sErr
+
+            // Copier les exercices dans seance_exercices
+            if (newSeance && exercicesInPhase.length > 0) {
+              const exRows = exercicesInPhase.map((ex, idx) => ({
+                seance_id: newSeance.id,
+                exercice_id: ex.exercice_id || ex.id,
+                series: ex.series || 3,
+                reps: ex.reps || 12,
+                poids: ex.poids || null,
+                repos: ex.repos || 60,
+                ordre: idx,
+              }))
+              await supabase.from('seance_exercices').insert(exRows)
+            }
+          }
+        }
+
+        dayOffset += phaseDurationDays
+      }
+
+      // 3. Créer l'assignation
+      // Trouver le client_id (table clients) à partir du profile_id
+      const clientRow = clients.find(c => c.profiles?.id === clientProfileId)
+      if (clientRow) {
+        await supabase.from('programme_assignations').insert({
+          programme_id: programmeId,
+          client_id: clientRow.id,
+          coach_id: user.id,
+          date_debut: dateDebut,
+          phase_actuelle: 1,
+          statut: 'en_cours',
+        })
+      }
+
+      // 4. Mise à jour des counts
+      setAssignationCounts(prev => ({
+        ...prev,
+        [programmeId]: (prev[programmeId] || 0) + 1,
+      }))
+
+      const clientName = clients.find(c => c.profiles?.id === clientProfileId)?.profiles?.nom || 'ce client'
+      toast.success(`Programme déployé dans le calendrier de ${clientName} !`)
+      setAssignModal(null)
+    } catch (err) {
+      console.error('Erreur déploiement programme:', err)
+      toast.error('Erreur lors du déploiement. Réessayez.')
+    }
+    setDeploying(false)
   }
 
   // ── Gestion des phases ──
@@ -410,13 +520,182 @@ export default function CoachProgrammesPage() {
                 </span>
               </div>
 
-              <button onClick={() => handleEdit(prog)}
-                className="mt-5 w-full py-2.5 rounded-xl bg-white/[0.04] text-white/50 text-sm font-medium hover:bg-white/[0.08] hover:text-white transition-all flex items-center justify-center gap-1.5 border border-white/[0.04]">
-                Ouvrir le programme <ChevronRight size={14} />
-              </button>
+              <div className="mt-5 grid grid-cols-2 gap-2">
+                <button onClick={() => handleEdit(prog)}
+                  className="py-2.5 rounded-xl bg-white/[0.04] text-white/50 text-sm font-medium hover:bg-white/[0.08] hover:text-white transition-all flex items-center justify-center gap-1.5 border border-white/[0.04]">
+                  <Edit3 size={14} /> Modifier
+                </button>
+                <button onClick={() => setAssignModal(prog)}
+                  className="py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-[#FF6B2B]/20">
+                  <UserPlus size={14} /> Assigner
+                </button>
+              </div>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Modale d'assignation */}
+      {assignModal && (
+        <AssignProgramModal
+          programme={assignModal}
+          clients={clients}
+          deploying={deploying}
+          onDeploy={handleDeploy}
+          onClose={() => setAssignModal(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+
+// ═══════════════════════════════════════
+// MODALE D'ASSIGNATION RAPIDE
+// ═══════════════════════════════════════
+function AssignProgramModal({ programme, clients, deploying, onDeploy, onClose }) {
+  const [selectedClientId, setSelectedClientId] = useState('')
+  const [dateDebut, setDateDebut] = useState(new Date().toISOString().split('T')[0])
+  const [searchClient, setSearchClient] = useState('')
+
+  const filteredClients = clients.filter(c => {
+    const nom = c.profiles?.nom || ''
+    return nom.toLowerCase().includes(searchClient.toLowerCase())
+  })
+
+  const selectedClient = clients.find(c => c.profiles?.id === selectedClientId)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="relative w-full max-w-md bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+        onClick={e => e.stopPropagation()}>
+        {/* Orange top bar */}
+        <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+
+        {/* Header */}
+        <div className="px-6 pt-5 pb-4 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-[#F5F5F3] text-lg font-bold">Assigner un programme</h2>
+              <p className="text-white/40 text-sm mt-0.5">{programme.titre}</p>
+            </div>
+            <button onClick={onClose}
+              className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 space-y-5">
+          {/* Programme info badges */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 bg-[#2A2A2A] px-3 py-1.5 rounded-lg text-xs text-white/50">
+              <Calendar size={12} /> {programme.duree_semaines} semaines
+            </span>
+            {programme.categorie && (
+              <span className="px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-medium">
+                {programme.categorie}
+              </span>
+            )}
+          </div>
+
+          {/* Sélection du client */}
+          <div>
+            <label className="block text-sm text-white/50 mb-2 font-medium">Sélectionner un client</label>
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+              <input
+                type="text"
+                value={searchClient}
+                onChange={e => setSearchClient(e.target.value)}
+                placeholder="Rechercher un client..."
+                className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl pl-9 pr-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+              />
+            </div>
+            <div className="mt-2 max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
+              {filteredClients.length === 0 ? (
+                <p className="text-white/25 text-xs text-center py-4">Aucun client trouvé</p>
+              ) : (
+                filteredClients.map(c => {
+                  const profileId = c.profiles?.id
+                  const nom = c.profiles?.nom || 'Sans nom'
+                  const email = c.profiles?.email || ''
+                  const isSelected = selectedClientId === profileId
+                  const initials = nom.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                  return (
+                    <button key={c.id} onClick={() => setSelectedClientId(profileId)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                        isSelected
+                          ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30'
+                          : 'hover:bg-white/[0.04] border border-transparent'
+                      }`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                        isSelected ? 'bg-[#FF6B2B] text-white' : 'bg-[#2A2A2A] text-white/50'
+                      }`}>
+                        {initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium truncate ${isSelected ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{nom}</p>
+                        <p className="text-xs text-white/30 truncate">{email}</p>
+                      </div>
+                      {isSelected && (
+                        <div className="w-5 h-5 rounded-full bg-[#FF6B2B] flex items-center justify-center shrink-0">
+                          <CheckSquare size={12} className="text-white" />
+                        </div>
+                      )}
+                    </button>
+                  )
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Date de début */}
+          <div>
+            <label className="block text-sm text-white/50 mb-2 font-medium">Date de début</label>
+            <input
+              type="date"
+              value={dateDebut}
+              onChange={e => setDateDebut(e.target.value)}
+              className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+            />
+          </div>
+
+          {/* Résumé */}
+          {selectedClient && (
+            <div className="bg-[#0D0D0D] rounded-xl p-4 border border-white/[0.04]">
+              <p className="text-xs text-white/40 mb-1">Résumé du déploiement</p>
+              <p className="text-sm text-[#F5F5F3]">
+                <span className="font-semibold text-[#FF6B2B]">{programme.titre}</span>
+                {' → '}
+                <span className="font-semibold">{selectedClient.profiles?.nom}</span>
+              </p>
+              <p className="text-xs text-white/30 mt-1">
+                Début le {new Date(dateDebut).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} • {programme.duree_semaines} semaines
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 pb-6 flex items-center gap-3">
+          <button onClick={onClose}
+            className="flex-1 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-all border border-white/[0.04]">
+            Annuler
+          </button>
+          <button
+            onClick={() => onDeploy(programme.id, selectedClientId, dateDebut)}
+            disabled={!selectedClientId || deploying}
+            className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+            {deploying ? (
+              <><Loader2 size={16} className="animate-spin" /> Déploiement...</>
+            ) : (
+              <><Rocket size={16} /> Déployer le programme</>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   )
