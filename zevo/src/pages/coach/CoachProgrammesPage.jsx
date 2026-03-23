@@ -344,55 +344,53 @@ export default function CoachProgrammesPage() {
   // VUE ÉDITEUR
   // ═══════════════════════════════════════
   if (view === 'editor') {
+    const inputCls = "w-full bg-[#0D0D0D] border border-white/[0.06] rounded-2xl px-5 py-3.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all"
     return (
-      <div className="p-4 md:p-6 w-full space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3">
+      <div className="p-4 md:p-8 lg:p-10 w-full max-w-3xl mx-auto space-y-10">
+
+        {/* ── Header — Apple style ── */}
+        <div>
           <button onClick={() => setView('list')}
-            className="p-2 rounded-xl text-white/40 hover:text-white hover:bg-white/[0.04] transition-colors">
-            <ArrowLeft size={20} />
+            className="inline-flex items-center gap-1.5 text-[#FF6B2B] text-sm font-medium hover:text-[#FF9A6C] transition-colors mb-6">
+            <ArrowLeft size={16} /> Retour aux programmes
           </button>
-          <div className="flex-1">
-            <h1 className="text-[#F5F5F3] text-2xl font-bold">
-              {editProgramme.id ? 'Modifier le programme' : 'Nouveau programme'}
-            </h1>
-            <p className="text-white/30 text-sm mt-0.5">Construis un parcours premium pour tes clients</p>
-          </div>
+          <h1 className="text-[#F5F5F3] text-3xl md:text-4xl font-bold tracking-tight">
+            {editProgramme.id ? editProgramme.titre || 'Modifier le programme' : 'Nouveau programme'}
+          </h1>
+          <p className="text-white/25 text-base mt-2">Construis un parcours structuré pour tes clients.</p>
         </div>
 
-        {/* ── Card Informations ── */}
-        <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-white/[0.06]">
-            <h2 className="text-[#F5F5F3] font-semibold">Informations générales</h2>
-          </div>
-          <div className="p-6 space-y-4">
+        {/* ── Informations générales ── */}
+        <div className="space-y-6">
+          <h2 className="text-[#F5F5F3] text-lg font-bold">Informations</h2>
+          <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-6 md:p-8 space-y-5">
             <div>
-              <label className="block text-sm text-white/50 mb-1.5 font-medium">Titre du programme</label>
+              <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Titre du programme</label>
               <input type="text" value={editProgramme.titre}
                 onChange={(e) => setEditProgramme(prev => ({ ...prev, titre: e.target.value }))}
                 placeholder="Ex : Transformation 12 semaines"
-                className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all" />
+                className={inputCls} />
             </div>
             <div>
-              <label className="block text-sm text-white/50 mb-1.5 font-medium">Description</label>
+              <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Description</label>
               <textarea value={editProgramme.description || ''}
                 onChange={(e) => setEditProgramme(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Décris le programme en quelques lignes..."
                 rows={3}
-                className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all resize-none" />
+                className={`${inputCls} resize-none`} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-white/50 mb-1.5 font-medium">Durée (semaines)</label>
+                <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Durée (semaines)</label>
                 <input type="number" min={1} max={52} value={editProgramme.duree_semaines}
                   onChange={(e) => setEditProgramme(prev => ({ ...prev, duree_semaines: parseInt(e.target.value) || 4 }))}
-                  className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all" />
+                  className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm text-white/50 mb-1.5 font-medium">Catégorie</label>
+                <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Catégorie</label>
                 <select value={editProgramme.categorie || ''}
                   onChange={(e) => setEditProgramme(prev => ({ ...prev, categorie: e.target.value }))}
-                  className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all">
+                  className={inputCls}>
                   <option value="">Choisir...</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -402,16 +400,19 @@ export default function CoachProgrammesPage() {
         </div>
 
         {/* ── Phases ── */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-[#F5F5F3] text-lg font-semibold">Phases du programme</h2>
+            <div>
+              <h2 className="text-[#F5F5F3] text-lg font-bold">Phases</h2>
+              <p className="text-white/20 text-sm mt-0.5">{phases.length} phase{phases.length > 1 ? 's' : ''} dans ce programme</p>
+            </div>
             <button onClick={addPhase}
-              className="inline-flex items-center gap-1.5 text-sm text-[#FF6B2B] hover:text-[#FF9A6C] transition-colors font-medium">
-              <Plus size={16} /> Ajouter une phase
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#1E1E1E] border border-white/[0.06] text-[#FF6B2B] text-sm font-semibold hover:bg-[#2A2A2A] transition-all">
+              <Plus size={15} /> Nouvelle phase
             </button>
           </div>
 
-          <div className="space-y-0">
+          <div className="space-y-4">
             {phases.map((phase, index) => (
               <PhaseEditor
                 key={phase.id}
@@ -430,15 +431,15 @@ export default function CoachProgrammesPage() {
           </div>
         </div>
 
-        {/* ── Actions ── */}
-        <div className="flex items-center gap-3 justify-end pb-8 pt-2">
+        {/* ── Actions — sticky bottom ── */}
+        <div className="flex items-center gap-3 justify-end pb-10 pt-4 border-t border-white/[0.04]">
           <button onClick={() => setView('list')}
-            className="px-6 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-all">
+            className="px-6 py-3 rounded-2xl text-sm text-white/30 hover:text-white hover:bg-[#1E1E1E] transition-all font-medium">
             Annuler
           </button>
           <button onClick={handleSave}
             disabled={saving || !editProgramme.titre.trim()}
-            className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-50 shadow-lg shadow-[#FF6B2B]/20">
+            className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-50 shadow-xl shadow-[#FF6B2B]/25">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             {saving ? 'Enregistrement...' : 'Sauvegarder le programme'}
           </button>

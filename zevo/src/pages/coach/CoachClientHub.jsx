@@ -14,7 +14,8 @@ import {
   Copy, CalendarPlus, Layers, PanelRightOpen, PanelRightClose,
   Pencil, ExternalLink, Coffee, UtensilsCrossed, Moon, Cookie, Minus,
   Wheat, Beef, Fish, Egg, Carrot, Grape, Droplets, TrendingUp, TrendingDown,
-  Ruler, Weight, ChevronUp, ChevronDown as ChevronDownIcon
+  Ruler, Weight, ChevronUp, ChevronDown as ChevronDownIcon,
+  FolderOpen
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -59,7 +60,85 @@ function StatCard({ icon: Icon, label, value, sub, accent = false }) {
 // CARTE PROGRAMME — Premium card pour overview
 // ══════════════════════════════════════
 
-function ProchainesSeancesCard({ clientId, onOpenSport }) {
+function ClientProgrammesSection({ clientId, coachId }) {
+  const [programmes, setProgrammes] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!clientId || !coachId) return
+    setLoading(true)
+    supabase
+      .from('programme_assignations')
+      .select('id, date_debut, statut, phase_actuelle, programmes(id, titre, duree_semaines, categorie)')
+      .eq('coach_id', coachId)
+      .then(({ data }) => {
+        // Filter by client via the assignation table structure
+        setProgrammes((data || []).filter(a => a.programmes))
+        setLoading(false)
+      })
+  }, [clientId, coachId])
+
+  if (loading) return <div className="h-24 bg-[#1E1E1E] rounded-2xl animate-pulse" />
+
+  return (
+    <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+      <div className="px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+            <FolderOpen size={17} className="text-[#FF6B2B]" />
+          </div>
+          <div>
+            <h3 className="text-[#F5F5F3] text-base font-bold">Programmes</h3>
+            <p className="text-white/25 text-[11px]">Parcours multi-semaines assignés</p>
+          </div>
+        </div>
+        <a href="/coach/programmes"
+          className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
+          Gérer →
+        </a>
+      </div>
+
+      <div className="px-6 pb-5">
+        {programmes.length === 0 ? (
+          <div className="bg-[#0D0D0D] rounded-xl p-6 text-center">
+            <FolderOpen size={24} className="text-white/8 mx-auto mb-2" />
+            <p className="text-white/20 text-xs">Aucun programme assigné</p>
+            <a href="/coach/programmes"
+              className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
+              <Plus size={12} /> Assigner un programme
+            </a>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {programmes.map(a => (
+              <div key={a.id} className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                  <FolderOpen size={18} className="text-[#FF6B2B]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[#F5F5F3] text-sm font-semibold truncate">{a.programmes?.titre}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#2A2A2A] text-white/35 font-medium">{a.programmes?.duree_semaines} sem.</span>
+                    {a.programmes?.categorie && (
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium">{a.programmes.categorie}</span>
+                    )}
+                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Phase {a.phase_actuelle}</span>
+                  </div>
+                </div>
+                <a href="/coach/programmes"
+                  className="px-3 py-2 rounded-xl bg-[#2A2A2A] text-white/50 text-[11px] font-medium hover:bg-[#3f3f46] hover:text-white transition-all flex items-center gap-1.5 shrink-0">
+                  Ouvrir <ChevronRight size={12} />
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ClientSeancesSection({ clientId, onOpenCalendar }) {
   const [seances, setSeances] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -74,85 +153,63 @@ function ProchainesSeancesCard({ clientId, onOpenSport }) {
       .eq('is_template', false)
       .gte('date_prevue', today)
       .order('date_prevue', { ascending: true })
-      .limit(4)
+      .limit(5)
       .then(({ data }) => {
         setSeances(data ?? [])
         setLoading(false)
       })
   }, [clientId])
 
-  const nbSeances = seances.length
-  const nbSemaines = Math.max(1, Math.ceil(nbSeances / 3))
+  if (loading) return <div className="h-24 bg-[#1E1E1E] rounded-2xl animate-pulse" />
 
   return (
-    <div className="bg-[#18181b] border border-[#27272a] border-t-2 border-t-[#FF6B2B] rounded-xl overflow-hidden">
-      {/* Header */}
-      <div className="p-5 pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-              <Layers size={18} className="text-[#FF6B2B]" />
-            </div>
-            <div>
-              <h3 className="text-[#F5F5F3] text-sm font-semibold">Programme actif</h3>
-              <p className="text-white/25 text-[10px] mt-0.5">
-                {nbSeances > 0 ? `${nbSeances} séance${nbSeances > 1 ? 's' : ''} planifiée${nbSeances > 1 ? 's' : ''}` : 'Aucune séance'}
-              </p>
-            </div>
+    <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+      <div className="px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
+            <Dumbbell size={17} className="text-blue-400" />
           </div>
-          <div className="flex items-center gap-1">
-            <button className="p-1.5 rounded-lg text-white/20 hover:text-white/40 hover:bg-white/[0.04] transition-colors">
-              <Pencil size={13} />
-            </button>
-            <button className="p-1.5 rounded-lg text-white/20 hover:text-red-400/60 hover:bg-red-500/[0.04] transition-colors">
-              <Trash2 size={13} />
-            </button>
+          <div>
+            <h3 className="text-[#F5F5F3] text-base font-bold">Prochaines séances</h3>
+            <p className="text-white/25 text-[11px]">Entraînements individuels planifiés</p>
           </div>
         </div>
-
-        {/* Badges */}
-        <div className="flex flex-wrap gap-1.5 mt-3">
-          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#27272a] text-white/40 font-medium">{nbSemaines} sem.</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#27272a] text-white/40 font-medium">Remise en forme</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#27272a] text-white/40 font-medium">1 client</span>
-        </div>
+        <button onClick={onOpenCalendar}
+          className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
+          Calendrier →
+        </button>
       </div>
 
-      {/* Séances à venir */}
-      <div className="px-5 pb-3">
-        {loading ? (
-          <div className="space-y-2 animate-pulse">
-            {[1, 2, 3].map(i => <div key={i} className="h-10 bg-[#27272a]/40 rounded-lg" />)}
+      <div className="px-6 pb-5">
+        {seances.length === 0 ? (
+          <div className="bg-[#0D0D0D] rounded-xl p-6 text-center">
+            <Dumbbell size={24} className="text-white/8 mx-auto mb-2" />
+            <p className="text-white/20 text-xs">Aucune séance planifiée</p>
           </div>
-        ) : seances.length === 0 ? (
-          <p className="text-white/15 text-xs text-center py-4">Aucune séance planifiée</p>
         ) : (
-          <div className="space-y-1.5">
-            {seances.map((s) => (
-              <div key={s.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#09090b] border border-[#27272a]/40">
-                <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                  <Dumbbell size={12} className="text-[#FF6B2B]" />
+          <div className="space-y-2">
+            {seances.map(s => (
+              <div key={s.id} className="flex items-center gap-3.5 px-4 py-3 rounded-xl bg-[#0D0D0D]">
+                <div className="w-10 text-center shrink-0">
+                  <p className="text-[#FF6B2B] text-sm font-bold leading-none">
+                    {new Date(s.date_prevue + 'T00:00:00').getDate()}
+                  </p>
+                  <p className="text-white/20 text-[9px] uppercase">
+                    {new Date(s.date_prevue + 'T00:00:00').toLocaleDateString('fr-FR', { month: 'short' })}
+                  </p>
                 </div>
+                <div className="w-[2px] h-8 bg-[#FF6B2B]/20 rounded-full shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[#F5F5F3] text-xs font-medium truncate">{s.titre}</p>
+                  <p className="text-[#F5F5F3] text-sm font-medium truncate">{s.titre}</p>
+                  <p className="text-white/20 text-[10px]">
+                    {new Date(s.date_prevue + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long' })}
+                  </p>
                 </div>
-                <span className="text-white/20 text-[10px] flex-shrink-0">
-                  {new Date(s.date_prevue).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
-                </span>
               </div>
             ))}
           </div>
         )}
       </div>
-
-      {/* Bouton ouvrir */}
-      <button
-        onClick={onOpenSport}
-        className="w-full py-3 bg-[#27272a] hover:bg-[#3f3f46] text-[#F5F5F3] text-xs font-medium transition-colors flex items-center justify-center gap-2"
-      >
-        Ouvrir le programme
-        <ChevronRight size={13} />
-      </button>
     </div>
   )
 }
@@ -3361,8 +3418,11 @@ export default function CoachClientHub() {
                   </div>
                 </div>
 
-                {/* ── Programme & Prochaines séances ── */}
-                <ProchainesSeancesCard clientId={selectedId} onOpenSport={() => setActiveTab('sport')} />
+                {/* ── Programmes assignés ── */}
+                <ClientProgrammesSection clientId={selectedId} coachId={user?.id} />
+
+                {/* ── Prochaines séances ── */}
+                <ClientSeancesSection clientId={selectedId} onOpenCalendar={() => setActiveTab('calendar')} />
               </div>
             )}
 
