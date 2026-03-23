@@ -1629,81 +1629,167 @@ function InfosTab({ coachId, clientId }) {
   const inputClass = "w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
   const labelClass = "block text-xs text-white/40 mb-1.5 font-medium"
 
+  const imcVal = form.poids_depart && form.taille
+    ? (parseFloat(form.poids_depart) / ((parseFloat(form.taille) / 100) ** 2)).toFixed(1)
+    : null
+
   return (
-    <div className="space-y-5 max-w-3xl">
-      {/* Métriques corporelles */}
-      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center gap-2">
-          <Ruler size={15} className="text-[#FF6B2B]" />
-          <h3 className="text-[#F5F5F3] text-sm font-bold">Métriques corporelles</h3>
-        </div>
-        <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div>
-            <label className={labelClass}>Âge</label>
-            <input type="number" value={form.age} onChange={e => updateField('age', e.target.value)}
-              placeholder="25" className={inputClass} />
+    <div className="space-y-5">
+
+      {/* ── Header avec nom + avatar ── */}
+      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+        <div className="flex flex-col md:flex-row md:items-center gap-5">
+          <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+            <User size={28} className="text-[#FF6B2B]" />
           </div>
-          <div>
-            <label className={labelClass}>Sexe</label>
-            <select value={form.sexe} onChange={e => updateField('sexe', e.target.value)} className={inputClass}>
-              <option value="">—</option>
-              {SEXE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelClass}>Taille (cm)</label>
-            <input type="number" value={form.taille} onChange={e => updateField('taille', e.target.value)}
-              placeholder="175" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Poids de départ (kg)</label>
-            <input type="number" step="0.1" value={form.poids_depart} onChange={e => updateField('poids_depart', e.target.value)}
-              placeholder="80" className={inputClass} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
+            <div>
+              <label className={labelClass}>Prénom</label>
+              <p className="text-[#F5F5F3] text-sm font-semibold">{profile?.prenom || profile?.nom?.split(' ')[0] || '—'}</p>
+            </div>
+            <div>
+              <label className={labelClass}>Nom</label>
+              <p className="text-[#F5F5F3] text-sm font-semibold">{profile?.nom?.split(' ').slice(1).join(' ') || profile?.nom || '—'}</p>
+            </div>
+            <div>
+              <label className={labelClass}>Email</label>
+              <p className="text-[#F5F5F3] text-sm font-semibold truncate">{profile?.email || '—'}</p>
+            </div>
+            <div>
+              <label className={labelClass}>Téléphone</label>
+              <p className="text-[#F5F5F3] text-sm font-semibold">{profile?.telephone || '—'}</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Objectifs */}
-      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center gap-2">
-          <Target size={15} className="text-[#FF6B2B]" />
-          <h3 className="text-[#F5F5F3] text-sm font-bold">Objectifs</h3>
-        </div>
-        <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className={labelClass}>Poids cible (kg)</label>
-            <input type="number" step="0.1" value={form.poids_cible} onChange={e => updateField('poids_cible', e.target.value)}
-              placeholder="72" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Date limite</label>
-            <input type="date" value={form.date_limite} onChange={e => updateField('date_limite', e.target.value)}
-              className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Niveau d'activité</label>
-            <select value={form.niveau_activite} onChange={e => updateField('niveau_activite', e.target.value)} className={inputClass}>
-              <option value="">—</option>
-              {NIVEAUX_ACTIVITE.map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
-        </div>
-      </div>
+      {/* ── Deux colonnes : Profil | Objectifs + Poids ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-      {/* Notes */}
-      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center gap-2">
-          <Info size={15} className="text-[#FF6B2B]" />
-          <h3 className="text-[#F5F5F3] text-sm font-bold">Notes du coach</h3>
+        {/* Colonne gauche — Profil */}
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-[#27272a]">
+            <h3 className="text-[#F5F5F3] text-sm font-bold">Profil</h3>
+          </div>
+          <div className="p-5 space-y-4">
+            <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
+              <span className="text-white/35 text-xs">Genre</span>
+              <select value={form.sexe} onChange={e => updateField('sexe', e.target.value)}
+                className="bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none cursor-pointer">
+                <option value="">—</option>
+                {SEXE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
+              <span className="text-white/35 text-xs">Âge</span>
+              <div className="flex items-center gap-1">
+                <input type="number" value={form.age} onChange={e => updateField('age', e.target.value)}
+                  placeholder="—" className="w-12 bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none" />
+                <span className="text-white/30 text-xs">ans</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
+              <span className="text-white/35 text-xs">Taille</span>
+              <div className="flex items-center gap-1">
+                <input type="number" value={form.taille} onChange={e => updateField('taille', e.target.value)}
+                  placeholder="—" className="w-12 bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none" />
+                <span className="text-white/30 text-xs">cm</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
+              <span className="text-white/35 text-xs">Poids</span>
+              <div className="flex items-center gap-1">
+                <input type="number" step="0.1" value={form.poids_depart} onChange={e => updateField('poids_depart', e.target.value)}
+                  placeholder="—" className="w-14 bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none" />
+                <span className="text-white/30 text-xs">kg</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
+              <span className="text-white/35 text-xs">IMC</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[#F5F5F3] text-xs font-semibold">{imcVal || '—'} kg/m²</span>
+                {imcVal && (
+                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
+                    {imcVal < 18.5 ? 'Insuffisant' : imcVal < 25 ? 'Normal' : imcVal < 30 ? 'Surpoids' : 'Obésité'}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-white/35 text-xs">Niveau d'activité</span>
+              <select value={form.niveau_activite} onChange={e => updateField('niveau_activite', e.target.value)}
+                className="bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none cursor-pointer">
+                <option value="">—</option>
+                {NIVEAUX_ACTIVITE.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+          </div>
         </div>
-        <div className="p-5">
-          <textarea
-            value={form.notes_coach}
-            onChange={e => updateField('notes_coach', e.target.value)}
-            placeholder="Notes internes, objectifs personnels, restrictions alimentaires, historique médical..."
-            rows={5}
-            className={`${inputClass} resize-none`}
-          />
+
+        {/* Colonne droite — Objectifs + Poids */}
+        <div className="space-y-5">
+
+          {/* Objectifs */}
+          <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-[#27272a]">
+              <h3 className="text-[#F5F5F3] text-sm font-bold">Objectifs</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
+                <span className="text-white/35 text-xs">Poids cible</span>
+                <div className="flex items-center gap-1">
+                  <input type="number" step="0.1" value={form.poids_cible} onChange={e => updateField('poids_cible', e.target.value)}
+                    placeholder="—" className="w-14 bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none" />
+                  <span className="text-white/30 text-xs">kg</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-white/35 text-xs">Date limite</span>
+                <input type="date" value={form.date_limite} onChange={e => updateField('date_limite', e.target.value)}
+                  className="bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none cursor-pointer" />
+              </div>
+            </div>
+          </div>
+
+          {/* Carte Poids visuelle */}
+          <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+            <h3 className="text-[#F5F5F3] text-sm font-bold mb-4 flex items-center gap-2">
+              <Scale size={15} className="text-[#FF6B2B]" /> Poids
+            </h3>
+            <div className="bg-[#09090b] rounded-xl p-4 flex items-center">
+              <div className="flex-1 text-center">
+                <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Poids de départ</p>
+                <p className="text-[#F5F5F3] text-xl font-bold">{form.poids_depart || '—'}<span className="text-xs text-white/20 ml-1">kg</span></p>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 shrink-0">
+                <div className="w-6 h-[1.5px] bg-[#27272a]" />
+                <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center">
+                  <ChevronRight size={12} className="text-[#FF6B2B]" />
+                </div>
+                <div className="w-6 h-[1.5px] bg-[#27272a]" />
+              </div>
+              <div className="flex-1 text-center">
+                <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Poids cible</p>
+                <p className="text-[#FF6B2B] text-xl font-bold">{form.poids_cible || '—'}<span className="text-xs text-[#FF6B2B]/40 ml-1">kg</span></p>
+              </div>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-[#27272a]">
+              <h3 className="text-[#F5F5F3] text-sm font-bold">Notes du coach</h3>
+            </div>
+            <div className="p-5">
+              <textarea
+                value={form.notes_coach}
+                onChange={e => updateField('notes_coach', e.target.value)}
+                placeholder="Notes internes, objectifs personnels, restrictions alimentaires..."
+                rows={4}
+                className={`${inputClass} resize-none`}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2768,19 +2854,21 @@ export default function CoachClientHub() {
             {/* ── Tabs ── */}
             <div className="flex gap-1 overflow-x-auto pb-1">
               {TABS.map((tab) => {
-                const Icon = tab.icon
+                const isActive = activeTab === tab.id
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                      activeTab === tab.id
-                        ? 'bg-[#27272a] text-[#F5F5F3]'
-                        : 'text-white/30 hover:text-white/50 hover:bg-[#27272a]/30'
+                    className={`relative px-4 py-2.5 text-xs font-medium whitespace-nowrap transition-all ${
+                      isActive
+                        ? 'text-[#F5F5F3]'
+                        : 'text-white/35 hover:text-white/60'
                     }`}
                   >
-                    <Icon size={13} />
                     {tab.label}
+                    {isActive && (
+                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" />
+                    )}
                   </button>
                 )
               })}
@@ -2788,230 +2876,237 @@ export default function CoachClientHub() {
 
             {/* ── Contenu "Vue d'ensemble" ── */}
             {activeTab === 'overview' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="space-y-5">
 
-                {/* Colonne gauche — Profil + Style de vie */}
-                <div className="space-y-4">
-
-                  {/* Carte Profil */}
-                  <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
-                    <h3 className="text-[#F5F5F3] text-sm font-semibold mb-4 flex items-center gap-2">
-                      <User size={14} className="text-[#FF6B2B]" />
-                      Profil
-                    </h3>
-                    <div className="space-y-1">
-                      <StatCard icon={User} label="Genre" value={p?.genre || '—'} />
-                      <StatCard icon={Calendar} label="Âge" value={p?.age ? `${p.age} ans` : '—'} />
-                      <StatCard icon={Activity} label="Taille" value={p?.taille ? `${p.taille} cm` : '—'} />
-                      <StatCard icon={Scale} label="Poids" value={
-                        (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—'
-                      } />
-                      <StatCard
-                        icon={Heart}
-                        label="IMC"
-                        value={imc || '—'}
-                        sub={imc ? (imc < 18.5 ? 'Insuffisant' : imc < 25 ? 'Normal' : imc < 30 ? 'Surpoids' : 'Obésité') : null}
-                        accent
-                      />
+                {/* ── Données de suivi — 6 cartes avec sparklines ── */}
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                  {[
+                    { icon: Scale, label: 'Poids', value: (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—', spark: [80,79,78.5,78,77.8,77.5,77], color: '#FF6B2B' },
+                    { icon: Heart, label: 'IMC', value: imc || '—', sub: imc ? (imc < 18.5 ? 'Insuffisant' : imc < 25 ? 'Normal' : imc < 30 ? 'Surpoids' : 'Obésité') : null, spark: [26,25.5,25,24.8,24.5,24.3,24], color: '#FF6B2B' },
+                    { icon: Flame, label: 'Calories', value: p?.calories_cibles ? `${p.calories_cibles}` : '—', sub: 'kcal/j', spark: [2000,2100,1950,2000,2050,2000,2100], color: '#f59e0b' },
+                    { icon: Activity, label: 'Activité', value: p?.niveau_activite || '—', spark: [3,5,4,6,5,7,6], color: '#22c55e' },
+                    { icon: Dumbbell, label: 'Séances', value: '—', sub: 'cette sem.', spark: [2,3,2,4,3,3,4], color: '#3b82f6' },
+                    { icon: Target, label: 'Objectifs', value: `${objectifs.length}`, sub: 'actifs', spark: [1,1,2,2,3,3,3], color: '#a855f7' },
+                  ].map((card, ci) => (
+                    <div key={ci} className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 flex flex-col justify-between min-h-[120px]">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-white/30 text-[10px] font-medium uppercase tracking-wider">{card.label}</p>
+                          <p className="text-[#F5F5F3] text-lg font-bold mt-1">{card.value}</p>
+                          {card.sub && <p className="text-white/20 text-[10px]">{card.sub}</p>}
+                        </div>
+                        <div className="w-7 h-7 rounded-lg bg-white/[0.04] flex items-center justify-center">
+                          <card.icon size={14} className="text-white/20" />
+                        </div>
+                      </div>
+                      {/* Mini sparkline */}
+                      <svg viewBox="0 0 100 24" className="w-full h-5 mt-2" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id={`spark-${ci}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={card.color} stopOpacity="0.2" />
+                            <stop offset="100%" stopColor={card.color} stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                        {(() => {
+                          const d = card.spark
+                          const min = Math.min(...d) - 0.5
+                          const max = Math.max(...d) + 0.5
+                          const pts = d.map((v, i) => `${(i / (d.length - 1)) * 100},${24 - ((v - min) / (max - min)) * 20}`)
+                          const lineD = `M${pts.join(' L')}`
+                          const areaD = `${lineD} L100,24 L0,24 Z`
+                          return (
+                            <>
+                              <path d={areaD} fill={`url(#spark-${ci})`} />
+                              <path d={lineD} fill="none" stroke={card.color} strokeWidth="1.5" strokeLinecap="round" />
+                            </>
+                          )
+                        })()}
+                      </svg>
                     </div>
-                  </div>
-
-                  {/* Carte Style de vie */}
-                  <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
-                    <h3 className="text-[#F5F5F3] text-sm font-semibold mb-4 flex items-center gap-2">
-                      <Activity size={14} className="text-[#FF6B2B]" />
-                      Style de vie
-                    </h3>
-                    <div className="space-y-1">
-                      <StatCard icon={Flame} label="Niveau d'activité" value={p?.niveau_activite || '—'} />
-                      <StatCard icon={Dumbbell} label="Niveau sportif" value={p?.niveau_sportif || '—'} />
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
-                {/* Colonne droite — Objectifs + Poids + Nutrition */}
-                <div className="lg:col-span-2 space-y-4">
+                {/* ── Row: Poids + Objectifs ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+                  {/* Carte Poids — Départ → Cible */}
+                  <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+                    <div className="flex items-center justify-between mb-5">
+                      <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+                        <Scale size={15} className="text-[#FF6B2B]" />
+                        Poids
+                      </h3>
+                      <button onClick={() => setActiveTab('suivi')} className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
+                        Voir le suivi →
+                      </button>
+                    </div>
+                    <div className="bg-[#09090b] rounded-xl p-4 flex items-center">
+                      <div className="flex-1 text-center">
+                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Poids de départ</p>
+                        <p className="text-[#F5F5F3] text-2xl font-bold">{p?.poids_depart || '—'}<span className="text-sm text-white/20 ml-1">kg</span></p>
+                      </div>
+                      <div className="flex items-center gap-1.5 px-3 shrink-0">
+                        <div className="w-6 h-[1.5px] bg-[#27272a]" />
+                        <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center">
+                          <ChevronRight size={12} className="text-[#FF6B2B]" />
+                        </div>
+                        <div className="w-6 h-[1.5px] bg-[#27272a]" />
+                      </div>
+                      <div className="flex-1 text-center">
+                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Poids cible</p>
+                        <p className="text-[#FF6B2B] text-2xl font-bold">{p?.poids_cible || '—'}<span className="text-sm text-[#FF6B2B]/40 ml-1">kg</span></p>
+                      </div>
+                    </div>
+                    {p?.poids_depart && p?.poids_cible && (
+                      <div className="mt-4">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-white/25 text-[10px]">Progression</span>
+                          <span className="text-[#FF6B2B] text-[10px] font-bold">
+                            {Math.min(100, Math.max(0, Math.round(((p.poids_depart - (p.poids_actuel || p.poids_depart)) / (p.poids_depart - p.poids_cible)) * 100)))}%
+                          </span>
+                        </div>
+                        <div className="h-2 bg-[#27272a] rounded-full overflow-hidden">
+                          <div className="h-full rounded-full bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] transition-all"
+                            style={{ width: `${Math.min(100, Math.max(0, ((p.poids_depart - (p.poids_actuel || p.poids_depart)) / (p.poids_depart - p.poids_cible)) * 100))}%` }} />
+                        </div>
+                        <p className="text-white/15 text-[10px] mt-1.5">Poids actuel : <span className="text-[#F5F5F3] font-semibold">{p.poids_actuel || p.poids_depart} kg</span></p>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Carte Objectifs */}
-                  <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
-                    <h3 className="text-[#F5F5F3] text-sm font-semibold mb-4 flex items-center gap-2">
-                      <Target size={14} className="text-[#FF6B2B]" />
-                      Objectifs
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="bg-[#09090b] rounded-lg p-3.5">
-                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Type d'objectif</p>
-                        <p className="text-[#F5F5F3] text-sm font-semibold">{p?.objectif_type || '—'}</p>
-                        {p?.objectif_type && (
-                          <span className="inline-block mt-1.5 text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold">
-                            Objectif
-                          </span>
-                        )}
-                      </div>
-                      <div className="bg-[#09090b] rounded-lg p-3.5">
-                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Début du coaching</p>
+                  <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+                        <Target size={15} className="text-[#FF6B2B]" />
+                        Objectifs
+                      </h3>
+                      {p?.objectif_type && (
+                        <span className="text-[9px] px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{p.objectif_type}</span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-[#09090b] rounded-xl p-3.5">
+                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-0.5">Début coaching</p>
                         <p className="text-[#F5F5F3] text-sm font-semibold">
-                          {p?.date_debut_coaching
-                            ? new Date(p.date_debut_coaching).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
-                            : selectedClient?.created_at
-                              ? new Date(selectedClient.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
-                              : '—'
-                          }
+                          {selectedClient?.created_at
+                            ? new Date(selectedClient.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+                            : '—'}
                         </p>
                       </div>
-                      <div className="bg-[#09090b] rounded-lg p-3.5">
-                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Échéance</p>
+                      <div className="bg-[#09090b] rounded-xl p-3.5">
+                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-0.5">Échéance</p>
                         <p className="text-[#F5F5F3] text-sm font-semibold">
                           {p?.date_echeance
-                            ? new Date(p.date_echeance).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
-                            : '—'
-                          }
+                            ? new Date(p.date_echeance).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+                            : '—'}
                         </p>
                       </div>
                     </div>
-
-                    {/* Objectifs actifs */}
-                    {objectifs.length > 0 && (
-                      <div className="mt-4 space-y-2">
+                    {objectifs.length > 0 ? (
+                      <div className="space-y-3">
                         {objectifs.slice(0, 3).map((o) => (
-                          <div key={o.id} className="flex items-center gap-3">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="text-[#F5F5F3] text-xs font-medium truncate">{o.titre}</p>
-                                <span className="text-white/30 text-[10px] font-medium ml-2">{o.score}%</span>
-                              </div>
-                              <div className="h-1 bg-[#27272a] rounded-full overflow-hidden">
-                                <div className="h-full rounded-full bg-[#FF6B2B] transition-all" style={{ width: `${o.score}%` }} />
-                              </div>
+                          <div key={o.id}>
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="text-[#F5F5F3] text-xs font-medium truncate">{o.titre}</p>
+                              <span className="text-[#FF6B2B] text-[10px] font-bold ml-2">{o.score || 0}%</span>
+                            </div>
+                            <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-[#FF6B2B] transition-all" style={{ width: `${o.score || 0}%` }} />
                             </div>
                           </div>
                         ))}
                       </div>
+                    ) : (
+                      <p className="text-white/15 text-xs text-center py-4">Aucun objectif défini</p>
                     )}
                   </div>
+                </div>
 
-                  {/* Row : Poids + Nutrition */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* ── Row: Nutrition + Habitudes ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                    {/* Carte Poids */}
-                    <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
-                      <h3 className="text-[#F5F5F3] text-sm font-semibold mb-4 flex items-center gap-2">
-                        <Scale size={14} className="text-[#FF6B2B]" />
-                        Poids
-                      </h3>
-                      <div className="flex items-center justify-between">
-                        <div className="text-center">
-                          <p className="text-white/25 text-[10px] uppercase tracking-wider">Départ</p>
-                          <p className="text-[#F5F5F3] text-xl font-bold mt-1">
-                            {p?.poids_depart ? `${p.poids_depart}` : '—'}
-                          </p>
-                          <p className="text-white/20 text-[10px]">kg</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-[2px] bg-[#27272a]" />
-                          <ChevronRight size={14} className="text-[#FF6B2B]" />
-                          <div className="w-8 h-[2px] bg-[#27272a]" />
-                        </div>
-                        <div className="text-center">
-                          <p className="text-white/25 text-[10px] uppercase tracking-wider">Cible</p>
-                          <p className="text-[#FF6B2B] text-xl font-bold mt-1">
-                            {p?.poids_cible ? `${p.poids_cible}` : '—'}
-                          </p>
-                          <p className="text-white/20 text-[10px]">kg</p>
-                        </div>
-                      </div>
-                      {p?.poids_depart && p?.poids_cible && (p?.poids_actuel || p?.poids_depart) && (
-                        <div className="mt-4">
-                          <div className="h-2 bg-[#27272a] rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-gradient-to-r from-[#FF6B2B] to-[#22c55e] transition-all"
-                              style={{
-                                width: `${Math.min(100, Math.max(0,
-                                  ((p.poids_depart - (p.poids_actuel || p.poids_depart)) / (p.poids_depart - p.poids_cible)) * 100
-                                ))}%`
-                              }}
-                            />
-                          </div>
-                          <p className="text-white/20 text-[10px] mt-1 text-right">
-                            Actuel : {p.poids_actuel || p.poids_depart} kg
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Carte Nutrition */}
-                    <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
-                      <h3 className="text-[#F5F5F3] text-sm font-semibold mb-4 flex items-center gap-2">
-                        <Apple size={14} className="text-[#FF6B2B]" />
+                  {/* Carte Nutrition recap */}
+                  <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+                        <Apple size={15} className="text-[#FF6B2B]" />
                         Nutrition
                       </h3>
-                      <div className="text-center mb-4">
-                        <p className="text-[#F5F5F3] text-3xl font-bold">
-                          {p?.calories_cibles || '—'}
-                        </p>
-                        <p className="text-white/25 text-xs mt-0.5">kcal / jour</p>
-                        {p?.calories_cibles && (
-                          <span className="inline-block mt-2 text-[9px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-semibold">
-                            Objectif calorique
-                          </span>
-                        )}
+                      <button onClick={() => setActiveTab('nutrition')} className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
+                        Ouvrir le plan →
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-5">
+                      {/* Donut SVG */}
+                      <div className="relative w-20 h-20 shrink-0">
+                        <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="#27272a" strokeWidth="3" />
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="#3b82f6" strokeWidth="3" strokeDasharray={`${(p?.proteines_cibles || 30) * 0.94} 100`} strokeLinecap="round" />
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="#f59e0b" strokeWidth="3" strokeDasharray={`${(p?.glucides_cibles || 40) * 0.94} 100`} strokeDashoffset={`-${(p?.proteines_cibles || 30) * 0.94}`} strokeLinecap="round" />
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="#ef4444" strokeWidth="3" strokeDasharray={`${(p?.lipides_cibles || 30) * 0.94} 100`} strokeDashoffset={`-${((p?.proteines_cibles || 30) + (p?.glucides_cibles || 40)) * 0.94}`} strokeLinecap="round" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
+                            <p className="text-[#F5F5F3] text-sm font-bold">{p?.calories_cibles || '—'}</p>
+                            <p className="text-white/20 text-[8px]">kcal</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between py-1.5 border-t border-[#27272a]">
-                          <span className="text-white/30 text-xs">🌅 Petit-déjeuner</span>
-                          <span className="text-[#F5F5F3] text-xs font-medium">
-                            {p?.calories_cibles ? `~${Math.round(p.calories_cibles * 0.25)} kcal` : '—'}
-                          </span>
+                      {/* Macros */}
+                      <div className="flex-1 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-500" />
+                            <span className="text-white/40 text-xs">Protéines</span>
+                          </div>
+                          <span className="text-[#F5F5F3] text-xs font-semibold">{p?.proteines_cibles || 30}%</span>
                         </div>
-                        <div className="flex items-center justify-between py-1.5 border-t border-[#27272a]">
-                          <span className="text-white/30 text-xs">☀️ Déjeuner</span>
-                          <span className="text-[#F5F5F3] text-xs font-medium">
-                            {p?.calories_cibles ? `~${Math.round(p.calories_cibles * 0.35)} kcal` : '—'}
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-amber-500" />
+                            <span className="text-white/40 text-xs">Glucides</span>
+                          </div>
+                          <span className="text-[#F5F5F3] text-xs font-semibold">{p?.glucides_cibles || 40}%</span>
                         </div>
-                        <div className="flex items-center justify-between py-1.5 border-t border-[#27272a]">
-                          <span className="text-white/30 text-xs">🌙 Dîner</span>
-                          <span className="text-[#F5F5F3] text-xs font-medium">
-                            {p?.calories_cibles ? `~${Math.round(p.calories_cibles * 0.30)} kcal` : '—'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between py-1.5 border-t border-[#27272a]">
-                          <span className="text-white/30 text-xs">🍎 Collations</span>
-                          <span className="text-[#F5F5F3] text-xs font-medium">
-                            {p?.calories_cibles ? `~${Math.round(p.calories_cibles * 0.10)} kcal` : '—'}
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-red-500" />
+                            <span className="text-white/40 text-xs">Lipides</span>
+                          </div>
+                          <span className="text-[#F5F5F3] text-xs font-semibold">{p?.lipides_cibles || 30}%</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Carte Habitudes du jour */}
-                  <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5">
-                    <h3 className="text-[#F5F5F3] text-sm font-semibold mb-3 flex items-center gap-2">
-                      <Flame size={14} className="text-[#FF6B2B]" />
-                      Habitudes actives
-                      <span className="text-white/20 text-xs ml-auto">{habitudes.length}</span>
-                    </h3>
+                  {/* Carte Habitudes */}
+                  <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+                        <Flame size={15} className="text-[#FF6B2B]" />
+                        Habitudes actives
+                      </h3>
+                      <span className="text-[9px] px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{habitudes.length}</span>
+                    </div>
                     {habitudes.length === 0 ? (
-                      <p className="text-white/15 text-xs text-center py-4">Aucune habitude active</p>
+                      <p className="text-white/15 text-xs text-center py-6">Aucune habitude active</p>
                     ) : (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="space-y-2">
                         {habitudes.map((h) => (
-                          <span
-                            key={h.id}
-                            className="text-xs px-3 py-1.5 rounded-lg border border-[#27272a] text-white/50"
-                            style={{ borderColor: `${h.couleur}30`, color: h.couleur }}
-                          >
-                            {h.nom}
-                          </span>
+                          <div key={h.id} className="flex items-center gap-3 bg-[#09090b] rounded-xl px-3.5 py-2.5">
+                            <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: h.couleur }} />
+                            <span className="text-[#F5F5F3] text-xs font-medium flex-1 truncate">{h.nom}</span>
+                            <span className="text-white/15 text-[10px]">Quotidien</span>
+                          </div>
                         ))}
                       </div>
                     )}
                   </div>
-
-                  {/* Carte Programme */}
-                  <ProchainesSeancesCard clientId={selectedId} onOpenSport={() => setActiveTab('sport')} />
                 </div>
+
+                {/* ── Programme & Prochaines séances ── */}
+                <ProchainesSeancesCard clientId={selectedId} onOpenSport={() => setActiveTab('sport')} />
               </div>
             )}
 
