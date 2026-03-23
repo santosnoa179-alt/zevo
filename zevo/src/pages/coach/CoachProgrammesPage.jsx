@@ -452,82 +452,82 @@ export default function CoachProgrammesPage() {
   // VUE LISTE
   // ═══════════════════════════════════════
   return (
-    <div className="p-6 w-full space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-8 w-full max-w-5xl mx-auto space-y-8">
+
+      {/* Header Apple */}
+      <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-[#F5F5F3] text-2xl font-bold">Programmes</h1>
-          <p className="text-white/40 text-sm mt-0.5">Crée des parcours multi-semaines et assigne-les en 1 clic</p>
+          <h1 className="text-[#F5F5F3] text-3xl font-bold tracking-tight">Programmes</h1>
+          <p className="text-white/25 text-sm mt-1">Parcours multi-semaines pour tes clients</p>
         </div>
         <button onClick={handleNew}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25">
           <Plus size={16} /> Nouveau programme
         </button>
       </div>
 
       {programmes.length === 0 && (
-        <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-16 text-center">
-          <div className="w-16 h-16 bg-[#FF6B2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
-            <FolderOpen size={28} className="text-[#FF6B2B]" />
+        <div className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] p-20 text-center">
+          <div className="w-20 h-20 bg-[#FF6B2B]/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <FolderOpen size={32} className="text-[#FF6B2B]" />
           </div>
-          <h3 className="text-[#F5F5F3] font-semibold text-lg mb-2">Aucun programme</h3>
-          <p className="text-white/40 text-sm mb-8 max-w-sm mx-auto">
-            Crée ton premier programme de coaching structuré avec exercices, nutrition et phases personnalisées
+          <h3 className="text-[#F5F5F3] font-bold text-xl mb-2">Aucun programme</h3>
+          <p className="text-white/25 text-sm mb-8 max-w-md mx-auto">
+            Crée ton premier programme de coaching structuré avec habitudes, objectifs et phases personnalisées.
           </p>
           <button onClick={handleNew}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25">
             <Plus size={16} /> Créer un programme
           </button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {programmes.map((prog) => (
           <div key={prog.id}
-            className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/[0.12] transition-all group shadow-sm hover:shadow-md hover:shadow-black/20">
-            {/* Gradient top bar */}
-            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+            className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] overflow-hidden hover:border-white/[0.10] transition-all group">
 
-            <div className="p-5">
-              <div className="flex items-start justify-between mb-3">
+            <div className="p-6 md:p-7">
+              {/* Icon + Title */}
+              <div className="flex items-start gap-4 mb-5">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C] flex items-center justify-center shrink-0 shadow-lg shadow-[#FF6B2B]/20">
+                  <FolderOpen size={22} className="text-white" />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-[#F5F5F3] font-semibold text-base truncate">{prog.titre}</h3>
+                  <h3 className="text-[#F5F5F3] font-bold text-lg leading-tight truncate">{prog.titre}</h3>
                   {prog.description && (
-                    <p className="text-white/35 text-sm mt-1 line-clamp-2">{prog.description}</p>
+                    <p className="text-white/25 text-sm mt-1 line-clamp-2">{prog.description}</p>
                   )}
                 </div>
-                <div className="flex items-center gap-0.5 ml-3 shrink-0">
-                  <button onClick={() => handleEdit(prog)}
-                    className="p-2 rounded-lg text-white/25 hover:text-white hover:bg-white/[0.06] transition-all" title="Modifier">
-                    <Edit3 size={15} />
-                  </button>
-                  <button onClick={() => handleDelete(prog.id)}
-                    className="p-2 rounded-lg text-white/25 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Supprimer">
-                    <Trash2 size={15} />
-                  </button>
-                </div>
+                <button onClick={() => handleDelete(prog.id)}
+                  className="p-2 rounded-xl text-white/15 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+                  <Trash2 size={15} />
+                </button>
               </div>
 
-              <div className="flex items-center gap-3 text-xs text-white/40 mt-4">
-                <span className="inline-flex items-center gap-1.5 bg-[#2A2A2A] px-2.5 py-1 rounded-lg">
-                  <Calendar size={12} /> {prog.duree_semaines} sem.
+              {/* Badges */}
+              <div className="flex items-center gap-2.5 mb-6">
+                <span className="inline-flex items-center gap-1.5 bg-[#0D0D0D] px-3 py-1.5 rounded-xl text-xs text-white/40 font-medium">
+                  <Calendar size={12} /> {prog.duree_semaines} semaines
                 </span>
                 {prog.categorie && (
-                  <span className="px-2.5 py-1 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium">
+                  <span className="px-3 py-1.5 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold">
                     {prog.categorie}
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1.5 bg-[#2A2A2A] px-2.5 py-1 rounded-lg">
-                  <Users size={12} /> {assignationCounts[prog.id] || 0}
+                <span className="inline-flex items-center gap-1.5 bg-[#0D0D0D] px-3 py-1.5 rounded-xl text-xs text-white/40 font-medium">
+                  <Users size={12} /> {assignationCounts[prog.id] || 0} client{(assignationCounts[prog.id] || 0) > 1 ? 's' : ''}
                 </span>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-2">
+              {/* Action buttons */}
+              <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => handleEdit(prog)}
-                  className="py-2.5 rounded-xl bg-white/[0.04] text-white/50 text-sm font-medium hover:bg-white/[0.08] hover:text-white transition-all flex items-center justify-center gap-1.5 border border-white/[0.04]">
+                  className="py-3 rounded-2xl bg-[#0D0D0D] text-white/50 text-sm font-medium hover:bg-[#2A2A2A] hover:text-white transition-all flex items-center justify-center gap-2">
                   <Edit3 size={14} /> Modifier
                 </button>
                 <button onClick={() => setAssignModal(prog)}
-                  className="py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-[#FF6B2B]/20">
+                  className="py-3 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
                   <UserPlus size={14} /> Assigner
                 </button>
               </div>
@@ -806,9 +806,9 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
               <span className="text-[#F5F5F3] font-semibold text-sm truncate">{phase.titre || `Phase ${index + 1}`}</span>
               <div className="flex items-center gap-2">
                 <span className="text-white/25 text-xs bg-[#2A2A2A] px-2 py-0.5 rounded-md">{phase.duree_semaines} sem.</span>
-                {(phase.exercices?.length || 0) > 0 && (
+                {(phase.habitudes?.length || 0) > 0 && (
                   <span className="text-[#FF6B2B]/70 text-xs bg-[#FF6B2B]/10 px-2 py-0.5 rounded-md">
-                    {phase.exercices.length} exo
+                    {phase.habitudes.length} hab.
                   </span>
                 )}
               </div>
@@ -846,67 +846,6 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
                   onChange={(e) => onUpdate('description', e.target.value)}
                   rows={2} placeholder="Objectif de cette phase..."
                   className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all resize-none" />
-              </div>
-
-              {/* ── Exercices ── */}
-              <div className="bg-[#0D0D0D] rounded-xl border border-white/[0.06] p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Dumbbell size={14} className="text-[#FF6B2B]" />
-                    <label className="text-xs text-white/50 font-semibold uppercase tracking-wider">Exercices</label>
-                  </div>
-                  <button onClick={() => setShowExercisePicker(true)}
-                    className="inline-flex items-center gap-1.5 text-xs text-[#FF6B2B] hover:text-[#FF9A6C] font-medium transition-colors">
-                    <Plus size={14} /> Ajouter un exercice
-                  </button>
-                </div>
-
-                {(phase.exercices || []).length === 0 ? (
-                  <p className="text-white/20 text-xs text-center py-3">Aucun exercice ajouté</p>
-                ) : (
-                  <div className="space-y-2">
-                    {(phase.exercices || []).map((ex, ei) => (
-                      <div key={ei} className="flex items-center gap-3 bg-[#1E1E1E] rounded-xl p-3 group">
-                        {ex.image_url ? (
-                          <img src={ex.image_url} alt={ex.name}
-                            className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
-                            <ImageIcon size={16} className="text-white/20" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[#F5F5F3] text-sm font-medium truncate">{ex.name}</p>
-                          <p className="text-white/30 text-xs">{ex.muscle_group}</p>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <input type="number" min={1} max={10} value={ex.sets}
-                            onChange={(e) => updateExerciseField(ei, 'sets', parseInt(e.target.value) || 3)}
-                            className="w-12 bg-[#2A2A2A] border border-white/[0.06] rounded-lg px-2 py-1 text-[#F5F5F3] text-xs text-center focus:outline-none focus:border-[#FF6B2B]/50"
-                            title="Séries" />
-                          <span className="text-white/20 text-xs">×</span>
-                          <input type="number" min={1} max={100} value={ex.reps}
-                            onChange={(e) => updateExerciseField(ei, 'reps', parseInt(e.target.value) || 12)}
-                            className="w-12 bg-[#2A2A2A] border border-white/[0.06] rounded-lg px-2 py-1 text-[#F5F5F3] text-xs text-center focus:outline-none focus:border-[#FF6B2B]/50"
-                            title="Reps" />
-                          <button onClick={() => onRemoveItem('exercices', ei)}
-                            className="p-1 rounded text-white/20 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-                            <X size={12} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Exercise Picker Modal */}
-                {showExercisePicker && (
-                  <ExercisePicker
-                    exercises={allExercises}
-                    onSelect={addExercise}
-                    onClose={() => setShowExercisePicker(false)}
-                  />
-                )}
               </div>
 
               {/* ── Habitudes ── */}
