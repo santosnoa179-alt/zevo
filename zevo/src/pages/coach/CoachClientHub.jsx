@@ -2053,242 +2053,226 @@ const SEXE_OPTIONS = ['Homme', 'Femme', 'Autre']
 
 function InfosTab({ coachId, clientId }) {
   const toast = useToast()
-  const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({
+  const [formData, setFormData] = useState({
+    prenom: '', nom: '', email: '', telephone: '',
     age: '', sexe: '', taille: '', poids_depart: '',
     poids_cible: '', date_limite: '', niveau_activite: '',
-    notes_coach: '',
+    objectif_type: '', notes_coach: '',
   })
 
   useEffect(() => {
     if (!clientId) return
-    const load = async () => {
-      setLoading(true)
-      const { data } = await supabase.from('profiles').select('*').eq('id', clientId).single()
+    setLoading(true)
+    supabase.from('profiles').select('*').eq('id', clientId).single().then(({ data }) => {
       if (data) {
-        setProfile(data)
-        setForm({
-          age: data.age || '',
+        setFormData({
+          prenom: data.prenom || '',
+          nom: data.nom || '',
+          email: data.email || '',
+          telephone: data.telephone || '',
+          age: data.age ?? '',
           sexe: data.sexe || '',
-          taille: data.taille || '',
-          poids_depart: data.poids_depart || '',
-          poids_cible: data.poids_cible || '',
+          taille: data.taille ?? '',
+          poids_depart: data.poids_depart ?? '',
+          poids_cible: data.poids_cible ?? '',
           date_limite: data.date_limite || '',
           niveau_activite: data.niveau_activite || '',
+          objectif_type: data.objectif_type || '',
           notes_coach: data.notes_coach || '',
         })
       }
       setLoading(false)
-    }
-    load()
+    })
   }, [clientId])
+
+  const set = (field, value) => setFormData(prev => ({ ...prev, [field]: value }))
 
   const handleSave = async () => {
     setSaving(true)
-    const { error } = await supabase.from('profiles').update({
-      age: form.age ? parseInt(form.age) : null,
-      sexe: form.sexe || null,
-      taille: form.taille ? parseFloat(form.taille) : null,
-      poids_depart: form.poids_depart ? parseFloat(form.poids_depart) : null,
-      poids_cible: form.poids_cible ? parseFloat(form.poids_cible) : null,
-      date_limite: form.date_limite || null,
-      niveau_activite: form.niveau_activite || null,
-      notes_coach: form.notes_coach || null,
-    }).eq('id', clientId)
-
+    const payload = {
+      prenom: formData.prenom || null,
+      nom: formData.nom || null,
+      telephone: formData.telephone || null,
+      age: formData.age ? parseInt(formData.age) : null,
+      sexe: formData.sexe || null,
+      taille: formData.taille ? parseFloat(formData.taille) : null,
+      poids_depart: formData.poids_depart ? parseFloat(formData.poids_depart) : null,
+      poids_cible: formData.poids_cible ? parseFloat(formData.poids_cible) : null,
+      date_limite: formData.date_limite || null,
+      niveau_activite: formData.niveau_activite || null,
+      objectif_type: formData.objectif_type || null,
+      notes_coach: formData.notes_coach || null,
+    }
+    const { error } = await supabase.from('profiles').update(payload).eq('id', clientId)
     if (error) {
-      toast.error('Erreur lors de la sauvegarde')
+      console.error('Save error:', error)
+      toast.error(`Erreur : ${error.message}`)
     } else {
-      toast.success('Informations client mises à jour !')
+      toast.success('Informations mises à jour !')
     }
     setSaving(false)
   }
 
-  const updateField = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
+  // IMC auto-calculé
+  const imc = formData.poids_depart && formData.taille
+    ? (parseFloat(formData.poids_depart) / ((parseFloat(formData.taille) / 100) ** 2)).toFixed(1)
+    : null
+  const imcLabel = imc ? (imc < 18.5 ? 'Insuffisant' : imc < 25 ? 'Normal' : imc < 30 ? 'Surpoids' : 'Obésité') : null
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin text-[#FF6B2B]" size={28} />
-      </div>
-    )
+    return <div className="flex items-center justify-center py-20"><Loader2 className="animate-spin text-[#FF6B2B]" size={28} /></div>
   }
 
-  const inputClass = "w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
-  const labelClass = "block text-xs text-white/40 mb-1.5 font-medium"
+  // Apple Settings row component
+  const Row = ({ label, children, last }) => (
+    <div className={`flex items-center justify-between py-3.5 ${last ? '' : 'border-b border-[#27272a]/40'}`}>
+      <span className="text-zinc-400 text-sm font-medium">{label}</span>
+      <div className="flex items-center gap-1.5">{children}</div>
+    </div>
+  )
 
-  const imcVal = form.poids_depart && form.taille
-    ? (parseFloat(form.poids_depart) / ((parseFloat(form.taille) / 100) ** 2)).toFixed(1)
-    : null
+  const inputStyle = "bg-transparent text-[#F5F5F3] text-sm font-semibold text-right border-none focus:outline-none focus:ring-0 placeholder-zinc-600"
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-w-2xl">
 
-      {/* ── Header avec nom + avatar ── */}
-      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
-        <div className="flex flex-col md:flex-row md:items-center gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
-            <User size={28} className="text-[#FF6B2B]" />
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
-            <div>
-              <label className={labelClass}>Prénom</label>
-              <p className="text-[#F5F5F3] text-sm font-semibold">{profile?.prenom || profile?.nom?.split(' ')[0] || '—'}</p>
-            </div>
-            <div>
-              <label className={labelClass}>Nom</label>
-              <p className="text-[#F5F5F3] text-sm font-semibold">{profile?.nom?.split(' ').slice(1).join(' ') || profile?.nom || '—'}</p>
-            </div>
-            <div>
-              <label className={labelClass}>Email</label>
-              <p className="text-[#F5F5F3] text-sm font-semibold truncate">{profile?.email || '—'}</p>
-            </div>
-            <div>
-              <label className={labelClass}>Téléphone</label>
-              <p className="text-[#F5F5F3] text-sm font-semibold">{profile?.telephone || '—'}</p>
-            </div>
-          </div>
+      {/* ═══ Identité ═══ */}
+      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#27272a]">
+          <h3 className="text-[#F5F5F3] text-base font-bold">Identité</h3>
+        </div>
+        <div className="px-6">
+          <Row label="Prénom">
+            <input type="text" value={formData.prenom} onChange={e => set('prenom', e.target.value)}
+              placeholder="Prénom" className={inputStyle} />
+          </Row>
+          <Row label="Nom">
+            <input type="text" value={formData.nom} onChange={e => set('nom', e.target.value)}
+              placeholder="Nom" className={inputStyle} />
+          </Row>
+          <Row label="Email">
+            <span className="text-white/25 text-sm">{formData.email || '—'}</span>
+          </Row>
+          <Row label="Téléphone" last>
+            <input type="tel" value={formData.telephone} onChange={e => set('telephone', e.target.value)}
+              placeholder="+33..." className={inputStyle} />
+          </Row>
         </div>
       </div>
 
-      {/* ── Deux colonnes : Profil | Objectifs + Poids ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-
-        {/* Colonne gauche — Profil */}
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-[#27272a]">
-            <h3 className="text-[#F5F5F3] text-sm font-bold">Profil</h3>
-          </div>
-          <div className="p-5 space-y-4">
-            <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
-              <span className="text-white/35 text-xs">Genre</span>
-              <select value={form.sexe} onChange={e => updateField('sexe', e.target.value)}
-                className="bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none cursor-pointer">
-                <option value="">—</option>
-                {SEXE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
-              <span className="text-white/35 text-xs">Âge</span>
-              <div className="flex items-center gap-1">
-                <input type="number" value={form.age} onChange={e => updateField('age', e.target.value)}
-                  placeholder="—" className="w-12 bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none" />
-                <span className="text-white/30 text-xs">ans</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
-              <span className="text-white/35 text-xs">Taille</span>
-              <div className="flex items-center gap-1">
-                <input type="number" value={form.taille} onChange={e => updateField('taille', e.target.value)}
-                  placeholder="—" className="w-12 bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none" />
-                <span className="text-white/30 text-xs">cm</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
-              <span className="text-white/35 text-xs">Poids</span>
-              <div className="flex items-center gap-1">
-                <input type="number" step="0.1" value={form.poids_depart} onChange={e => updateField('poids_depart', e.target.value)}
-                  placeholder="—" className="w-14 bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none" />
-                <span className="text-white/30 text-xs">kg</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
-              <span className="text-white/35 text-xs">IMC</span>
-              <div className="flex items-center gap-2">
-                <span className="text-[#F5F5F3] text-xs font-semibold">{imcVal || '—'} kg/m²</span>
-                {imcVal && (
-                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
-                    {imcVal < 18.5 ? 'Insuffisant' : imcVal < 25 ? 'Normal' : imcVal < 30 ? 'Surpoids' : 'Obésité'}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-white/35 text-xs">Niveau d'activité</span>
-              <select value={form.niveau_activite} onChange={e => updateField('niveau_activite', e.target.value)}
-                className="bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none cursor-pointer">
-                <option value="">—</option>
-                {NIVEAUX_ACTIVITE.map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
-            </div>
-          </div>
+      {/* ═══ Profil ═══ */}
+      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#27272a]">
+          <h3 className="text-[#F5F5F3] text-base font-bold">Profil</h3>
         </div>
-
-        {/* Colonne droite — Objectifs + Poids */}
-        <div className="space-y-5">
-
-          {/* Objectifs */}
-          <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-[#27272a]">
-              <h3 className="text-[#F5F5F3] text-sm font-bold">Objectifs</h3>
-            </div>
-            <div className="p-5 space-y-4">
-              <div className="flex items-center justify-between py-2 border-b border-[#27272a]/50">
-                <span className="text-white/35 text-xs">Poids cible</span>
-                <div className="flex items-center gap-1">
-                  <input type="number" step="0.1" value={form.poids_cible} onChange={e => updateField('poids_cible', e.target.value)}
-                    placeholder="—" className="w-14 bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none" />
-                  <span className="text-white/30 text-xs">kg</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-white/35 text-xs">Date limite</span>
-                <input type="date" value={form.date_limite} onChange={e => updateField('date_limite', e.target.value)}
-                  className="bg-transparent text-[#F5F5F3] text-xs font-semibold text-right border-none focus:outline-none cursor-pointer" />
-              </div>
-            </div>
-          </div>
-
-          {/* Carte Poids visuelle */}
-          <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
-            <h3 className="text-[#F5F5F3] text-sm font-bold mb-4 flex items-center gap-2">
-              <Scale size={15} className="text-[#FF6B2B]" /> Poids
-            </h3>
-            <div className="bg-[#09090b] rounded-xl p-4 flex items-center">
-              <div className="flex-1 text-center">
-                <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Poids de départ</p>
-                <p className="text-[#F5F5F3] text-xl font-bold">{form.poids_depart || '—'}<span className="text-xs text-white/20 ml-1">kg</span></p>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 shrink-0">
-                <div className="w-6 h-[1.5px] bg-[#27272a]" />
-                <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center">
-                  <ChevronRight size={12} className="text-[#FF6B2B]" />
-                </div>
-                <div className="w-6 h-[1.5px] bg-[#27272a]" />
-              </div>
-              <div className="flex-1 text-center">
-                <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Poids cible</p>
-                <p className="text-[#FF6B2B] text-xl font-bold">{form.poids_cible || '—'}<span className="text-xs text-[#FF6B2B]/40 ml-1">kg</span></p>
-              </div>
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-[#27272a]">
-              <h3 className="text-[#F5F5F3] text-sm font-bold">Notes du coach</h3>
-            </div>
-            <div className="p-5">
-              <textarea
-                value={form.notes_coach}
-                onChange={e => updateField('notes_coach', e.target.value)}
-                placeholder="Notes internes, objectifs personnels, restrictions alimentaires..."
-                rows={4}
-                className={`${inputClass} resize-none`}
-              />
-            </div>
-          </div>
+        <div className="px-6">
+          <Row label="Genre">
+            <select value={formData.sexe} onChange={e => set('sexe', e.target.value)}
+              className={`${inputStyle} cursor-pointer appearance-none pr-0`}>
+              <option value="" className="bg-[#1E1E1E]">—</option>
+              {SEXE_OPTIONS.map(s => <option key={s} value={s} className="bg-[#1E1E1E]">{s}</option>)}
+            </select>
+          </Row>
+          <Row label="Âge">
+            <input type="number" value={formData.age} onChange={e => set('age', e.target.value)}
+              placeholder="—" className={`${inputStyle} w-12`} />
+            <span className="text-zinc-500 text-sm">ans</span>
+          </Row>
+          <Row label="Taille">
+            <input type="number" value={formData.taille} onChange={e => set('taille', e.target.value)}
+              placeholder="—" className={`${inputStyle} w-14`} />
+            <span className="text-zinc-500 text-sm">cm</span>
+          </Row>
+          <Row label="Poids">
+            <input type="number" step="0.1" value={formData.poids_depart} onChange={e => set('poids_depart', e.target.value)}
+              placeholder="—" className={`${inputStyle} w-16`} />
+            <span className="text-zinc-500 text-sm">kg</span>
+          </Row>
+          <Row label="IMC">
+            <span className="text-[#F5F5F3] text-sm font-semibold">{imc || '—'}</span>
+            <span className="text-zinc-500 text-sm">kg/m²</span>
+            {imcLabel && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold ml-1">{imcLabel}</span>
+            )}
+          </Row>
+          <Row label="Activité" last>
+            <select value={formData.niveau_activite} onChange={e => set('niveau_activite', e.target.value)}
+              className={`${inputStyle} cursor-pointer appearance-none pr-0`}>
+              <option value="" className="bg-[#1E1E1E]">—</option>
+              {NIVEAUX_ACTIVITE.map(n => <option key={n} value={n} className="bg-[#1E1E1E]">{n}</option>)}
+            </select>
+          </Row>
         </div>
       </div>
 
-      {/* Sauvegarder */}
-      <div className="flex justify-end">
+      {/* ═══ Objectifs ═══ */}
+      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#27272a]">
+          <h3 className="text-[#F5F5F3] text-base font-bold">Objectifs</h3>
+        </div>
+        <div className="px-6">
+          <Row label="Type d'objectif">
+            <input type="text" value={formData.objectif_type} onChange={e => set('objectif_type', e.target.value)}
+              placeholder="Perte de poids, Prise de masse..." className={inputStyle} />
+          </Row>
+          <Row label="Poids cible">
+            <input type="number" step="0.1" value={formData.poids_cible} onChange={e => set('poids_cible', e.target.value)}
+              placeholder="—" className={`${inputStyle} w-16`} />
+            <span className="text-zinc-500 text-sm">kg</span>
+          </Row>
+          <Row label="Échéance" last>
+            <input type="date" value={formData.date_limite} onChange={e => set('date_limite', e.target.value)}
+              className={`${inputStyle} cursor-pointer`} />
+          </Row>
+        </div>
+      </div>
+
+      {/* ═══ Poids visuel ═══ */}
+      {(formData.poids_depart || formData.poids_cible) && (
+        <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl p-6">
+          <div className="flex items-center justify-around">
+            <div className="text-center">
+              <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">Départ</p>
+              <p className="text-[#F5F5F3] text-2xl font-bold">{formData.poids_depart || '—'}</p>
+              <p className="text-zinc-600 text-xs">kg</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-[1.5px] bg-[#27272a]" />
+              <div className="w-8 h-8 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center">
+                <ChevronRight size={14} className="text-[#FF6B2B]" />
+              </div>
+              <div className="w-8 h-[1.5px] bg-[#27272a]" />
+            </div>
+            <div className="text-center">
+              <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">Cible</p>
+              <p className="text-[#FF6B2B] text-2xl font-bold">{formData.poids_cible || '—'}</p>
+              <p className="text-[#FF6B2B]/40 text-xs">kg</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Notes ═══ */}
+      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#27272a]">
+          <h3 className="text-[#F5F5F3] text-base font-bold">Notes du coach</h3>
+        </div>
+        <div className="p-6">
+          <textarea value={formData.notes_coach} onChange={e => set('notes_coach', e.target.value)}
+            placeholder="Notes internes, restrictions alimentaires, historique médical..."
+            rows={4}
+            className="w-full bg-[#0D0D0D] border border-white/[0.06] rounded-2xl px-5 py-3.5 text-[#F5F5F3] text-sm placeholder:text-zinc-600 focus:outline-none focus:border-[#FF6B2B]/40 transition-all resize-none" />
+        </div>
+      </div>
+
+      {/* ═══ Enregistrer ═══ */}
+      <div className="flex justify-end pt-2">
         <button onClick={handleSave} disabled={saving}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-50 shadow-lg shadow-[#FF6B2B]/20">
-          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-          {saving ? 'Sauvegarde...' : 'Enregistrer'}
+          className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-50 shadow-xl shadow-[#FF6B2B]/25">
+          {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+          {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
         </button>
       </div>
     </div>
