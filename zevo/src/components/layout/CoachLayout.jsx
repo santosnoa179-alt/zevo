@@ -7,7 +7,7 @@ import {
   Search, MessageCircle, Rocket, LogOut, Menu, X,
   Settings, ChevronDown, ChevronLeft, BookOpen, Layers, ClipboardList,
   FileText, BarChart3, CreditCard, Paintbrush, Send,
-  CheckCircle, Flame, TrendingDown, FolderOpen
+  CheckCircle, Flame, TrendingDown, FolderOpen, Trophy, UtensilsCrossed
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
@@ -24,12 +24,13 @@ const NAV_SECTIONS = [
       { to: '/coach/client-hub', icon: Users, label: 'Clients' },
       { to: '/coach/calendar', icon: CalendarDays, label: 'Calendrier' },
       { to: '/coach/prospects', icon: UserPlus, label: 'Prospects', badge: 'Nouveau' },
-      { to: '/coach/programmes', icon: FolderOpen, label: 'Programmes' },
     ],
   },
   {
     title: 'RESSOURCES',
     items: [
+      { to: '/coach/sport', icon: Trophy, label: 'Sport' },
+      { to: '/coach/nutrition', icon: UtensilsCrossed, label: 'Nutrition' },
       { to: '/coach/bibliotheque', icon: BookOpen, label: 'Bibliothèque' },
       { to: '/coach/formulaires', icon: ClipboardList, label: 'Formulaires' },
       { to: '/coach/rapports', icon: FileText, label: 'Rapports' },
@@ -51,7 +52,7 @@ const NAV_SECTIONS = [
 const MOBILE_NAV = [
   { to: '/coach/dashboard', icon: LayoutDashboard, label: 'Accueil' },
   { to: '/coach/client-hub', icon: Users, label: 'Clients' },
-  { to: '/coach/programmes', icon: FolderOpen, label: 'Programmes' },
+  { to: '/coach/sport', icon: Trophy, label: 'Sport' },
   { to: null, icon: MessageCircle, label: 'Messages', action: 'openMessages' },
   { to: '/coach/parametres', icon: Settings, label: 'Plus' },
 ]
@@ -62,7 +63,8 @@ const PAGE_TITLES = {
   '/coach/clients': 'Clients',
   '/coach/client-hub': 'Hub Client 360°',
   '/coach/prospects': 'Prospects',
-  '/coach/programmes': 'Programmes',
+  '/coach/sport': 'Sport',
+  '/coach/nutrition': 'Nutrition',
   '/coach/bibliotheque': 'Bibliothèque',
   '/coach/formulaires': 'Formulaires',
   '/coach/rapports': 'Rapports',
