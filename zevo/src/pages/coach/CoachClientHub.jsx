@@ -951,6 +951,16 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   const [previewExos, setPreviewExos] = useState([])
   const [loadingPreview, setLoadingPreview] = useState(false)
 
+  // Workout builder drawer
+  const [drawerTemplate, setDrawerTemplate] = useState(null) // template object to edit
+  const [drawerExos, setDrawerExos] = useState([]) // [{exercice_id, nom, series, reps, repos, ordre}]
+  const [drawerSaving, setDrawerSaving] = useState(false)
+  const [drawerTitle, setDrawerTitle] = useState('')
+  const [drawerSearch, setDrawerSearch] = useState('')
+  const [drawerShowSearch, setDrawerShowSearch] = useState(false)
+  const [allExercicesDrawer, setAllExercicesDrawer] = useState([])
+  const [loadingDrawerExos, setLoadingDrawerExos] = useState(false)
+
   const weekDates = getWeekDates(weekOffset)
   const weekStart = formatDateISO(weekDates[0])
   const weekEnd = formatDateISO(weekDates[6])
@@ -1154,6 +1164,107 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     setPlanifying(false)
   }
 
+  // ── Ouvrir le drawer pour un modèle (existant ou nouveau) ──
+  const ouvrirDrawer = async (template) => {
+    setDrawerTemplate(template)
+    setDrawerTitle(template.titre)
+    setDrawerSearch('')
+    setDrawerShowSearch(false)
+    setLoadingDrawerExos(true)
+
+    // Charger les exercices du modèle
+    const { data } = await supabase
+      .from('seance_exercices')
+      .select('id, exercice_id, series, reps, repos, ordre, exercices(nom, muscle_group, equipment)')
+      .eq('seance_id', template.id)
+      .order('ordre')
+    setDrawerExos((data || []).map(e => ({
+      id: e.id, exercice_id: e.exercice_id,
+      nom: e.exercices?.nom || '?', muscle_group: e.exercices?.muscle_group || '',
+      equipment: e.exercices?.equipment || '',
+      series: e.series || 3, reps: e.reps || 10, repos: e.repos || 90, ordre: e.ordre,
+    })))
+    setLoadingDrawerExos(false)
+
+    // Charger la bibliothèque d'exercices si pas déjà
+    if (allExercicesDrawer.length === 0) {
+      const { data: exos } = await supabase
+        .from('exercices')
+        .select('id, nom, muscle_group, equipment')
+        .or(`coach_id.is.null,coach_id.eq.${coachId}`)
+        .order('nom')
+      setAllExercicesDrawer(exos || [])
+    }
+  }
+
+  const ouvrirDrawerNouveau = async () => {
+    // Créer un modèle vide en DB
+    const { data, error } = await supabase
+      .from('seances')
+      .insert({ coach_id: coachId, client_id: null, date_prevue: null, titre: 'Nouveau modèle', notes: null, is_template: true })
+      .select().single()
+    if (error || !data) { toast.error('Erreur création modèle'); return }
+    setTemplates(prev => [data, ...prev])
+    ouvrirDrawer(data)
+  }
+
+  // ── Ajouter un exercice au modèle (drawer) ──
+  const drawerAddExercice = (exo) => {
+    setDrawerExos(prev => [...prev, {
+      id: null, exercice_id: exo.id, nom: exo.nom,
+      muscle_group: exo.muscle_group || '', equipment: exo.equipment || '',
+      series: 4, reps: 10, repos: 90, ordre: prev.length,
+    }])
+    setDrawerShowSearch(false)
+    setDrawerSearch('')
+  }
+
+  // ── Supprimer un exercice du modèle (drawer) ──
+  const drawerRemoveExo = (idx) => {
+    setDrawerExos(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  // ── Mettre à jour un champ exercice (drawer) ──
+  const drawerUpdateExo = (idx, field, value) => {
+    setDrawerExos(prev => prev.map((e, i) => i === idx ? { ...e, [field]: value } : e))
+  }
+
+  // ── Sauvegarder le modèle (titre + exercices) ──
+  const drawerSave = async () => {
+    if (!drawerTemplate) return
+    setDrawerSaving(true)
+
+    // 1. Mettre à jour le titre
+    await supabase.from('seances').update({ titre: drawerTitle.trim() || 'Sans titre' }).eq('id', drawerTemplate.id)
+
+    // 2. Supprimer les anciens exercices et réinsérer
+    await supabase.from('seance_exercices').delete().eq('seance_id', drawerTemplate.id)
+    if (drawerExos.length > 0) {
+      const rows = drawerExos.map((e, i) => ({
+        seance_id: drawerTemplate.id,
+        exercice_id: e.exercice_id,
+        series: parseInt(e.series) || 3,
+        reps: parseInt(e.reps) || 10,
+        repos: parseInt(e.repos) || 60,
+        ordre: i,
+      }))
+      await supabase.from('seance_exercices').insert(rows)
+    }
+
+    // 3. Mettre à jour la liste locale
+    setTemplates(prev => prev.map(t => t.id === drawerTemplate.id ? { ...t, titre: drawerTitle.trim() || 'Sans titre' } : t))
+    toast.success(`Modèle "${drawerTitle}" sauvegardé !`)
+    setDrawerSaving(false)
+    setDrawerTemplate(null)
+  }
+
+  // Filtrage de la bibliothèque dans le drawer
+  const filteredDrawerExos = allExercicesDrawer.filter(e => {
+    if (!drawerSearch.trim()) return true
+    const q = drawerSearch.toLowerCase()
+    return e.nom.toLowerCase().includes(q) || (e.muscle_group || '').toLowerCase().includes(q)
+  }).slice(0, 15)
+
   // Helpers
   const moisAnnee = weekDates[0].toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
   const today = formatDateISO(new Date())
@@ -1255,7 +1366,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                 Mes Modèles
                 <span className="text-white/15 text-[10px] font-normal">{templates.length}</span>
               </h3>
-              <button onClick={() => setModalTemplate(true)}
+              <button onClick={ouvrirDrawerNouveau}
                 className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FF6B2B] text-white text-[9px] font-semibold hover:bg-[#e55e24] transition-colors">
                 <Plus size={10} /> Nouveau
               </button>
@@ -1281,7 +1392,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                       <Dumbbell size={15} className="text-[#FF6B2B]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <button onClick={() => voirPreview(tpl)} className="text-[#F5F5F3] text-xs font-medium hover:text-[#FF6B2B] transition-colors text-left truncate block w-full">
+                      <button onClick={() => ouvrirDrawer(tpl)} className="text-[#F5F5F3] text-xs font-medium hover:text-[#FF6B2B] transition-colors text-left truncate block w-full">
                         {tpl.titre}
                       </button>
                       {tpl.notes && (
@@ -1527,6 +1638,165 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
           </div>
         )}
       </Modal>
+
+      {/* ══════════════════════════════════════ */}
+      {/* DRAWER — Workout Builder (Modèle)     */}
+      {/* ══════════════════════════════════════ */}
+      <div className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] bg-[#09090b] border-l border-[#27272a] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${
+        drawerTemplate ? 'translate-x-0' : 'translate-x-full'
+      }`}>
+        {drawerTemplate && (
+          <>
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-[#27272a] flex-shrink-0">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
+                    <Dumbbell size={16} className="text-[#FF6B2B]" />
+                  </div>
+                  <h3 className="text-[#F5F5F3] text-sm font-bold">Workout Builder</h3>
+                </div>
+                <button onClick={() => setDrawerTemplate(null)} className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+                  <X size={18} />
+                </button>
+              </div>
+              {/* Nom du modèle */}
+              <input
+                type="text"
+                value={drawerTitle}
+                onChange={e => setDrawerTitle(e.target.value)}
+                placeholder="Nom du modèle..."
+                className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm font-semibold placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+              />
+            </div>
+
+            {/* Exercices du modèle */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2.5">
+              {loadingDrawerExos ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 size={20} className="animate-spin text-white/10" />
+                </div>
+              ) : drawerExos.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-14 h-14 rounded-2xl bg-[#18181b] border border-dashed border-[#27272a] flex items-center justify-center mx-auto mb-4">
+                    <Dumbbell size={22} className="text-white/10" />
+                  </div>
+                  <p className="text-white/25 text-sm font-medium mb-1">Aucun exercice</p>
+                  <p className="text-white/10 text-xs">Ajoutez des exercices pour construire votre séance</p>
+                </div>
+              ) : (
+                drawerExos.map((exo, idx) => (
+                  <div key={`${exo.exercice_id}-${idx}`} className="bg-[#18181b] border border-[#27272a] rounded-xl p-3.5 group hover:border-[#27272a]/80 transition-all">
+                    {/* Titre + supprimer */}
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                        <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                          <Dumbbell size={13} className="text-[#FF6B2B]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[#F5F5F3] text-xs font-semibold truncate">{exo.nom}</p>
+                          {exo.muscle_group && (
+                            <p className="text-white/20 text-[10px]">{exo.muscle_group}{exo.equipment ? ` • ${exo.equipment}` : ''}</p>
+                          )}
+                        </div>
+                      </div>
+                      <button onClick={() => drawerRemoveExo(idx)}
+                        className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                    {/* Séries / Reps / Repos */}
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-[9px] text-white/20 mb-1 font-medium">Séries</label>
+                        <input type="number" min={1} value={exo.series}
+                          onChange={e => drawerUpdateExo(idx, 'series', e.target.value)}
+                          className="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-2.5 py-1.5 text-[#F5F5F3] text-xs font-semibold text-center focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] text-white/20 mb-1 font-medium">Reps</label>
+                        <input type="number" min={1} value={exo.reps}
+                          onChange={e => drawerUpdateExo(idx, 'reps', e.target.value)}
+                          className="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-2.5 py-1.5 text-[#F5F5F3] text-xs font-semibold text-center focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] text-white/20 mb-1 font-medium">Repos (s)</label>
+                        <input type="number" min={0} step={15} value={exo.repos}
+                          onChange={e => drawerUpdateExo(idx, 'repos', e.target.value)}
+                          className="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-2.5 py-1.5 text-[#F5F5F3] text-xs font-semibold text-center focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Ajouter un exercice — Search inline */}
+            <div className="px-5 py-3 border-t border-[#27272a] flex-shrink-0">
+              {drawerShowSearch ? (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                    <input
+                      type="text"
+                      value={drawerSearch}
+                      onChange={e => setDrawerSearch(e.target.value)}
+                      placeholder="Rechercher un exercice..."
+                      autoFocus
+                      className="w-full bg-[#18181b] border border-[#27272a] rounded-xl pl-9 pr-8 py-2.5 text-[#F5F5F3] text-xs placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all"
+                    />
+                    <button onClick={() => { setDrawerShowSearch(false); setDrawerSearch('') }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/20 hover:text-white/50">
+                      <X size={12} />
+                    </button>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {filteredDrawerExos.length === 0 ? (
+                      <p className="text-white/15 text-xs text-center py-3">Aucun exercice trouvé</p>
+                    ) : (
+                      filteredDrawerExos.map(exo => (
+                        <button key={exo.id} onClick={() => drawerAddExercice(exo)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#18181b] transition-colors text-left">
+                          <div className="w-6 h-6 rounded bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                            <Dumbbell size={11} className="text-[#FF6B2B]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[#F5F5F3] text-xs font-medium truncate">{exo.nom}</p>
+                            <p className="text-white/15 text-[9px]">{exo.muscle_group || 'Autre'}{exo.equipment ? ` • ${exo.equipment}` : ''}</p>
+                          </div>
+                          <Plus size={14} className="text-[#FF6B2B] flex-shrink-0" />
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => setDrawerShowSearch(true)}
+                  className="w-full py-3 rounded-xl border-2 border-dashed border-[#27272a] text-white/25 text-xs font-medium hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B] transition-all flex items-center justify-center gap-2">
+                  <Plus size={14} /> Ajouter un exercice
+                </button>
+              )}
+            </div>
+
+            {/* Footer — Sauvegarder */}
+            <div className="px-5 py-4 border-t border-[#27272a] flex-shrink-0 flex gap-2">
+              <button onClick={() => setDrawerTemplate(null)}
+                className="flex-1 py-3 rounded-xl text-sm text-white/40 bg-[#18181b] hover:bg-[#27272a] transition-colors border border-[#27272a]">
+                Annuler
+              </button>
+              <button onClick={drawerSave} disabled={drawerSaving}
+                className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                {drawerSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                Enregistrer
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+      {/* Overlay pour le drawer */}
+      {drawerTemplate && (
+        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setDrawerTemplate(null)} />
+      )}
     </div>
   )
 }
