@@ -218,8 +218,8 @@ function ClientSeancesSection({ clientId, onOpenCalendar }) {
 // BIBLIOTHÈQUE D'EXERCICES — Config
 // ══════════════════════════════════════
 
-const MUSCLE_GROUPS = ['Tous', 'Pectoraux', 'Dos', 'Jambes', 'Épaules', 'Biceps', 'Triceps', 'Abdominaux', 'Cardio', 'Souplesse']
-const CATEGORIES = ['Musculation', 'Cardio', 'Souplesse', 'Fonctionnel']
+const MUSCLE_GROUPS = ['Tous', 'Pectoraux', 'Dos', 'Jambes', 'Épaules', 'Biceps', 'Triceps', 'Abdominaux', 'Full body', 'Cardio', 'Hanches']
+const EXERCISE_CATEGORIES = ['Tous', 'Force', 'Haltères', 'Poids du corps', 'Cardio / HIIT', 'Fonctionnel', 'Mobilité / Stretching']
 const SOURCES = ['Tous', 'Zevo Officiel', 'Mes exercices', 'Favoris']
 
 // Couleurs par groupe musculaire
@@ -883,7 +883,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
               <label className="block text-sm text-white/50 mb-1">Catégorie</label>
               <select value={newExo.category} onChange={(e) => setNewExo(p => ({ ...p, category: e.target.value }))}
                 className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors">
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {EXERCISE_CATEGORIES.filter(c => c !== 'Tous').map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
@@ -975,12 +975,14 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   const [seances, setSeances] = useState([])
   const [loadingSeances, setLoadingSeances] = useState(true)
 
-  // Modale création de séance
+  // Flow création de séance (3 étapes Apple)
   const [modalSeance, setModalSeance] = useState(false)
   const [modalDate, setModalDate] = useState(null)
   const [newSeanceTitre, setNewSeanceTitre] = useState('')
   const [newSeanceNotes, setNewSeanceNotes] = useState('')
   const [creatingSeance, setCreatingSeance] = useState(false)
+  const [seanceStep, setSeanceStep] = useState(1) // 1=template, 2=date
+  const [selectedTemplateForPlan, setSelectedTemplateForPlan] = useState(null) // template or 'new'
 
   // Modale détail d'une séance
   const [detailSeance, setDetailSeance] = useState(null)
@@ -1015,6 +1017,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   const [drawerTitle, setDrawerTitle] = useState('')
   const [drawerSearch, setDrawerSearch] = useState('')
   const [drawerShowSearch, setDrawerShowSearch] = useState(false)
+  const [drawerCatFilter, setDrawerCatFilter] = useState('Tous')
   const [allExercicesDrawer, setAllExercicesDrawer] = useState([])
   const [loadingDrawerExos, setLoadingDrawerExos] = useState(false)
 
@@ -1317,10 +1320,10 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
 
   // Filtrage de la bibliothèque dans le drawer
   const filteredDrawerExos = allExercicesDrawer.filter(e => {
-    if (!drawerSearch.trim()) return true
-    const q = drawerSearch.toLowerCase()
-    return e.nom.toLowerCase().includes(q) || (e.muscle_group || '').toLowerCase().includes(q)
-  }).slice(0, 30)
+    const matchSearch = !drawerSearch.trim() || e.nom.toLowerCase().includes(drawerSearch.toLowerCase()) || (e.muscle_group || '').toLowerCase().includes(drawerSearch.toLowerCase())
+    const matchCat = drawerCatFilter === 'Tous' || e.category === drawerCatFilter
+    return matchSearch && matchCat
+  })
 
   // Helpers
   const moisAnnee = weekDates[0].toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
@@ -1478,38 +1481,164 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       )}
 
       {/* ══════════════════════════════════════ */}
-      {/* MODAL — Créer une séance              */}
+      {/* MODAL — Planifier une séance (3 étapes Apple) */}
       {/* ══════════════════════════════════════ */}
-      <Modal isOpen={modalSeance} onClose={() => setModalSeance(false)} title="Nouvelle séance">
-        <form onSubmit={creerSeance} className="space-y-4">
-          <div>
-            <label className="block text-sm text-white/50 mb-1.5">Titre de la séance</label>
-            <input type="text" value={newSeanceTitre} onChange={(e) => setNewSeanceTitre(e.target.value)}
-              placeholder="Ex: Upper Body Jour 1" autoFocus required
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+      {modalSeance && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => { setModalSeance(false); setSeanceStep(1); setSelectedTemplateForPlan(null) }}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-lg bg-[#1E1E1E] rounded-2xl border border-white/[0.06] shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}>
+            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+
+            {/* Progress bar */}
+            <div className="px-6 pt-5 pb-3">
+              <div className="flex items-center gap-2 mb-2">
+                {[1, 2].map(s => (
+                  <div key={s} className={`flex-1 h-1 rounded-full transition-all duration-300 ${
+                    seanceStep >= s ? 'bg-[#FF6B2B]' : 'bg-[#27272a]'
+                  }`} />
+                ))}
+              </div>
+              <p className="text-white/25 text-[10px] font-medium">Étape {seanceStep} sur 2</p>
+            </div>
+
+            {/* Step 1 — Choisir ou créer un modèle */}
+            {seanceStep === 1 && (
+              <div className="px-6 pb-6 space-y-4">
+                <div>
+                  <h2 className="text-[#F5F5F3] text-xl font-bold">Choisir une séance</h2>
+                  <p className="text-white/30 text-sm mt-1">Sélectionnez un modèle existant ou créez-en un nouveau.</p>
+                </div>
+
+                {/* Créer une nouvelle */}
+                <div className="space-y-2">
+                  <button onClick={() => { setSelectedTemplateForPlan('new'); setNewSeanceTitre(''); }}
+                    className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl border-2 border-dashed transition-all ${
+                      selectedTemplateForPlan === 'new' ? 'border-[#FF6B2B] bg-[#FF6B2B]/5' : 'border-[#27272a] hover:border-[#FF6B2B]/30'
+                    }`}>
+                    <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                      <Plus size={18} className="text-[#FF6B2B]" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[#F5F5F3] text-sm font-semibold">Nouvelle séance</p>
+                      <p className="text-white/25 text-[11px]">Créer une séance personnalisée</p>
+                    </div>
+                  </button>
+                  {selectedTemplateForPlan === 'new' && (
+                    <input type="text" value={newSeanceTitre} onChange={e => setNewSeanceTitre(e.target.value)}
+                      placeholder="Nom de la séance..." autoFocus
+                      className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                  )}
+                </div>
+
+                {/* Modèles existants */}
+                {templates.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Ou utiliser un modèle</p>
+                    <div className="max-h-48 overflow-y-auto space-y-1.5">
+                      {templates.map(tpl => (
+                        <button key={tpl.id} onClick={() => { setSelectedTemplateForPlan(tpl); setNewSeanceTitre(tpl.titre) }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
+                            selectedTemplateForPlan?.id === tpl.id ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'bg-[#0D0D0D] hover:bg-[#0D0D0D]/80 border border-transparent'
+                          }`}>
+                          <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                            <Dumbbell size={14} className="text-[#FF6B2B]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[#F5F5F3] text-xs font-semibold truncate">{tpl.titre}</p>
+                            {tpl.notes && <p className="text-white/15 text-[9px] truncate">{tpl.notes}</p>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Next button */}
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => { setModalSeance(false); setSeanceStep(1) }}
+                    className="flex-1 py-3 rounded-xl text-sm text-white/30 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">
+                    Annuler
+                  </button>
+                  <button onClick={() => setSeanceStep(2)}
+                    disabled={!selectedTemplateForPlan || (selectedTemplateForPlan === 'new' && !newSeanceTitre.trim())}
+                    className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
+                    Suivant <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2 — Choisir la date */}
+            {seanceStep === 2 && (
+              <div className="px-6 pb-6 space-y-5">
+                <div>
+                  <h2 className="text-[#F5F5F3] text-xl font-bold">Planifier la date</h2>
+                  <p className="text-white/30 text-sm mt-1">
+                    {selectedTemplateForPlan === 'new' ? `"${newSeanceTitre}"` : `"${selectedTemplateForPlan?.titre}"`} pour {clientName}
+                  </p>
+                </div>
+
+                {/* Résumé visuel */}
+                <div className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                    <Dumbbell size={18} className="text-[#FF6B2B]" />
+                  </div>
+                  <div>
+                    <p className="text-[#F5F5F3] text-sm font-semibold">
+                      {selectedTemplateForPlan === 'new' ? newSeanceTitre : selectedTemplateForPlan?.titre}
+                    </p>
+                    <p className="text-white/20 text-[10px]">
+                      {selectedTemplateForPlan === 'new' ? 'Nouvelle séance' : 'Modèle existant (exercices copiés)'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Date de la séance</label>
+                  <input type="date" value={modalDate || ''} onChange={e => setModalDate(e.target.value)}
+                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Notes (optionnel)</label>
+                  <textarea value={newSeanceNotes} onChange={e => setNewSeanceNotes(e.target.value)}
+                    placeholder="Instructions spécifiques..." rows={2}
+                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-all resize-none" />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => setSeanceStep(1)}
+                    className="flex-1 py-3 rounded-xl text-sm text-white/30 bg-[#27272a] hover:bg-[#3f3f46] transition-colors flex items-center justify-center gap-1.5">
+                    <ChevronLeft size={14} /> Retour
+                  </button>
+                  <button
+                    onClick={async (e) => {
+                      if (selectedTemplateForPlan && selectedTemplateForPlan !== 'new') {
+                        // Copier depuis un template
+                        setModalPlanifier(selectedTemplateForPlan)
+                        setPlanifDate(modalDate || formatDateISO(new Date()))
+                        setModalSeance(false)
+                        setSeanceStep(1)
+                        setSelectedTemplateForPlan(null)
+                      } else {
+                        // Créer une nouvelle séance
+                        await creerSeance(e)
+                        setSeanceStep(1)
+                        setSelectedTemplateForPlan(null)
+                      }
+                    }}
+                    disabled={creatingSeance || !modalDate}
+                    className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                    {creatingSeance ? <Loader2 size={14} className="animate-spin" /> : <Calendar size={14} />}
+                    Planifier
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-          <div>
-            <label className="block text-sm text-white/50 mb-1.5">Date</label>
-            <input type="date" value={modalDate || ''} onChange={(e) => setModalDate(e.target.value)}
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors" />
-          </div>
-          <div>
-            <label className="block text-sm text-white/50 mb-1.5">Notes (optionnel)</label>
-            <textarea value={newSeanceNotes} onChange={(e) => setNewSeanceNotes(e.target.value)}
-              placeholder="Instructions spécifiques..." rows={3}
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none" />
-          </div>
-          <div className="flex gap-2 pt-1">
-            <button type="button" onClick={() => setModalSeance(false)}
-              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
-            <button type="submit" disabled={creatingSeance}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
-              {creatingSeance ? <Loader2 size={15} className="animate-spin" /> : <Calendar size={15} />}
-              Créer la séance
-            </button>
-          </div>
-        </form>
-      </Modal>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════ */}
       {/* MODAL — Créer un modèle              */}
@@ -1788,42 +1917,52 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
               )}
             </div>
 
-            {/* Ajouter un exercice — Search inline */}
-            <div className="px-5 py-3 border-t border-[#27272a] flex-shrink-0">
+            {/* Ajouter un exercice — Bibliothèque intégrée */}
+            <div className="border-t border-[#27272a] flex-shrink-0 flex flex-col" style={{ maxHeight: drawerShowSearch ? '55vh' : 'auto' }}>
               {drawerShowSearch ? (
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
-                    <input
-                      type="text"
-                      value={drawerSearch}
-                      onChange={e => setDrawerSearch(e.target.value)}
-                      placeholder="Rechercher un exercice..."
-                      autoFocus
-                      className="w-full bg-[#18181b] border border-[#27272a] rounded-xl pl-9 pr-8 py-2.5 text-[#F5F5F3] text-xs placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all"
-                    />
-                    <button onClick={() => { setDrawerShowSearch(false); setDrawerSearch('') }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/20 hover:text-white/50">
-                      <X size={12} />
-                    </button>
+                <>
+                  {/* Search header */}
+                  <div className="px-5 py-3 space-y-2.5 border-b border-[#27272a]/50">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[#F5F5F3] text-xs font-bold">Ma bibliothèque</h4>
+                      <button onClick={() => { setDrawerShowSearch(false); setDrawerSearch(''); setDrawerCatFilter('Tous') }}
+                        className="text-[10px] text-white/25 hover:text-white/50 transition-colors">Fermer</button>
+                    </div>
+                    <div className="relative">
+                      <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                      <input type="text" value={drawerSearch} onChange={e => setDrawerSearch(e.target.value)}
+                        placeholder="Rechercher..." autoFocus
+                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl pl-8 pr-4 py-2 text-[#F5F5F3] text-[11px] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                    </div>
+                    <div className="flex gap-1 flex-wrap">
+                      {EXERCISE_CATEGORIES.map(cat => (
+                        <button key={cat} onClick={() => setDrawerCatFilter(cat)}
+                          className={`px-2 py-0.5 rounded-lg text-[9px] font-medium transition-colors ${
+                            drawerCatFilter === cat ? 'bg-[#FF6B2B] text-white' : 'bg-[#18181b] text-white/25 hover:text-white/50'
+                          }`}>
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="max-h-48 overflow-y-auto space-y-1">
+                  {/* Library list */}
+                  <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
                     {filteredDrawerExos.length === 0 ? (
-                      <div className="text-center py-3 space-y-2">
+                      <div className="text-center py-6 space-y-2">
                         <p className="text-white/15 text-xs">Aucun exercice trouvé</p>
                         {drawerSearch.trim().length > 1 && (
                           <button onClick={async () => {
                             const nom = drawerSearch.trim()
                             const { data, error } = await supabase.from('exercices').insert({
-                              coach_id: coachId, nom, muscle_group: 'Autre', equipment: 'Autre',
+                              coach_id: coachId, nom, muscle_group: 'Autre', equipment: 'Autre', category: drawerCatFilter !== 'Tous' ? drawerCatFilter : 'Force',
                             }).select().single()
                             if (data && !error) {
                               setAllExercicesDrawer(prev => [data, ...prev])
                               drawerAddExercice(data)
-                              toast.success(`Exercice "${nom}" créé et ajouté !`)
+                              toast.success(`"${nom}" créé et ajouté !`)
                             }
                           }}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
                             <Plus size={12} /> Créer « {drawerSearch.trim()} »
                           </button>
                         )}
@@ -1831,25 +1970,31 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                     ) : (
                       filteredDrawerExos.map(exo => (
                         <button key={exo.id} onClick={() => drawerAddExercice(exo)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#18181b] transition-colors text-left">
-                          <div className="w-6 h-6 rounded bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                            <Dumbbell size={11} className="text-[#FF6B2B]" />
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#18181b] transition-colors text-left group">
+                          <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/8 flex items-center justify-center flex-shrink-0">
+                            {exo.image_url ? (
+                              <img src={exo.image_url} alt="" className="w-full h-full rounded-xl object-cover" />
+                            ) : (
+                              <Dumbbell size={14} className="text-[#FF6B2B]/60" />
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[#F5F5F3] text-xs font-medium truncate">{exo.nom}</p>
-                            <p className="text-white/15 text-[9px]">{exo.muscle_group || 'Autre'}{exo.equipment ? ` • ${exo.equipment}` : ''}</p>
+                            <p className="text-[#F5F5F3] text-xs font-semibold truncate">{exo.nom}</p>
+                            <p className="text-white/20 text-[9px]">{exo.muscle_group || ''}{exo.category ? ` • ${exo.category}` : ''}</p>
                           </div>
-                          <Plus size={14} className="text-[#FF6B2B] flex-shrink-0" />
+                          <Plus size={15} className="text-[#FF6B2B] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                         </button>
                       ))
                     )}
                   </div>
-                </div>
+                </>
               ) : (
-                <button onClick={() => setDrawerShowSearch(true)}
-                  className="w-full py-3 rounded-xl border-2 border-dashed border-[#27272a] text-white/25 text-xs font-medium hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B] transition-all flex items-center justify-center gap-2">
-                  <Plus size={14} /> Ajouter un exercice
-                </button>
+                <div className="px-5 py-3">
+                  <button onClick={() => setDrawerShowSearch(true)}
+                    className="w-full py-3.5 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold hover:bg-[#FF6B2B]/20 transition-all flex items-center justify-center gap-2">
+                    <Plus size={14} /> Ajouter depuis ma bibliothèque
+                  </button>
+                </div>
               )}
             </div>
 
