@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
+import ProgramBuilder from './ProgramBuilder'
 import {
   Search, Filter, Plus, Calendar, RefreshCw, X,
   Dumbbell, Loader2, ChevronRight, Tag, Users,
@@ -23,6 +24,9 @@ const TABS = [
 export default function CoachSportPage() {
   const { user } = useAuth()
   const toast = useToast()
+
+  const [currentView, setCurrentView] = useState('dashboard') // 'dashboard' | 'builder'
+  const [builderProgramme, setBuilderProgramme] = useState(null)
 
   const [activeTab, setActiveTab] = useState('assigned')
   const [search, setSearch] = useState('')
@@ -62,14 +66,42 @@ export default function CoachSportPage() {
   const handleCreate = async () => {
     if (!createTitle.trim()) return
     setCreating(true)
-    // TODO: real Supabase insert
+
+    // Build programme object
+    const newProg = {
+      id: crypto.randomUUID(),
+      titre: createTitle.trim(),
+      type: programType,
+      mode: createMode,
+      date_debut: createDate,
+      tags: createTags,
+      client_id: createClient || null,
+      duree_semaines: programType === 'calendrier' ? 4 : 4,
+    }
+
+    // TODO: real Supabase insert here
+
     setTimeout(() => {
       toast.success(`Programme "${createTitle}" créé !`)
       setShowCreateModal(false)
       setCreating(false)
-    }, 800)
+      // Navigate to builder
+      setBuilderProgramme(newProg)
+      setCurrentView('builder')
+    }, 500)
   }
 
+  // ── Builder view ──
+  if (currentView === 'builder' && builderProgramme) {
+    return (
+      <ProgramBuilder
+        programme={builderProgramme}
+        onBack={() => { setCurrentView('dashboard'); setBuilderProgramme(null) }}
+      />
+    )
+  }
+
+  // ── Dashboard view ──
   return (
     <div className="p-4 md:p-6 w-full space-y-6">
 
@@ -137,6 +169,7 @@ export default function CoachSportPage() {
         ) : (
           filteredProgrammes.map(prog => (
             <div key={prog.id}
+              onClick={() => { setBuilderProgramme({ ...prog, mode: 'programme', duree_semaines: parseInt(prog.duree) || 4 }); setCurrentView('builder') }}
               className="grid grid-cols-12 gap-3 px-5 py-4 border-b border-[#27272a]/30 hover:bg-white/[0.02] transition-colors items-center cursor-pointer group">
               {/* Publié */}
               <div className="col-span-1">
