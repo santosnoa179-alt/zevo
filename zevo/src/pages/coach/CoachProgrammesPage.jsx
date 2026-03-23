@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import {
   Plus, ChevronRight, ChevronDown, Trash2, Users,
-  Calendar, Layers, Loader2, Save, X, ArrowLeft, Edit3,
+  Calendar, Layers, FolderOpen, Loader2, Save, X, ArrowLeft, Edit3,
   Dumbbell, Search, Apple, Image as ImageIcon,
   BookOpen, FileText, Video, Link as LinkIcon, CheckSquare,
   UserPlus, Send, Rocket
@@ -466,7 +466,7 @@ export default function CoachProgrammesPage() {
       {programmes.length === 0 && (
         <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-16 text-center">
           <div className="w-16 h-16 bg-[#FF6B2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
-            <Layers size={28} className="text-[#FF6B2B]" />
+            <FolderOpen size={28} className="text-[#FF6B2B]" />
           </div>
           <h3 className="text-[#F5F5F3] font-semibold text-lg mb-2">Aucun programme</h3>
           <p className="text-white/40 text-sm mb-8 max-w-sm mx-auto">

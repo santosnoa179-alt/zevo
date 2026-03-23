@@ -1263,7 +1263,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     if (!drawerSearch.trim()) return true
     const q = drawerSearch.toLowerCase()
     return e.nom.toLowerCase().includes(q) || (e.muscle_group || '').toLowerCase().includes(q)
-  }).slice(0, 15)
+  }).slice(0, 30)
 
   // Helpers
   const moisAnnee = weekDates[0].toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
@@ -1362,8 +1362,8 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
           <div className="p-4 border-b border-[#27272a]">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-[#F5F5F3] text-sm font-semibold flex items-center gap-2">
-                <Layers size={14} className="text-[#FF6B2B]" />
-                Mes Modèles
+                <Dumbbell size={14} className="text-[#FF6B2B]" />
+                Modèles de séances
                 <span className="text-white/15 text-[10px] font-normal">{templates.length}</span>
               </h3>
               <button onClick={ouvrirDrawerNouveau}
@@ -1752,7 +1752,25 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                   </div>
                   <div className="max-h-48 overflow-y-auto space-y-1">
                     {filteredDrawerExos.length === 0 ? (
-                      <p className="text-white/15 text-xs text-center py-3">Aucun exercice trouvé</p>
+                      <div className="text-center py-3 space-y-2">
+                        <p className="text-white/15 text-xs">Aucun exercice trouvé</p>
+                        {drawerSearch.trim().length > 1 && (
+                          <button onClick={async () => {
+                            const nom = drawerSearch.trim()
+                            const { data, error } = await supabase.from('exercices').insert({
+                              coach_id: coachId, nom, muscle_group: 'Autre', equipment: 'Autre',
+                            }).select().single()
+                            if (data && !error) {
+                              setAllExercicesDrawer(prev => [data, ...prev])
+                              drawerAddExercice(data)
+                              toast.success(`Exercice "${nom}" créé et ajouté !`)
+                            }
+                          }}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
+                            <Plus size={12} /> Créer « {drawerSearch.trim()} »
+                          </button>
+                        )}
+                      </div>
                     ) : (
                       filteredDrawerExos.map(exo => (
                         <button key={exo.id} onClick={() => drawerAddExercice(exo)}
@@ -2579,249 +2597,217 @@ function NutritionTab({ coachId, clientId, clientName }) {
     setSaving(false)
   }
 
-  const currentRepasItems = planItems[activeRepas] || []
-  const currentRepasInfo = REPAS_TYPES.find(r => r.id === activeRepas)
+  // Drawer pour ajouter un aliment
+  const [alimentDrawerOpen, setAlimentDrawerOpen] = useState(false)
+  const [alimentDrawerTarget, setAlimentDrawerTarget] = useState('petit_dej')
 
-  return (
-    <div className="flex flex-col lg:flex-row gap-4 h-full" style={{ minHeight: 'calc(100vh - 200px)' }}>
+  const openAlimentDrawer = (repasType) => {
+    setAlimentDrawerTarget(repasType)
+    setAlimentDrawerOpen(true)
+    setSearchAliment('')
+    setCatFilter('Tous')
+  }
 
-      {/* ═══════════════════════════════════
-          COLONNE GAUCHE — Bibliothèque
-          ═══════════════════════════════════ */}
-      <div className="w-full lg:w-[380px] flex-shrink-0 flex flex-col bg-[#18181b] rounded-2xl border border-[#27272a] overflow-hidden">
-        {/* Header */}
-        <div className="px-4 py-3.5 border-b border-[#27272a]">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[#F5F5F3] text-sm font-bold">Aliments</h3>
-            <span className="text-[10px] text-white/30 font-medium">{filteredAliments.length} résultats</span>
-          </div>
-          {/* Search */}
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
-            <input
-              type="text"
-              value={searchAliment}
-              onChange={e => setSearchAliment(e.target.value)}
-              placeholder="Rechercher un aliment..."
-              className="w-full bg-[#09090b] border border-[#27272a] rounded-xl pl-9 pr-4 py-2 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all"
-            />
-          </div>
-          {/* Category chips */}
-          <div className="flex gap-1.5 mt-2.5 overflow-x-auto pb-1 no-scrollbar">
-            {ALIMENT_CATEGORIES.map(cat => (
-              <button key={cat} onClick={() => setCatFilter(cat)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all ${
-                  catFilter === cat
-                    ? 'bg-[#FF6B2B] text-white'
-                    : 'bg-[#27272a] text-white/40 hover:text-white/60'
-                }`}>
-                {cat}
-              </button>
-            ))}
+  const addAlimentFromDrawer = (aliment) => {
+    setPlanItems(prev => ({
+      ...prev,
+      [alimentDrawerTarget]: [...prev[alimentDrawerTarget], { ...aliment, quantite: 100 }],
+    }))
+  }
+
+  // Macro ring SVG helper
+  const MacroRing = ({ value, max, color, label, unit, size = 90 }) => {
+    const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0
+    const r = (size - 12) / 2
+    const circ = 2 * Math.PI * r
+    const offset = circ - (pct / 100) * circ
+    return (
+      <div className="flex flex-col items-center">
+        <div className="relative" style={{ width: size, height: size }}>
+          <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full -rotate-90">
+            <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#27272a" strokeWidth="6" />
+            <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="6"
+              strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+              className="transition-all duration-500" />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <p className="text-[#F5F5F3] text-sm font-bold leading-none">{Math.round(value)}</p>
+            <p className="text-white/20 text-[8px]">{unit}</p>
           </div>
         </div>
+        <p className="text-white/40 text-[10px] font-medium mt-1.5">{label}</p>
+      </div>
+    )
+  }
 
-        {/* Liste aliments */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
-          {loadingAliments ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
-            </div>
-          ) : filteredAliments.length === 0 ? (
-            <div className="text-center py-12">
-              <Apple size={28} className="text-white/10 mx-auto mb-2" />
-              <p className="text-white/20 text-xs">Aucun aliment trouvé</p>
-            </div>
-          ) : (
-            <div className="p-2 space-y-1">
-              {filteredAliments.map(aliment => (
-                <button key={aliment.id} onClick={() => addAliment(aliment)}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/[0.04] transition-all text-left group">
-                  {/* Icône catégorie */}
-                  <div className={`w-10 h-10 rounded-xl ${FoodIconBg(aliment.categorie)} flex items-center justify-center flex-shrink-0`}>
-                    <FoodIcon categorie={aliment.categorie} size={16} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[#F5F5F3] text-sm font-medium truncate">{aliment.nom}</p>
-                    <div className="flex items-center gap-2.5 mt-0.5">
-                      <span className="text-[10px] text-white/30 font-medium">100g</span>
-                      <span className="text-[10px] text-[#FF6B2B] font-bold">{aliment.kcal_100g}kcal</span>
-                      <span className="text-[10px] text-blue-400">P{aliment.proteines}</span>
-                      <span className="text-[10px] text-amber-400">G{aliment.glucides}</span>
-                      <span className="text-[10px] text-rose-400">L{aliment.lipides}</span>
-                    </div>
-                  </div>
-                  {/* Bouton + au hover */}
-                  <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                    <Plus size={14} className="text-[#FF6B2B]" />
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+  return (
+    <div className="space-y-5 max-w-3xl mx-auto">
+
+      {/* ── Header : Date + Save ── */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <input type="date" value={planDate} onChange={e => setPlanDate(e.target.value)}
+            className="bg-[#18181b] border border-[#27272a] rounded-xl px-3 py-2 text-[#F5F5F3] text-xs font-medium focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+          <p className="text-white/25 text-xs">Plan de {clientName}</p>
+        </div>
+        <button onClick={sauvegarderPlan} disabled={saving || totalMacros.kcal === 0}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 shadow-lg shadow-[#FF6B2B]/20">
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+          {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+        </button>
+      </div>
+
+      {/* ── Macro Rings — Apple Health style ── */}
+      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-6">
+        <div className="flex items-center justify-around">
+          <MacroRing value={totalMacros.kcal} max={2200} color="#FF6B2B" label="Calories" unit="kcal" size={100} />
+          <MacroRing value={totalMacros.prot} max={150} color="#3b82f6" label="Protéines" unit="g" size={80} />
+          <MacroRing value={totalMacros.gluc} max={250} color="#f59e0b" label="Glucides" unit="g" size={80} />
+          <MacroRing value={totalMacros.lip} max={80} color="#ef4444" label="Lipides" unit="g" size={80} />
         </div>
       </div>
 
-      {/* ═══════════════════════════════════
-          COLONNE DROITE — Plan du jour
-          ═══════════════════════════════════ */}
-      <div className="flex-1 flex flex-col bg-[#18181b] rounded-2xl border border-[#27272a] overflow-hidden min-w-0">
-        {/* Header plan */}
-        <div className="px-5 py-3.5 border-b border-[#27272a]">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <input
-                type="date"
-                value={planDate}
-                onChange={e => setPlanDate(e.target.value)}
-                className="bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-1.5 text-[#F5F5F3] text-xs focus:outline-none focus:border-[#FF6B2B]/50 transition-all"
-              />
-              {existingPlanId && (
-                <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold">Sauvegardé</span>
-              )}
-            </div>
-            {/* Total macros */}
-            <div className="flex items-center gap-2.5">
-              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FF6B2B]/10">
-                <Flame size={11} className="text-[#FF6B2B]" />
-                <span className="text-[11px] text-[#FF6B2B] font-bold">{totalMacros.kcal}kcal</span>
-              </div>
-              <span className="text-[10px] text-blue-400 font-semibold">P {Math.round(totalMacros.prot)}g</span>
-              <span className="text-[10px] text-amber-400 font-semibold">G {Math.round(totalMacros.gluc)}g</span>
-              <span className="text-[10px] text-rose-400 font-semibold">L {Math.round(totalMacros.lip)}g</span>
-            </div>
-          </div>
-
-          {/* Tabs repas */}
-          <div className="flex gap-1">
-            {REPAS_TYPES.map(r => {
-              const rTotal = repasTotal(r.id)
-              const count = (planItems[r.id] || []).length
-              return (
-                <button key={r.id} onClick={() => setActiveRepas(r.id)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                    activeRepas === r.id
-                      ? 'bg-[#FF6B2B] text-white'
-                      : 'bg-[#27272a]/50 text-white/40 hover:text-white/60'
-                  }`}>
-                  <r.icon size={13} />
-                  <span className="hidden sm:inline">{r.label}</span>
-                  {count > 0 && (
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
-                      activeRepas === r.id ? 'bg-white/20' : 'bg-white/[0.06]'
-                    }`}>
-                      {count}
-                    </span>
+      {/* ── Cartes repas ── */}
+      {REPAS_TYPES.map(repas => {
+        const items = planItems[repas.id] || []
+        const total = repasTotal(repas.id)
+        const RepasIcon = repas.icon
+        return (
+          <div key={repas.id} className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+            {/* Header repas */}
+            <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
+                  <RepasIcon size={15} className="text-[#FF6B2B]" />
+                </div>
+                <div>
+                  <h3 className="text-[#F5F5F3] text-sm font-bold">{repas.label}</h3>
+                  {total.kcal > 0 && (
+                    <p className="text-white/25 text-[10px]">{total.kcal} kcal • P{total.prot}g • G{total.gluc}g • L{total.lip}g</p>
                   )}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Zone de contenu du repas */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
-          {currentRepasItems.length === 0 ? (
-            /* Empty state */
-            <div className="flex flex-col items-center justify-center h-full py-16 px-6">
-              <div className="w-16 h-16 rounded-2xl bg-[#27272a] flex items-center justify-center mb-4">
-                <currentRepasInfo.icon size={28} className="text-white/10" />
+                </div>
               </div>
-              <h4 className="text-[#F5F5F3] text-base font-semibold mb-1">
-                Il n'y a pas d'aliments dans ce repas
-              </h4>
-              <p className="text-white/30 text-sm text-center max-w-xs">
-                Cliquez sur un aliment dans la bibliothèque pour l'ajouter au {currentRepasInfo.label.toLowerCase()}
-              </p>
-              <p className="text-[#FF6B2B] text-xs mt-3 font-medium">
-                Il sera ajouté au « {currentRepasInfo.label} »
-              </p>
+              <button onClick={() => openAlimentDrawer(repas.id)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
+                <Plus size={12} /> Ajouter
+              </button>
             </div>
-          ) : (
-            <div className="p-3 space-y-1.5">
-              {currentRepasItems.map((item, idx) => {
-                const m = macrosForItem(item)
-                return (
-                  <div key={`${item.id}-${idx}`}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#09090b] border border-[#27272a] hover:border-[#27272a]/80 transition-all group">
-                    {/* Icône */}
-                    <div className={`w-9 h-9 rounded-xl ${FoodIconBg(item.categorie)} flex items-center justify-center flex-shrink-0`}>
-                      <FoodIcon categorie={item.categorie} size={14} />
-                    </div>
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[#F5F5F3] text-sm font-medium truncate">{item.nom}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-[#FF6B2B] font-bold">{m.kcal}kcal</span>
-                        <span className="text-[10px] text-blue-400">P{m.prot}</span>
-                        <span className="text-[10px] text-amber-400">G{m.gluc}</span>
-                        <span className="text-[10px] text-rose-400">L{m.lip}</span>
-                      </div>
-                    </div>
-                    {/* Quantité */}
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <button onClick={() => updateQuantite(activeRepas, idx, item.quantite - 10)}
-                        className="w-6 h-6 rounded-md bg-[#27272a] flex items-center justify-center text-white/40 hover:text-white transition-colors">
-                        <Minus size={10} />
-                      </button>
-                      <input
-                        type="number"
-                        value={item.quantite}
-                        onChange={e => updateQuantite(activeRepas, idx, parseInt(e.target.value) || 0)}
-                        className="w-14 bg-[#27272a] border border-[#27272a] rounded-lg px-2 py-1 text-center text-[#F5F5F3] text-xs font-medium focus:outline-none focus:border-[#FF6B2B]/50"
-                      />
-                      <button onClick={() => updateQuantite(activeRepas, idx, item.quantite + 10)}
-                        className="w-6 h-6 rounded-md bg-[#27272a] flex items-center justify-center text-white/40 hover:text-white transition-colors">
-                        <Plus size={10} />
-                      </button>
-                      <span className="text-[10px] text-white/20 w-4">g</span>
-                    </div>
-                    {/* Supprimer */}
-                    <button onClick={() => removeAliment(activeRepas, idx)}
-                      className="p-1.5 rounded-lg text-white/15 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0">
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                )
-              })}
 
-              {/* Sous-total du repas */}
-              {currentRepasItems.length > 0 && (
-                <div className="flex items-center justify-between px-4 py-2.5 mt-2 rounded-xl bg-[#27272a]/50 border border-[#27272a]/30">
-                  <span className="text-xs text-white/30 font-medium">Sous-total {currentRepasInfo.label}</span>
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-xs text-[#FF6B2B] font-bold">{repasTotal(activeRepas).kcal}kcal</span>
-                    <span className="text-[10px] text-blue-400 font-semibold">P{Math.round(repasTotal(activeRepas).prot)}g</span>
-                    <span className="text-[10px] text-amber-400 font-semibold">G{Math.round(repasTotal(activeRepas).gluc)}g</span>
-                    <span className="text-[10px] text-rose-400 font-semibold">L{Math.round(repasTotal(activeRepas).lip)}g</span>
-                  </div>
+            {/* Liste aliments */}
+            <div className="px-5 py-3">
+              {items.length === 0 ? (
+                <button onClick={() => openAlimentDrawer(repas.id)}
+                  className="w-full py-5 border border-dashed border-[#27272a] rounded-xl text-white/15 text-xs hover:border-[#FF6B2B]/20 hover:text-[#FF6B2B]/40 transition-all flex items-center justify-center gap-2">
+                  <Plus size={14} /> Ajouter un aliment
+                </button>
+              ) : (
+                <div className="space-y-1.5">
+                  {items.map((item, idx) => {
+                    const m = macrosForItem(item)
+                    return (
+                      <div key={`${item.id}-${idx}`} className="flex items-center gap-3 py-2 group">
+                        <div className={`w-7 h-7 rounded-lg ${FoodIconBg(item.categorie)} flex items-center justify-center flex-shrink-0`}>
+                          <FoodIcon categorie={item.categorie} size={12} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[#F5F5F3] text-xs font-medium truncate">{item.nom}</p>
+                          <p className="text-white/20 text-[10px]">{m.kcal} kcal</p>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button onClick={() => updateQuantite(repas.id, idx, item.quantite - 25)}
+                            className="w-5 h-5 rounded bg-[#27272a] flex items-center justify-center text-white/30 hover:text-white/60 transition-colors">
+                            <Minus size={10} />
+                          </button>
+                          <span className="text-[#F5F5F3] text-[10px] font-semibold w-10 text-center">{item.quantite}g</span>
+                          <button onClick={() => updateQuantite(repas.id, idx, item.quantite + 25)}
+                            className="w-5 h-5 rounded bg-[#27272a] flex items-center justify-center text-white/30 hover:text-white/60 transition-colors">
+                            <Plus size={10} />
+                          </button>
+                        </div>
+                        <button onClick={() => removeAliment(repas.id, idx)}
+                          className="p-1 rounded text-white/10 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
-          )}
-        </div>
-
-        {/* Footer — Sauvegarder */}
-        <div className="px-5 py-3.5 border-t border-[#27272a] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* Résumé repas */}
-            {REPAS_TYPES.map(r => {
-              const count = (planItems[r.id] || []).length
-              if (count === 0) return null
-              return (
-                <span key={r.id} className="text-[10px] text-white/25 font-medium">
-                  {r.label.slice(0, 3)}. {count}
-                </span>
-              )
-            })}
           </div>
-          <button onClick={sauvegarderPlan} disabled={saving || totalMacros.kcal === 0}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-[#FF6B2B]/20">
-            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-            {saving ? 'Sauvegarde...' : 'Sauvegarder le plan'}
-          </button>
-        </div>
+        )
+      })}
+
+      {/* ══════════════════════════════════════ */}
+      {/* DRAWER — Bibliothèque d'aliments      */}
+      {/* ══════════════════════════════════════ */}
+      <div className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[400px] bg-[#09090b] border-l border-[#27272a] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${
+        alimentDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+      }`}>
+        {alimentDrawerOpen && (
+          <>
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-[#27272a] flex-shrink-0">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[#F5F5F3] text-sm font-bold">Ajouter un aliment</h3>
+                <button onClick={() => setAlimentDrawerOpen(false)} className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                <input type="text" value={searchAliment} onChange={e => setSearchAliment(e.target.value)}
+                  placeholder="Rechercher un aliment..." autoFocus
+                  className="w-full bg-[#18181b] border border-[#27272a] rounded-xl pl-9 pr-4 py-2.5 text-[#F5F5F3] text-xs placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+              </div>
+              {/* Catégories */}
+              <div className="flex gap-1.5 mt-3 flex-wrap">
+                {ALIMENT_CATEGORIES.map(cat => (
+                  <button key={cat} onClick={() => setCatFilter(cat)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-colors ${
+                      catFilter === cat ? 'bg-[#FF6B2B] text-white' : 'bg-[#18181b] text-white/30 hover:text-white/50'
+                    }`}>
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Liste */}
+            <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
+              {loadingAliments ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 size={20} className="animate-spin text-white/10" />
+                </div>
+              ) : filteredAliments.length === 0 ? (
+                <p className="text-white/15 text-xs text-center py-8">Aucun aliment trouvé</p>
+              ) : (
+                filteredAliments.map(aliment => (
+                  <button key={aliment.id} onClick={() => addAlimentFromDrawer(aliment)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#18181b] transition-colors text-left group">
+                    <div className={`w-8 h-8 rounded-lg ${FoodIconBg(aliment.categorie)} flex items-center justify-center flex-shrink-0`}>
+                      <FoodIcon categorie={aliment.categorie} size={14} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[#F5F5F3] text-xs font-medium truncate">{aliment.nom}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] text-[#FF6B2B] font-bold">{aliment.kcal_100g}kcal</span>
+                        <span className="text-[10px] text-blue-400/60">P{aliment.proteines}</span>
+                        <span className="text-[10px] text-amber-400/60">G{aliment.glucides}</span>
+                        <span className="text-[10px] text-rose-400/60">L{aliment.lipides}</span>
+                      </div>
+                    </div>
+                    <Plus size={14} className="text-[#FF6B2B] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                  </button>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </div>
+      {alimentDrawerOpen && (
+        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setAlimentDrawerOpen(false)} />
+      )}
     </div>
   )
 }

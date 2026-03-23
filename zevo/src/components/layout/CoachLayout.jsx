@@ -7,7 +7,7 @@ import {
   Search, MessageCircle, Rocket, LogOut, Menu, X,
   Settings, ChevronDown, ChevronLeft, BookOpen, Layers, ClipboardList,
   FileText, BarChart3, CreditCard, Paintbrush, Send,
-  CheckCircle, Flame, TrendingDown
+  CheckCircle, Flame, TrendingDown, FolderOpen
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
@@ -24,7 +24,7 @@ const NAV_SECTIONS = [
       { to: '/coach/client-hub', icon: Users, label: 'Clients' },
       { to: '/coach/calendar', icon: CalendarDays, label: 'Calendrier' },
       { to: '/coach/prospects', icon: UserPlus, label: 'Prospects', badge: 'Nouveau' },
-      { to: '/coach/programmes', icon: Layers, label: 'Programmes' },
+      { to: '/coach/programmes', icon: FolderOpen, label: 'Programmes' },
     ],
   },
   {
@@ -51,7 +51,7 @@ const NAV_SECTIONS = [
 const MOBILE_NAV = [
   { to: '/coach/dashboard', icon: LayoutDashboard, label: 'Accueil' },
   { to: '/coach/client-hub', icon: Users, label: 'Clients' },
-  { to: '/coach/programmes', icon: Layers, label: 'Programmes' },
+  { to: '/coach/programmes', icon: FolderOpen, label: 'Programmes' },
   { to: null, icon: MessageCircle, label: 'Messages', action: 'openMessages' },
   { to: '/coach/parametres', icon: Settings, label: 'Plus' },
 ]
