@@ -123,28 +123,26 @@ export default function CoachSportPage() {
     if (!createTitle.trim()) return
     setCreating(true)
 
-    // Build programme object
+    // Build programme object — NO frontend-generated ID
+    // The ProgramBuilder will create it in Supabase on first save/publish
     const newProg = {
-      id: crypto.randomUUID(),
+      // id intentionally omitted — will be created by Supabase
       titre: createTitle.trim(),
       type: programType,
       mode: createMode,
       date_debut: createDate,
       tags: createTags,
       client_id: createClient || null,
-      duree_semaines: programType === 'calendrier' ? 4 : 4,
+      duree_semaines: 4,
     }
 
-    // TODO: real Supabase insert here
+    console.log('[CoachSportPage] Nouveau programme créé (local):', newProg)
 
-    setTimeout(() => {
-      toast.success(`Programme "${createTitle}" créé !`)
-      setShowCreateModal(false)
-      setCreating(false)
-      // Navigate to builder
-      setBuilderProgramme(newProg)
-      setCurrentView('builder')
-    }, 500)
+    setShowCreateModal(false)
+    setCreating(false)
+    setBuilderProgramme(newProg)
+    setCurrentView('builder')
+    toast.success(`Programme "${createTitle}" prêt à construire !`)
   }
 
   // ── Builder view ──

@@ -95,43 +95,35 @@ export default function ProgramBuilder({ programme, onBack }) {
   const persistToSupabase = async () => {
     if (!user) throw new Error('Non authentifié')
 
-    let progId = programmeId
-    console.log('[ProgramBuilder] persistToSupabase START', { progId, userId: user.id, programme })
+    console.log('[ProgramBuilder] persistToSupabase START', { programmeId, userId: user.id, programme })
 
-    // 1. Upsert programme record
-    if (progId) {
-      const updatePayload = {
-        titre: programme?.titre,
-        description: programme?.description || null,
-        duree_semaines: totalWeeks,
-        categorie: programme?.categorie || null,
-        actif: true,
-      }
-      console.log('[ProgramBuilder] UPDATE programmes:', { progId, payload: updatePayload })
-      const { error } = await supabase.from('programmes').update(updatePayload).eq('id', progId)
-      if (error) {
-        console.error('[ProgramBuilder] ERREUR UPDATE programmes:', error)
-        throw error
-      }
-    } else {
-      const insertPayload = {
-        coach_id: user.id,
-        titre: programme?.titre || 'Nouveau programme',
-        description: programme?.description || null,
-        duree_semaines: totalWeeks,
-        categorie: programme?.categorie || null,
-        actif: true,
-      }
-      console.log('[ProgramBuilder] INSERT programmes:', insertPayload)
-      const { data, error } = await supabase.from('programmes').insert(insertPayload).select().single()
-      if (error) {
-        console.error('[ProgramBuilder] ERREUR INSERT programmes:', error)
-        throw error
-      }
-      console.log('[ProgramBuilder] Programme créé:', data)
-      progId = data.id
-      setProgrammeId(progId)
+    // 1. Upsert programme — always works: insert if new, update if exists
+    const upsertPayload = {
+      coach_id: user.id,
+      titre: programme?.titre || 'Nouveau programme',
+      description: programme?.description || null,
+      duree_semaines: totalWeeks,
+      categorie: programme?.categorie || null,
+      actif: true,
     }
+    // Only include id if we already have a real DB id (not a frontend-generated one)
+    if (programmeId) upsertPayload.id = programmeId
+
+    console.log('[ProgramBuilder] UPSERT programmes:', upsertPayload)
+    const { data: progData, error: progErr } = await supabase
+      .from('programmes')
+      .upsert(upsertPayload)
+      .select()
+      .single()
+
+    if (progErr) {
+      console.error('[ProgramBuilder] ERREUR UPSERT programmes:', progErr)
+      throw progErr
+    }
+
+    const progId = progData.id
+    console.log('[ProgramBuilder] Programme upserted OK, id:', progId)
+    if (progId !== programmeId) setProgrammeId(progId)
 
     // 2. Delete existing seances for this programme (template seances)
     const marker = `programme:${progId}`
