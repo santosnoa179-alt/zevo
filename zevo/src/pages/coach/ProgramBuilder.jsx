@@ -5,7 +5,7 @@ import { useToast } from '../../components/ui/Toast'
 import SessionEditorModal from './SessionEditorModal'
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Save, Rocket,
-  Plus, Dumbbell, Clock, Trash2, GripVertical, X, Loader2
+  Plus, Dumbbell, Clock, Trash2, GripVertical, X, Loader2, Paperclip
 } from 'lucide-react'
 
 const DAYS = ['JOUR 1', 'JOUR 2', 'JOUR 3', 'JOUR 4', 'JOUR 5', 'JOUR 6', 'JOUR 7']
@@ -77,14 +77,15 @@ export default function ProgramBuilder({ programme, onBack }) {
   }
 
   // Save from session editor
-  const handleSessionEditorSave = ({ titre, exercices }) => {
+  const handleSessionEditorSave = ({ titre, exercices, fichiers }) => {
     if (!editingSession) return
     const { dayIdx, sessionIdx } = editingSession
     const key = getKey(dayIdx)
+    console.log('[ProgramBuilder] Session sauvegardée:', { titre, exercices: exercices?.length, fichiers: fichiers?.length })
     setSessions(prev => ({
       ...prev,
       [key]: (prev[key] || []).map((s, i) =>
-        i === sessionIdx ? { ...s, titre, exercices } : s
+        i === sessionIdx ? { ...s, titre, exercices, fichiers: fichiers || [] } : s
       ),
     }))
     setEditingSession(null)
@@ -151,12 +152,17 @@ export default function ProgramBuilder({ programme, onBack }) {
         const dateStr = targetDate.toISOString().split('T')[0]
 
         // Insert seance (client_id may be nullable for templates)
+        // Store fichiers in metadata JSONB column
+        const fichiers = (session.fichiers || []).map(f => ({
+          id: f.id, name: f.name, type: f.type, size: f.size,
+        }))
         const seancePayload = {
           coach_id: user.id,
           titre: session.titre || `Jour ${dayNum}`,
           date_prevue: dateStr,
           notes: marker,
           is_template: true,
+          metadata: fichiers.length > 0 ? { fichiers } : {},
         }
         if (programme?.client_id) seancePayload.client_id = programme.client_id
 
@@ -370,6 +376,14 @@ export default function ProgramBuilder({ programme, onBack }) {
                             <span className="text-white/15 text-[9px] shrink-0">{ex.series}×{ex.reps}</span>
                           </div>
                         ))}
+                      </div>
+                    )}
+
+                    {/* Fichiers badge */}
+                    {session.fichiers?.length > 0 && (
+                      <div className="mt-1.5 flex items-center gap-1 text-white/20 text-[9px]">
+                        <Paperclip size={9} />
+                        <span>{session.fichiers.length} fichier{session.fichiers.length > 1 ? 's' : ''}</span>
                       </div>
                     )}
                   </div>

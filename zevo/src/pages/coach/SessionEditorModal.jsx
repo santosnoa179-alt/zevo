@@ -197,11 +197,13 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
 
   // Save
   const handleSave = () => {
-    onSave({
+    const sessionData = {
       titre,
       exercices: canvas.map(({ _key, ...rest }) => ({ ...rest, _key })),
       fichiers: attachedFiles,
-    })
+    }
+    console.log('[SessionEditorModal] Séance prête à être sauvegardée:', sessionData)
+    onSave(sessionData)
   }
 
   // Check if exercise already in canvas
