@@ -3,7 +3,8 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import {
   X, Search, Plus, Trash2, Dumbbell, GripVertical,
-  Clock, Repeat, Timer, Loader2, Check, Filter
+  Clock, Repeat, Timer, Loader2, Check, Filter,
+  FileText, Paperclip, Upload, File
 } from 'lucide-react'
 
 // Fallback mock exercises if Supabase is empty
@@ -36,6 +37,20 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
   const [searchQuery, setSearchQuery] = useState('')
   const [muscleFilter, setMuscleFilter] = useState('Tous')
   const [showFilters, setShowFilters] = useState(false)
+
+  // Left panel tab
+  const [leftTab, setLeftTab] = useState('exercices') // 'exercices' | 'fichiers'
+
+  // Mock available files (will be replaced with Supabase later)
+  const [availableFiles] = useState([
+    { id: 'f1', name: 'Guide_Echauffement.pdf', type: 'pdf', size: '1.2 MB' },
+    { id: 'f2', name: 'Plan_Nutrition_Semaine.pdf', type: 'pdf', size: '850 KB' },
+    { id: 'f3', name: 'Video_Technique_Squat.mp4', type: 'video', size: '15 MB' },
+    { id: 'f4', name: 'Stretching_Routine.pdf', type: 'pdf', size: '2.1 MB' },
+  ])
+
+  // Files attached to this session
+  const [attachedFiles, setAttachedFiles] = useState(session?.fichiers || [])
 
   // Custom exercise creation
   const [isCreatingExercise, setIsCreatingExercise] = useState(false)
@@ -138,11 +153,22 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
     setCreatingEx(false)
   }
 
+  // File helpers
+  const addFile = (file) => {
+    if (attachedFiles.some(f => f.id === file.id)) return
+    setAttachedFiles(prev => [...prev, file])
+  }
+  const removeFile = (fileId) => {
+    setAttachedFiles(prev => prev.filter(f => f.id !== fileId))
+  }
+  const isFileAttached = (fileId) => attachedFiles.some(f => f.id === fileId)
+
   // Save
   const handleSave = () => {
     onSave({
       titre,
       exercices: canvas.map(({ _key, ...rest }) => ({ ...rest, _key })),
+      fichiers: attachedFiles,
     })
   }
 
@@ -189,7 +215,69 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
           {/* ── Left: Library (35%) ── */}
           <div className="w-[35%] border-r border-[#27272a] flex flex-col bg-[#0D0D0D]">
 
-            {/* Search + filters */}
+            {/* Segmented Control */}
+            <div className="px-4 pt-3 pb-0">
+              <div className="bg-[#18181b] p-0.5 flex rounded-lg">
+                <button onClick={() => setLeftTab('exercices')}
+                  className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold text-center transition-all ${
+                    leftTab === 'exercices' ? 'bg-[#27272a] text-[#F5F5F3] shadow-sm' : 'text-white/30 hover:text-white/50'
+                  }`}>
+                  <Dumbbell size={11} className="inline mr-1" />Exercices
+                </button>
+                <button onClick={() => setLeftTab('fichiers')}
+                  className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold text-center transition-all ${
+                    leftTab === 'fichiers' ? 'bg-[#27272a] text-[#F5F5F3] shadow-sm' : 'text-white/30 hover:text-white/50'
+                  }`}>
+                  <Paperclip size={11} className="inline mr-1" />Fichiers
+                </button>
+              </div>
+            </div>
+
+            {/* ── Fichiers tab ── */}
+            {leftTab === 'fichiers' && (
+              <div className="flex-1 flex flex-col">
+                <div className="p-4 border-b border-[#27272a]/50">
+                  <button className="w-full py-3 rounded-xl border-2 border-dashed border-[#27272a] text-white/25 text-xs font-medium hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/50 hover:bg-[#FF6B2B]/[0.02] transition-all flex items-center justify-center gap-2">
+                    <Upload size={14} /> Importer un fichier
+                  </button>
+                  <p className="text-white/15 text-[10px] mt-2">{availableFiles.length} fichier{availableFiles.length !== 1 ? 's' : ''} disponible{availableFiles.length !== 1 ? 's' : ''}</p>
+                </div>
+                <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+                  {availableFiles.map(file => {
+                    const attached = isFileAttached(file.id)
+                    return (
+                      <button key={file.id} onClick={() => !attached && addFile(file)}
+                        disabled={attached}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
+                          attached
+                            ? 'bg-[#FF6B2B]/5 border border-[#FF6B2B]/15 opacity-60'
+                            : 'bg-[#18181b] border border-transparent hover:border-[#FF6B2B]/20 hover:bg-[#1E1E1E]'
+                        }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                          file.type === 'pdf' ? 'bg-red-500/10' : file.type === 'video' ? 'bg-purple-500/10' : 'bg-blue-500/10'
+                        }`}>
+                          <FileText size={16} className={
+                            file.type === 'pdf' ? 'text-red-400' : file.type === 'video' ? 'text-purple-400' : 'text-blue-400'
+                          } />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[#F5F5F3] text-sm font-medium truncate">{file.name}</p>
+                          <p className="text-white/20 text-[10px] mt-0.5">{file.size}</p>
+                        </div>
+                        {attached && (
+                          <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/20 flex items-center justify-center shrink-0">
+                            <Check size={12} className="text-[#FF6B2B]" />
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Search + filters (exercices tab only) */}
+            {leftTab === 'exercices' && <>
             <div className="p-4 space-y-3 border-b border-[#27272a]/50">
               <div className="flex items-center gap-2">
                 <div className="flex-1 relative">
@@ -334,6 +422,7 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                 })
               )}
             </div>
+            </>}
           </div>
 
           {/* ── Right: Canvas (65%) ── */}
@@ -435,6 +524,27 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                 </div>
               )}
             </div>
+
+            {/* Fichiers joints section */}
+            {attachedFiles.length > 0 && (
+              <div className="px-5 py-3 border-t border-[#27272a]/50 shrink-0">
+                <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Paperclip size={10} /> Fichiers joints ({attachedFiles.length})
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {attachedFiles.map(file => (
+                    <div key={file.id} className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a]/50">
+                      <FileText size={12} className={file.type === 'pdf' ? 'text-red-400' : file.type === 'video' ? 'text-purple-400' : 'text-blue-400'} />
+                      <span className="text-[#F5F5F3] text-[11px] font-medium">{file.name}</span>
+                      <button onClick={() => removeFile(file.id)}
+                        className="p-0.5 rounded text-white/10 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100">
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Canvas footer */}
             <div className="px-5 py-4 border-t border-[#27272a] flex items-center justify-between shrink-0">

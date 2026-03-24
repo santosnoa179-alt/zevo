@@ -49,8 +49,8 @@ export default function CoachSportPage() {
   const [clients, setClients] = useState([])
   useEffect(() => {
     if (!user) return
-    supabase.from('clients').select('id, profiles(id, nom)').eq('coach_id', user.id).eq('actif', true)
-      .then(({ data }) => setClients(data || []))
+    supabase.from('clients').select('id, profiles!inner(id, nom, prenom, email)').eq('coach_id', user.id).eq('actif', true)
+      .then(({ data }) => { console.log('[CoachSportPage] Clients chargés:', data); setClients(data || []) })
   }, [user])
 
   // ── Fetch programmes from Supabase ──
@@ -84,7 +84,8 @@ export default function CoachSportPage() {
 
         const assignMap = {}
         ;(assigns || []).forEach(a => {
-          const nom = a.clients?.profiles?.nom || 'Client'
+          const p = a.clients?.profiles
+          const nom = (p?.prenom && p?.nom) ? `${p.prenom} ${p.nom}` : p?.nom || p?.prenom || 'Client'
           const initials = nom.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
           assignMap[a.programme_id] = {
             client_nom: nom,
@@ -106,6 +107,16 @@ export default function CoachSportPage() {
   }, [user])
 
   useEffect(() => { fetchProgrammes() }, [fetchProgrammes])
+
+  // Helper: get displayable client name
+  const getClientName = (c) => {
+    if (!c?.profiles) return 'Client'
+    const { prenom, nom } = c.profiles
+    if (prenom && nom) return `${prenom} ${nom}`
+    if (nom) return nom
+    if (prenom) return prenom
+    return c.profiles.email || 'Client'
+  }
 
   // Models = programmes without assignation
   const modelProgrammes = programmes.filter(p => !assignations[p.id])
@@ -129,7 +140,8 @@ export default function CoachSportPage() {
         toast.error('Erreur : ' + (error.message || 'Réessayez'))
       } else {
         const progName = programmes.find(p => p.id === assignModelId)?.titre || 'Programme'
-        const clientName = clients.find(c => c.profiles?.id === assignClientId)?.profiles?.nom || 'Client'
+        const clientObj = clients.find(c => c.profiles?.id === assignClientId)
+        const clientName = clientObj ? getClientName(clientObj) : 'Client'
         toast.success(`"${progName}" assigné à ${clientName} !`)
         setShowAssignModal(false)
         setAssignModelId('')
@@ -495,7 +507,7 @@ export default function CoachSportPage() {
                       className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all appearance-none">
                       <option value="" className="bg-[#1E1E1E]">Sélectionner un client</option>
                       {clients.map(c => (
-                        <option key={c.id} value={c.profiles?.id} className="bg-[#1E1E1E]">{c.profiles?.nom || 'Client'}</option>
+                        <option key={c.id} value={c.profiles?.id} className="bg-[#1E1E1E]">{getClientName(c)}</option>
                       ))}
                     </select>
                   </div>
@@ -578,7 +590,7 @@ export default function CoachSportPage() {
                   className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all">
                   <option value="">Sélectionner un client...</option>
                   {clients.map(c => (
-                    <option key={c.id} value={c.profiles?.id}>{c.profiles?.nom || 'Client'}</option>
+                    <option key={c.id} value={c.profiles?.id}>{getClientName(c)}</option>
                   ))}
                 </select>
               </div>
