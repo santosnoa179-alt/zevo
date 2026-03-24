@@ -224,19 +224,25 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
 
   // Open/preview a file
   const handleOpenFile = (file) => {
-    if (file._localFile) {
-      // Local file just uploaded — open via blob URL
-      const url = URL.createObjectURL(file._localFile)
-      window.open(url, '_blank')
-    } else if (file.url) {
-      // File from Supabase Storage
-      // TODO: Appeler supabase.storage.from('program-files').getPublicUrl(file.path) une fois le bucket créé
+    if (file.url) {
+      console.log('[SessionEditor] Ouverture du lien :', file.url)
       window.open(file.url, '_blank')
+    } else if (file._localFile) {
+      // Fallback: local blob (upload failed earlier)
+      const blobUrl = URL.createObjectURL(file._localFile)
+      console.log('[SessionEditor] Ouverture blob local :', blobUrl)
+      window.open(blobUrl, '_blank')
+    } else if (file.path) {
+      // File has a storage path but no cached URL — regenerate it
+      const { data } = supabase.storage.from('program-files').getPublicUrl(file.path)
+      if (data?.publicUrl) {
+        console.log('[SessionEditor] URL régénérée :', data.publicUrl)
+        window.open(data.publicUrl, '_blank')
+      } else {
+        toast.error('Impossible de générer le lien pour ce fichier.')
+      }
     } else {
-      // File saved in DB metadata but not yet on Storage
-      const sizeInfo = file.size ? ` • ${file.size}` : ''
-      const typeInfo = file.type ? file.type.toUpperCase() : 'Fichier'
-      toast.info(`📄 ${file.name} (${typeInfo}${sizeInfo}) — Ce fichier doit être uploadé sur le Storage pour être consulté à distance.`)
+      toast.error('Ce fichier n\'a pas de lien disponible.')
     }
   }
 
