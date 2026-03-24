@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../components/ui/Toast'
 import {
   X, Search, Plus, Trash2, Dumbbell, GripVertical,
   Clock, Repeat, Timer, Loader2, Check, Filter,
@@ -30,6 +31,7 @@ const MUSCLE_GROUPS = ['Tous', 'Pectoraux', 'Dos', 'Jambes', 'Épaules', 'Biceps
 
 export default function SessionEditorModal({ session, dayLabel, onSave, onClose }) {
   const { user } = useAuth()
+  const toast = useToast()
 
   // Library state
   const [allExercises, setAllExercises] = useState([])
@@ -203,10 +205,13 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
       window.open(url, '_blank')
     } else if (file.url) {
       // File from Supabase Storage
+      // TODO: Appeler supabase.storage.from('program-files').getPublicUrl(file.path) une fois le bucket créé
       window.open(file.url, '_blank')
     } else {
-      // Placeholder for DB-stored metadata files
-      console.log('[SessionEditor] Ouverture fichier distant:', file)
+      // File saved in DB metadata but not yet on Storage
+      const sizeInfo = file.size ? ` • ${file.size}` : ''
+      const typeInfo = file.type ? file.type.toUpperCase() : 'Fichier'
+      toast.info(`📄 ${file.name} (${typeInfo}${sizeInfo}) — Ce fichier doit être uploadé sur le Storage pour être consulté à distance.`)
     }
   }
 
