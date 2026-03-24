@@ -159,9 +159,13 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
   }
 
   // Handle file upload from system picker
-  const handleFileUpload = (e) => {
+  const [uploading, setUploading] = useState(false)
+
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
+    e.target.value = '' // Reset input so same file can be re-selected
+
     const ext = file.name.split('.').pop()?.toLowerCase()
     let fileType = 'file'
     if (['pdf'].includes(ext)) fileType = 'pdf'
@@ -170,21 +174,42 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
     else if (['xlsx', 'xls', 'csv'].includes(ext)) fileType = 'spreadsheet'
     else if (['docx', 'doc'].includes(ext)) fileType = 'doc'
 
+    const sizeLabel = file.size < 1024 * 1024
+      ? (file.size / 1024).toFixed(0) + ' KB'
+      : (file.size / (1024 * 1024)).toFixed(1) + ' MB'
+
+    // Upload to Supabase Storage
+    setUploading(true)
+    const storagePath = `coach_uploads/${Date.now()}_${file.name}`
+
+    const { error: uploadErr } = await supabase.storage
+      .from('program-files')
+      .upload(storagePath, file)
+
+    let publicUrl = null
+    if (uploadErr) {
+      console.error('[SessionEditor] Upload error:', uploadErr)
+      toast.error('Erreur upload : ' + (uploadErr.message || 'Vérifiez les policies Storage'))
+      // Fallback: keep file locally
+    } else {
+      const { data: urlData } = supabase.storage.from('program-files').getPublicUrl(storagePath)
+      publicUrl = urlData?.publicUrl || null
+      toast.success(`${file.name} uploadé !`)
+    }
+
     const newFile = {
       id: crypto.randomUUID(),
       name: file.name,
       type: fileType,
-      size: file.size < 1024 * 1024
-        ? (file.size / 1024).toFixed(0) + ' KB'
-        : (file.size / (1024 * 1024)).toFixed(1) + ' MB',
-      _localFile: file, // Keep reference for future Supabase upload
+      size: sizeLabel,
+      path: storagePath,
+      url: publicUrl,
+      _localFile: uploadErr ? file : null, // Keep local ref only if upload failed
     }
 
     setAvailableFiles(prev => [newFile, ...prev])
-    // Auto-attach to session
     setAttachedFiles(prev => [...prev, newFile])
-    // Reset input so same file can be re-selected
-    e.target.value = ''
+    setUploading(false)
   }
 
   // File helpers
@@ -293,9 +318,9 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                 <div className="p-4 border-b border-[#27272a]/50">
                   <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload}
                     accept=".pdf,.mp4,.mov,.xlsx,.docx,.jpg,.jpeg,.png,.gif,.webp" />
-                  <button onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-3 rounded-xl border-2 border-dashed border-[#27272a] text-white/25 text-xs font-medium hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/50 hover:bg-[#FF6B2B]/[0.02] transition-all flex items-center justify-center gap-2 cursor-pointer">
-                    <Upload size={14} /> Importer un fichier
+                  <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                    className="w-full py-3 rounded-xl border-2 border-dashed border-[#27272a] text-white/25 text-xs font-medium hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/50 hover:bg-[#FF6B2B]/[0.02] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-wait">
+                    {uploading ? <><Loader2 size={14} className="animate-spin" /> Upload en cours...</> : <><Upload size={14} /> Importer un fichier</>}
                   </button>
                   <p className="text-white/15 text-[10px] mt-2">{availableFiles.length} fichier{availableFiles.length !== 1 ? 's' : ''} disponible{availableFiles.length !== 1 ? 's' : ''}</p>
                 </div>
