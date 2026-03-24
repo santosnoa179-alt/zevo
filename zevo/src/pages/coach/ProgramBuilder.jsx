@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
@@ -31,6 +31,86 @@ export default function ProgramBuilder({ programme, onBack }) {
 
   // Programme ID (set after first save)
   const [programmeId, setProgrammeId] = useState(programme?.id || null)
+  const [loadingData, setLoadingData] = useState(false)
+
+  // ── Load existing seances when opening a saved programme ──
+  const loadProgrammeData = useCallback(async () => {
+    if (!programmeId || !user) return
+    const marker = `programme:${programmeId}`
+
+    setLoadingData(true)
+    console.log('[ProgramBuilder] Loading seances for marker:', marker)
+
+    const { data: seancesData, error } = await supabase
+      .from('seances')
+      .select('*, seance_exercices(*, exercices(*))')
+      .eq('coach_id', user.id)
+      .eq('notes', marker)
+      .eq('is_template', true)
+      .order('date_prevue', { ascending: true })
+
+    console.log('[ProgramBuilder] Séances récupérées avec fichiers:', seancesData)
+    if (error) {
+      console.error('[ProgramBuilder] Erreur load séances:', error)
+      setLoadingData(false)
+      return
+    }
+
+    if (!seancesData || seancesData.length === 0) {
+      console.log('[ProgramBuilder] Aucune séance trouvée pour ce programme')
+      setLoadingData(false)
+      return
+    }
+
+    // Reconstruct sessions state from DB data
+    const startDate = programme?.date_debut ? new Date(programme.date_debut) : new Date()
+    const newSessions = {}
+
+    seancesData.forEach(seance => {
+      // Calculate which week/day this seance belongs to
+      const seanceDate = new Date(seance.date_prevue)
+      const diffDays = Math.round((seanceDate - startDate) / (1000 * 60 * 60 * 24))
+      const dayNum = diffDays + 1 // 1-based
+      const week = Math.ceil(dayNum / 7)
+      const dayIdx = ((dayNum - 1) % 7)
+      const key = `w${week}_d${dayIdx}`
+
+      // Build exercices array from joined data
+      const exercices = (seance.seance_exercices || [])
+        .sort((a, b) => (a.ordre || 0) - (b.ordre || 0))
+        .map(se => ({
+          id: se.exercice_id,
+          nom: se.exercices?.nom || 'Exercice',
+          muscle_group: se.exercices?.muscle_group || '',
+          equipment: se.exercices?.equipment || '',
+          _key: crypto.randomUUID(),
+          series: se.series || 3,
+          reps: se.reps || 10,
+          repos: se.repos || 90,
+          poids: se.poids || null,
+        }))
+
+      // Extract fichiers from metadata
+      const fichiers = seance.metadata?.fichiers || []
+
+      const sessionObj = {
+        id: seance.id,
+        titre: seance.titre,
+        exercices,
+        fichiers,
+      }
+
+      if (!newSessions[key]) newSessions[key] = []
+      newSessions[key].push(sessionObj)
+    })
+
+    console.log('[ProgramBuilder] Sessions reconstruites:', newSessions)
+    setSessions(newSessions)
+    setSaved(true)
+    setLoadingData(false)
+  }, [programmeId, user, programme?.date_debut])
+
+  useEffect(() => { loadProgrammeData() }, [loadProgrammeData])
 
   // Get sessions for current week + day
   const getKey = (dayIdx) => `w${currentWeek}_d${dayIdx}`
@@ -318,6 +398,14 @@ export default function ProgramBuilder({ programme, onBack }) {
           </div>
         </div>
       </div>
+
+      {/* Loading overlay */}
+      {loadingData && (
+        <div className="flex items-center justify-center py-20 gap-3">
+          <Loader2 className="animate-spin text-[#FF6B2B]" size={20} />
+          <span className="text-white/25 text-sm">Chargement des séances...</span>
+        </div>
+      )}
 
       {/* ═══ Grid — 7 days ═══ */}
       <div className="flex-1 overflow-x-auto px-4 md:px-6 py-5">
