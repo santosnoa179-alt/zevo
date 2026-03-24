@@ -76,7 +76,7 @@ export default function CoachSportPage() {
       try {
         const { data: assigns, error: assignErr } = await supabase
           .from('programme_assignations')
-          .select('programme_id, statut, date_debut, clients(id, profiles(nom))')
+          .select('programme_id, statut, date_debut, clients(id, profiles(nom, prenom))')
           .eq('coach_id', user.id)
 
         console.log('[CoachSportPage] Assignations récupérées:', assigns)
@@ -85,10 +85,12 @@ export default function CoachSportPage() {
         const assignMap = {}
         ;(assigns || []).forEach(a => {
           const p = a.clients?.profiles
-          const nom = (p?.prenom && p?.nom) ? `${p.prenom} ${p.nom}` : p?.nom || p?.prenom || 'Client'
-          const initials = nom.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+          const prenom = p?.prenom || ''
+          const nom = p?.nom || ''
+          const fullName = (prenom && nom) ? `${prenom} ${nom}` : nom || prenom || 'Client'
+          const initials = getInitials(prenom, nom)
           assignMap[a.programme_id] = {
-            client_nom: nom,
+            client_nom: fullName,
             client_initials: initials,
             statut: a.statut || 'en_cours',
             date_debut: a.date_debut,
@@ -116,6 +118,14 @@ export default function CoachSportPage() {
     if (nom) return nom
     if (prenom) return prenom
     return c.profiles.email || 'Client'
+  }
+
+  // Helper: get initials from prenom/nom
+  const getInitials = (prenom, nom) => {
+    if (prenom && nom) return (prenom[0] + nom[0]).toUpperCase()
+    if (nom && nom.length >= 2) return nom.slice(0, 2).toUpperCase()
+    if (prenom && prenom.length >= 2) return prenom.slice(0, 2).toUpperCase()
+    return '?'
   }
 
   // Models = programmes without assignation
@@ -364,14 +374,19 @@ export default function CoachSportPage() {
                 {/* Assigné à */}
                 <div className="col-span-2">
                   {assign ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
-                        <span className="text-[#FF6B2B] text-[9px] font-bold">{assign.client_initials}</span>
+                    <div className="flex items-center gap-2.5" title={assign.client_nom}>
+                      <div className="w-8 h-8 rounded-full bg-[#FF6B2B]/15 flex items-center justify-center shrink-0">
+                        <span className="text-[#FF6B2B] text-xs font-bold">{assign.client_initials}</span>
                       </div>
-                      <span className="text-white/40 text-xs truncate">{assign.client_nom}</span>
+                      <span className="text-white/50 text-xs font-medium truncate">{assign.client_nom}</span>
                     </div>
                   ) : (
-                    <span className="text-white/15 text-xs">Non assigné</span>
+                    <div className="flex items-center gap-2.5" title="Non assigné">
+                      <div className="w-8 h-8 rounded-full bg-[#27272a] flex items-center justify-center shrink-0">
+                        <Plus size={12} className="text-white/15" />
+                      </div>
+                      <span className="text-white/15 text-xs">Modèle</span>
+                    </div>
                   )}
                 </div>
               </div>
