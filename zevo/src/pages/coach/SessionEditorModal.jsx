@@ -251,8 +251,9 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
     const sessionData = {
       titre,
       exercices: canvas.map(({ _key, ...rest }) => ({ ...rest, _key })),
-      fichiers: attachedFiles,
+      fichiers: attachedFiles.map(f => ({ id: f.id, name: f.name, type: f.type, size: f.size, url: f.url || null, path: f.path || null })),
     }
+    console.log('[SessionEditor] Fichier prêt avec URL :', sessionData.fichiers)
     console.log('[SessionEditorModal] Séance prête à être sauvegardée:', sessionData)
     onSave(sessionData)
   }

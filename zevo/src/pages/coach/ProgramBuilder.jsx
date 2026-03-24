@@ -235,6 +235,7 @@ export default function ProgramBuilder({ programme, onBack }) {
         // Store fichiers in metadata JSONB column
         const fichiers = (session.fichiers || []).map(f => ({
           id: f.id, name: f.name, type: f.type, size: f.size,
+          url: f.url || null, path: f.path || null,
         }))
         const seancePayload = {
           coach_id: user.id,
