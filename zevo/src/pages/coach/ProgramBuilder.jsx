@@ -216,6 +216,7 @@ export default function ProgramBuilder({ programme, onBack }) {
       await supabase.from('programmes').update({ actif: true }).eq('id', progId)
 
       // If there's a client, upsert assignation (avoids 409 conflict)
+      console.log('[ProgramBuilder] client_id pour assignation:', programme?.client_id)
       if (programme?.client_id) {
         const assignPayload = {
           programme_id: progId,

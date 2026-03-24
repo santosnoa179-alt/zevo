@@ -39,6 +39,12 @@ export default function CoachSportPage() {
   const [createClient, setCreateClient] = useState('')
   const [creating, setCreating] = useState(false)
 
+  // ── Assign model modal ──
+  const [showAssignModal, setShowAssignModal] = useState(false)
+  const [assignModelId, setAssignModelId] = useState('')
+  const [assignClientId, setAssignClientId] = useState('')
+  const [assigning, setAssigning] = useState(false)
+
   // ── Clients for dropdown ──
   const [clients, setClients] = useState([])
   useEffect(() => {
@@ -100,6 +106,42 @@ export default function CoachSportPage() {
   }, [user])
 
   useEffect(() => { fetchProgrammes() }, [fetchProgrammes])
+
+  // Models = programmes without assignation
+  const modelProgrammes = programmes.filter(p => !assignations[p.id])
+
+  // ── Assign model to client ──
+  const handleAssignModelToClient = async () => {
+    if (!assignModelId || !assignClientId) return
+    setAssigning(true)
+    try {
+      const { error } = await supabase.from('programme_assignations').upsert({
+        programme_id: assignModelId,
+        client_id: assignClientId,
+        coach_id: user.id,
+        date_debut: new Date().toISOString().split('T')[0],
+        phase_actuelle: 1,
+        statut: 'en_cours',
+      }, { onConflict: 'programme_id,client_id', ignoreDuplicates: true })
+
+      if (error) {
+        console.error('[CoachSportPage] Erreur assignation:', error)
+        toast.error('Erreur : ' + (error.message || 'Réessayez'))
+      } else {
+        const progName = programmes.find(p => p.id === assignModelId)?.titre || 'Programme'
+        const clientName = clients.find(c => c.profiles?.id === assignClientId)?.profiles?.nom || 'Client'
+        toast.success(`"${progName}" assigné à ${clientName} !`)
+        setShowAssignModal(false)
+        setAssignModelId('')
+        setAssignClientId('')
+        fetchProgrammes()
+      }
+    } catch (err) {
+      console.error('[CoachSportPage] Erreur assignation crash:', err)
+      toast.error('Erreur inattendue')
+    }
+    setAssigning(false)
+  }
 
   // Filter programmes by search + tab
   const filteredProgrammes = programmes.filter(p => {
@@ -193,7 +235,8 @@ export default function CoachSportPage() {
           <Filter size={14} /> Filtrer
         </button>
         <div className="flex-1" />
-        <button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-sm font-medium hover:text-white/60 hover:bg-[#18181b] transition-all">
+        <button onClick={() => { setShowAssignModal(true); setAssignModelId(''); setAssignClientId('') }}
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-sm font-medium hover:text-white/60 hover:bg-[#18181b] transition-all">
           <Plus size={14} /> Assigner un modèle
         </button>
         <button onClick={openCreate}
@@ -478,6 +521,92 @@ export default function CoachSportPage() {
                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 shadow-lg shadow-[#FF6B2B]/20">
                 {creating ? <Loader2 size={14} className="animate-spin" /> : null}
                 Créer le programme
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════ */}
+      {/* MODALE — Assigner un modèle            */}
+      {/* ═══════════════════════════════════════ */}
+      {showAssignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowAssignModal(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-md bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}>
+            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+
+            {/* Header */}
+            <div className="px-6 pt-5 pb-4 border-b border-[#27272a]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-[#F5F5F3] text-lg font-bold">Assigner un modèle</h2>
+                  <p className="text-white/30 text-sm mt-0.5">Déployez un programme existant pour un client</p>
+                </div>
+                <button onClick={() => setShowAssignModal(false)}
+                  className="p-2 rounded-xl text-white/20 hover:text-white hover:bg-white/[0.06] transition-all">
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-5">
+              {/* Model select */}
+              <div>
+                <label className="block text-xs text-white/30 font-semibold uppercase tracking-wider mb-2">Choisir un modèle</label>
+                {modelProgrammes.length === 0 ? (
+                  <p className="text-white/20 text-sm py-3 text-center bg-[#0D0D0D] rounded-xl border border-[#27272a]">
+                    Aucun modèle disponible — créez-en un d'abord
+                  </p>
+                ) : (
+                  <select value={assignModelId} onChange={e => setAssignModelId(e.target.value)}
+                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all">
+                    <option value="">Sélectionner un programme...</option>
+                    {modelProgrammes.map(p => (
+                      <option key={p.id} value={p.id}>{p.titre} ({p.duree_semaines || '?'} sem.)</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Client select */}
+              <div>
+                <label className="block text-xs text-white/30 font-semibold uppercase tracking-wider mb-2">À quel client ?</label>
+                <select value={assignClientId} onChange={e => setAssignClientId(e.target.value)}
+                  className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all">
+                  <option value="">Sélectionner un client...</option>
+                  {clients.map(c => (
+                    <option key={c.id} value={c.profiles?.id}>{c.profiles?.nom || 'Client'}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Summary */}
+              {assignModelId && assignClientId && (
+                <div className="bg-[#0D0D0D] rounded-xl p-4 border border-white/[0.04]">
+                  <p className="text-xs text-white/30 mb-1">Résumé</p>
+                  <p className="text-sm text-[#F5F5F3]">
+                    <span className="font-semibold text-[#FF6B2B]">{programmes.find(p => p.id === assignModelId)?.titre}</span>
+                    {' → '}
+                    <span className="font-semibold">{clients.find(c => c.profiles?.id === assignClientId)?.profiles?.nom}</span>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 pb-6 flex items-center gap-3">
+              <button onClick={() => setShowAssignModal(false)}
+                className="flex-1 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-all border border-white/[0.04]">
+                Annuler
+              </button>
+              <button onClick={handleAssignModelToClient}
+                disabled={!assignModelId || !assignClientId || assigning}
+                className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                {assigning ? <Loader2 size={14} className="animate-spin" /> : <Dumbbell size={14} />}
+                {assigning ? 'Assignation...' : 'Assigner le programme'}
               </button>
             </div>
           </div>
