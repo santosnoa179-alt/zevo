@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
@@ -6,15 +6,8 @@ import ProgramBuilder from './ProgramBuilder'
 import {
   Search, Filter, Plus, Calendar, RefreshCw, X,
   Dumbbell, Loader2, ChevronRight, Tag, Users,
-  CalendarDays, Clock, MoreHorizontal
+  CalendarDays, Clock, MoreHorizontal, Layers
 } from 'lucide-react'
-
-// ── Mock data for visual design ──
-const MOCK_PROGRAMMES = [
-  { id: '1', titre: 'Transformation 12 semaines', type: 'calendrier', publie: true, created_at: '2026-03-20', duree: '12 sem.', assignee: 'Noa SANTOS', initials: 'NS', statut: 'en_cours', progress: 35 },
-  { id: '2', titre: 'Remise en forme débutant', type: 'flexible', publie: true, created_at: '2026-03-18', duree: '8 sem.', assignee: 'Marie LEFORT', initials: 'ML', statut: 'en_cours', progress: 60 },
-  { id: '3', titre: 'Prise de masse avancé', type: 'calendrier', publie: false, created_at: '2026-03-15', duree: '16 sem.', assignee: null, initials: null, statut: 'brouillon', progress: 0 },
-]
 
 const TABS = [
   { id: 'assigned', label: 'Programmes assignés' },
@@ -25,8 +18,13 @@ export default function CoachSportPage() {
   const { user } = useAuth()
   const toast = useToast()
 
-  const [currentView, setCurrentView] = useState('dashboard') // 'dashboard' | 'builder'
+  const [currentView, setCurrentView] = useState('dashboard')
   const [builderProgramme, setBuilderProgramme] = useState(null)
+
+  // Real data
+  const [programmes, setProgrammes] = useState([])
+  const [assignations, setAssignations] = useState({}) // { programme_id: { client_nom, client_initials, statut } }
+  const [isLoading, setIsLoading] = useState(true)
 
   const [activeTab, setActiveTab] = useState('assigned')
   const [search, setSearch] = useState('')
@@ -49,9 +47,57 @@ export default function CoachSportPage() {
       .then(({ data }) => setClients(data || []))
   }, [user])
 
-  const filteredProgrammes = MOCK_PROGRAMMES.filter(p =>
-    p.titre.toLowerCase().includes(search.toLowerCase())
-  )
+  // ── Fetch programmes from Supabase ──
+  const fetchProgrammes = useCallback(async () => {
+    if (!user) return
+    setIsLoading(true)
+    try {
+      // Fetch programmes
+      const { data: progs, error } = await supabase
+        .from('programmes')
+        .select('*')
+        .eq('coach_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setProgrammes(progs || [])
+
+      // Fetch assignations with client names
+      if (progs?.length) {
+        const { data: assigns } = await supabase
+          .from('programme_assignations')
+          .select('programme_id, statut, date_debut, clients(id, profiles(nom))')
+          .eq('coach_id', user.id)
+
+        const assignMap = {}
+        ;(assigns || []).forEach(a => {
+          const nom = a.clients?.profiles?.nom || 'Client'
+          const initials = nom.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+          assignMap[a.programme_id] = {
+            client_nom: nom,
+            client_initials: initials,
+            statut: a.statut || 'en_cours',
+            date_debut: a.date_debut,
+          }
+        })
+        setAssignations(assignMap)
+      }
+    } catch (err) {
+      console.error('Erreur chargement programmes:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [user])
+
+  useEffect(() => { fetchProgrammes() }, [fetchProgrammes])
+
+  // Filter programmes by search + tab
+  const filteredProgrammes = programmes.filter(p => {
+    const matchSearch = p.titre?.toLowerCase().includes(search.toLowerCase())
+    if (activeTab === 'assigned') return matchSearch && assignations[p.id]
+    if (activeTab === 'templates') return matchSearch && !assignations[p.id]
+    return matchSearch
+  })
 
   const openCreate = () => {
     setCreateMode('programme')
@@ -96,7 +142,7 @@ export default function CoachSportPage() {
     return (
       <ProgramBuilder
         programme={builderProgramme}
-        onBack={() => { setCurrentView('dashboard'); setBuilderProgramme(null) }}
+        onBack={() => { setCurrentView('dashboard'); setBuilderProgramme(null); fetchProgrammes() }}
       />
     )
   }
@@ -161,69 +207,101 @@ export default function CoachSportPage() {
         </div>
 
         {/* Table body */}
-        {filteredProgrammes.length === 0 ? (
-          <div className="text-center py-16">
-            <Dumbbell size={28} className="text-white/8 mx-auto mb-3" />
-            <p className="text-white/20 text-sm">Aucun programme trouvé</p>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20 gap-3">
+            <Loader2 className="animate-spin text-[#FF6B2B]" size={20} />
+            <span className="text-white/25 text-sm">Chargement de vos programmes...</span>
+          </div>
+        ) : filteredProgrammes.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
+              <Layers size={28} className="text-[#FF6B2B]" />
+            </div>
+            <p className="text-[#F5F5F3] font-semibold text-base mb-1">
+              {search ? 'Aucun résultat' : activeTab === 'assigned' ? 'Aucun programme assigné' : 'Aucun modèle'}
+            </p>
+            <p className="text-white/25 text-sm mb-6 max-w-xs mx-auto">
+              {search ? `Aucun programme ne correspond à "${search}"` : 'Créez votre premier programme pour commencer.'}
+            </p>
+            {!search && (
+              <button onClick={openCreate}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
+                <Plus size={15} /> Créer un programme
+              </button>
+            )}
           </div>
         ) : (
-          filteredProgrammes.map(prog => (
-            <div key={prog.id}
-              onClick={() => { setBuilderProgramme({ ...prog, mode: 'programme', duree_semaines: parseInt(prog.duree) || 4 }); setCurrentView('builder') }}
-              className="grid grid-cols-12 gap-3 px-5 py-4 border-b border-[#27272a]/30 hover:bg-white/[0.02] transition-colors items-center cursor-pointer group">
-              {/* Publié */}
-              <div className="col-span-1">
-                <div className={`w-3 h-3 rounded-full ${prog.publie ? 'bg-[#FF6B2B]' : 'bg-[#27272a]'}`} />
-              </div>
-              {/* Créé le */}
-              <div className="col-span-2 text-white/30 text-xs">
-                {new Date(prog.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-              </div>
-              {/* Nom */}
-              <div className="col-span-3">
-                <p className="text-[#F5F5F3] text-sm font-semibold truncate group-hover:text-[#FF6B2B] transition-colors">{prog.titre}</p>
-              </div>
-              {/* Type */}
-              <div className="col-span-1">
-                <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${
-                  prog.type === 'calendrier'
-                    ? 'bg-blue-500/10 text-blue-400'
-                    : 'bg-purple-500/10 text-purple-400'
-                }`}>
-                  {prog.type === 'calendrier' ? 'Cal.' : 'Flex.'}
-                </span>
-              </div>
-              {/* Dates & Progrès */}
-              <div className="col-span-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-[#FF6B2B] transition-all" style={{ width: `${prog.progress}%` }} />
-                    </div>
-                  </div>
-                  <span className={`text-[10px] font-semibold shrink-0 ${
-                    prog.statut === 'en_cours' ? 'text-emerald-400' : 'text-white/25'
-                  }`}>
-                    {prog.statut === 'en_cours' ? `En cours · ${prog.progress}%` : 'Brouillon'}
-                  </span>
+          filteredProgrammes.map(prog => {
+            const assign = assignations[prog.id]
+            const isActive = prog.actif
+            const dureeText = prog.duree_semaines ? `${prog.duree_semaines} sem.` : '—'
+            const categorie = prog.categorie || null
+
+            return (
+              <div key={prog.id}
+                onClick={() => {
+                  setBuilderProgramme({
+                    ...prog,
+                    mode: assign ? 'programme' : 'modele',
+                    client_id: assign ? undefined : null,
+                  })
+                  setCurrentView('builder')
+                }}
+                className="grid grid-cols-12 gap-3 px-5 py-4 border-b border-[#27272a]/30 hover:bg-white/[0.02] transition-colors items-center cursor-pointer group">
+                {/* Publié */}
+                <div className="col-span-1">
+                  <div className={`w-3 h-3 rounded-full ${isActive ? 'bg-[#FF6B2B]' : 'bg-[#27272a]'}`} />
                 </div>
-                <p className="text-white/15 text-[10px] mt-0.5">{prog.duree}</p>
-              </div>
-              {/* Assigné à */}
-              <div className="col-span-2">
-                {prog.assignee ? (
+                {/* Créé le */}
+                <div className="col-span-2 text-white/30 text-xs">
+                  {new Date(prog.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                </div>
+                {/* Nom */}
+                <div className="col-span-3">
+                  <p className="text-[#F5F5F3] text-sm font-semibold truncate group-hover:text-[#FF6B2B] transition-colors">{prog.titre}</p>
+                </div>
+                {/* Type / Catégorie */}
+                <div className="col-span-1">
+                  {categorie ? (
+                    <span className="text-[9px] px-2 py-0.5 rounded-full font-semibold bg-[#FF6B2B]/10 text-[#FF6B2B] truncate">
+                      {categorie.length > 12 ? categorie.slice(0, 12) + '…' : categorie}
+                    </span>
+                  ) : (
+                    <span className="text-[9px] px-2 py-0.5 rounded-full font-semibold bg-[#27272a] text-white/25">—</span>
+                  )}
+                </div>
+                {/* Dates & Progrès */}
+                <div className="col-span-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
-                      <span className="text-[#FF6B2B] text-[9px] font-bold">{prog.initials}</span>
+                    <div className="flex-1">
+                      <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
+                        <div className="h-full rounded-full bg-[#FF6B2B] transition-all" style={{ width: '0%' }} />
+                      </div>
                     </div>
-                    <span className="text-white/40 text-xs truncate">{prog.assignee}</span>
+                    <span className={`text-[10px] font-semibold shrink-0 ${
+                      assign?.statut === 'en_cours' ? 'text-emerald-400' : isActive ? 'text-white/30' : 'text-white/15'
+                    }`}>
+                      {assign?.statut === 'en_cours' ? 'En cours' : isActive ? 'Publié' : 'Brouillon'}
+                    </span>
                   </div>
-                ) : (
-                  <span className="text-white/15 text-xs">Non assigné</span>
-                )}
+                  <p className="text-white/15 text-[10px] mt-0.5">{dureeText}</p>
+                </div>
+                {/* Assigné à */}
+                <div className="col-span-2">
+                  {assign ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                        <span className="text-[#FF6B2B] text-[9px] font-bold">{assign.client_initials}</span>
+                      </div>
+                      <span className="text-white/40 text-xs truncate">{assign.client_nom}</span>
+                    </div>
+                  ) : (
+                    <span className="text-white/15 text-xs">Non assigné</span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
 
