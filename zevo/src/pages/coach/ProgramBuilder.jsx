@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import SessionEditorModal from './SessionEditorModal'
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Save, Rocket,
   Plus, Dumbbell, Clock, Trash2, GripVertical, X, Loader2
@@ -13,6 +14,9 @@ export default function ProgramBuilder({ programme, onBack }) {
 
   // Sessions data: { [dayIndex]: [{ id, titre, exercices: [] }] }
   const [sessions, setSessions] = useState({})
+
+  // Session editor modal
+  const [editingSession, setEditingSession] = useState(null) // { dayIdx, sessionIdx, session, dayLabel }
 
   // Saving state
   const [saving, setSaving] = useState(false)
@@ -50,6 +54,30 @@ export default function ProgramBuilder({ programme, onBack }) {
       ...prev,
       [key]: (prev[key] || []).map((s, i) => i === sessionIdx ? { ...s, titre } : s),
     }))
+    setSaved(false)
+  }
+
+  // Open session editor
+  const openSessionEditor = (dayIdx, sessionIdx) => {
+    const key = getKey(dayIdx)
+    const session = (sessions[key] || [])[sessionIdx]
+    if (!session) return
+    const dayNum = weekOffset * 7 + dayIdx + 1
+    setEditingSession({ dayIdx, sessionIdx, session, dayLabel: `Jour ${dayNum}` })
+  }
+
+  // Save from session editor
+  const handleSessionEditorSave = ({ titre, exercices }) => {
+    if (!editingSession) return
+    const { dayIdx, sessionIdx } = editingSession
+    const key = getKey(dayIdx)
+    setSessions(prev => ({
+      ...prev,
+      [key]: (prev[key] || []).map((s, i) =>
+        i === sessionIdx ? { ...s, titre, exercices } : s
+      ),
+    }))
+    setEditingSession(null)
     setSaved(false)
   }
 
@@ -148,15 +176,17 @@ export default function ProgramBuilder({ programme, onBack }) {
                 {/* Sessions in this day */}
                 {daySessions.map((session, sIdx) => (
                   <div key={session.id}
-                    className="bg-[#1E1E1E] border border-white/[0.06] rounded-xl p-3 group hover:border-[#FF6B2B]/20 transition-all">
+                    onClick={() => openSessionEditor(dayIdx, sIdx)}
+                    className="bg-[#1E1E1E] border border-white/[0.06] rounded-xl p-3 group hover:border-[#FF6B2B]/20 transition-all cursor-pointer">
                     {/* Session title */}
                     <div className="flex items-center gap-1.5 mb-2">
                       <GripVertical size={12} className="text-white/10 shrink-0 cursor-grab" />
                       <input type="text" value={session.titre}
+                        onClick={e => e.stopPropagation()}
                         onChange={e => updateSessionTitle(dayIdx, sIdx, e.target.value)}
                         className="flex-1 bg-transparent text-[#F5F5F3] text-xs font-semibold border-none focus:outline-none placeholder:text-white/20 min-w-0"
                         placeholder="Nom de la séance" />
-                      <button onClick={() => removeSession(dayIdx, sIdx)}
+                      <button onClick={e => { e.stopPropagation(); removeSession(dayIdx, sIdx) }}
                         className="p-1 rounded text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
                         <Trash2 size={11} />
                       </button>
@@ -194,6 +224,16 @@ export default function ProgramBuilder({ programme, onBack }) {
           })}
         </div>
       </div>
+
+      {/* Session Editor Modal */}
+      {editingSession && (
+        <SessionEditorModal
+          session={editingSession.session}
+          dayLabel={editingSession.dayLabel}
+          onSave={handleSessionEditorSave}
+          onClose={() => setEditingSession(null)}
+        />
+      )}
     </div>
   )
 }
