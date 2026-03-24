@@ -6,7 +6,7 @@ import ProgramBuilder from './ProgramBuilder'
 import {
   Search, Filter, Plus, Calendar, RefreshCw, X,
   Dumbbell, Loader2, ChevronRight, Tag, Users,
-  CalendarDays, Clock, MoreHorizontal, Layers
+  CalendarDays, Clock, MoreHorizontal, MoreVertical, Layers, Trash2, Eye, EyeOff
 } from 'lucide-react'
 
 const TABS = [
@@ -44,6 +44,11 @@ export default function CoachSportPage() {
   const [assignModelId, setAssignModelId] = useState('')
   const [assignClientId, setAssignClientId] = useState('')
   const [assigning, setAssigning] = useState(false)
+
+  // ── Actions menu + filter ──
+  const [actionMenuId, setActionMenuId] = useState(null) // programme id with open menu
+  const [filterStatus, setFilterStatus] = useState('tous') // 'tous' | 'actif' | 'brouillon'
+  const [showFilterMenu, setShowFilterMenu] = useState(false)
 
   // ── Clients for dropdown ──
   const [clients, setClients] = useState([])
@@ -177,11 +182,36 @@ export default function CoachSportPage() {
     setAssigning(false)
   }
 
-  // Filter programmes by search + tab
+  // ── Delete programme ──
+  const handleDeleteProgramme = async (progId) => {
+    if (!confirm('Supprimer ce programme ? Les assignations et séances liées seront aussi supprimées.')) return
+    try {
+      // Delete assignations
+      await supabase.from('programme_assignations').delete().eq('programme_id', progId)
+      // Delete seances linked to this programme
+      const marker = `programme:${progId}`
+      await supabase.from('seances').delete().eq('notes', marker)
+      // Delete programme
+      const { error } = await supabase.from('programmes').delete().eq('id', progId)
+      if (error) throw error
+      toast.success('Programme supprimé !')
+      setActionMenuId(null)
+      fetchProgrammes()
+    } catch (err) {
+      console.error('[CoachSportPage] Erreur suppression:', err)
+      toast.error('Erreur : ' + (err.message || 'Réessayez'))
+    }
+  }
+
+  // Filter programmes by search + tab + status
+  const assignedCount = programmes.filter(p => assignations[p.id]).length
+  const templatesCount = programmes.filter(p => !assignations[p.id]).length
+
   const filteredProgrammes = programmes.filter(p => {
-    const matchSearch = p.titre?.toLowerCase().includes(search.toLowerCase())
-    if (activeTab === 'assigned') return matchSearch && assignations[p.id]
-    if (activeTab === 'templates') return matchSearch && !assignations[p.id]
+    const matchSearch = !search || p.titre?.toLowerCase().includes(search.toLowerCase())
+    const matchStatus = filterStatus === 'tous' || (filterStatus === 'actif' && p.actif) || (filterStatus === 'brouillon' && !p.actif)
+    if (activeTab === 'assigned') return matchSearch && matchStatus && assignations[p.id]
+    if (activeTab === 'templates') return matchSearch && matchStatus && !assignations[p.id]
     return matchSearch
   })
 
@@ -252,6 +282,11 @@ export default function CoachSportPage() {
                   : 'text-white/35 hover:text-white/60'
               }`}>
               {tab.label}
+              {!isLoading && (
+                <span className={`ml-1.5 text-[10px] ${activeTab === tab.id ? 'text-white/40' : 'text-white/20'}`}>
+                  {tab.id === 'assigned' ? assignedCount : templatesCount}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -265,9 +300,35 @@ export default function CoachSportPage() {
             placeholder="Rechercher un programme..."
             className="w-full bg-[#18181b] border border-[#27272a] rounded-xl pl-10 pr-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/40 transition-all" />
         </div>
-        <button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white/40 text-sm font-medium hover:text-white/60 hover:bg-[#27272a] transition-all">
-          <Filter size={14} /> Filtrer
-        </button>
+        <div className="relative">
+          <button onClick={() => setShowFilterMenu(!showFilterMenu)}
+            className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+              filterStatus !== 'tous'
+                ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/30 text-[#FF6B2B]'
+                : 'bg-[#18181b] border-[#27272a] text-white/40 hover:text-white/60 hover:bg-[#27272a]'
+            }`}>
+            <Filter size={14} /> {filterStatus === 'tous' ? 'Filtrer' : filterStatus === 'actif' ? 'Publiés' : 'Brouillons'}
+          </button>
+          {showFilterMenu && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setShowFilterMenu(false)} />
+              <div className="absolute top-full mt-1 left-0 z-40 w-40 bg-[#1E1E1E] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
+                {[
+                  { id: 'tous', label: 'Tous' },
+                  { id: 'actif', label: 'Publiés' },
+                  { id: 'brouillon', label: 'Brouillons' },
+                ].map(f => (
+                  <button key={f.id} onClick={() => { setFilterStatus(f.id); setShowFilterMenu(false) }}
+                    className={`w-full px-4 py-2.5 text-left text-xs font-medium transition-all ${
+                      filterStatus === f.id ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]' : 'text-white/50 hover:bg-white/[0.04] hover:text-white'
+                    }`}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
         <div className="flex-1" />
         <button onClick={() => { setShowAssignModal(true); setAssignModelId(''); setAssignClientId('') }}
           className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-sm font-medium hover:text-white/60 hover:bg-[#18181b] transition-all">
@@ -287,8 +348,9 @@ export default function CoachSportPage() {
           <div className="col-span-2">Créé le</div>
           <div className="col-span-3">Nom du programme</div>
           <div className="col-span-1">Type</div>
-          <div className="col-span-3">Dates & Progrès</div>
+          <div className="col-span-2">Progrès</div>
           <div className="col-span-2">Assigné à</div>
+          <div className="col-span-1 text-right">Actions</div>
         </div>
 
         {/* Table body */}
@@ -355,8 +417,8 @@ export default function CoachSportPage() {
                     <span className="text-[9px] px-2 py-0.5 rounded-full font-semibold bg-[#27272a] text-white/25">—</span>
                   )}
                 </div>
-                {/* Dates & Progrès */}
-                <div className="col-span-3">
+                {/* Progrès */}
+                <div className="col-span-2">
                   <div className="flex items-center gap-2">
                     <div className="flex-1">
                       <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
@@ -387,6 +449,28 @@ export default function CoachSportPage() {
                       </div>
                       <span className="text-white/15 text-xs">Modèle</span>
                     </div>
+                  )}
+                </div>
+                {/* Actions */}
+                <div className="col-span-1 flex justify-end relative">
+                  <button onClick={e => { e.stopPropagation(); setActionMenuId(actionMenuId === prog.id ? null : prog.id) }}
+                    className="p-1.5 rounded-lg text-white/15 hover:text-white/50 hover:bg-white/[0.06] transition-all">
+                    <MoreVertical size={14} />
+                  </button>
+                  {actionMenuId === prog.id && (
+                    <>
+                      <div className="fixed inset-0 z-30" onClick={e => { e.stopPropagation(); setActionMenuId(null) }} />
+                      <div className="absolute right-0 top-full mt-1 z-40 w-48 bg-[#1E1E1E] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
+                        <button onClick={e => { e.stopPropagation(); setActionMenuId(null); setBuilderProgramme({ ...prog, mode: assign ? 'programme' : 'modele' }); setCurrentView('builder') }}
+                          className="w-full px-4 py-2.5 text-left text-xs font-medium text-white/50 hover:bg-white/[0.04] hover:text-white transition-all flex items-center gap-2">
+                          <Eye size={12} /> Ouvrir dans le builder
+                        </button>
+                        <button onClick={e => { e.stopPropagation(); handleDeleteProgramme(prog.id) }}
+                          className="w-full px-4 py-2.5 text-left text-xs font-medium text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2">
+                          <Trash2 size={12} /> Supprimer le programme
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
