@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../components/ui/Toast'
 import SessionEditorModal from './SessionEditorModal'
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Save, Rocket,
@@ -8,6 +11,9 @@ import {
 const DAYS = ['JOUR 1', 'JOUR 2', 'JOUR 3', 'JOUR 4', 'JOUR 5', 'JOUR 6', 'JOUR 7']
 
 export default function ProgramBuilder({ programme, onBack }) {
+  const { user } = useAuth()
+  const toast = useToast()
+
   const [weekOffset, setWeekOffset] = useState(0)
   const totalWeeks = programme?.duree_semaines || 4
   const currentWeek = weekOffset + 1
@@ -16,11 +22,15 @@ export default function ProgramBuilder({ programme, onBack }) {
   const [sessions, setSessions] = useState({})
 
   // Session editor modal
-  const [editingSession, setEditingSession] = useState(null) // { dayIdx, sessionIdx, session, dayLabel }
+  const [editingSession, setEditingSession] = useState(null)
 
-  // Saving state
+  // Saving states
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(true)
+  const [isPublishing, setIsPublishing] = useState(false)
+
+  // Programme ID (set after first save)
+  const [programmeId, setProgrammeId] = useState(programme?.id || null)
 
   // Get sessions for current week + day
   const getKey = (dayIdx) => `w${currentWeek}_d${dayIdx}`
@@ -81,13 +91,150 @@ export default function ProgramBuilder({ programme, onBack }) {
     setSaved(false)
   }
 
-  // Save handler
+  // ── Core save logic (shared by Save + Publish) ──
+  const persistToSupabase = async () => {
+    if (!user) throw new Error('Non authentifié')
+
+    let progId = programmeId
+
+    // 1. Upsert programme record
+    if (progId) {
+      const { error } = await supabase.from('programmes').update({
+        titre: programme?.titre,
+        description: programme?.description || null,
+        duree_semaines: totalWeeks,
+        categorie: programme?.categorie || null,
+        actif: true,
+      }).eq('id', progId)
+      if (error) throw error
+    } else {
+      const { data, error } = await supabase.from('programmes').insert({
+        coach_id: user.id,
+        titre: programme?.titre || 'Nouveau programme',
+        description: programme?.description || null,
+        duree_semaines: totalWeeks,
+        categorie: programme?.categorie || null,
+        actif: true,
+      }).select().single()
+      if (error) throw error
+      progId = data.id
+      setProgrammeId(progId)
+    }
+
+    // 2. Delete existing seances for this programme (template seances)
+    // We use a convention: seances with notes = 'programme:{progId}' are programme-builder seances
+    const marker = `programme:${progId}`
+    await supabase.from('seances').delete().eq('coach_id', user.id).eq('notes', marker).eq('is_template', true)
+
+    // 3. Flatten all sessions from all weeks/days and insert as template seances
+    const allEntries = Object.entries(sessions)
+    for (const [key, daySessions] of allEntries) {
+      // Parse key: w{week}_d{dayIdx}
+      const match = key.match(/w(\d+)_d(\d+)/)
+      if (!match) continue
+      const week = parseInt(match[1])
+      const dayIdx = parseInt(match[2])
+      const dayNum = (week - 1) * 7 + dayIdx + 1
+
+      for (const session of daySessions) {
+        if (!session.titre && session.exercices.length === 0) continue
+
+        // Calculate target date from programme start
+        const startDate = programme?.date_debut ? new Date(programme.date_debut) : new Date()
+        const targetDate = new Date(startDate)
+        targetDate.setDate(targetDate.getDate() + dayNum - 1)
+        const dateStr = targetDate.toISOString().split('T')[0]
+
+        // Insert seance
+        const { data: seanceData, error: sErr } = await supabase.from('seances').insert({
+          coach_id: user.id,
+          client_id: programme?.client_id || null,
+          titre: session.titre || `Jour ${dayNum}`,
+          date_prevue: dateStr,
+          notes: marker,
+          is_template: true,
+        }).select().single()
+
+        if (sErr) {
+          console.error('Erreur insert séance:', sErr)
+          continue
+        }
+
+        // Insert exercises
+        if (seanceData && session.exercices.length > 0) {
+          const exRows = session.exercices.map((ex, idx) => ({
+            seance_id: seanceData.id,
+            exercice_id: ex.id,
+            series: ex.series || 3,
+            reps: ex.reps || 10,
+            poids: ex.poids || null,
+            repos: ex.repos || 90,
+            ordre: idx,
+          }))
+          const { error: eErr } = await supabase.from('seance_exercices').insert(exRows)
+          if (eErr) console.error('Erreur insert exercices:', eErr)
+        }
+      }
+    }
+
+    return progId
+  }
+
+  // ── Save (brouillon) ──
   const handleSave = async () => {
     setSaving(true)
-    // TODO: real Supabase save
-    await new Promise(r => setTimeout(r, 600))
-    setSaved(true)
-    setSaving(false)
+    try {
+      await persistToSupabase()
+      setSaved(true)
+      toast.success('Programme sauvegardé !')
+    } catch (err) {
+      console.error('Erreur sauvegarde:', err)
+      toast.error('Erreur lors de la sauvegarde : ' + (err.message || 'Réessayez'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // ── Publish ──
+  const handlePublish = async () => {
+    setIsPublishing(true)
+    try {
+      const progId = await persistToSupabase()
+
+      // Mark programme as published (actif = true)
+      await supabase.from('programmes').update({ actif: true }).eq('id', progId)
+
+      // If there's a client, also create an assignation
+      if (programme?.client_id) {
+        // Check if assignation already exists
+        const { data: existing } = await supabase
+          .from('programme_assignations')
+          .select('id')
+          .eq('programme_id', progId)
+          .eq('client_id', programme.client_id)
+          .maybeSingle()
+
+        if (!existing) {
+          await supabase.from('programme_assignations').insert({
+            programme_id: progId,
+            client_id: programme.client_id,
+            coach_id: user.id,
+            date_debut: programme.date_debut || new Date().toISOString().split('T')[0],
+            phase_actuelle: 1,
+            statut: 'en_cours',
+          })
+        }
+      }
+
+      setSaved(true)
+      toast.success('Programme publié avec succès ! 🚀')
+      onBack()
+    } catch (err) {
+      console.error('Erreur publication:', err)
+      toast.error('Erreur lors de la publication : ' + (err.message || 'Réessayez'))
+    } finally {
+      setIsPublishing(false)
+    }
   }
 
   return (
@@ -142,8 +289,10 @@ export default function ProgramBuilder({ programme, onBack }) {
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
               {saving ? 'Sauvegarde...' : saved ? '● Sauvegardé' : 'Sauvegarder'}
             </button>
-            <button className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
-              <Rocket size={14} /> Publier
+            <button onClick={handlePublish} disabled={isPublishing}
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20 disabled:opacity-50 disabled:cursor-not-allowed">
+              {isPublishing ? <Loader2 size={14} className="animate-spin" /> : <Rocket size={14} />}
+              {isPublishing ? 'Publication...' : 'Publier'}
             </button>
           </div>
         </div>
