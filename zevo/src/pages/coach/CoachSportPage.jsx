@@ -52,22 +52,29 @@ export default function CoachSportPage() {
     if (!user) return
     setIsLoading(true)
     try {
-      // Fetch programmes
+      // Fetch all programmes — simple query, no complex joins
+      console.log('[CoachSportPage] Fetching programmes for coach:', user.id)
       const { data: progs, error } = await supabase
         .from('programmes')
         .select('*')
         .eq('coach_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      console.log('[CoachSportPage] Programmes récupérés:', progs)
+      if (error) {
+        console.error('[CoachSportPage] Erreur fetch programmes:', error)
+      }
       setProgrammes(progs || [])
 
-      // Fetch assignations with client names
-      if (progs?.length) {
-        const { data: assigns } = await supabase
+      // Fetch assignations with client names (separate query, won't break if it fails)
+      try {
+        const { data: assigns, error: assignErr } = await supabase
           .from('programme_assignations')
           .select('programme_id, statut, date_debut, clients(id, profiles(nom))')
           .eq('coach_id', user.id)
+
+        console.log('[CoachSportPage] Assignations récupérées:', assigns)
+        if (assignErr) console.error('[CoachSportPage] Erreur fetch assignations:', assignErr)
 
         const assignMap = {}
         ;(assigns || []).forEach(a => {
@@ -81,9 +88,12 @@ export default function CoachSportPage() {
           }
         })
         setAssignations(assignMap)
+      } catch (assignCatchErr) {
+        console.error('[CoachSportPage] Assignations fetch crashed:', assignCatchErr)
+        // Non-blocking — continue without assignations
       }
     } catch (err) {
-      console.error('Erreur chargement programmes:', err)
+      console.error('[CoachSportPage] ERREUR CRITIQUE:', err)
     } finally {
       setIsLoading(false)
     }

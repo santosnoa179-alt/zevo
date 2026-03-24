@@ -96,35 +96,48 @@ export default function ProgramBuilder({ programme, onBack }) {
     if (!user) throw new Error('Non authentifié')
 
     let progId = programmeId
+    console.log('[ProgramBuilder] persistToSupabase START', { progId, userId: user.id, programme })
 
     // 1. Upsert programme record
     if (progId) {
-      const { error } = await supabase.from('programmes').update({
+      const updatePayload = {
         titre: programme?.titre,
         description: programme?.description || null,
         duree_semaines: totalWeeks,
         categorie: programme?.categorie || null,
         actif: true,
-      }).eq('id', progId)
-      if (error) throw error
+      }
+      console.log('[ProgramBuilder] UPDATE programmes:', { progId, payload: updatePayload })
+      const { error } = await supabase.from('programmes').update(updatePayload).eq('id', progId)
+      if (error) {
+        console.error('[ProgramBuilder] ERREUR UPDATE programmes:', error)
+        throw error
+      }
     } else {
-      const { data, error } = await supabase.from('programmes').insert({
+      const insertPayload = {
         coach_id: user.id,
         titre: programme?.titre || 'Nouveau programme',
         description: programme?.description || null,
         duree_semaines: totalWeeks,
         categorie: programme?.categorie || null,
         actif: true,
-      }).select().single()
-      if (error) throw error
+      }
+      console.log('[ProgramBuilder] INSERT programmes:', insertPayload)
+      const { data, error } = await supabase.from('programmes').insert(insertPayload).select().single()
+      if (error) {
+        console.error('[ProgramBuilder] ERREUR INSERT programmes:', error)
+        throw error
+      }
+      console.log('[ProgramBuilder] Programme créé:', data)
       progId = data.id
       setProgrammeId(progId)
     }
 
     // 2. Delete existing seances for this programme (template seances)
-    // We use a convention: seances with notes = 'programme:{progId}' are programme-builder seances
     const marker = `programme:${progId}`
-    await supabase.from('seances').delete().eq('coach_id', user.id).eq('notes', marker).eq('is_template', true)
+    console.log('[ProgramBuilder] DELETE anciennes séances, marker:', marker)
+    const { error: delErr } = await supabase.from('seances').delete().eq('coach_id', user.id).eq('notes', marker).eq('is_template', true)
+    if (delErr) console.error('[ProgramBuilder] ERREUR DELETE séances:', delErr)
 
     // 3. Flatten all sessions from all weeks/days and insert as template seances
     const allEntries = Object.entries(sessions)
@@ -155,13 +168,15 @@ export default function ProgramBuilder({ programme, onBack }) {
         }
         if (programme?.client_id) seancePayload.client_id = programme.client_id
 
+        console.log('[ProgramBuilder] INSERT séance:', seancePayload)
         const { data: seanceData, error: sErr } = await supabase.from('seances')
           .insert(seancePayload).select().single()
 
         if (sErr) {
-          console.error('Erreur insert séance:', sErr)
+          console.error('[ProgramBuilder] ERREUR INSERT séance:', sErr)
           continue
         }
+        console.log('[ProgramBuilder] Séance créée:', seanceData?.id)
 
         // Insert exercises
         if (seanceData && session.exercices.length > 0) {
@@ -174,8 +189,9 @@ export default function ProgramBuilder({ programme, onBack }) {
             repos: ex.repos || 90,
             ordre: idx,
           }))
+          console.log('[ProgramBuilder] INSERT exercices:', exRows.length, 'pour séance', seanceData.id)
           const { error: eErr } = await supabase.from('seance_exercices').insert(exRows)
-          if (eErr) console.error('Erreur insert exercices:', eErr)
+          if (eErr) console.error('[ProgramBuilder] ERREUR INSERT exercices:', eErr)
         }
       }
     }
@@ -191,8 +207,8 @@ export default function ProgramBuilder({ programme, onBack }) {
       setSaved(true)
       toast.success('Programme sauvegardé !')
     } catch (err) {
-      console.error('Erreur sauvegarde:', err)
-      toast.error('Erreur lors de la sauvegarde : ' + (err.message || 'Réessayez'))
+      console.error('[ProgramBuilder] ERREUR CRITIQUE SAUVEGARDE:', err)
+      toast.error('Erreur DB : ' + (err.message || err.details || err.hint || JSON.stringify(err)))
     } finally {
       setSaving(false)
     }
@@ -241,8 +257,8 @@ export default function ProgramBuilder({ programme, onBack }) {
       toast.success('Programme publié avec succès ! 🚀')
       onBack()
     } catch (err) {
-      console.error('Erreur publication:', err)
-      toast.error('Erreur lors de la publication : ' + (err.message || 'Réessayez'))
+      console.error('[ProgramBuilder] ERREUR CRITIQUE PUBLICATION:', err)
+      toast.error('Erreur DB : ' + (err.message || err.details || err.hint || JSON.stringify(err)))
     } finally {
       setIsPublishing(false)
     }
