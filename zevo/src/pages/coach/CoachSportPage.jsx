@@ -126,14 +126,26 @@ export default function CoachSportPage() {
     if (!assignModelId || !assignClientId) return
     setAssigning(true)
     try {
-      const { error } = await supabase.from('programme_assignations').upsert({
-        programme_id: assignModelId,
-        client_id: assignClientId,
-        coach_id: user.id,
-        date_debut: new Date().toISOString().split('T')[0],
-        phase_actuelle: 1,
-        statut: 'en_cours',
-      }, { onConflict: 'programme_id,client_id', ignoreDuplicates: true })
+      // Check if assignation already exists (avoid 409)
+      const { data: existing } = await supabase
+        .from('programme_assignations')
+        .select('id')
+        .eq('programme_id', assignModelId)
+        .eq('client_id', assignClientId)
+        .maybeSingle()
+
+      let error = null
+      if (!existing) {
+        const res = await supabase.from('programme_assignations').insert({
+          programme_id: assignModelId,
+          client_id: assignClientId,
+          coach_id: user.id,
+          date_debut: new Date().toISOString().split('T')[0],
+          phase_actuelle: 1,
+          statut: 'en_cours',
+        })
+        error = res.error
+      }
 
       if (error) {
         console.error('[CoachSportPage] Erreur assignation:', error)

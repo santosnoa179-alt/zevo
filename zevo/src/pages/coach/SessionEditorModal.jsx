@@ -41,8 +41,11 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
   // Left panel tab
   const [leftTab, setLeftTab] = useState('exercices') // 'exercices' | 'fichiers'
 
-  // Mock available files (will be replaced with Supabase later)
-  const [availableFiles] = useState([
+  // File input ref
+  const fileInputRef = useRef(null)
+
+  // Available files (starts with mock, user can add more)
+  const [availableFiles, setAvailableFiles] = useState([
     { id: 'f1', name: 'Guide_Echauffement.pdf', type: 'pdf', size: '1.2 MB' },
     { id: 'f2', name: 'Plan_Nutrition_Semaine.pdf', type: 'pdf', size: '850 KB' },
     { id: 'f3', name: 'Video_Technique_Squat.mp4', type: 'video', size: '15 MB' },
@@ -153,6 +156,35 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
     setCreatingEx(false)
   }
 
+  // Handle file upload from system picker
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const ext = file.name.split('.').pop()?.toLowerCase()
+    let fileType = 'file'
+    if (['pdf'].includes(ext)) fileType = 'pdf'
+    else if (['mp4', 'mov', 'avi', 'webm'].includes(ext)) fileType = 'video'
+    else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) fileType = 'image'
+    else if (['xlsx', 'xls', 'csv'].includes(ext)) fileType = 'spreadsheet'
+    else if (['docx', 'doc'].includes(ext)) fileType = 'doc'
+
+    const newFile = {
+      id: crypto.randomUUID(),
+      name: file.name,
+      type: fileType,
+      size: file.size < 1024 * 1024
+        ? (file.size / 1024).toFixed(0) + ' KB'
+        : (file.size / (1024 * 1024)).toFixed(1) + ' MB',
+      _localFile: file, // Keep reference for future Supabase upload
+    }
+
+    setAvailableFiles(prev => [newFile, ...prev])
+    // Auto-attach to session
+    setAttachedFiles(prev => [...prev, newFile])
+    // Reset input so same file can be re-selected
+    e.target.value = ''
+  }
+
   // File helpers
   const addFile = (file) => {
     if (attachedFiles.some(f => f.id === file.id)) return
@@ -237,7 +269,10 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
             {leftTab === 'fichiers' && (
               <div className="flex-1 flex flex-col">
                 <div className="p-4 border-b border-[#27272a]/50">
-                  <button className="w-full py-3 rounded-xl border-2 border-dashed border-[#27272a] text-white/25 text-xs font-medium hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/50 hover:bg-[#FF6B2B]/[0.02] transition-all flex items-center justify-center gap-2">
+                  <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload}
+                    accept=".pdf,.mp4,.mov,.xlsx,.docx,.jpg,.jpeg,.png,.gif,.webp" />
+                  <button onClick={() => fileInputRef.current?.click()}
+                    className="w-full py-3 rounded-xl border-2 border-dashed border-[#27272a] text-white/25 text-xs font-medium hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/50 hover:bg-[#FF6B2B]/[0.02] transition-all flex items-center justify-center gap-2 cursor-pointer">
                     <Upload size={14} /> Importer un fichier
                   </button>
                   <p className="text-white/15 text-[10px] mt-2">{availableFiles.length} fichier{availableFiles.length !== 1 ? 's' : ''} disponible{availableFiles.length !== 1 ? 's' : ''}</p>

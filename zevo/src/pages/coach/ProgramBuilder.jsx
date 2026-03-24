@@ -215,34 +215,29 @@ export default function ProgramBuilder({ programme, onBack }) {
       // Mark programme as published (actif = true)
       await supabase.from('programmes').update({ actif: true }).eq('id', progId)
 
-      // If there's a client, upsert assignation (avoids 409 conflict)
+      // If there's a client, check-then-insert assignation (avoids 409)
       console.log('[ProgramBuilder] client_id pour assignation:', programme?.client_id)
       if (programme?.client_id) {
-        const assignPayload = {
-          programme_id: progId,
-          client_id: programme.client_id,
-          coach_id: user.id,
-          date_debut: programme.date_debut || new Date().toISOString().split('T')[0],
-          phase_actuelle: 1,
-          statut: 'en_cours',
-        }
-        // Try upsert; if constraint doesn't exist, fall back to check+insert
-        const { error: upsertErr } = await supabase
+        const { data: existingAssign } = await supabase
           .from('programme_assignations')
-          .upsert(assignPayload, { onConflict: 'programme_id,client_id', ignoreDuplicates: true })
+          .select('id')
+          .eq('programme_id', progId)
+          .eq('client_id', programme.client_id)
+          .maybeSingle()
 
-        if (upsertErr) {
-          // Fallback: check then insert
-          const { data: existing } = await supabase
-            .from('programme_assignations')
-            .select('id')
-            .eq('programme_id', progId)
-            .eq('client_id', programme.client_id)
-            .limit(1)
-
-          if (!existing || existing.length === 0) {
-            await supabase.from('programme_assignations').insert(assignPayload)
-          }
+        if (!existingAssign) {
+          console.log('[ProgramBuilder] INSERT assignation:', { progId, client_id: programme.client_id })
+          const { error: assignErr } = await supabase.from('programme_assignations').insert({
+            programme_id: progId,
+            client_id: programme.client_id,
+            coach_id: user.id,
+            date_debut: programme.date_debut || new Date().toISOString().split('T')[0],
+            phase_actuelle: 1,
+            statut: 'en_cours',
+          })
+          if (assignErr) console.error('[ProgramBuilder] Erreur INSERT assignation:', assignErr)
+        } else {
+          console.log('[ProgramBuilder] Assignation déjà existante, skip')
         }
       }
 
