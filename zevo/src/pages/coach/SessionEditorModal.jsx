@@ -37,6 +37,13 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
   const [muscleFilter, setMuscleFilter] = useState('Tous')
   const [showFilters, setShowFilters] = useState(false)
 
+  // Custom exercise creation
+  const [isCreatingExercise, setIsCreatingExercise] = useState(false)
+  const [newExName, setNewExName] = useState('')
+  const [newExMuscle, setNewExMuscle] = useState('')
+  const [newExEquip, setNewExEquip] = useState('')
+  const [creatingEx, setCreatingEx] = useState(false)
+
   // Canvas state (exercises in current session)
   const [canvas, setCanvas] = useState(
     (session?.exercices || []).map(ex => ({
@@ -99,6 +106,36 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
     setCanvas(prev => prev.map(ex =>
       ex._key === key ? { ...ex, [field]: value } : ex
     ))
+  }
+
+  // Create custom exercise
+  const handleCreateExercise = async () => {
+    if (!newExName.trim()) return
+    setCreatingEx(true)
+    try {
+      const { data, error } = await supabase.from('exercices').insert({
+        coach_id: user?.id,
+        nom: newExName.trim(),
+        muscle_group: newExMuscle || null,
+        equipment: newExEquip || null,
+        category: 'Musculation',
+      }).select().single()
+
+      if (error) throw error
+
+      // Add to library list
+      setAllExercises(prev => [data, ...prev])
+      // Add directly to canvas
+      addToCanvas(data)
+      // Reset form
+      setNewExName('')
+      setNewExMuscle('')
+      setNewExEquip('')
+      setIsCreatingExercise(false)
+    } catch (err) {
+      console.error('Erreur création exercice:', err)
+    }
+    setCreatingEx(false)
   }
 
   // Save
@@ -189,11 +226,52 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                 </div>
               )}
 
-              <p className="text-white/15 text-[10px]">{filtered.length} exercice{filtered.length !== 1 ? 's' : ''}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-white/15 text-[10px]">{filtered.length} exercice{filtered.length !== 1 ? 's' : ''}</p>
+                <button onClick={() => { setIsCreatingExercise(!isCreatingExercise); setNewExName(searchQuery) }}
+                  className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
+                  {isCreatingExercise ? 'Annuler' : '+ Créer'}
+                </button>
+              </div>
             </div>
 
             {/* Exercise list */}
             <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
+
+              {/* ── Create exercise form ── */}
+              {isCreatingExercise && (
+                <div className="bg-[#1E1E1E] border border-[#FF6B2B]/20 rounded-xl p-4 mb-3 space-y-3">
+                  <p className="text-[#F5F5F3] text-xs font-bold">Nouvel exercice personnalisé</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between py-1.5 border-b border-[#27272a]/50">
+                      <span className="text-white/30 text-[11px] font-medium">Nom</span>
+                      <input type="text" value={newExName} onChange={e => setNewExName(e.target.value)}
+                        placeholder="Ex : Romanian deadlift" autoFocus
+                        className="bg-transparent text-[#F5F5F3] text-[11px] text-right border-none focus:outline-none placeholder:text-white/15 w-2/3" />
+                    </div>
+                    <div className="flex items-center justify-between py-1.5 border-b border-[#27272a]/50">
+                      <span className="text-white/30 text-[11px] font-medium">Muscle</span>
+                      <select value={newExMuscle} onChange={e => setNewExMuscle(e.target.value)}
+                        className="bg-transparent text-[#F5F5F3] text-[11px] text-right border-none focus:outline-none appearance-none cursor-pointer">
+                        <option value="">—</option>
+                        {MUSCLE_GROUPS.filter(m => m !== 'Tous').map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-white/30 text-[11px] font-medium">Équipement</span>
+                      <input type="text" value={newExEquip} onChange={e => setNewExEquip(e.target.value)}
+                        placeholder="Barre, Haltère..."
+                        className="bg-transparent text-[#F5F5F3] text-[11px] text-right border-none focus:outline-none placeholder:text-white/15 w-2/3" />
+                    </div>
+                  </div>
+                  <button onClick={handleCreateExercise} disabled={!newExName.trim() || creatingEx}
+                    className="w-full py-2 rounded-lg bg-[#FF6B2B] text-white text-xs font-bold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-1.5">
+                    {creatingEx ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+                    {creatingEx ? 'Création...' : 'Créer et ajouter'}
+                  </button>
+                </div>
+              )}
+
               {loadingLib ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="animate-spin text-[#FF6B2B]" size={20} />
@@ -201,7 +279,13 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
               ) : filtered.length === 0 ? (
                 <div className="text-center py-12">
                   <Dumbbell size={24} className="text-white/10 mx-auto mb-2" />
-                  <p className="text-white/20 text-xs">Aucun exercice trouvé</p>
+                  <p className="text-white/20 text-xs mb-3">Aucun exercice trouvé</p>
+                  {searchQuery && !isCreatingExercise && (
+                    <button onClick={() => { setIsCreatingExercise(true); setNewExName(searchQuery) }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-[#FF6B2B]/30 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/5 transition-all">
+                      <Plus size={12} /> Créer "{searchQuery}"
+                    </button>
+                  )}
                 </div>
               ) : (
                 filtered.map(ex => {

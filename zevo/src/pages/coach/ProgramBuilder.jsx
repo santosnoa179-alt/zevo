@@ -145,15 +145,18 @@ export default function ProgramBuilder({ programme, onBack }) {
         targetDate.setDate(targetDate.getDate() + dayNum - 1)
         const dateStr = targetDate.toISOString().split('T')[0]
 
-        // Insert seance
-        const { data: seanceData, error: sErr } = await supabase.from('seances').insert({
+        // Insert seance (client_id may be nullable for templates)
+        const seancePayload = {
           coach_id: user.id,
-          client_id: programme?.client_id || null,
           titre: session.titre || `Jour ${dayNum}`,
           date_prevue: dateStr,
           notes: marker,
           is_template: true,
-        }).select().single()
+        }
+        if (programme?.client_id) seancePayload.client_id = programme.client_id
+
+        const { data: seanceData, error: sErr } = await supabase.from('seances')
+          .insert(seancePayload).select().single()
 
         if (sErr) {
           console.error('Erreur insert séance:', sErr)
@@ -204,25 +207,33 @@ export default function ProgramBuilder({ programme, onBack }) {
       // Mark programme as published (actif = true)
       await supabase.from('programmes').update({ actif: true }).eq('id', progId)
 
-      // If there's a client, also create an assignation
+      // If there's a client, upsert assignation (avoids 409 conflict)
       if (programme?.client_id) {
-        // Check if assignation already exists
-        const { data: existing } = await supabase
+        const assignPayload = {
+          programme_id: progId,
+          client_id: programme.client_id,
+          coach_id: user.id,
+          date_debut: programme.date_debut || new Date().toISOString().split('T')[0],
+          phase_actuelle: 1,
+          statut: 'en_cours',
+        }
+        // Try upsert; if constraint doesn't exist, fall back to check+insert
+        const { error: upsertErr } = await supabase
           .from('programme_assignations')
-          .select('id')
-          .eq('programme_id', progId)
-          .eq('client_id', programme.client_id)
-          .maybeSingle()
+          .upsert(assignPayload, { onConflict: 'programme_id,client_id', ignoreDuplicates: true })
 
-        if (!existing) {
-          await supabase.from('programme_assignations').insert({
-            programme_id: progId,
-            client_id: programme.client_id,
-            coach_id: user.id,
-            date_debut: programme.date_debut || new Date().toISOString().split('T')[0],
-            phase_actuelle: 1,
-            statut: 'en_cours',
-          })
+        if (upsertErr) {
+          // Fallback: check then insert
+          const { data: existing } = await supabase
+            .from('programme_assignations')
+            .select('id')
+            .eq('programme_id', progId)
+            .eq('client_id', programme.client_id)
+            .limit(1)
+
+          if (!existing || existing.length === 0) {
+            await supabase.from('programme_assignations').insert(assignPayload)
+          }
         }
       }
 
