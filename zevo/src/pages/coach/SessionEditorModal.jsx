@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import {
   X, Search, Plus, Trash2, Dumbbell, GripVertical,
   Clock, Repeat, Timer, Loader2, Check, Filter,
-  FileText, Paperclip, Upload, File
+  FileText, Paperclip, Upload, File, ExternalLink
 } from 'lucide-react'
 
 // Fallback mock exercises if Supabase is empty
@@ -194,6 +194,21 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
     setAttachedFiles(prev => prev.filter(f => f.id !== fileId))
   }
   const isFileAttached = (fileId) => attachedFiles.some(f => f.id === fileId)
+
+  // Open/preview a file
+  const handleOpenFile = (file) => {
+    if (file._localFile) {
+      // Local file just uploaded — open via blob URL
+      const url = URL.createObjectURL(file._localFile)
+      window.open(url, '_blank')
+    } else if (file.url) {
+      // File from Supabase Storage
+      window.open(file.url, '_blank')
+    } else {
+      // Placeholder for DB-stored metadata files
+      console.log('[SessionEditor] Ouverture fichier distant:', file)
+    }
+  }
 
   // Save
   const handleSave = () => {
@@ -570,10 +585,12 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {attachedFiles.map(file => (
-                    <div key={file.id} className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a]/50">
+                    <div key={file.id} onClick={() => handleOpenFile(file)}
+                      className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a]/50 cursor-pointer hover:bg-[#27272a] hover:border-[#27272a] transition-all">
                       <FileText size={12} className={file.type === 'pdf' ? 'text-red-400' : file.type === 'video' ? 'text-purple-400' : 'text-blue-400'} />
                       <span className="text-[#F5F5F3] text-[11px] font-medium">{file.name}</span>
-                      <button onClick={() => removeFile(file.id)}
+                      <ExternalLink size={9} className="text-white/15 group-hover:text-white/30 transition-all" />
+                      <button onClick={e => { e.stopPropagation(); removeFile(file.id) }}
                         className="p-0.5 rounded text-white/10 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100">
                         <X size={10} />
                       </button>
