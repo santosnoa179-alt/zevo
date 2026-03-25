@@ -3032,6 +3032,7 @@ export default function CoachClientHub() {
   const [habitudes, setHabitudes] = useState([])
   const [objectifs, setObjectifs] = useState([])
   const [score, setScore] = useState(0)
+  const [planCalories, setPlanCalories] = useState(null) // from nutrition plan
 
   // Invitation modal
   const [modalInvit, setModalInvit] = useState(false)
@@ -3098,10 +3099,37 @@ export default function CoachClientHub() {
         sport: null,
       })
       setScore(s)
+
+      // Fetch nutrition plan calories
+      const { data: nutPlans } = await supabase
+        .from('client_nutrition_plans')
+        .select('id')
+        .eq('coach_id', user.id)
+        .eq('client_id', selectedId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (nutPlans && nutPlans.length > 0) {
+        const { data: repasData } = await supabase
+          .from('plan_repas')
+          .select('repas_aliments(quantite_g, aliments(kcal_100g))')
+          .eq('plan_id', nutPlans[0].id)
+
+        let totalKcal = 0
+        ;(repasData || []).forEach(r => {
+          (r.repas_aliments || []).forEach(ra => {
+            if (ra.aliments) totalKcal += Math.round((ra.aliments.kcal_100g || 0) * (ra.quantite_g || 0) / 100)
+          })
+        })
+        setPlanCalories(totalKcal > 0 ? totalKcal : null)
+      } else {
+        setPlanCalories(null)
+      }
+
       setLoadingProfile(false)
     }
     load()
-  }, [selectedId, today])
+  }, [selectedId, today, user?.id])
 
   // ── Invitation ──
   const envoyerInvitation = async (e) => {
@@ -3337,7 +3365,7 @@ export default function CoachClientHub() {
                   {[
                     { icon: Scale, label: 'Poids', value: (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—', spark: [80,79,78.5,78,77.8,77.5,77], color: '#FF6B2B' },
                     { icon: Heart, label: 'IMC', value: imc || '—', sub: imc ? (imc < 18.5 ? 'Insuffisant' : imc < 25 ? 'Normal' : imc < 30 ? 'Surpoids' : 'Obésité') : null, spark: [26,25.5,25,24.8,24.5,24.3,24], color: '#FF6B2B' },
-                    { icon: Flame, label: 'Calories', value: p?.calories_cibles ? `${p.calories_cibles}` : '—', sub: 'kcal/j', spark: [2000,2100,1950,2000,2050,2000,2100], color: '#f59e0b' },
+                    { icon: Flame, label: 'Calories', value: planCalories ? `${planCalories}` : (p?.calories_cibles ? `${p.calories_cibles}` : '—'), sub: 'kcal/j', spark: [2000,2100,1950,2000,2050,2000,2100], color: '#f59e0b' },
                     { icon: Activity, label: 'Activité', value: p?.niveau_activite || '—', spark: [3,5,4,6,5,7,6], color: '#22c55e' },
                     { icon: Dumbbell, label: 'Séances', value: '—', sub: 'cette sem.', spark: [2,3,2,4,3,3,4], color: '#3b82f6' },
                     { icon: Target, label: 'Objectifs', value: `${objectifs.length}`, sub: 'actifs', spark: [1,1,2,2,3,3,3], color: '#a855f7' },
@@ -3502,7 +3530,7 @@ export default function CoachClientHub() {
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="text-center">
-                            <p className="text-[#F5F5F3] text-sm font-bold">{p?.calories_cibles || '—'}</p>
+                            <p className="text-[#F5F5F3] text-sm font-bold">{planCalories || p?.calories_cibles || '—'}</p>
                             <p className="text-white/20 text-[8px]">kcal</p>
                           </div>
                         </div>
