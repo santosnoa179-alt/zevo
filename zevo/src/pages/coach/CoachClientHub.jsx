@@ -2705,7 +2705,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
       .order('created_at', { ascending: false })
 
     const plans = allPlans || []
-    const active = plans.find(p => p.is_active) || plans[0] || null
+    const active = plans.find(p => p.is_active) || null
 
     if (active) {
       setAssignedPlan(active)
@@ -2823,8 +2823,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
 
       const plans = allPlans || []
 
-      // Find the active plan (is_active = true), or fallback to most recent
-      const activePlan = plans.find(p => p.is_active) || (plans.length > 0 ? plans[0] : null)
+      // Find the active plan (is_active = true only, no fallback)
+      const activePlan = plans.find(p => p.is_active) || null
       const otherPlans = plans.filter(p => p.id !== activePlan?.id)
 
       if (activePlan) {
@@ -3203,10 +3203,10 @@ export default function CoachClientHub() {
       // Fetch nutrition plan calories
       const { data: nutPlans } = await supabase
         .from('client_nutrition_plans')
-        .select('id')
+        .select('id, is_active')
         .eq('coach_id', user.id)
         .eq('client_id', selectedId)
-        .order('created_at', { ascending: false })
+        .eq('is_active', true)
         .limit(1)
 
       if (nutPlans && nutPlans.length > 0) {
