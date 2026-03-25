@@ -68,25 +68,19 @@ export default function NutritionBuilder() {
   useEffect(() => {
     if (!user) return
     const fetchClients = async () => {
-      const { data: clientsData, error: err1 } = await supabase
-        .from('clients')
-        .select('id, profiles!inner(id, nom, prenom, email)')
-        .eq('coach_id', user.id)
-        .eq('actif', true)
-      console.log('DEBUG CLIENTS [NutritionBuilder] via clients:', clientsData, 'Erreur:', err1)
+      console.log('🔍 1. [NutritionBuilder] Tentative de récupération des clients...')
 
-      if (clientsData && clientsData.length > 0) {
-        setCoachClients(clientsData)
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+
+      console.log('🛑 2. [NutritionBuilder] Résultat Supabase -> Data:', data, 'Erreur:', error)
+      if (error) {
+        console.error('Erreur fatale Supabase:', error)
         return
       }
 
-      // Fallback: profiles direct
-      const { data: profilesData, error: err2 } = await supabase
-        .from('profiles')
-        .select('id, nom, prenom, email')
-        .eq('role', 'client')
-      console.log('DEBUG CLIENTS [NutritionBuilder] via profiles:', profilesData, 'Erreur:', err2)
-      setCoachClients((profilesData || []).map(p => ({ id: p.id, profiles: p })))
+      setCoachClients((data || []).map(p => ({ id: p.id, profiles: { id: p.id, nom: p.nom, prenom: p.prenom, email: p.email } })))
     }
     fetchClients()
   }, [user])
