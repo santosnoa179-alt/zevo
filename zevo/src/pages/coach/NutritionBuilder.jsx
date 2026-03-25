@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
@@ -45,6 +45,8 @@ function blankRepas(type) {
 export default function NutritionBuilder() {
   const navigate = useNavigate()
   const { planId } = useParams()
+  const [searchParams] = useSearchParams()
+  const presetClientId = searchParams.get('clientId') || null
   const { user } = useAuth()
   const toast = useToast()
 
@@ -59,8 +61,8 @@ export default function NutritionBuilder() {
 
   // Save modal
   const [showSaveModal, setShowSaveModal] = useState(false)
-  const [saveMode, setSaveMode] = useState('template') // 'template' | 'client'
-  const [saveClientId, setSaveClientId] = useState('')
+  const [saveMode, setSaveMode] = useState(presetClientId ? 'client' : 'template')
+  const [saveClientId, setSaveClientId] = useState(presetClientId || '')
   const [saveClientSearch, setSaveClientSearch] = useState('')
   const [coachClients, setCoachClients] = useState([])
 

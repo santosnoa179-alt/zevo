@@ -176,15 +176,16 @@ function ClientProgrammesSection({ clientId, coachId }) {
             <div className="bg-[#0D0D0D] rounded-xl p-5 text-center">
               <Apple size={22} className="text-white/8 mx-auto mb-2" />
               <p className="text-white/20 text-xs">Aucun plan nutritionnel créé</p>
-              <button onClick={() => {/* navigate to nutrition tab */}}
+              <a href={`/coach/nutrition/new?clientId=${clientId}`}
                 className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold hover:bg-emerald-500/20 transition-colors">
                 <Plus size={12} /> Créer un plan
-              </button>
+              </a>
             </div>
           ) : (
             <div className="space-y-2.5">
               {nutritionPlans.map(plan => (
-                <div key={plan.id} className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-4">
+                <a key={plan.id} href={`/coach/nutrition/${plan.id}`}
+                  className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-4 hover:bg-[#0D0D0D]/80 transition-all block">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
                     <Apple size={18} className="text-emerald-400" />
                   </div>
@@ -194,9 +195,11 @@ function ClientProgrammesSection({ clientId, coachId }) {
                       <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#2A2A2A] text-white/35 font-medium">
                         {new Date(plan.date_plan).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                       </span>
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Actif</span>
                     </div>
                   </div>
-                </div>
+                  <ChevronRight size={14} className="text-white/15 shrink-0" />
+                </a>
               ))}
             </div>
           )}
