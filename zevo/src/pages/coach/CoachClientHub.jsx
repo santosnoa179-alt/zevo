@@ -2122,6 +2122,18 @@ function FoodIconBg({ categorie }) {
 const NIVEAUX_ACTIVITE = ['Sédentaire', 'Légèrement actif', 'Modérément actif', 'Très actif', 'Extrêmement actif']
 const SEXE_OPTIONS = ['Homme', 'Femme', 'Autre']
 
+// Apple Settings row — defined OUTSIDE component to avoid re-creation on each render
+const INFOS_INPUT_STYLE = "bg-transparent text-[#F5F5F3] text-sm font-semibold text-right border-none focus:outline-none focus:ring-0 placeholder-zinc-600"
+
+function SettingsRow({ label, children, last }) {
+  return (
+    <div className={`flex items-center justify-between py-3.5 ${last ? '' : 'border-b border-[#27272a]/40'}`}>
+      <span className="text-zinc-400 text-sm font-medium">{label}</span>
+      <div className="flex items-center gap-1.5">{children}</div>
+    </div>
+  )
+}
+
 function InfosTab({ coachId, clientId }) {
   const toast = useToast()
   const [loading, setLoading] = useState(true)
@@ -2196,16 +2208,6 @@ function InfosTab({ coachId, clientId }) {
     return <div className="flex items-center justify-center py-20"><Loader2 className="animate-spin text-[#FF6B2B]" size={28} /></div>
   }
 
-  // Apple Settings row component
-  const Row = ({ label, children, last }) => (
-    <div className={`flex items-center justify-between py-3.5 ${last ? '' : 'border-b border-[#27272a]/40'}`}>
-      <span className="text-zinc-400 text-sm font-medium">{label}</span>
-      <div className="flex items-center gap-1.5">{children}</div>
-    </div>
-  )
-
-  const inputStyle = "bg-transparent text-[#F5F5F3] text-sm font-semibold text-right border-none focus:outline-none focus:ring-0 placeholder-zinc-600"
-
   return (
     <div className="space-y-5 max-w-2xl">
 
@@ -2215,21 +2217,21 @@ function InfosTab({ coachId, clientId }) {
           <h3 className="text-[#F5F5F3] text-base font-bold">Identité</h3>
         </div>
         <div className="px-6">
-          <Row label="Prénom">
+          <SettingsRowlabel="Prénom">
             <input type="text" value={formData.prenom} onChange={e => set('prenom', e.target.value)}
-              placeholder="Prénom" className={inputStyle} />
-          </Row>
-          <Row label="Nom">
+              placeholder="Prénom" className={INFOS_INPUT_STYLE} />
+          </SettingsRow>
+          <SettingsRowlabel="Nom">
             <input type="text" value={formData.nom} onChange={e => set('nom', e.target.value)}
-              placeholder="Nom" className={inputStyle} />
-          </Row>
-          <Row label="Email">
+              placeholder="Nom" className={INFOS_INPUT_STYLE} />
+          </SettingsRow>
+          <SettingsRowlabel="Email">
             <span className="text-white/25 text-sm">{formData.email || '—'}</span>
-          </Row>
-          <Row label="Téléphone" last>
+          </SettingsRow>
+          <SettingsRowlabel="Téléphone" last>
             <input type="tel" value={formData.telephone} onChange={e => set('telephone', e.target.value)}
-              placeholder="+33..." className={inputStyle} />
-          </Row>
+              placeholder="+33..." className={INFOS_INPUT_STYLE} />
+          </SettingsRow>
         </div>
       </div>
 
@@ -2239,42 +2241,42 @@ function InfosTab({ coachId, clientId }) {
           <h3 className="text-[#F5F5F3] text-base font-bold">Profil</h3>
         </div>
         <div className="px-6">
-          <Row label="Genre">
+          <SettingsRowlabel="Genre">
             <select value={formData.sexe} onChange={e => set('sexe', e.target.value)}
-              className={`${inputStyle} cursor-pointer appearance-none pr-0`}>
+              className={`${INFOS_INPUT_STYLE} cursor-pointer appearance-none pr-0`}>
               <option value="" className="bg-[#1E1E1E]">—</option>
               {SEXE_OPTIONS.map(s => <option key={s} value={s} className="bg-[#1E1E1E]">{s}</option>)}
             </select>
-          </Row>
-          <Row label="Âge">
+          </SettingsRow>
+          <SettingsRowlabel="Âge">
             <input type="number" value={formData.age} onChange={e => set('age', e.target.value)}
-              placeholder="—" className={`${inputStyle} w-12`} />
+              placeholder="—" className={`${INFOS_INPUT_STYLE} w-12`} />
             <span className="text-zinc-500 text-sm">ans</span>
-          </Row>
-          <Row label="Taille">
+          </SettingsRow>
+          <SettingsRowlabel="Taille">
             <input type="number" value={formData.taille} onChange={e => set('taille', e.target.value)}
-              placeholder="—" className={`${inputStyle} w-14`} />
+              placeholder="—" className={`${INFOS_INPUT_STYLE} w-14`} />
             <span className="text-zinc-500 text-sm">cm</span>
-          </Row>
-          <Row label="Poids">
+          </SettingsRow>
+          <SettingsRowlabel="Poids">
             <input type="number" step="0.1" value={formData.poids_depart} onChange={e => set('poids_depart', e.target.value)}
-              placeholder="—" className={`${inputStyle} w-16`} />
+              placeholder="—" className={`${INFOS_INPUT_STYLE} w-16`} />
             <span className="text-zinc-500 text-sm">kg</span>
-          </Row>
-          <Row label="IMC">
+          </SettingsRow>
+          <SettingsRowlabel="IMC">
             <span className="text-[#F5F5F3] text-sm font-semibold">{imc || '—'}</span>
             <span className="text-zinc-500 text-sm">kg/m²</span>
             {imcLabel && (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold ml-1">{imcLabel}</span>
             )}
-          </Row>
-          <Row label="Activité" last>
+          </SettingsRow>
+          <SettingsRowlabel="Activité" last>
             <select value={formData.niveau_activite} onChange={e => set('niveau_activite', e.target.value)}
-              className={`${inputStyle} cursor-pointer appearance-none pr-0`}>
+              className={`${INFOS_INPUT_STYLE} cursor-pointer appearance-none pr-0`}>
               <option value="" className="bg-[#1E1E1E]">—</option>
               {NIVEAUX_ACTIVITE.map(n => <option key={n} value={n} className="bg-[#1E1E1E]">{n}</option>)}
             </select>
-          </Row>
+          </SettingsRow>
         </div>
       </div>
 
@@ -2284,19 +2286,19 @@ function InfosTab({ coachId, clientId }) {
           <h3 className="text-[#F5F5F3] text-base font-bold">Objectifs</h3>
         </div>
         <div className="px-6">
-          <Row label="Type d'objectif">
+          <SettingsRowlabel="Type d'objectif">
             <input type="text" value={formData.objectif_type} onChange={e => set('objectif_type', e.target.value)}
-              placeholder="Perte de poids, Prise de masse..." className={inputStyle} />
-          </Row>
-          <Row label="Poids cible">
+              placeholder="Perte de poids, Prise de masse..." className={INFOS_INPUT_STYLE} />
+          </SettingsRow>
+          <SettingsRowlabel="Poids cible">
             <input type="number" step="0.1" value={formData.poids_cible} onChange={e => set('poids_cible', e.target.value)}
-              placeholder="—" className={`${inputStyle} w-16`} />
+              placeholder="—" className={`${INFOS_INPUT_STYLE} w-16`} />
             <span className="text-zinc-500 text-sm">kg</span>
-          </Row>
-          <Row label="Échéance" last>
+          </SettingsRow>
+          <SettingsRowlabel="Échéance" last>
             <input type="date" value={formData.date_limite} onChange={e => set('date_limite', e.target.value)}
-              className={`${inputStyle} cursor-pointer`} />
-          </Row>
+              className={`${INFOS_INPUT_STYLE} cursor-pointer`} />
+          </SettingsRow>
         </div>
       </div>
 
