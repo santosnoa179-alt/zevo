@@ -37,12 +37,10 @@ export default function CoachNutritionPage() {
   // Fetch clients
   useEffect(() => {
     if (!user) return
-    supabase.from('clients').select('id, profiles(id, nom, prenom, email)')
-      .eq('coach_id', user.id).eq('actif', true)
+    supabase.from('clients').select('id, profiles!inner(id, nom, prenom, email)').eq('coach_id', user.id).eq('actif', true)
       .then(({ data, error }) => {
-        if (error) console.error('[NutritionPage] Erreur fetch clients:', error)
-        console.log('[NutritionPage] Clients chargés:', data)
-        setCoachClients((data || []).filter(c => c.profiles))
+        console.log('DEBUG CLIENTS [NutritionPage] - Data:', data, 'Erreur:', error)
+        setCoachClients(data || [])
       })
   }, [user])
 
@@ -69,24 +67,37 @@ export default function CoachNutritionPage() {
 
   // Delete plan
   const handleDelete = async (planId, e) => {
-    if (e) e.stopPropagation()
-    if (!confirm('Supprimer ce plan nutritionnel ? Cette action est irréversible.')) return
+    e.stopPropagation()
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce plan ?')) return
     try {
-      // Delete repas first (in case CASCADE isn't set up)
-      const { data: repasIds } = await supabase.from('plan_repas').select('id').eq('plan_id', planId)
-      if (repasIds?.length > 0) {
-        const ids = repasIds.map(r => r.id)
-        await supabase.from('repas_aliments').delete().in('repas_id', ids)
-        await supabase.from('plan_repas').delete().eq('plan_id', planId)
+      // 1. Trouver les repas du plan
+      const { data: repas, error: fetchErr } = await supabase.from('plan_repas').select('id').eq('plan_id', planId)
+      if (fetchErr) { console.error('Erreur 1 (Fetch Repas):', fetchErr); throw fetchErr }
+      console.log('DEBUG DELETE - Repas trouvés:', repas?.length || 0)
+
+      // 2. Supprimer les aliments liés à ces repas
+      if (repas && repas.length > 0) {
+        const repasIds = repas.map(r => r.id)
+        const { error: alimErr } = await supabase.from('repas_aliments').delete().in('repas_id', repasIds)
+        if (alimErr) { console.error('Erreur 2 (Delete Aliments):', alimErr); throw alimErr }
+        console.log('DEBUG DELETE - Aliments supprimés pour', repasIds.length, 'repas')
       }
-      // Delete the plan
-      const { error } = await supabase.from('client_nutrition_plans').delete().eq('id', planId)
-      if (error) throw error
-      toast.success('Plan supprimé')
+
+      // 3. Supprimer les repas
+      const { error: repasErr } = await supabase.from('plan_repas').delete().eq('plan_id', planId)
+      if (repasErr) { console.error('Erreur 3 (Delete Repas):', repasErr); throw repasErr }
+      console.log('DEBUG DELETE - Repas supprimés')
+
+      // 4. Supprimer le plan
+      const { error: planErr } = await supabase.from('client_nutrition_plans').delete().eq('id', planId)
+      if (planErr) { console.error('Erreur 4 (Delete Plan):', planErr); throw planErr }
+      console.log('DEBUG DELETE - Plan supprimé:', planId)
+
+      toast.success('Plan supprimé !')
       fetchPlans()
-    } catch (err) {
-      console.error('[NutritionPage] Erreur suppression:', err)
-      toast.error('Erreur : ' + (err.message || 'Suppression échouée'))
+    } catch (error) {
+      console.error('CRASH SUPPRESSION:', error)
+      toast.error('Échec de la suppression. Regardez la console (F12).')
     }
     setActionMenu(null)
   }

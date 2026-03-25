@@ -67,12 +67,10 @@ export default function NutritionBuilder() {
   // Fetch clients
   useEffect(() => {
     if (!user) return
-    supabase.from('clients').select('id, profiles(id, nom, prenom, email)')
-      .eq('coach_id', user.id).eq('actif', true)
+    supabase.from('clients').select('id, profiles!inner(id, nom, prenom, email)').eq('coach_id', user.id).eq('actif', true)
       .then(({ data, error }) => {
-        if (error) console.error('[NutritionBuilder] Erreur fetch clients:', error)
-        console.log('[NutritionBuilder] Clients chargés:', data)
-        setCoachClients((data || []).filter(c => c.profiles))
+        console.log('DEBUG CLIENTS [NutritionBuilder] - Data:', data, 'Erreur:', error)
+        setCoachClients(data || [])
       })
   }, [user])
 
