@@ -6,7 +6,7 @@ import { useToast } from '../../components/ui/Toast'
 import {
   ArrowLeft, Save, Loader2, Plus, Trash2, X,
   Coffee, UtensilsCrossed, Moon, Cookie,
-  ChevronDown, Target, Flame
+  ChevronDown, Target, Flame, Layers, UserPlus, Check, Search
 } from 'lucide-react'
 
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
@@ -56,6 +56,21 @@ export default function NutritionBuilder() {
   const [showRepasMenu, setShowRepasMenu] = useState(false)
   const [loadingPlan, setLoadingPlan] = useState(false)
   const [existingPlanId, setExistingPlanId] = useState(planId || null)
+
+  // Save modal
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [saveMode, setSaveMode] = useState('template') // 'template' | 'client'
+  const [saveClientId, setSaveClientId] = useState('')
+  const [saveClientSearch, setSaveClientSearch] = useState('')
+  const [coachClients, setCoachClients] = useState([])
+
+  // Fetch clients
+  useEffect(() => {
+    if (!user) return
+    supabase.from('clients').select('id, profiles!inner(id, nom, prenom)')
+      .eq('coach_id', user.id).eq('actif', true)
+      .then(({ data }) => setCoachClients(data || []))
+  }, [user])
 
   // Load existing plan
   useEffect(() => {
@@ -179,31 +194,49 @@ export default function NutritionBuilder() {
   })()
 
   // Save
-  const handleSave = async () => {
+  // Open save modal (or save directly if editing existing)
+  const handleSaveClick = () => {
     if (!titre.trim()) {
       toast.error('Le titre du plan est requis')
       return
     }
+    if (existingPlanId) {
+      // Direct save for existing plan
+      doSave(null, null)
+    } else {
+      setShowSaveModal(true)
+    }
+  }
+
+  // Core save logic
+  const doSave = async (isTemplate, clientId) => {
     setSaving(true)
+    setShowSaveModal(false)
     try {
       let savedPlanId = existingPlanId
 
       if (savedPlanId) {
         // Update existing
+        const updatePayload = { nom: titre.trim() }
+        if (clientId) updatePayload.client_id = clientId
         const { error } = await supabase
           .from('client_nutrition_plans')
-          .update({ nom: titre.trim() })
+          .update(updatePayload)
           .eq('id', savedPlanId)
         if (error) throw error
       } else {
         // Insert new
+        const insertPayload = {
+          coach_id: user.id,
+          nom: titre.trim(),
+          date_plan: new Date().toISOString().split('T')[0],
+        }
+        if (clientId) insertPayload.client_id = clientId
+        // client_id null = template
+
         const { data: plan, error } = await supabase
           .from('client_nutrition_plans')
-          .insert({
-            coach_id: user.id,
-            nom: titre.trim(),
-            date_plan: new Date().toISOString().split('T')[0],
-          })
+          .insert(insertPayload)
           .select()
           .single()
         if (error) throw error
@@ -219,27 +252,22 @@ export default function NutritionBuilder() {
         const day = jours[dayIdx]
         for (let rIdx = 0; rIdx < day.repas.length; rIdx++) {
           const repas = day.repas[rIdx]
-          const { data: newRepas, error: rErr } = await supabase
+          const { error: rErr } = await supabase
             .from('plan_repas')
             .insert({
               plan_id: savedPlanId,
               type: repas.type,
               ordre: dayIdx * 10 + rIdx,
             })
-            .select()
-            .single()
 
           if (rErr) {
             console.error('[NutritionBuilder] Erreur insert repas:', rErr)
-            continue
           }
-
-          // If the repas has macros > 0, store them as metadata
-          // (Real aliment linking is done via NutritionTab in the Hub)
         }
       }
 
-      toast.success(existingPlanId ? 'Plan mis à jour !' : 'Plan nutritionnel créé !')
+      const clientName = clientId ? (coachClients.find(c => c.profiles?.id === clientId)?.profiles?.nom || 'ce client') : null
+      toast.success(clientName ? `Plan assigné à ${clientName} !` : (existingPlanId ? 'Plan mis à jour !' : 'Modèle créé !'))
       navigate('/coach/nutrition')
     } catch (err) {
       console.error('[NutritionBuilder] Erreur sauvegarde:', err)
@@ -285,7 +313,7 @@ export default function NutritionBuilder() {
           </div>
 
           {/* Save */}
-          <button onClick={handleSave} disabled={saving}
+          <button onClick={handleSaveClick} disabled={saving}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-50 shadow-lg shadow-[#FF6B2B]/20 shrink-0">
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {saving ? 'Sauvegarde...' : 'Sauvegarder'}
@@ -476,6 +504,117 @@ export default function NutritionBuilder() {
           )}
         </div>
       </div>
+
+      {/* ═══ Save Modal ═══ */}
+      {showSaveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowSaveModal(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-md bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}>
+            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+
+            <div className="px-6 pt-5 pb-4 border-b border-white/[0.06]">
+              <h2 className="text-[#F5F5F3] text-lg font-bold">Sauvegarder le plan</h2>
+              <p className="text-white/30 text-sm mt-0.5">Choisissez la destination</p>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Option A: Template */}
+              <button onClick={() => setSaveMode('template')}
+                className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left ${
+                  saveMode === 'template'
+                    ? 'bg-[#FF6B2B]/5 border-[#FF6B2B]/30'
+                    : 'bg-[#0D0D0D] border-[#27272a] hover:border-white/[0.1]'
+                }`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  saveMode === 'template' ? 'bg-[#FF6B2B]/20' : 'bg-[#2A2A2A]'
+                }`}>
+                  <Layers size={18} className={saveMode === 'template' ? 'text-[#FF6B2B]' : 'text-white/30'} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-semibold ${saveMode === 'template' ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>
+                    Sauvegarder comme Modèle
+                  </p>
+                  <p className="text-white/25 text-xs mt-0.5">Réutilisable pour plusieurs clients</p>
+                </div>
+                {saveMode === 'template' && <Check size={16} className="text-[#FF6B2B] shrink-0" />}
+              </button>
+
+              {/* Option B: Assign to client */}
+              <button onClick={() => setSaveMode('client')}
+                className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left ${
+                  saveMode === 'client'
+                    ? 'bg-[#FF6B2B]/5 border-[#FF6B2B]/30'
+                    : 'bg-[#0D0D0D] border-[#27272a] hover:border-white/[0.1]'
+                }`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  saveMode === 'client' ? 'bg-[#FF6B2B]/20' : 'bg-[#2A2A2A]'
+                }`}>
+                  <UserPlus size={18} className={saveMode === 'client' ? 'text-[#FF6B2B]' : 'text-white/30'} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-semibold ${saveMode === 'client' ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>
+                    Assigner à un client
+                  </p>
+                  <p className="text-white/25 text-xs mt-0.5">Plan personnalisé pour un client spécifique</p>
+                </div>
+                {saveMode === 'client' && <Check size={16} className="text-[#FF6B2B] shrink-0" />}
+              </button>
+
+              {/* Client selector (only when mode = client) */}
+              {saveMode === 'client' && (
+                <div className="space-y-2 pt-2">
+                  <div className="relative">
+                    <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                    <input type="text" value={saveClientSearch} onChange={e => setSaveClientSearch(e.target.value)}
+                      placeholder="Rechercher un client..."
+                      className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl pl-9 pr-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/40 transition-all" />
+                  </div>
+                  <div className="max-h-40 overflow-y-auto space-y-1">
+                    {coachClients
+                      .filter(c => {
+                        const nom = [c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ')
+                        return nom.toLowerCase().includes(saveClientSearch.toLowerCase())
+                      })
+                      .map(c => {
+                        const nom = [c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || 'Client'
+                        const profileId = c.profiles?.id
+                        const isSelected = saveClientId === profileId
+                        const initials = nom.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                        return (
+                          <button key={c.id} onClick={() => setSaveClientId(profileId)}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                              isSelected ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'hover:bg-white/[0.03] border border-transparent'
+                            }`}>
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                              isSelected ? 'bg-[#FF6B2B] text-white' : 'bg-[#2A2A2A] text-white/40'
+                            }`}>{initials}</div>
+                            <span className={`text-sm ${isSelected ? 'text-[#FF6B2B] font-semibold' : 'text-[#F5F5F3]'}`}>{nom}</span>
+                            {isSelected && <Check size={13} className="text-[#FF6B2B] ml-auto" />}
+                          </button>
+                        )
+                      })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 pb-6 flex gap-3">
+              <button onClick={() => setShowSaveModal(false)}
+                className="flex-1 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-all border border-white/[0.04]">
+                Annuler
+              </button>
+              <button
+                onClick={() => doSave(saveMode === 'template', saveMode === 'client' ? saveClientId : null)}
+                disabled={saving || (saveMode === 'client' && !saveClientId)}
+                className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                {saving ? 'Sauvegarde...' : saveMode === 'template' ? 'Créer le modèle' : 'Assigner le plan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

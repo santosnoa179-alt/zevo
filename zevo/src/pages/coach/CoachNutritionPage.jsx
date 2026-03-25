@@ -339,16 +339,16 @@ export default function CoachNutritionPage() {
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setActionMenu(null)} />
                     <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-[#18181b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
-                      <button onClick={() => { setActionMenu(null); navigate(`/coach/nutrition/${plan.id}`) }}
+                      <button onClick={e => { e.stopPropagation(); setActionMenu(null); navigate(`/coach/nutrition/${plan.id}`) }}
                         className="w-full text-left px-4 py-2.5 text-sm text-white/50 hover:bg-white/[0.03] transition-colors flex items-center gap-2">
                         <Edit3 size={13} /> Modifier
                       </button>
-                      <button onClick={() => { setActionMenu(null); setAssignPlan(plan) }}
+                      <button onClick={e => { e.stopPropagation(); setActionMenu(null); setAssignPlan(plan) }}
                         className="w-full text-left px-4 py-2.5 text-sm text-[#FF6B2B] hover:bg-[#FF6B2B]/5 transition-colors flex items-center gap-2">
                         <UserPlus size={13} /> Assigner à un client
                       </button>
                       <div className="border-t border-[#27272a]" />
-                      <button onClick={() => handleDelete(plan.id)}
+                      <button onClick={e => { e.stopPropagation(); handleDelete(plan.id) }}
                         className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2">
                         <Trash2 size={13} /> Supprimer
                       </button>
