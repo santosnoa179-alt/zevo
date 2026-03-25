@@ -3588,7 +3588,7 @@ export default function CoachClientHub() {
                   {[
                     { icon: Scale, label: 'Poids', value: (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—', spark: [80,79,78.5,78,77.8,77.5,77], color: '#FF6B2B' },
                     { icon: Heart, label: 'IMC', value: imc || '—', sub: imc ? (imc < 18.5 ? 'Insuffisant' : imc < 25 ? 'Normal' : imc < 30 ? 'Surpoids' : 'Obésité') : null, spark: [26,25.5,25,24.8,24.5,24.3,24], color: '#FF6B2B' },
-                    { icon: Flame, label: 'Calories', value: p?.calories_cibles ? `${p.calories_cibles}` : (nutritionPlans.length > 0 ? 'Plan actif' : '—'), sub: 'kcal/j', spark: [2000,2100,1950,2000,2050,2000,2100], color: '#f59e0b' },
+                    { icon: Flame, label: 'Calories', value: p?.calories_cibles ? `${p.calories_cibles}` : '—', sub: 'kcal/j', spark: [2000,2100,1950,2000,2050,2000,2100], color: '#f59e0b' },
                     { icon: Activity, label: 'Activité', value: p?.niveau_activite || '—', spark: [3,5,4,6,5,7,6], color: '#22c55e' },
                     { icon: Dumbbell, label: 'Séances', value: '—', sub: 'cette sem.', spark: [2,3,2,4,3,3,4], color: '#3b82f6' },
                     { icon: Target, label: 'Objectifs', value: `${objectifs.length}`, sub: 'actifs', spark: [1,1,2,2,3,3,3], color: '#a855f7' },
