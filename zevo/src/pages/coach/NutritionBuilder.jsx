@@ -272,7 +272,7 @@ export default function NutritionBuilder() {
       }
 
       const cl = clientId ? coachClients.find(c => c.id === clientId) : null
-      const clientName = cl ? [cl.prenom, cl.nom].filter(Boolean).join(' ') : null
+      const clientName = cl ? ((cl.prenom && cl.nom) ? `${cl.prenom} ${cl.nom}` : (cl.prenom || cl.nom || cl.email || 'ce client')) : null
       toast.success(clientName ? `Plan assigné à ${clientName} !` : (existingPlanId ? 'Plan mis à jour !' : 'Modèle créé !'))
       navigate('/coach/nutrition')
     } catch (err) {
@@ -579,22 +579,24 @@ export default function NutritionBuilder() {
                   <div className="max-h-40 overflow-y-auto space-y-1">
                     {coachClients
                       .filter(c => {
-                        const nom = [c.prenom, c.nom].filter(Boolean).join(' ')
-                        return nom.toLowerCase().includes(saveClientSearch.toLowerCase())
+                        const searchable = [c.prenom, c.nom, c.email].filter(Boolean).join(' ')
+                        return searchable.toLowerCase().includes(saveClientSearch.toLowerCase())
                       })
                       .map(c => {
-                        const nom = [c.prenom, c.nom].filter(Boolean).join(' ')
+                        const displayName = (c.prenom && c.nom) ? `${c.prenom} ${c.nom}` : (c.prenom || c.nom || c.email || 'Client sans nom')
                         const isSelected = saveClientId === c.id
-                        const initials = `${c.prenom?.charAt(0) || ''}${c.nom?.charAt(0) || ''}`.toUpperCase() || '?'
+                        const i1 = c.prenom ? c.prenom.charAt(0) : (c.email ? c.email.charAt(0) : '?')
+                        const i2 = c.nom ? c.nom.charAt(0) : ''
+                        const initials = `${i1}${i2}`.toUpperCase()
                         return (
                           <button key={c.id} onClick={() => setSaveClientId(c.id)}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
                               isSelected ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'hover:bg-white/[0.03] border border-transparent'
                             }`}>
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 uppercase ${
                               isSelected ? 'bg-[#FF6B2B] text-white' : 'bg-[#2A2A2A] text-white/40'
                             }`}>{initials}</div>
-                            <span className={`text-sm ${isSelected ? 'text-[#FF6B2B] font-semibold' : 'text-[#F5F5F3]'}`}>{nom}</span>
+                            <span className={`text-sm ${isSelected ? 'text-[#FF6B2B] font-semibold' : 'text-[#F5F5F3]'}`}>{displayName}</span>
                             {isSelected && <Check size={13} className="text-[#FF6B2B] ml-auto" />}
                           </button>
                         )

@@ -347,18 +347,20 @@ export default function CoachNutritionPage() {
                   if (!plan.client_id) {
                     return <span className="text-[9px] px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 font-medium border border-blue-500/20">Modèle</span>
                   }
-                  // Try join data first, then lookup in coachClients
-                  const prenom = plan.profiles?.prenom || coachClients.find(c => c.id === plan.client_id)?.prenom || ''
-                  const nom = plan.profiles?.nom || coachClients.find(c => c.id === plan.client_id)?.nom || ''
-                  const fullName = [prenom, nom].filter(Boolean).join(' ')
-                  const i1 = prenom?.charAt(0) || ''
-                  const i2 = nom?.charAt(0) || ''
+                  // Try join, then coachClients lookup, then email fallback
+                  const p = plan.profiles || coachClients.find(c => c.id === plan.client_id) || {}
+                  const prenom = p.prenom || ''
+                  const nom = p.nom || ''
+                  const email = p.email || ''
+                  const displayName = (prenom && nom) ? `${prenom} ${nom}` : (prenom || nom || email || 'Client sans nom')
+                  const initial1 = prenom ? prenom.charAt(0) : (email ? email.charAt(0) : '?')
+                  const initial2 = nom ? nom.charAt(0) : ''
                   return (
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/20 text-[#FF6B2B] flex items-center justify-center text-[10px] font-bold shrink-0">
-                        {i1}{i2 || '?'}
+                      <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/20 text-[#FF6B2B] flex items-center justify-center text-[10px] font-bold shrink-0 uppercase">
+                        {initial1}{initial2}
                       </div>
-                      <span className="text-white/50 text-xs truncate">{fullName || 'Client assigné'}</span>
+                      <span className="text-white/50 text-xs truncate">{displayName}</span>
                     </div>
                   )
                 })()}
@@ -443,9 +445,11 @@ export default function CoachNutritionPage() {
                   {coachClients.length === 0 ? (
                     <p className="text-white/20 text-xs text-center py-4">Aucun client trouvé — vérifiez la console (F12)</p>
                   ) : coachClients.map(c => {
-                    const nom = [c.prenom, c.nom].filter(Boolean).join(' ')
+                    const displayName = (c.prenom && c.nom) ? `${c.prenom} ${c.nom}` : (c.prenom || c.nom || c.email || 'Client sans nom')
                     const isSelected = selectedClient === c.id
-                    const initials = `${c.prenom?.charAt(0) || ''}${c.nom?.charAt(0) || ''}`.toUpperCase() || '?'
+                    const i1 = c.prenom ? c.prenom.charAt(0) : (c.email ? c.email.charAt(0) : '?')
+                    const i2 = c.nom ? c.nom.charAt(0) : ''
+                    const initials = `${i1}${i2}`.toUpperCase()
                     return (
                       <button key={c.id} onClick={() => setSelectedClient(c.id)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
@@ -454,7 +458,7 @@ export default function CoachNutritionPage() {
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                           isSelected ? 'bg-[#FF6B2B] text-white' : 'bg-[#2A2A2A] text-white/40'
                         }`}>{initials}</div>
-                        <span className={`text-sm font-medium ${isSelected ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{nom}</span>
+                        <span className={`text-sm font-medium ${isSelected ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{displayName}</span>
                         {isSelected && <Check size={14} className="text-[#FF6B2B] ml-auto" />}
                       </button>
                     )

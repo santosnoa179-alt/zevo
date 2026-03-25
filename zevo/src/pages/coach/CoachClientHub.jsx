@@ -78,13 +78,14 @@ function ClientProgrammesSection({ clientId, coachId }) {
       setSportProgrammes((sportData || []).filter(a => a.programmes))
 
       // Nutrition plans (from client_nutrition_plans table)
-      const { data: nutritionData } = await supabase
+      const { data: nutritionData, error: nutritionErr } = await supabase
         .from('client_nutrition_plans')
         .select('id, nom, date_plan, created_at')
         .eq('coach_id', coachId)
         .eq('client_id', clientId)
-        .order('date_plan', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(5)
+      console.log('DEBUG HUB NUTRITION:', { clientId, coachId, data: nutritionData, error: nutritionErr })
       setNutritionPlans(nutritionData || [])
 
       setLoading(false)
