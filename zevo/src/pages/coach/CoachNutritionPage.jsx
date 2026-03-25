@@ -52,7 +52,7 @@ export default function CoachNutritionPage() {
 
     const { data, error } = await supabase
       .from('client_nutrition_plans')
-      .select('*, profiles:client_id(nom, prenom)')
+      .select('*, profiles(id, nom, prenom)')
       .eq('coach_id', user.id)
       .order('created_at', { ascending: false })
 
@@ -270,7 +270,7 @@ export default function CoachNutritionPage() {
       </div>
 
       {/* ═══ Table ═══ */}
-      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-visible">
         {/* Table header */}
         <div className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-[#27272a] text-[10px] uppercase tracking-wider text-white/20 font-bold">
           <div className="col-span-4">Titre</div>
@@ -332,15 +332,17 @@ export default function CoachNutritionPage() {
 
               {/* Client */}
               <div className="col-span-2">
-                {clientName ? (
+                {plan.client_id ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#27272a] flex items-center justify-center shrink-0" title={clientName}>
-                      <span className="text-[10px] text-white/50 font-bold">{initials}</span>
+                    <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/20 text-[#FF6B2B] flex items-center justify-center text-[10px] font-bold shrink-0">
+                      {plan.profiles?.prenom?.charAt(0) || ''}{plan.profiles?.nom?.charAt(0) || '?'}
                     </div>
-                    <span className="text-white/50 text-xs truncate">{clientName}</span>
+                    <span className="text-white/50 text-xs truncate">
+                      {[plan.profiles?.prenom, plan.profiles?.nom].filter(Boolean).join(' ') || 'Client assigné'}
+                    </span>
                   </div>
                 ) : (
-                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-medium">Modèle</span>
+                  <span className="text-[9px] px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 font-medium border border-blue-500/20">Modèle</span>
                 )}
               </div>
 
