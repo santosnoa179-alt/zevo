@@ -2664,6 +2664,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
   const [assignedPlan, setAssignedPlan] = useState(null)
   const [assignedRepas, setAssignedRepas] = useState([])
   const [loadingAssigned, setLoadingAssigned] = useState(true)
+  const [historyPlans, setHistoryPlans] = useState([])
+  const [activating, setActivating] = useState(null)
 
   // Assign template modal
   const [showAssignModal, setShowAssignModal] = useState(false)
@@ -2673,6 +2675,53 @@ function NutritionTab({ coachId, clientId, clientName }) {
 
   // MacroRing is still used for assigned plan display
   const [saving, setSaving] = useState(false)
+
+  // ── Activate a different plan ──
+  const activatePlan = async (planId) => {
+    setActivating(planId)
+    // Deactivate all plans for this client
+    await supabase
+      .from('client_nutrition_plans')
+      .update({ is_active: false })
+      .eq('client_id', clientId)
+      .eq('coach_id', coachId)
+
+    // Activate the selected one
+    await supabase
+      .from('client_nutrition_plans')
+      .update({ is_active: true })
+      .eq('id', planId)
+
+    toast.success('Plan activé !')
+    setActivating(null)
+
+    // Reload
+    setLoadingAssigned(true)
+    const { data: allPlans } = await supabase
+      .from('client_nutrition_plans')
+      .select('*')
+      .eq('coach_id', coachId)
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false })
+
+    const plans = allPlans || []
+    const active = plans.find(p => p.is_active) || plans[0] || null
+
+    if (active) {
+      setAssignedPlan(active)
+      const { data: repasData } = await supabase
+        .from('plan_repas')
+        .select('id, type, metadata, repas_aliments(id, aliment_id, quantite_g, ordre, aliments(*))')
+        .eq('plan_id', active.id)
+        .order('ordre')
+      setAssignedRepas(repasData || [])
+    } else {
+      setAssignedPlan(null)
+      setAssignedRepas([])
+    }
+    setHistoryPlans(plans.filter(p => p.id !== active?.id))
+    setLoadingAssigned(false)
+  }
 
   // ── Open assign template modal ──
   const openAssignModal = async () => {
@@ -2762,26 +2811,30 @@ function NutritionTab({ coachId, clientId, clientName }) {
     if (!coachId || !clientId) return
     const loadAssigned = async () => {
       setLoadingAssigned(true)
-      // Get the most recent assigned plan (with client_id = this client)
-      const { data: plans, error: planErr } = await supabase
+      // Get ALL plans for this client
+      const { data: allPlans, error: planErr } = await supabase
         .from('client_nutrition_plans')
         .select('*')
         .eq('coach_id', coachId)
         .eq('client_id', clientId)
         .order('created_at', { ascending: false })
-        .limit(1)
 
-      if (planErr) console.error('[NutritionTab] Erreur fetch plan:', planErr)
+      if (planErr) console.error('[NutritionTab] Erreur fetch plans:', planErr)
 
-      if (plans && plans.length > 0) {
-        const plan = plans[0]
-        setAssignedPlan(plan)
+      const plans = allPlans || []
 
-        // Load repas for this plan (with metadata + aliments)
+      // Find the active plan (is_active = true), or fallback to most recent
+      const activePlan = plans.find(p => p.is_active) || (plans.length > 0 ? plans[0] : null)
+      const otherPlans = plans.filter(p => p.id !== activePlan?.id)
+
+      if (activePlan) {
+        setAssignedPlan(activePlan)
+
+        // Load repas for active plan (with metadata + aliments)
         const { data: repasData } = await supabase
           .from('plan_repas')
           .select('id, type, metadata, repas_aliments(id, aliment_id, quantite_g, ordre, aliments(*))')
-          .eq('plan_id', plan.id)
+          .eq('plan_id', activePlan.id)
           .order('ordre')
 
         setAssignedRepas(repasData || [])
@@ -2789,6 +2842,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
         setAssignedPlan(null)
         setAssignedRepas([])
       }
+
+      setHistoryPlans(otherPlans)
       setLoadingAssigned(false)
     }
     loadAssigned()
@@ -2967,6 +3022,41 @@ function NutritionTab({ coachId, clientId, clientName }) {
           </div>
         )
       }
+
+      {/* ── Historique des plans ── */}
+      {historyPlans.length > 0 && (
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-[#27272a]">
+            <h3 className="text-[#F5F5F3] text-sm font-bold">Historique des plans</h3>
+            <p className="text-white/20 text-[10px] mt-0.5">{historyPlans.length} plan{historyPlans.length > 1 ? 's' : ''} précédent{historyPlans.length > 1 ? 's' : ''}</p>
+          </div>
+          <div className="divide-y divide-[#27272a]/30">
+            {historyPlans.map(plan => (
+              <div key={plan.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-white/[0.02] transition-colors">
+                <div className="w-9 h-9 rounded-xl bg-[#27272a] flex items-center justify-center shrink-0">
+                  <Apple size={15} className="text-white/25" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[#F5F5F3] text-xs font-semibold truncate">{plan.nom || 'Plan sans titre'}</p>
+                  <p className="text-white/20 text-[10px] mt-0.5">
+                    {plan.created_at ? new Date(plan.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <a href={`/coach/nutrition/${plan.id}`}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[#27272a] text-white/40 hover:text-white/70 transition-colors">
+                    Modifier
+                  </a>
+                  <button onClick={() => activatePlan(plan.id)} disabled={activating === plan.id}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 transition-colors disabled:opacity-50">
+                    {activating === plan.id ? <Loader2 size={10} className="animate-spin" /> : 'Activer'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Modale : Assigner un modèle ── */}
       {showAssignModal && (

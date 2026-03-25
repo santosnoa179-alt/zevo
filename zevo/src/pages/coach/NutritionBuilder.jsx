@@ -60,6 +60,7 @@ export default function NutritionBuilder() {
   const [showRepasMenu, setShowRepasMenu] = useState(false)
   const [loadingPlan, setLoadingPlan] = useState(false)
   const [existingPlanId, setExistingPlanId] = useState(planId || null)
+  const [isActive, setIsActive] = useState(false)
 
   // Aliment drawer
   const [alimentDrawer, setAlimentDrawer] = useState(null) // repasId to add to
@@ -206,6 +207,7 @@ export default function NutritionBuilder() {
       if (plan) {
         setTitre(plan.nom || '')
         setExistingPlanId(plan.id)
+        setIsActive(plan.is_active || false)
 
         // Fetch repas + aliments
         const { data: repasData } = await supabase
@@ -360,9 +362,11 @@ export default function NutritionBuilder() {
     try {
       let savedPlanId = existingPlanId
 
+      const effectiveClientId = clientId || (existingPlanId ? null : null)
+
       if (savedPlanId) {
         // Update existing
-        const updatePayload = { nom: titre.trim() }
+        const updatePayload = { nom: titre.trim(), is_active: isActive }
         if (clientId) updatePayload.client_id = clientId
         const { error } = await supabase
           .from('client_nutrition_plans')
@@ -375,9 +379,9 @@ export default function NutritionBuilder() {
           coach_id: user.id,
           nom: titre.trim(),
           date_plan: new Date().toISOString().split('T')[0],
+          is_active: isActive,
         }
         if (clientId) insertPayload.client_id = clientId
-        // client_id null = template
 
         const { data: plan, error } = await supabase
           .from('client_nutrition_plans')
@@ -387,6 +391,17 @@ export default function NutritionBuilder() {
         if (error) throw error
         savedPlanId = plan.id
         setExistingPlanId(savedPlanId)
+      }
+
+      // If marking as active, deactivate all other plans for this client
+      const targetClientId = clientId || effectiveClientId
+      if (isActive && targetClientId) {
+        await supabase
+          .from('client_nutrition_plans')
+          .update({ is_active: false })
+          .eq('client_id', targetClientId)
+          .eq('coach_id', user.id)
+          .neq('id', savedPlanId)
       }
 
       // Delete old repas (cascade deletes repas_aliments)
@@ -480,6 +495,18 @@ export default function NutritionBuilder() {
               placeholder="Objectif (ex: Perte de poids)"
               className="bg-[#18181b] border border-[#27272a] rounded-xl px-3 py-2 text-white/50 text-xs w-48 focus:outline-none focus:border-[#FF6B2B]/40 transition-all placeholder:text-white/15" />
           </div>
+
+          {/* Active toggle */}
+          <button onClick={() => setIsActive(!isActive)}
+            className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+              isActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-[#18181b] text-white/30 border border-[#27272a] hover:text-white/50'
+            }`}>
+            <div className={`w-8 h-4 rounded-full transition-all relative ${isActive ? 'bg-emerald-500' : 'bg-[#27272a]'}`}>
+              <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${isActive ? 'left-4.5 right-0.5' : 'left-0.5'}`}
+                style={{ left: isActive ? '17px' : '2px' }} />
+            </div>
+            {isActive ? 'Plan actif' : 'Inactif'}
+          </button>
 
           {/* Save */}
           <button onClick={handleSaveClick} disabled={saving}
