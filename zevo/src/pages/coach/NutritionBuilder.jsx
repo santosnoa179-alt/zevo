@@ -6,7 +6,8 @@ import { useToast } from '../../components/ui/Toast'
 import {
   ArrowLeft, Save, Loader2, Plus, Trash2, X,
   Coffee, UtensilsCrossed, Moon, Cookie,
-  ChevronDown, Target, Flame, Layers, UserPlus, Check, Search
+  ChevronDown, Target, Flame, Layers, UserPlus, Check, Search,
+  Minus, FileText, Paperclip, Upload, ExternalLink
 } from 'lucide-react'
 
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
@@ -39,6 +40,7 @@ function blankRepas(type) {
     titre: '',
     description: '',
     macros: { p: 0, g: 0, l: 0 },
+    aliments: [], // [{aliment_id, nom, quantite_g, kcal_100g, proteines, glucides, lipides, categorie}]
   }
 }
 
@@ -58,6 +60,107 @@ export default function NutritionBuilder() {
   const [showRepasMenu, setShowRepasMenu] = useState(false)
   const [loadingPlan, setLoadingPlan] = useState(false)
   const [existingPlanId, setExistingPlanId] = useState(planId || null)
+
+  // Aliment drawer
+  const [alimentDrawer, setAlimentDrawer] = useState(null) // repasId to add to
+  const [allAliments, setAllAliments] = useState([])
+  const [alimentSearch, setAlimentSearch] = useState('')
+  const [loadingAliments, setLoadingAliments] = useState(false)
+
+  // Documents
+  const [documents, setDocuments] = useState([])
+  const [uploadingDoc, setUploadingDoc] = useState(false)
+
+  // Load aliments library
+  useEffect(() => {
+    if (!user) return
+    const load = async () => {
+      setLoadingAliments(true)
+      const { data } = await supabase
+        .from('aliments')
+        .select('*')
+        .or(`coach_id.is.null,coach_id.eq.${user.id}`)
+        .order('categorie, nom')
+      setAllAliments(data || [])
+      setLoadingAliments(false)
+    }
+    load()
+  }, [user])
+
+  // Add aliment to a repas
+  const addAlimentToRepas = (repasId, aliment) => {
+    setJours(prev => prev.map((j, i) =>
+      i === activeDay ? {
+        ...j,
+        repas: j.repas.map(r => {
+          if (r.id !== repasId) return r
+          const newAliment = {
+            aliment_id: aliment.id,
+            nom: aliment.nom,
+            quantite_g: 100,
+            kcal_100g: aliment.kcal_100g || 0,
+            proteines: aliment.proteines || 0,
+            glucides: aliment.glucides || 0,
+            lipides: aliment.lipides || 0,
+            categorie: aliment.categorie || '',
+          }
+          const newAliments = [...(r.aliments || []), newAliment]
+          // Recalculate macros from aliments
+          const macros = computeMacrosFromAliments(newAliments)
+          return { ...r, aliments: newAliments, macros }
+        })
+      } : j
+    ))
+  }
+
+  // Update aliment quantity
+  const updateAlimentQty = (repasId, alimentIdx, newQty) => {
+    setJours(prev => prev.map((j, i) =>
+      i === activeDay ? {
+        ...j,
+        repas: j.repas.map(r => {
+          if (r.id !== repasId) return r
+          const newAliments = (r.aliments || []).map((a, idx) =>
+            idx === alimentIdx ? { ...a, quantite_g: Math.max(0, newQty) } : a
+          )
+          const macros = computeMacrosFromAliments(newAliments)
+          return { ...r, aliments: newAliments, macros }
+        })
+      } : j
+    ))
+  }
+
+  // Remove aliment from repas
+  const removeAlimentFromRepas = (repasId, alimentIdx) => {
+    setJours(prev => prev.map((j, i) =>
+      i === activeDay ? {
+        ...j,
+        repas: j.repas.map(r => {
+          if (r.id !== repasId) return r
+          const newAliments = (r.aliments || []).filter((_, idx) => idx !== alimentIdx)
+          const macros = computeMacrosFromAliments(newAliments)
+          return { ...r, aliments: newAliments, macros }
+        })
+      } : j
+    ))
+  }
+
+  // Compute macros from aliments array
+  const computeMacrosFromAliments = (aliments) => {
+    let p = 0, g = 0, l = 0
+    ;(aliments || []).forEach(a => {
+      const ratio = (a.quantite_g || 0) / 100
+      p += (a.proteines || 0) * ratio
+      g += (a.glucides || 0) * ratio
+      l += (a.lipides || 0) * ratio
+    })
+    return { p: Math.round(p * 10) / 10, g: Math.round(g * 10) / 10, l: Math.round(l * 10) / 10 }
+  }
+
+  // Filtered aliments for drawer
+  const filteredAliments = allAliments.filter(a =>
+    !alimentSearch.trim() || a.nom.toLowerCase().includes(alimentSearch.toLowerCase())
+  )
 
   // Save modal
   const [showSaveModal, setShowSaveModal] = useState(false)
@@ -118,24 +221,41 @@ export default function NutritionBuilder() {
           repasData.forEach(r => {
             const meta = r.metadata || {}
             const dayIdx = meta.day || 0
+
+            // Rebuild aliments array from joined data
+            const aliments = (r.repas_aliments || [])
+              .sort((a, b) => (a.ordre || 0) - (b.ordre || 0))
+              .map(ra => ({
+                aliment_id: ra.aliment_id,
+                nom: ra.aliments?.nom || '?',
+                quantite_g: ra.quantite_g || 100,
+                kcal_100g: ra.aliments?.kcal_100g || 0,
+                proteines: ra.aliments?.proteines || 0,
+                glucides: ra.aliments?.glucides || 0,
+                lipides: ra.aliments?.lipides || 0,
+                categorie: ra.aliments?.categorie || '',
+              }))
+
+            // Compute macros: prefer from aliments if they exist, else metadata
+            let macros = meta.macros || { p: 0, g: 0, l: 0 }
+            if (aliments.length > 0) {
+              let p = 0, g = 0, l = 0
+              aliments.forEach(a => {
+                const q = (a.quantite_g || 0) / 100
+                p += (a.proteines || 0) * q
+                g += (a.glucides || 0) * q
+                l += (a.lipides || 0) * q
+              })
+              macros = { p: Math.round(p * 10) / 10, g: Math.round(g * 10) / 10, l: Math.round(l * 10) / 10 }
+            }
+
             const repasItem = {
               id: r.id,
               type: r.type || 'dejeuner',
               titre: meta.titre || '',
               description: meta.description || '',
-              macros: meta.macros || (() => {
-                // Fallback: compute from aliments if no metadata macros
-                let p = 0, g = 0, l = 0
-                ;(r.repas_aliments || []).forEach(ra => {
-                  const a = ra.aliments
-                  if (!a) return
-                  const q = (ra.quantite_g || 100) / 100
-                  p += (a.proteines || 0) * q
-                  g += (a.glucides || 0) * q
-                  l += (a.lipides || 0) * q
-                })
-                return { p: Math.round(p), g: Math.round(g), l: Math.round(l) }
-              })(),
+              macros,
+              aliments,
             }
             if (dayIdx >= 0 && dayIdx < newJours.length) {
               newJours[dayIdx].repas.push(repasItem)
@@ -298,6 +418,17 @@ export default function NutritionBuilder() {
             console.error('[NutritionBuilder] Erreur insert repas:', rErr)
           } else {
             totalInserted++
+            // Insert repas_aliments if any
+            if (newRepas && repas.aliments?.length > 0) {
+              const alimentRows = repas.aliments.map((a, aIdx) => ({
+                repas_id: newRepas.id,
+                aliment_id: a.aliment_id,
+                quantite_g: a.quantite_g || 100,
+                ordre: aIdx,
+              }))
+              const { error: aErr } = await supabase.from('repas_aliments').insert(alimentRows)
+              if (aErr) console.error('[NutritionBuilder] Erreur insert aliments:', aErr)
+            }
           }
         }
       }
@@ -534,6 +665,46 @@ export default function NutritionBuilder() {
                           <p className="text-white/10 text-[8px]">auto</p>
                         </div>
                       </div>
+
+                      {/* ── Aliments list ── */}
+                      {(repas.aliments || []).length > 0 && (
+                        <div className="space-y-1.5 mt-1">
+                          <p className="text-white/20 text-[9px] font-bold uppercase tracking-wider">Aliments ajoutés</p>
+                          {repas.aliments.map((a, aIdx) => {
+                            const ratio = (a.quantite_g || 0) / 100
+                            const aKcal = Math.round((a.kcal_100g || 0) * ratio)
+                            return (
+                              <div key={aIdx} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-[#0D0D0D] group/alim">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[#F5F5F3] text-xs font-medium truncate">{a.nom}</p>
+                                  <p className="text-white/15 text-[10px]">{aKcal} kcal • P{Math.round((a.proteines || 0) * ratio)}g • G{Math.round((a.glucides || 0) * ratio)}g • L{Math.round((a.lipides || 0) * ratio)}g</p>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <button onClick={() => updateAlimentQty(repas.id, aIdx, a.quantite_g - 25)}
+                                    className="w-5 h-5 rounded bg-[#27272a] flex items-center justify-center text-white/30 hover:text-white/60 transition-colors">
+                                    <Minus size={10} />
+                                  </button>
+                                  <span className="text-[#F5F5F3] text-[10px] font-bold w-10 text-center">{a.quantite_g}g</span>
+                                  <button onClick={() => updateAlimentQty(repas.id, aIdx, a.quantite_g + 25)}
+                                    className="w-5 h-5 rounded bg-[#27272a] flex items-center justify-center text-white/30 hover:text-white/60 transition-colors">
+                                    <Plus size={10} />
+                                  </button>
+                                </div>
+                                <button onClick={() => removeAlimentFromRepas(repas.id, aIdx)}
+                                  className="p-1 rounded text-white/10 hover:text-red-400 transition-colors opacity-0 group-hover/alim:opacity-100">
+                                  <Trash2 size={11} />
+                                </button>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+
+                      {/* Add aliment button */}
+                      <button onClick={() => { setAlimentDrawer(repas.id); setAlimentSearch('') }}
+                        className="w-full py-2.5 border border-dashed border-[#27272a] rounded-xl text-white/20 text-xs hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/50 hover:bg-[#FF6B2B]/[0.02] transition-all flex items-center justify-center gap-1.5">
+                        <Plus size={12} /> Ajouter un aliment
+                      </button>
                     </div>
                   </div>
                 )
@@ -542,6 +713,57 @@ export default function NutritionBuilder() {
           )}
         </div>
       </div>
+
+      {/* ═══ Aliment Drawer ═══ */}
+      {alimentDrawer && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setAlimentDrawer(null)} />
+          <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[380px] bg-[#09090b] border-l border-[#27272a] shadow-2xl flex flex-col">
+            <div className="px-5 py-4 border-b border-[#27272a] flex-shrink-0">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[#F5F5F3] text-sm font-bold">Ajouter un aliment</h3>
+                <button onClick={() => setAlimentDrawer(null)} className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                <input type="text" value={alimentSearch} onChange={e => setAlimentSearch(e.target.value)}
+                  placeholder="Rechercher un aliment..." autoFocus
+                  className="w-full bg-[#18181b] border border-[#27272a] rounded-xl pl-9 pr-4 py-2.5 text-[#F5F5F3] text-xs placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
+              {loadingAliments ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 size={20} className="animate-spin text-white/10" />
+                </div>
+              ) : filteredAliments.length === 0 ? (
+                <p className="text-white/15 text-xs text-center py-8">Aucun aliment trouvé</p>
+              ) : (
+                filteredAliments.map(aliment => (
+                  <button key={aliment.id} onClick={() => { addAlimentToRepas(alimentDrawer, aliment); setAlimentDrawer(null) }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#18181b] transition-colors text-left group">
+                    <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                      <UtensilsCrossed size={13} className="text-[#FF6B2B]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[#F5F5F3] text-xs font-medium truncate">{aliment.nom}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] text-[#FF6B2B] font-bold">{aliment.kcal_100g}kcal</span>
+                        <span className="text-[10px] text-blue-400/60">P{aliment.proteines}</span>
+                        <span className="text-[10px] text-amber-400/60">G{aliment.glucides}</span>
+                        <span className="text-[10px] text-rose-400/60">L{aliment.lipides}</span>
+                      </div>
+                    </div>
+                    <Plus size={14} className="text-[#FF6B2B] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ═══ Save Modal ═══ */}
       {showSaveModal && (
