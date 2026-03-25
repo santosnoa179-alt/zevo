@@ -2665,41 +2665,113 @@ function NutritionTab({ coachId, clientId, clientName }) {
   const [assignedRepas, setAssignedRepas] = useState([])
   const [loadingAssigned, setLoadingAssigned] = useState(true)
 
-  // Bibliothèque
-  const [aliments, setAliments] = useState([])
-  const [searchAliment, setSearchAliment] = useState('')
-  const [catFilter, setCatFilter] = useState('Tous')
-  const [loadingAliments, setLoadingAliments] = useState(true)
+  // Assign template modal
+  const [showAssignModal, setShowAssignModal] = useState(false)
+  const [templatePlans, setTemplatePlans] = useState([])
+  const [loadingTemplates, setLoadingTemplates] = useState(false)
+  const [assigning, setAssigning] = useState(false)
 
-  // Plan du jour (daily builder)
-  const [activeRepas, setActiveRepas] = useState('petit_dej')
-  const [planItems, setPlanItems] = useState({
-    petit_dej: [],
-    dejeuner: [],
-    diner: [],
-    collation: [],
-  })
-  const [planDate, setPlanDate] = useState(new Date().toISOString().split('T')[0])
+  // MacroRing is still used for assigned plan display
   const [saving, setSaving] = useState(false)
-  const [existingPlanId, setExistingPlanId] = useState(null)
 
-  // View toggle: 'assigned' (show plan) or 'builder' (daily builder)
-  const [viewMode, setViewMode] = useState('assigned')
+  // ── Open assign template modal ──
+  const openAssignModal = async () => {
+    setShowAssignModal(true)
+    setLoadingTemplates(true)
+    // Load template plans (no client_id = templates)
+    const { data } = await supabase
+      .from('client_nutrition_plans')
+      .select('id, nom, created_at')
+      .eq('coach_id', coachId)
+      .is('client_id', null)
+      .order('created_at', { ascending: false })
+    setTemplatePlans(data || [])
+    setLoadingTemplates(false)
+  }
+
+  // ── Assign a template plan to this client ──
+  const assignTemplate = async (templateId) => {
+    setAssigning(true)
+    try {
+      // 1. Get the template plan
+      const { data: tpl } = await supabase
+        .from('client_nutrition_plans')
+        .select('*')
+        .eq('id', templateId)
+        .single()
+      if (!tpl) throw new Error('Plan introuvable')
+
+      // 2. Create a copy for this client
+      const { data: newPlan, error: pErr } = await supabase
+        .from('client_nutrition_plans')
+        .insert({
+          coach_id: coachId,
+          client_id: clientId,
+          nom: tpl.nom,
+          objectif: tpl.objectif || null,
+          date_plan: new Date().toISOString().split('T')[0],
+        })
+        .select()
+        .single()
+      if (pErr) throw pErr
+
+      // 3. Copy repas + aliments
+      const { data: repas } = await supabase
+        .from('plan_repas')
+        .select('*, repas_aliments(*)')
+        .eq('plan_id', templateId)
+        .order('ordre')
+
+      for (const r of (repas || [])) {
+        const { data: newRepas } = await supabase
+          .from('plan_repas')
+          .insert({ plan_id: newPlan.id, type: r.type, ordre: r.ordre })
+          .select()
+          .single()
+        if (newRepas && r.repas_aliments?.length > 0) {
+          const copies = r.repas_aliments.map(ra => ({
+            repas_id: newRepas.id,
+            aliment_id: ra.aliment_id,
+            quantite_g: ra.quantite_g,
+            ordre: ra.ordre,
+          }))
+          await supabase.from('repas_aliments').insert(copies)
+        }
+      }
+
+      setAssignedPlan(newPlan)
+      // Reload repas
+      const { data: newRepasData } = await supabase
+        .from('plan_repas')
+        .select('id, type, repas_aliments(id, aliment_id, quantite_g, ordre, aliments(*))')
+        .eq('plan_id', newPlan.id)
+        .order('ordre')
+      setAssignedRepas(newRepasData || [])
+
+      toast.success(`Plan "${tpl.nom}" assigné à ${clientName} !`)
+      setShowAssignModal(false)
+    } catch (err) {
+      console.error('[NutritionTab] Erreur assignation:', err)
+      toast.error('Erreur lors de l\'assignation')
+    }
+    setAssigning(false)
+  }
 
   // ── Load assigned plan (from NutritionBuilder) ──
   useEffect(() => {
     if (!coachId || !clientId) return
     const loadAssigned = async () => {
       setLoadingAssigned(true)
-      // Get the most recent assigned plan
-      const { data: plans } = await supabase
+      // Get the most recent assigned plan (with client_id = this client)
+      const { data: plans, error: planErr } = await supabase
         .from('client_nutrition_plans')
         .select('*')
         .eq('coach_id', coachId)
         .eq('client_id', clientId)
-        .eq('is_template', false)
         .order('created_at', { ascending: false })
         .limit(1)
+
+      if (planErr) console.error('[NutritionTab] Erreur fetch plan:', planErr)
 
       if (plans && plans.length > 0) {
         const plan = plans[0]
@@ -2738,198 +2810,6 @@ function NutritionTab({ coachId, clientId, clientName }) {
     })
     return { kcal, prot: Math.round(prot), gluc: Math.round(gluc), lip: Math.round(lip) }
   })()
-
-  // Charger aliments
-  useEffect(() => {
-    if (!coachId) return
-    const load = async () => {
-      setLoadingAliments(true)
-      const { data } = await supabase
-        .from('aliments')
-        .select('*')
-        .or(`coach_id.is.null,coach_id.eq.${coachId}`)
-        .order('categorie, nom')
-      setAliments(data || [])
-      setLoadingAliments(false)
-    }
-    load()
-  }, [coachId])
-
-  // Charger plan existant pour cette date
-  useEffect(() => {
-    if (!coachId || !clientId || !planDate) return
-    const loadPlan = async () => {
-      const { data: plans } = await supabase
-        .from('client_nutrition_plans')
-        .select('id')
-        .eq('coach_id', coachId)
-        .eq('client_id', clientId)
-        .eq('date_plan', planDate)
-        .limit(1)
-
-      if (plans && plans.length > 0) {
-        const planId = plans[0].id
-        setExistingPlanId(planId)
-
-        // Charger les repas + aliments
-        const { data: repasData } = await supabase
-          .from('plan_repas')
-          .select('id, type, repas_aliments(id, aliment_id, quantite_g, ordre, aliments(*))')
-          .eq('plan_id', planId)
-          .order('ordre')
-
-        const loaded = { petit_dej: [], dejeuner: [], diner: [], collation: [] }
-        ;(repasData || []).forEach(r => {
-          if (loaded[r.type]) {
-            loaded[r.type] = (r.repas_aliments || [])
-              .sort((a, b) => a.ordre - b.ordre)
-              .map(ra => ({
-                ...ra.aliments,
-                quantite: ra.quantite_g,
-                _ra_id: ra.id,
-              }))
-          }
-        })
-        setPlanItems(loaded)
-      } else {
-        setExistingPlanId(null)
-        setPlanItems({ petit_dej: [], dejeuner: [], diner: [], collation: [] })
-      }
-    }
-    loadPlan()
-  }, [coachId, clientId, planDate])
-
-  // Ajouter un aliment au repas actif
-  const addAliment = (aliment) => {
-    setPlanItems(prev => ({
-      ...prev,
-      [activeRepas]: [...prev[activeRepas], { ...aliment, quantite: 100 }],
-    }))
-  }
-
-  // Modifier la quantité
-  const updateQuantite = (repasType, index, newQty) => {
-    setPlanItems(prev => ({
-      ...prev,
-      [repasType]: prev[repasType].map((item, i) =>
-        i === index ? { ...item, quantite: Math.max(0, newQty) } : item
-      ),
-    }))
-  }
-
-  // Supprimer un aliment du repas
-  const removeAliment = (repasType, index) => {
-    setPlanItems(prev => ({
-      ...prev,
-      [repasType]: prev[repasType].filter((_, i) => i !== index),
-    }))
-  }
-
-  // Calcul des macros pour un item
-  const macrosForItem = (item) => {
-    const ratio = (item.quantite || 0) / 100
-    return {
-      kcal: Math.round((item.kcal_100g || 0) * ratio),
-      prot: Math.round((item.proteines || 0) * ratio * 10) / 10,
-      gluc: Math.round((item.glucides || 0) * ratio * 10) / 10,
-      lip: Math.round((item.lipides || 0) * ratio * 10) / 10,
-    }
-  }
-
-  // Totaux par repas
-  const repasTotal = (type) => {
-    return (planItems[type] || []).reduce(
-      (acc, item) => {
-        const m = macrosForItem(item)
-        return { kcal: acc.kcal + m.kcal, prot: acc.prot + m.prot, gluc: acc.gluc + m.gluc, lip: acc.lip + m.lip }
-      },
-      { kcal: 0, prot: 0, gluc: 0, lip: 0 }
-    )
-  }
-
-  // Total général
-  const totalMacros = Object.keys(planItems).reduce(
-    (acc, type) => {
-      const t = repasTotal(type)
-      return { kcal: acc.kcal + t.kcal, prot: acc.prot + t.prot, gluc: acc.gluc + t.gluc, lip: acc.lip + t.lip }
-    },
-    { kcal: 0, prot: 0, gluc: 0, lip: 0 }
-  )
-
-  // Filtrage
-  const filteredAliments = aliments.filter(a => {
-    const matchSearch = a.nom.toLowerCase().includes(searchAliment.toLowerCase())
-    const matchCat = catFilter === 'Tous' || a.categorie === catFilter
-    return matchSearch && matchCat
-  })
-
-  // Sauvegarder le plan
-  const sauvegarderPlan = async () => {
-    setSaving(true)
-    try {
-      let planId = existingPlanId
-
-      if (planId) {
-        // Supprimer les anciens repas (cascade supprime les repas_aliments)
-        await supabase.from('plan_repas').delete().eq('plan_id', planId)
-      } else {
-        const { data, error } = await supabase
-          .from('client_nutrition_plans')
-          .insert({ coach_id: coachId, client_id: clientId, date_plan: planDate, nom: 'Plan du jour' })
-          .select()
-          .single()
-        if (error) throw error
-        planId = data.id
-        setExistingPlanId(planId)
-      }
-
-      // Insérer les repas
-      for (const type of Object.keys(planItems)) {
-        const items = planItems[type]
-        if (items.length === 0) continue
-
-        const { data: repasRow, error: rErr } = await supabase
-          .from('plan_repas')
-          .insert({ plan_id: planId, type, ordre: REPAS_TYPES.findIndex(r => r.id === type) })
-          .select()
-          .single()
-
-        if (rErr) throw rErr
-
-        const rows = items.map((item, idx) => ({
-          repas_id: repasRow.id,
-          aliment_id: item.id,
-          quantite_g: item.quantite,
-          ordre: idx,
-        }))
-        await supabase.from('repas_aliments').insert(rows)
-      }
-
-      toast.success('Plan nutritionnel sauvegardé !')
-    } catch (err) {
-      console.error('Erreur sauvegarde plan:', err)
-      toast.error('Erreur lors de la sauvegarde.')
-    }
-    setSaving(false)
-  }
-
-  // Drawer pour ajouter un aliment
-  const [alimentDrawerOpen, setAlimentDrawerOpen] = useState(false)
-  const [alimentDrawerTarget, setAlimentDrawerTarget] = useState('petit_dej')
-
-  const openAlimentDrawer = (repasType) => {
-    setAlimentDrawerTarget(repasType)
-    setAlimentDrawerOpen(true)
-    setSearchAliment('')
-    setCatFilter('Tous')
-  }
-
-  const addAlimentFromDrawer = (aliment) => {
-    setPlanItems(prev => ({
-      ...prev,
-      [alimentDrawerTarget]: [...prev[alimentDrawerTarget], { ...aliment, quantite: 100 }],
-    }))
-  }
 
   // Macro ring SVG helper
   const MacroRing = ({ value, max, color, label, unit, size = 90 }) => {
@@ -2984,6 +2864,10 @@ function NutritionTab({ coachId, clientId, clientName }) {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-xs font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
               <Plus size={13} /> Créer un plan
             </a>
+            <button onClick={openAssignModal}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#27272a] text-white/60 text-xs font-semibold hover:text-white hover:bg-[#27272a]/80 transition-all border border-[#27272a]">
+              <Layers size={13} /> Assigner un modèle
+            </button>
           </div>
         </div>
         ) : (
@@ -3074,7 +2958,54 @@ function NutritionTab({ coachId, clientId, clientName }) {
         )
       }
 
-      {/* Nutrition management via /coach/nutrition */}
+      {/* ── Modale : Assigner un modèle ── */}
+      {showAssignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowAssignModal(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-md bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}>
+            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+            <div className="px-6 pt-5 pb-4 border-b border-[#27272a] flex items-center justify-between">
+              <h2 className="text-[#F5F5F3] text-lg font-bold">Assigner un modèle</h2>
+              <button onClick={() => setShowAssignModal(false)} className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-4 max-h-80 overflow-y-auto space-y-2">
+              {loadingTemplates ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 size={20} className="animate-spin text-[#FF6B2B]" />
+                </div>
+              ) : templatePlans.length === 0 ? (
+                <div className="text-center py-8">
+                  <Apple size={28} className="text-white/8 mx-auto mb-2" />
+                  <p className="text-white/20 text-xs mb-3">Aucun modèle disponible</p>
+                  <a href="/coach/nutrition/new"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
+                    <Plus size={12} /> Créer un modèle
+                  </a>
+                </div>
+              ) : (
+                templatePlans.map(tpl => (
+                  <button key={tpl.id} onClick={() => assignTemplate(tpl.id)} disabled={assigning}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[#0D0D0D] border border-[#27272a] hover:border-[#FF6B2B]/30 transition-all text-left disabled:opacity-50">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                      <Apple size={16} className="text-emerald-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[#F5F5F3] text-sm font-semibold truncate">{tpl.nom || 'Plan sans titre'}</p>
+                      <p className="text-white/20 text-[10px] mt-0.5">
+                        Créé le {new Date(tpl.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                      </p>
+                    </div>
+                    <ChevronRight size={14} className="text-white/15 shrink-0" />
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
