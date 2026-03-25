@@ -37,11 +37,31 @@ export default function CoachNutritionPage() {
   // Fetch clients
   useEffect(() => {
     if (!user) return
-    supabase.from('clients').select('id, profiles!inner(id, nom, prenom, email)').eq('coach_id', user.id).eq('actif', true)
-      .then(({ data, error }) => {
-        console.log('DEBUG CLIENTS [NutritionPage] - Data:', data, 'Erreur:', error)
-        setCoachClients(data || [])
-      })
+    const fetchClients = async () => {
+      // Méthode 1 : via la table clients (relationnelle)
+      const { data: clientsData, error: err1 } = await supabase
+        .from('clients')
+        .select('id, profiles!inner(id, nom, prenom, email)')
+        .eq('coach_id', user.id)
+        .eq('actif', true)
+      console.log('DEBUG CLIENTS [NutritionPage] via clients:', clientsData, 'Erreur:', err1)
+
+      if (clientsData && clientsData.length > 0) {
+        setCoachClients(clientsData)
+        return
+      }
+
+      // Méthode 2 (fallback) : directement depuis profiles
+      const { data: profilesData, error: err2 } = await supabase
+        .from('profiles')
+        .select('id, nom, prenom, email')
+        .eq('role', 'client')
+      console.log('DEBUG CLIENTS [NutritionPage] via profiles:', profilesData, 'Erreur:', err2)
+
+      // Transform to match expected structure { id, profiles: { id, nom, prenom } }
+      setCoachClients((profilesData || []).map(p => ({ id: p.id, profiles: p })))
+    }
+    fetchClients()
   }, [user])
 
   // Fetch plans
@@ -358,7 +378,7 @@ export default function CoachNutritionPage() {
               {/* Actions */}
               <div className="col-span-1 flex justify-end relative">
                 <button onClick={e => { e.stopPropagation(); setActionMenu(actionMenu === plan.id ? null : plan.id) }}
-                  className="p-1.5 rounded-lg text-white/15 hover:text-white/40 hover:bg-white/[0.04] transition-all opacity-0 group-hover:opacity-100">
+                  className="p-1.5 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-all">
                   <MoreVertical size={14} />
                 </button>
                 {actionMenu === plan.id && (
