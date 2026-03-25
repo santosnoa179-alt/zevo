@@ -37,9 +37,13 @@ export default function CoachNutritionPage() {
   // Fetch clients
   useEffect(() => {
     if (!user) return
-    supabase.from('clients').select('id, profiles!inner(id, nom, prenom)')
+    supabase.from('clients').select('id, profiles(id, nom, prenom, email)')
       .eq('coach_id', user.id).eq('actif', true)
-      .then(({ data }) => setCoachClients(data || []))
+      .then(({ data, error }) => {
+        if (error) console.error('[NutritionPage] Erreur fetch clients:', error)
+        console.log('[NutritionPage] Clients chargés:', data)
+        setCoachClients((data || []).filter(c => c.profiles))
+      })
   }, [user])
 
   // Fetch plans
@@ -64,14 +68,25 @@ export default function CoachNutritionPage() {
   useEffect(() => { fetchPlans() }, [fetchPlans])
 
   // Delete plan
-  const handleDelete = async (planId) => {
+  const handleDelete = async (planId, e) => {
+    if (e) e.stopPropagation()
     if (!confirm('Supprimer ce plan nutritionnel ? Cette action est irréversible.')) return
-    const { error } = await supabase.from('client_nutrition_plans').delete().eq('id', planId)
-    if (error) {
-      toast.error('Erreur lors de la suppression')
-    } else {
+    try {
+      // Delete repas first (in case CASCADE isn't set up)
+      const { data: repasIds } = await supabase.from('plan_repas').select('id').eq('plan_id', planId)
+      if (repasIds?.length > 0) {
+        const ids = repasIds.map(r => r.id)
+        await supabase.from('repas_aliments').delete().in('repas_id', ids)
+        await supabase.from('plan_repas').delete().eq('plan_id', planId)
+      }
+      // Delete the plan
+      const { error } = await supabase.from('client_nutrition_plans').delete().eq('id', planId)
+      if (error) throw error
       toast.success('Plan supprimé')
       fetchPlans()
+    } catch (err) {
+      console.error('[NutritionPage] Erreur suppression:', err)
+      toast.error('Erreur : ' + (err.message || 'Suppression échouée'))
     }
     setActionMenu(null)
   }
@@ -348,7 +363,7 @@ export default function CoachNutritionPage() {
                         <UserPlus size={13} /> Assigner à un client
                       </button>
                       <div className="border-t border-[#27272a]" />
-                      <button onClick={e => { e.stopPropagation(); handleDelete(plan.id) }}
+                      <button onClick={e => handleDelete(plan.id, e)}
                         className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2">
                         <Trash2 size={13} /> Supprimer
                       </button>
