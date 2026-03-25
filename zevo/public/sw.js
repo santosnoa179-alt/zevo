@@ -1,7 +1,7 @@
 // Service Worker — Zevo PWA
 // Stratégie : cache-first pour les assets statiques, network-first pour l'API
 
-const CACHE_NAME = 'zevo-v1'
+const CACHE_NAME = 'zevo-v2'
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -58,23 +58,23 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Assets statiques → cache-first
+  // Assets statiques → network-first (ensures fresh deploys are always served)
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached
-      return fetch(request).then((response) => {
-        // Cache les nouvelles réponses réussies
-        if (response.ok && url.origin === self.location.origin) {
-          const clone = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
-        }
-        return response
-      })
-    }).catch(() => {
-      // Fallback pour les navigations → index.html (SPA)
-      if (request.mode === 'navigate') {
-        return caches.match('/index.html')
+    fetch(request).then((response) => {
+      if (response.ok && url.origin === self.location.origin) {
+        const clone = response.clone()
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
       }
+      return response
+    }).catch(() => {
+      // Fallback to cache if offline
+      return caches.match(request).then((cached) => {
+        if (cached) return cached
+        // Fallback pour les navigations → index.html (SPA)
+        if (request.mode === 'navigate') {
+          return caches.match('/index.html')
+        }
+      })
     })
   )
 })
