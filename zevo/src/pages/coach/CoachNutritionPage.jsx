@@ -38,21 +38,9 @@ export default function CoachNutritionPage() {
   useEffect(() => {
     if (!user) return
     const fetchClients = async () => {
-      console.log('🔍 1. [NutritionPage] Tentative de récupération des clients...')
-
-      // Test sans filtre pour voir ce qui existe dans profiles
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-
-      console.log('🛑 2. [NutritionPage] Résultat Supabase -> Data:', data, 'Erreur:', error)
-      if (error) {
-        console.error('Erreur fatale Supabase:', error)
-        return
-      }
-
-      // Transform all profiles to match expected { id, profiles: { id, nom, prenom } }
-      setCoachClients((data || []).map(p => ({ id: p.id, profiles: { id: p.id, nom: p.nom, prenom: p.prenom, email: p.email } })))
+      const { data, error } = await supabase.from('profiles').select('id, nom, prenom, email')
+      console.log('[NutritionPage] Clients:', data?.length, 'Erreur:', error)
+      if (!error) setCoachClients(data || [])
     }
     fetchClients()
   }, [user])
@@ -159,7 +147,8 @@ export default function CoachNutritionPage() {
         }
       }
 
-      const clientName = coachClients.find(c => c.profiles?.id === selectedClient)?.profiles?.nom || 'ce client'
+      const cl = coachClients.find(c => c.id === selectedClient)
+      const clientName = cl ? [cl.prenom, cl.nom].filter(Boolean).join(' ') : 'ce client'
       toast.success(`Plan assigné à ${clientName} !`)
       setAssignPlan(null)
       setSelectedClient('')
@@ -421,17 +410,18 @@ export default function CoachNutritionPage() {
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs text-white/40 mb-2 font-medium">Sélectionner un client</label>
+                <label className="block text-xs text-white/40 mb-2 font-medium">
+                  Sélectionner un client <span className="text-white/15">({coachClients.length} trouvé{coachClients.length > 1 ? 's' : ''})</span>
+                </label>
                 <div className="space-y-1.5 max-h-60 overflow-y-auto">
                   {coachClients.length === 0 ? (
-                    <p className="text-white/20 text-xs text-center py-4">Aucun client actif</p>
+                    <p className="text-white/20 text-xs text-center py-4">Aucun client trouvé — vérifiez la console (F12)</p>
                   ) : coachClients.map(c => {
-                    const nom = [c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || 'Client'
-                    const profileId = c.profiles?.id
-                    const isSelected = selectedClient === profileId
-                    const initials = nom.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                    const nom = [c.prenom, c.nom].filter(Boolean).join(' ')
+                    const isSelected = selectedClient === c.id
+                    const initials = `${c.prenom?.charAt(0) || ''}${c.nom?.charAt(0) || ''}`.toUpperCase() || '?'
                     return (
-                      <button key={c.id} onClick={() => setSelectedClient(profileId)}
+                      <button key={c.id} onClick={() => setSelectedClient(c.id)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
                           isSelected ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'hover:bg-white/[0.03] border border-transparent'
                         }`}>

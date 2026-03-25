@@ -68,19 +68,9 @@ export default function NutritionBuilder() {
   useEffect(() => {
     if (!user) return
     const fetchClients = async () => {
-      console.log('🔍 1. [NutritionBuilder] Tentative de récupération des clients...')
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-
-      console.log('🛑 2. [NutritionBuilder] Résultat Supabase -> Data:', data, 'Erreur:', error)
-      if (error) {
-        console.error('Erreur fatale Supabase:', error)
-        return
-      }
-
-      setCoachClients((data || []).map(p => ({ id: p.id, profiles: { id: p.id, nom: p.nom, prenom: p.prenom, email: p.email } })))
+      const { data, error } = await supabase.from('profiles').select('id, nom, prenom, email')
+      console.log('[NutritionBuilder] Clients:', data?.length, 'Erreur:', error)
+      if (!error) setCoachClients(data || [])
     }
     fetchClients()
   }, [user])
@@ -279,7 +269,8 @@ export default function NutritionBuilder() {
         }
       }
 
-      const clientName = clientId ? (coachClients.find(c => c.profiles?.id === clientId)?.profiles?.nom || 'ce client') : null
+      const cl = clientId ? coachClients.find(c => c.id === clientId) : null
+      const clientName = cl ? [cl.prenom, cl.nom].filter(Boolean).join(' ') : null
       toast.success(clientName ? `Plan assigné à ${clientName} !` : (existingPlanId ? 'Plan mis à jour !' : 'Modèle créé !'))
       navigate('/coach/nutrition')
     } catch (err) {
@@ -586,16 +577,15 @@ export default function NutritionBuilder() {
                   <div className="max-h-40 overflow-y-auto space-y-1">
                     {coachClients
                       .filter(c => {
-                        const nom = [c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ')
+                        const nom = [c.prenom, c.nom].filter(Boolean).join(' ')
                         return nom.toLowerCase().includes(saveClientSearch.toLowerCase())
                       })
                       .map(c => {
-                        const nom = [c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || 'Client'
-                        const profileId = c.profiles?.id
-                        const isSelected = saveClientId === profileId
-                        const initials = nom.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                        const nom = [c.prenom, c.nom].filter(Boolean).join(' ')
+                        const isSelected = saveClientId === c.id
+                        const initials = `${c.prenom?.charAt(0) || ''}${c.nom?.charAt(0) || ''}`.toUpperCase() || '?'
                         return (
-                          <button key={c.id} onClick={() => setSaveClientId(profileId)}
+                          <button key={c.id} onClick={() => setSaveClientId(c.id)}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
                               isSelected ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'hover:bg-white/[0.03] border border-transparent'
                             }`}>
