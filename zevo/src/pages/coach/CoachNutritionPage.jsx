@@ -393,8 +393,12 @@ export default function CoachNutritionPage() {
 
               {/* Statut */}
               <div className="col-span-1">
-                <span className="text-[9px] px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-bold">
-                  Actif
+                <span className={`text-[9px] px-2.5 py-1 rounded-full font-bold ${
+                  t.is_active
+                    ? 'bg-emerald-500/10 text-emerald-400'
+                    : 'bg-[#27272a] text-white/25'
+                }`}>
+                  {t.is_active ? 'Actif' : 'Inactif'}
                 </span>
               </div>
 
