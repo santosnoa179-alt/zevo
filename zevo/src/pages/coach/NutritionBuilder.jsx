@@ -70,9 +70,20 @@ export default function NutritionBuilder() {
   useEffect(() => {
     if (!user) return
     const fetchClients = async () => {
-      const { data, error } = await supabase.from('profiles').select('id, nom, prenom, email')
-      console.log('[NutritionBuilder] Clients:', data?.length, 'Erreur:', error)
-      if (!error) setCoachClients(data || [])
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id, actif, profiles(id, nom, prenom, email)')
+        .eq('coach_id', user.id)
+        .eq('actif', true)
+
+      if (error) {
+        console.error('[NutritionBuilder] Erreur fetch clients:', error)
+        return
+      }
+      const clients = (data || [])
+        .filter(c => c.profiles)
+        .map(c => ({ id: c.profiles.id, nom: c.profiles.nom, prenom: c.profiles.prenom, email: c.profiles.email }))
+      setCoachClients(clients)
     }
     fetchClients()
   }, [user])

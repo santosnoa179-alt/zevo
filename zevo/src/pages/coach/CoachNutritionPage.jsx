@@ -38,9 +38,22 @@ export default function CoachNutritionPage() {
   useEffect(() => {
     if (!user) return
     const fetchClients = async () => {
-      const { data, error } = await supabase.from('profiles').select('id, nom, prenom, email')
-      console.log('[NutritionPage] Clients:', data?.length, 'Erreur:', error)
-      if (!error) setCoachClients(data || [])
+      // Via clients table (filtered by coach_id)
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id, actif, profiles(id, nom, prenom, email)')
+        .eq('coach_id', user.id)
+        .eq('actif', true)
+
+      if (error) {
+        console.error('[NutritionPage] Erreur fetch clients:', error)
+        return
+      }
+      // Flatten: extract profile data, use profiles.id as the client identifier
+      const clients = (data || [])
+        .filter(c => c.profiles)
+        .map(c => ({ id: c.profiles.id, nom: c.profiles.nom, prenom: c.profiles.prenom, email: c.profiles.email }))
+      setCoachClients(clients)
     }
     fetchClients()
   }, [user])
@@ -69,7 +82,7 @@ export default function CoachNutritionPage() {
       error = res.error
     }
 
-    console.log('DEBUG PLANS:', data)
+
     if (error) console.error('[NutritionPage] Erreur fetch:', error)
     setPlans(data || [])
     setIsLoading(false)
@@ -85,25 +98,25 @@ export default function CoachNutritionPage() {
       // 1. Trouver les repas du plan
       const { data: repas, error: fetchErr } = await supabase.from('plan_repas').select('id').eq('plan_id', planId)
       if (fetchErr) { console.error('Erreur 1 (Fetch Repas):', fetchErr); throw fetchErr }
-      console.log('DEBUG DELETE - Repas trouvés:', repas?.length || 0)
+
 
       // 2. Supprimer les aliments liés à ces repas
       if (repas && repas.length > 0) {
         const repasIds = repas.map(r => r.id)
         const { error: alimErr } = await supabase.from('repas_aliments').delete().in('repas_id', repasIds)
         if (alimErr) { console.error('Erreur 2 (Delete Aliments):', alimErr); throw alimErr }
-        console.log('DEBUG DELETE - Aliments supprimés pour', repasIds.length, 'repas')
+
       }
 
       // 3. Supprimer les repas
       const { error: repasErr } = await supabase.from('plan_repas').delete().eq('plan_id', planId)
       if (repasErr) { console.error('Erreur 3 (Delete Repas):', repasErr); throw repasErr }
-      console.log('DEBUG DELETE - Repas supprimés')
+
 
       // 4. Supprimer le plan
       const { error: planErr } = await supabase.from('client_nutrition_plans').delete().eq('id', planId)
       if (planErr) { console.error('Erreur 4 (Delete Plan):', planErr); throw planErr }
-      console.log('DEBUG DELETE - Plan supprimé:', planId)
+
 
       toast.success('Plan supprimé !')
       fetchPlans()

@@ -85,7 +85,6 @@ function ClientProgrammesSection({ clientId, coachId }) {
         .eq('client_id', clientId)
         .order('created_at', { ascending: false })
         .limit(5)
-      console.log('DEBUG HUB NUTRITION:', { clientId, coachId, data: nutritionData, error: nutritionErr })
       setNutritionPlans(nutritionData || [])
 
       setLoading(false)
