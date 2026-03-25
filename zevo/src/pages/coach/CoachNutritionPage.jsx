@@ -184,11 +184,17 @@ export default function CoachNutritionPage() {
     templates: plans.filter(p => !p.client_id).length,
   }
 
-  // Client name helper
+  // Client name helper — checks join result, then falls back to client list
   const getClientName = (plan) => {
-    if (!plan.profiles) return null
-    const p = plan.profiles
-    return [p.prenom, p.nom].filter(Boolean).join(' ') || null
+    // From Supabase join (profiles:client_id)
+    if (plan.profiles?.nom) return [plan.profiles.prenom, plan.profiles.nom].filter(Boolean).join(' ')
+    // Fallback: look up in coachClients by client_id
+    if (plan.client_id) {
+      const cl = coachClients.find(c => c.id === plan.client_id)
+      if (cl) return [cl.prenom, cl.nom].filter(Boolean).join(' ')
+      return 'Client assigné'
+    }
+    return null
   }
 
   const getInitials = (plan) => {
