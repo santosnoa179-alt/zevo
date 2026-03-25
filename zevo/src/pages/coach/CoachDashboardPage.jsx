@@ -409,7 +409,7 @@ export default function CoachDashboardPage() {
             <div className="space-y-2">
               {[
                 { label: 'Nouveau client', icon: UserPlus, action: () => navigate('/coach/client-hub'), color: '#FF6B2B' },
-                { label: 'Créer un programme', icon: Calendar, action: () => navigate('/coach/programmes'), color: '#3b82f6' },
+                { label: 'Créer un programme', icon: Calendar, action: () => navigate('/coach/sport'), color: '#3b82f6' },
                 { label: 'Voir les stats', icon: TrendingUp, action: () => navigate('/coach/statistiques'), color: '#22c55e' },
               ].map((a, i) => (
                 <button

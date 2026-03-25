@@ -754,7 +754,7 @@ export default function CoachClientFichePage() {
           <div className="text-center py-8">
             <Layers size={28} className="text-white/15 mx-auto mb-2" />
             <p className="text-white/30 text-sm mb-3">Aucun programme créé</p>
-            <Button size="sm" onClick={() => { setModalProg(false); window.location.href = '/coach/programmes' }}>
+            <Button size="sm" onClick={() => { setModalProg(false); window.location.href = '/coach/sport' }}>
               Créer un programme
             </Button>
           </div>

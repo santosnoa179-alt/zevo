@@ -61,78 +61,146 @@ function StatCard({ icon: Icon, label, value, sub, accent = false }) {
 // ══════════════════════════════════════
 
 function ClientProgrammesSection({ clientId, coachId }) {
-  const [programmes, setProgrammes] = useState([])
+  const [sportProgrammes, setSportProgrammes] = useState([])
+  const [nutritionPlans, setNutritionPlans] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!clientId || !coachId) return
     setLoading(true)
-    supabase
-      .from('programme_assignations')
-      .select('id, date_debut, statut, phase_actuelle, programmes(id, titre, duree_semaines, categorie)')
-      .eq('coach_id', coachId)
-      .then(({ data }) => {
-        // Filter by client via the assignation table structure
-        setProgrammes((data || []).filter(a => a.programmes))
-        setLoading(false)
-      })
+
+    const loadAll = async () => {
+      // Sport programmes
+      const { data: sportData } = await supabase
+        .from('programme_assignations')
+        .select('id, date_debut, statut, phase_actuelle, programmes(id, titre, duree_semaines, categorie)')
+        .eq('coach_id', coachId)
+      setSportProgrammes((sportData || []).filter(a => a.programmes))
+
+      // Nutrition plans (from client_nutrition_plans table)
+      const { data: nutritionData } = await supabase
+        .from('client_nutrition_plans')
+        .select('id, nom, date_plan, created_at')
+        .eq('coach_id', coachId)
+        .eq('client_id', clientId)
+        .order('date_plan', { ascending: false })
+        .limit(5)
+      setNutritionPlans(nutritionData || [])
+
+      setLoading(false)
+    }
+    loadAll()
   }, [clientId, coachId])
 
-  if (loading) return <div className="h-24 bg-[#1E1E1E] rounded-2xl animate-pulse" />
+  if (loading) return <div className="space-y-3"><div className="h-24 bg-[#1E1E1E] rounded-2xl animate-pulse" /><div className="h-24 bg-[#1E1E1E] rounded-2xl animate-pulse" /></div>
 
   return (
-    <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
-      <div className="px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
-            <FolderOpen size={17} className="text-[#FF6B2B]" />
+    <div className="space-y-4">
+
+      {/* ═══ Section Entraînement Sportif ═══ */}
+      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <Dumbbell size={17} className="text-[#FF6B2B]" />
+            </div>
+            <div>
+              <h3 className="text-[#F5F5F3] text-base font-bold">Entraînement Sportif</h3>
+              <p className="text-white/25 text-[11px]">Programmes sport multi-semaines</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-[#F5F5F3] text-base font-bold">Programmes</h3>
-            <p className="text-white/25 text-[11px]">Parcours multi-semaines assignés</p>
-          </div>
+          <a href="/coach/sport"
+            className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
+            Gérer →
+          </a>
         </div>
-        <a href="/coach/programmes"
-          className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
-          Gérer →
-        </a>
+
+        <div className="px-6 pb-5">
+          {sportProgrammes.length === 0 ? (
+            <div className="bg-[#0D0D0D] rounded-xl p-5 text-center">
+              <Dumbbell size={22} className="text-white/8 mx-auto mb-2" />
+              <p className="text-white/20 text-xs">Aucun programme sportif assigné</p>
+              <a href="/coach/sport"
+                className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
+                <Plus size={12} /> Assigner un programme
+              </a>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {sportProgrammes.map(a => (
+                <div key={a.id} className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                    <Dumbbell size={18} className="text-[#FF6B2B]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[#F5F5F3] text-sm font-semibold truncate">{a.programmes?.titre}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#2A2A2A] text-white/35 font-medium">{a.programmes?.duree_semaines} sem.</span>
+                      {a.programmes?.categorie && (
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium">{a.programmes.categorie}</span>
+                      )}
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Phase {a.phase_actuelle}</span>
+                    </div>
+                  </div>
+                  <a href="/coach/sport"
+                    className="px-3 py-2 rounded-xl bg-[#2A2A2A] text-white/50 text-[11px] font-medium hover:bg-[#3f3f46] hover:text-white transition-all flex items-center gap-1.5 shrink-0">
+                    Ouvrir <ChevronRight size={12} />
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="px-6 pb-5">
-        {programmes.length === 0 ? (
-          <div className="bg-[#0D0D0D] rounded-xl p-6 text-center">
-            <FolderOpen size={24} className="text-white/8 mx-auto mb-2" />
-            <p className="text-white/20 text-xs">Aucun programme assigné</p>
-            <a href="/coach/programmes"
-              className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
-              <Plus size={12} /> Assigner un programme
-            </a>
+      {/* ═══ Section Plan Nutritionnel ═══ */}
+      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+              <Apple size={17} className="text-emerald-400" />
+            </div>
+            <div>
+              <h3 className="text-[#F5F5F3] text-base font-bold">Plan Nutritionnel</h3>
+              <p className="text-white/25 text-[11px]">Plans de repas et macros</p>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-2.5">
-            {programmes.map(a => (
-              <div key={a.id} className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
-                  <FolderOpen size={18} className="text-[#FF6B2B]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[#F5F5F3] text-sm font-semibold truncate">{a.programmes?.titre}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#2A2A2A] text-white/35 font-medium">{a.programmes?.duree_semaines} sem.</span>
-                    {a.programmes?.categorie && (
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium">{a.programmes.categorie}</span>
-                    )}
-                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Phase {a.phase_actuelle}</span>
+          <a href="/coach/nutrition"
+            className="text-[11px] text-emerald-400 font-semibold hover:text-emerald-300 transition-colors">
+            Gérer →
+          </a>
+        </div>
+
+        <div className="px-6 pb-5">
+          {nutritionPlans.length === 0 ? (
+            <div className="bg-[#0D0D0D] rounded-xl p-5 text-center">
+              <Apple size={22} className="text-white/8 mx-auto mb-2" />
+              <p className="text-white/20 text-xs">Aucun plan nutritionnel créé</p>
+              <button onClick={() => {/* navigate to nutrition tab */}}
+                className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold hover:bg-emerald-500/20 transition-colors">
+                <Plus size={12} /> Créer un plan
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {nutritionPlans.map(plan => (
+                <div key={plan.id} className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <Apple size={18} className="text-emerald-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[#F5F5F3] text-sm font-semibold truncate">{plan.nom || 'Plan du jour'}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#2A2A2A] text-white/35 font-medium">
+                        {new Date(plan.date_plan).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <a href="/coach/programmes"
-                  className="px-3 py-2 rounded-xl bg-[#2A2A2A] text-white/50 text-[11px] font-medium hover:bg-[#3f3f46] hover:text-white transition-all flex items-center gap-1.5 shrink-0">
-                  Ouvrir <ChevronRight size={12} />
-                </a>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
