@@ -50,16 +50,27 @@ export default function CoachNutritionPage() {
     if (!user) return
     setIsLoading(true)
 
-    const { data, error } = await supabase
+    // Try with explicit FK hint first (client_id -> profiles)
+    let { data, error } = await supabase
       .from('client_nutrition_plans')
-      .select('*, profiles(id, nom, prenom)')
+      .select('*, profiles:client_id(id, nom, prenom)')
       .eq('coach_id', user.id)
       .order('created_at', { ascending: false })
 
+    // If the FK hint fails (400 error), fallback without join
     if (error) {
-      console.error('[NutritionPage] Erreur fetch:', error)
+      console.warn('[NutritionPage] Join FK échouée, fallback sans join:', error.message)
+      const res = await supabase
+        .from('client_nutrition_plans')
+        .select('*')
+        .eq('coach_id', user.id)
+        .order('created_at', { ascending: false })
+      data = res.data
+      error = res.error
     }
-    console.log('[NutritionPage] Plans récupérés:', data)
+
+    console.log('DEBUG PLANS:', data)
+    if (error) console.error('[NutritionPage] Erreur fetch:', error)
     setPlans(data || [])
     setIsLoading(false)
   }, [user])
@@ -332,18 +343,25 @@ export default function CoachNutritionPage() {
 
               {/* Client */}
               <div className="col-span-2">
-                {plan.client_id ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/20 text-[#FF6B2B] flex items-center justify-center text-[10px] font-bold shrink-0">
-                      {plan.profiles?.prenom?.charAt(0) || ''}{plan.profiles?.nom?.charAt(0) || '?'}
+                {(() => {
+                  if (!plan.client_id) {
+                    return <span className="text-[9px] px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 font-medium border border-blue-500/20">Modèle</span>
+                  }
+                  // Try join data first, then lookup in coachClients
+                  const prenom = plan.profiles?.prenom || coachClients.find(c => c.id === plan.client_id)?.prenom || ''
+                  const nom = plan.profiles?.nom || coachClients.find(c => c.id === plan.client_id)?.nom || ''
+                  const fullName = [prenom, nom].filter(Boolean).join(' ')
+                  const i1 = prenom?.charAt(0) || ''
+                  const i2 = nom?.charAt(0) || ''
+                  return (
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/20 text-[#FF6B2B] flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {i1}{i2 || '?'}
+                      </div>
+                      <span className="text-white/50 text-xs truncate">{fullName || 'Client assigné'}</span>
                     </div>
-                    <span className="text-white/50 text-xs truncate">
-                      {[plan.profiles?.prenom, plan.profiles?.nom].filter(Boolean).join(' ') || 'Client assigné'}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-[9px] px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 font-medium border border-blue-500/20">Modèle</span>
-                )}
+                  )
+                })()}
               </div>
 
               {/* Calories */}
@@ -373,7 +391,7 @@ export default function CoachNutritionPage() {
                 </button>
                 {actionMenu === plan.id && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setActionMenu(null)} />
+                    <div className="fixed inset-0 z-40" onClick={e => { e.stopPropagation(); setActionMenu(null) }} />
                     <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-[#18181b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
                       <button onClick={e => { e.stopPropagation(); setActionMenu(null); navigate(`/coach/nutrition/${plan.id}`) }}
                         className="w-full text-left px-4 py-2.5 text-sm text-white/50 hover:bg-white/[0.03] transition-colors flex items-center gap-2">
