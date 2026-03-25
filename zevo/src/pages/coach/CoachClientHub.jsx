@@ -3072,11 +3072,9 @@ function NutritionTab({ coachId, clientId, clientName }) {
             )}
           </div>
         )
-      )}
+      }
 
-      {/* Builder removed — use /coach/nutrition for plan management */}
-
-      {/* Old daily builder + drawer removed */}
+      {/* Nutrition management via /coach/nutrition */}
     </div>
   )
 }
