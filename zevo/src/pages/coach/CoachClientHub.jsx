@@ -2660,13 +2660,18 @@ const ALIMENT_CATEGORIES = ['Tous', 'Protéine', 'Féculent', 'Légume', 'Fruit'
 function NutritionTab({ coachId, clientId, clientName }) {
   const toast = useToast()
 
+  // Assigned plan from NutritionBuilder (/coach/nutrition/)
+  const [assignedPlan, setAssignedPlan] = useState(null)
+  const [assignedRepas, setAssignedRepas] = useState([])
+  const [loadingAssigned, setLoadingAssigned] = useState(true)
+
   // Bibliothèque
   const [aliments, setAliments] = useState([])
   const [searchAliment, setSearchAliment] = useState('')
   const [catFilter, setCatFilter] = useState('Tous')
   const [loadingAliments, setLoadingAliments] = useState(true)
 
-  // Plan
+  // Plan du jour (daily builder)
   const [activeRepas, setActiveRepas] = useState('petit_dej')
   const [planItems, setPlanItems] = useState({
     petit_dej: [],
@@ -2677,6 +2682,62 @@ function NutritionTab({ coachId, clientId, clientName }) {
   const [planDate, setPlanDate] = useState(new Date().toISOString().split('T')[0])
   const [saving, setSaving] = useState(false)
   const [existingPlanId, setExistingPlanId] = useState(null)
+
+  // View toggle: 'assigned' (show plan) or 'builder' (daily builder)
+  const [viewMode, setViewMode] = useState('assigned')
+
+  // ── Load assigned plan (from NutritionBuilder) ──
+  useEffect(() => {
+    if (!coachId || !clientId) return
+    const loadAssigned = async () => {
+      setLoadingAssigned(true)
+      // Get the most recent assigned plan
+      const { data: plans } = await supabase
+        .from('client_nutrition_plans')
+        .select('*')
+        .eq('coach_id', coachId)
+        .eq('client_id', clientId)
+        .eq('is_template', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (plans && plans.length > 0) {
+        const plan = plans[0]
+        setAssignedPlan(plan)
+
+        // Load repas for this plan
+        const { data: repasData } = await supabase
+          .from('plan_repas')
+          .select('id, type, repas_aliments(id, aliment_id, quantite_g, ordre, aliments(*))')
+          .eq('plan_id', plan.id)
+          .order('ordre')
+
+        setAssignedRepas(repasData || [])
+      } else {
+        setAssignedPlan(null)
+        setAssignedRepas([])
+      }
+      setLoadingAssigned(false)
+    }
+    loadAssigned()
+  }, [coachId, clientId])
+
+  // ── Compute assigned plan macros ──
+  const assignedMacros = (() => {
+    let kcal = 0, prot = 0, gluc = 0, lip = 0
+    assignedRepas.forEach(r => {
+      (r.repas_aliments || []).forEach(ra => {
+        const a = ra.aliments
+        if (!a) return
+        const ratio = (ra.quantite_g || 0) / 100
+        kcal += Math.round((a.kcal_100g || 0) * ratio)
+        prot += Math.round((a.proteines || 0) * ratio * 10) / 10
+        gluc += Math.round((a.glucides || 0) * ratio * 10) / 10
+        lip += Math.round((a.lipides || 0) * ratio * 10) / 10
+      })
+    })
+    return { kcal, prot: Math.round(prot), gluc: Math.round(gluc), lip: Math.round(lip) }
+  })()
 
   // Charger aliments
   useEffect(() => {
@@ -2898,6 +2959,138 @@ function NutritionTab({ coachId, clientId, clientName }) {
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
 
+      {/* ── View Toggle: Plan assigné / Composition du jour ── */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1 bg-[#18181b] border border-[#27272a] rounded-xl p-1">
+          <button onClick={() => setViewMode('assigned')}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${viewMode === 'assigned' ? 'bg-[#FF6B2B] text-white shadow-sm' : 'text-white/30 hover:text-white/50'}`}>
+            Plan assigné
+          </button>
+          <button onClick={() => setViewMode('builder')}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${viewMode === 'builder' ? 'bg-[#FF6B2B] text-white shadow-sm' : 'text-white/30 hover:text-white/50'}`}>
+            Composition du jour
+          </button>
+        </div>
+        <a href="/coach/nutrition" className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
+          Gérer les plans →
+        </a>
+      </div>
+
+      {/* ═══ VUE : Plan assigné ═══ */}
+      {viewMode === 'assigned' && (
+        loadingAssigned ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
+          </div>
+        ) : !assignedPlan ? (
+          <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-10 text-center">
+            <Apple size={36} className="text-white/8 mx-auto mb-3" />
+            <h3 className="text-[#F5F5F3] text-base font-bold mb-1">Aucun plan assigné</h3>
+            <p className="text-white/25 text-xs mb-5 max-w-xs mx-auto">
+              Créez un plan nutritionnel et assignez-le à {clientName} pour le voir ici
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <a href={`/coach/nutrition/new?clientId=${clientId}`}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-xs font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
+                <Plus size={13} /> Créer un plan
+              </a>
+              <button onClick={() => setViewMode('builder')}
+                className="px-5 py-2.5 rounded-xl bg-[#27272a] text-white/50 text-xs font-semibold hover:text-white hover:bg-[#27272a]/80 transition-all">
+                Composition rapide
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Plan header */}
+            <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-[#F5F5F3] text-base font-bold">{assignedPlan.nom || 'Plan nutritionnel'}</h3>
+                  <p className="text-white/25 text-[11px] mt-0.5">
+                    {assignedPlan.objectif || `Plan assigné à ${clientName}`}
+                  </p>
+                </div>
+                <a href={`/coach/nutrition/${assignedPlan.id}`}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-bold hover:bg-[#FF6B2B]/20 transition-all">
+                  <Pencil size={11} /> Modifier
+                </a>
+              </div>
+
+              {/* Macro summary rings */}
+              <div className="flex items-center justify-around">
+                <MacroRing value={assignedMacros.kcal} max={2500} color="#FF6B2B" label="Calories" unit="kcal" size={95} />
+                <MacroRing value={assignedMacros.prot} max={150} color="#3b82f6" label="Protéines" unit="g" size={75} />
+                <MacroRing value={assignedMacros.gluc} max={250} color="#f59e0b" label="Glucides" unit="g" size={75} />
+                <MacroRing value={assignedMacros.lip} max={80} color="#ef4444" label="Lipides" unit="g" size={75} />
+              </div>
+            </div>
+
+            {/* Repas du plan */}
+            {assignedRepas.length === 0 ? (
+              <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-6 text-center">
+                <p className="text-white/20 text-xs">Ce plan ne contient pas encore de repas détaillés</p>
+              </div>
+            ) : (
+              assignedRepas.map((repas, ri) => {
+                const typeLabel = REPAS_TYPES.find(r => r.id === repas.type)?.label || repas.type
+                const TypeIcon = REPAS_TYPES.find(r => r.id === repas.type)?.icon || Apple
+                const items = repas.repas_aliments || []
+                let repasKcal = 0
+                items.forEach(ra => { if (ra.aliments) repasKcal += Math.round((ra.aliments.kcal_100g || 0) * (ra.quantite_g || 0) / 100) })
+
+                return (
+                  <div key={repas.id || ri} className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+                    <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <TypeIcon size={15} className="text-[#FF6B2B]" />
+                        <h4 className="text-[#F5F5F3] text-sm font-bold">{typeLabel}</h4>
+                      </div>
+                      <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
+                        {repasKcal} kcal
+                      </span>
+                    </div>
+                    {items.length === 0 ? (
+                      <div className="px-5 py-4 text-center">
+                        <p className="text-white/15 text-xs italic">Aucun aliment</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-[#27272a]/30">
+                        {items.sort((a, b) => (a.ordre || 0) - (b.ordre || 0)).map((ra, ai) => {
+                          const a = ra.aliments
+                          if (!a) return null
+                          const ratio = (ra.quantite_g || 0) / 100
+                          return (
+                            <div key={ai} className="px-5 py-3 flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-lg ${FoodIconBg(a.categorie)} flex items-center justify-center shrink-0`}>
+                                <FoodIcon categorie={a.categorie} size={14} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[#F5F5F3] text-xs font-medium truncate">{a.nom}</p>
+                                <p className="text-white/20 text-[10px]">{ra.quantite_g}g</p>
+                              </div>
+                              <div className="flex items-center gap-3 text-[10px] shrink-0">
+                                <span className="text-[#FF6B2B] font-bold">{Math.round((a.kcal_100g || 0) * ratio)}</span>
+                                <span className="text-blue-400">P{Math.round((a.proteines || 0) * ratio)}</span>
+                                <span className="text-amber-400">G{Math.round((a.glucides || 0) * ratio)}</span>
+                                <span className="text-rose-400">L{Math.round((a.lipides || 0) * ratio)}</span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            )}
+          </div>
+        )
+      )}
+
+      {/* ═══ VUE : Composition du jour (Daily Builder) ═══ */}
+      {viewMode === 'builder' && (<>
+
       {/* ── Header : Date + Save ── */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -3063,6 +3256,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
       {alimentDrawerOpen && (
         <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setAlimentDrawerOpen(false)} />
       )}
+      </>)}
     </div>
   )
 }
@@ -3394,7 +3588,7 @@ export default function CoachClientHub() {
                   {[
                     { icon: Scale, label: 'Poids', value: (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—', spark: [80,79,78.5,78,77.8,77.5,77], color: '#FF6B2B' },
                     { icon: Heart, label: 'IMC', value: imc || '—', sub: imc ? (imc < 18.5 ? 'Insuffisant' : imc < 25 ? 'Normal' : imc < 30 ? 'Surpoids' : 'Obésité') : null, spark: [26,25.5,25,24.8,24.5,24.3,24], color: '#FF6B2B' },
-                    { icon: Flame, label: 'Calories', value: p?.calories_cibles ? `${p.calories_cibles}` : '—', sub: 'kcal/j', spark: [2000,2100,1950,2000,2050,2000,2100], color: '#f59e0b' },
+                    { icon: Flame, label: 'Calories', value: p?.calories_cibles ? `${p.calories_cibles}` : (nutritionPlans.length > 0 ? 'Plan actif' : '—'), sub: 'kcal/j', spark: [2000,2100,1950,2000,2050,2000,2100], color: '#f59e0b' },
                     { icon: Activity, label: 'Activité', value: p?.niveau_activite || '—', spark: [3,5,4,6,5,7,6], color: '#22c55e' },
                     { icon: Dumbbell, label: 'Séances', value: '—', sub: 'cette sem.', spark: [2,3,2,4,3,3,4], color: '#3b82f6' },
                     { icon: Target, label: 'Objectifs', value: `${objectifs.length}`, sub: 'actifs', spark: [1,1,2,2,3,3,3], color: '#a855f7' },
