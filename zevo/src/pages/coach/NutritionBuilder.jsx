@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
@@ -44,6 +44,7 @@ function blankRepas(type) {
 
 export default function NutritionBuilder() {
   const navigate = useNavigate()
+  const { planId } = useParams()
   const { user } = useAuth()
   const toast = useToast()
 
@@ -53,6 +54,62 @@ export default function NutritionBuilder() {
   const [jours, setJours] = useState(JOURS.map(() => blankDay()))
   const [saving, setSaving] = useState(false)
   const [showRepasMenu, setShowRepasMenu] = useState(false)
+  const [loadingPlan, setLoadingPlan] = useState(false)
+  const [existingPlanId, setExistingPlanId] = useState(planId || null)
+
+  // Load existing plan
+  useEffect(() => {
+    if (!planId || !user) return
+    const load = async () => {
+      setLoadingPlan(true)
+      // Fetch plan
+      const { data: plan } = await supabase
+        .from('client_nutrition_plans')
+        .select('*')
+        .eq('id', planId)
+        .single()
+
+      if (plan) {
+        setTitre(plan.nom || '')
+        setExistingPlanId(plan.id)
+
+        // Fetch repas + aliments
+        const { data: repasData } = await supabase
+          .from('plan_repas')
+          .select('*, repas_aliments(*, aliments(*))')
+          .eq('plan_id', plan.id)
+          .order('ordre', { ascending: true })
+
+        if (repasData?.length > 0) {
+          // Rebuild jours from repas data
+          // For now, put all repas in day 0 (Monday) since the old schema is date-based not day-based
+          const newJours = JOURS.map(() => blankDay())
+          const repasItems = repasData.map(r => ({
+            id: r.id,
+            type: r.type || 'dejeuner',
+            titre: '',
+            description: '',
+            macros: (() => {
+              let p = 0, g = 0, l = 0
+              ;(r.repas_aliments || []).forEach(ra => {
+                const a = ra.aliments
+                if (!a) return
+                const q = (ra.quantite_g || 100) / 100
+                p += (a.proteines || 0) * q
+                g += (a.glucides || 0) * q
+                l += (a.lipides || 0) * q
+              })
+              return { p: Math.round(p), g: Math.round(g), l: Math.round(l) }
+            })(),
+          }))
+          newJours[0] = { repas: repasItems }
+          setJours(newJours)
+        }
+      }
+      setLoadingPlan(false)
+    }
+    load()
+  }, [planId, user])
 
   // Current day data
   const currentDay = jours[activeDay]
@@ -129,26 +186,74 @@ export default function NutritionBuilder() {
     }
     setSaving(true)
     try {
-      // Insert plan
-      const { data: plan, error } = await supabase
-        .from('client_nutrition_plans')
-        .insert({
-          coach_id: user.id,
-          nom: titre.trim(),
-          date_plan: new Date().toISOString().split('T')[0],
-        })
-        .select()
-        .single()
+      let savedPlanId = existingPlanId
 
-      if (error) throw error
+      if (savedPlanId) {
+        // Update existing
+        const { error } = await supabase
+          .from('client_nutrition_plans')
+          .update({ nom: titre.trim() })
+          .eq('id', savedPlanId)
+        if (error) throw error
+      } else {
+        // Insert new
+        const { data: plan, error } = await supabase
+          .from('client_nutrition_plans')
+          .insert({
+            coach_id: user.id,
+            nom: titre.trim(),
+            date_plan: new Date().toISOString().split('T')[0],
+          })
+          .select()
+          .single()
+        if (error) throw error
+        savedPlanId = plan.id
+        setExistingPlanId(savedPlanId)
+      }
 
-      toast.success('Plan nutritionnel créé !')
+      // Delete old repas (cascade deletes repas_aliments)
+      await supabase.from('plan_repas').delete().eq('plan_id', savedPlanId)
+
+      // Insert new repas from all days
+      for (let dayIdx = 0; dayIdx < jours.length; dayIdx++) {
+        const day = jours[dayIdx]
+        for (let rIdx = 0; rIdx < day.repas.length; rIdx++) {
+          const repas = day.repas[rIdx]
+          const { data: newRepas, error: rErr } = await supabase
+            .from('plan_repas')
+            .insert({
+              plan_id: savedPlanId,
+              type: repas.type,
+              ordre: dayIdx * 10 + rIdx,
+            })
+            .select()
+            .single()
+
+          if (rErr) {
+            console.error('[NutritionBuilder] Erreur insert repas:', rErr)
+            continue
+          }
+
+          // If the repas has macros > 0, store them as metadata
+          // (Real aliment linking is done via NutritionTab in the Hub)
+        }
+      }
+
+      toast.success(existingPlanId ? 'Plan mis à jour !' : 'Plan nutritionnel créé !')
       navigate('/coach/nutrition')
     } catch (err) {
       console.error('[NutritionBuilder] Erreur sauvegarde:', err)
       toast.error('Erreur : ' + (err.message || 'Sauvegarde échouée'))
     }
     setSaving(false)
+  }
+
+  if (loadingPlan) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#0D0D0D]">
+        <Loader2 className="animate-spin text-[#FF6B2B]" size={28} />
+      </div>
+    )
   }
 
   return (

@@ -6,7 +6,7 @@ import { useToast } from '../../components/ui/Toast'
 import {
   Search, Filter, Plus, Apple, UtensilsCrossed,
   Loader2, MoreVertical, Trash2, Calendar,
-  ChevronRight, X, Users
+  ChevronRight, X, Users, Edit3, UserPlus, Copy, Check
 } from 'lucide-react'
 
 const TABS = [
@@ -27,6 +27,20 @@ export default function CoachNutritionPage() {
   const [showFilter, setShowFilter] = useState(false)
   const [filterStatus, setFilterStatus] = useState('tous')
   const [actionMenu, setActionMenu] = useState(null)
+
+  // Assign modal
+  const [assignPlan, setAssignPlan] = useState(null) // plan object to assign
+  const [coachClients, setCoachClients] = useState([])
+  const [selectedClient, setSelectedClient] = useState('')
+  const [assigning, setAssigning] = useState(false)
+
+  // Fetch clients
+  useEffect(() => {
+    if (!user) return
+    supabase.from('clients').select('id, profiles!inner(id, nom, prenom)')
+      .eq('coach_id', user.id).eq('actif', true)
+      .then(({ data }) => setCoachClients(data || []))
+  }, [user])
 
   // Fetch plans
   const fetchPlans = useCallback(async () => {
@@ -60,6 +74,62 @@ export default function CoachNutritionPage() {
       fetchPlans()
     }
     setActionMenu(null)
+  }
+
+  // Assign plan to client (copy)
+  const handleAssign = async () => {
+    if (!assignPlan || !selectedClient) return
+    setAssigning(true)
+    try {
+      // Copy the plan with client_id
+      const { data: newPlan, error } = await supabase
+        .from('client_nutrition_plans')
+        .insert({
+          coach_id: user.id,
+          client_id: selectedClient,
+          nom: assignPlan.nom || 'Plan du jour',
+          date_plan: new Date().toISOString().split('T')[0],
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Copy repas if they exist
+      const { data: repasData } = await supabase
+        .from('plan_repas')
+        .select('*, repas_aliments(*)')
+        .eq('plan_id', assignPlan.id)
+
+      if (repasData?.length > 0) {
+        for (const repas of repasData) {
+          const { data: newRepas } = await supabase
+            .from('plan_repas')
+            .insert({ plan_id: newPlan.id, type: repas.type, ordre: repas.ordre })
+            .select().single()
+
+          if (newRepas && repas.repas_aliments?.length > 0) {
+            const alRows = repas.repas_aliments.map(a => ({
+              repas_id: newRepas.id,
+              aliment_id: a.aliment_id,
+              quantite_g: a.quantite_g,
+              ordre: a.ordre,
+            }))
+            await supabase.from('repas_aliments').insert(alRows)
+          }
+        }
+      }
+
+      const clientName = coachClients.find(c => c.profiles?.id === selectedClient)?.profiles?.nom || 'ce client'
+      toast.success(`Plan assigné à ${clientName} !`)
+      setAssignPlan(null)
+      setSelectedClient('')
+      fetchPlans()
+    } catch (err) {
+      console.error('[NutritionPage] Erreur assignation:', err)
+      toast.error('Erreur : ' + (err.message || 'Assignation échouée'))
+    }
+    setAssigning(false)
   }
 
   // Filter logic
@@ -210,7 +280,8 @@ export default function CoachNutritionPage() {
 
           return (
             <div key={plan.id}
-              className="grid grid-cols-12 gap-3 px-5 py-4 border-b border-[#27272a]/30 hover:bg-white/[0.02] transition-colors items-center group">
+              onClick={() => navigate(`/coach/nutrition/${plan.id}`)}
+              className="grid grid-cols-12 gap-3 px-5 py-4 border-b border-[#27272a]/30 hover:bg-white/[0.02] transition-colors items-center group cursor-pointer">
 
               {/* Titre */}
               <div className="col-span-4 flex items-center gap-3 min-w-0">
@@ -267,7 +338,16 @@ export default function CoachNutritionPage() {
                 {actionMenu === plan.id && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setActionMenu(null)} />
-                    <div className="absolute right-0 top-full mt-1 z-50 w-44 bg-[#18181b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
+                    <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-[#18181b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
+                      <button onClick={() => { setActionMenu(null); navigate(`/coach/nutrition/${plan.id}`) }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-white/50 hover:bg-white/[0.03] transition-colors flex items-center gap-2">
+                        <Edit3 size={13} /> Modifier
+                      </button>
+                      <button onClick={() => { setActionMenu(null); setAssignPlan(plan) }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-[#FF6B2B] hover:bg-[#FF6B2B]/5 transition-colors flex items-center gap-2">
+                        <UserPlus size={13} /> Assigner à un client
+                      </button>
+                      <div className="border-t border-[#27272a]" />
                       <button onClick={() => handleDelete(plan.id)}
                         className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2">
                         <Trash2 size={13} /> Supprimer
@@ -280,6 +360,68 @@ export default function CoachNutritionPage() {
           )
         })}
       </div>
+
+      {/* ═══ Assign Modal ═══ */}
+      {assignPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setAssignPlan(null)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-md bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}>
+            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+
+            <div className="px-6 pt-5 pb-4 border-b border-white/[0.06] flex items-center justify-between">
+              <div>
+                <h2 className="text-[#F5F5F3] text-lg font-bold">Assigner le plan</h2>
+                <p className="text-white/30 text-sm mt-0.5">{assignPlan.nom || 'Plan du jour'}</p>
+              </div>
+              <button onClick={() => setAssignPlan(null)}
+                className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs text-white/40 mb-2 font-medium">Sélectionner un client</label>
+                <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                  {coachClients.length === 0 ? (
+                    <p className="text-white/20 text-xs text-center py-4">Aucun client actif</p>
+                  ) : coachClients.map(c => {
+                    const nom = [c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || 'Client'
+                    const profileId = c.profiles?.id
+                    const isSelected = selectedClient === profileId
+                    const initials = nom.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                    return (
+                      <button key={c.id} onClick={() => setSelectedClient(profileId)}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                          isSelected ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'hover:bg-white/[0.03] border border-transparent'
+                        }`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                          isSelected ? 'bg-[#FF6B2B] text-white' : 'bg-[#2A2A2A] text-white/40'
+                        }`}>{initials}</div>
+                        <span className={`text-sm font-medium ${isSelected ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{nom}</span>
+                        {isSelected && <Check size={14} className="text-[#FF6B2B] ml-auto" />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 pb-6 flex gap-3">
+              <button onClick={() => setAssignPlan(null)}
+                className="flex-1 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-all border border-white/[0.04]">
+                Annuler
+              </button>
+              <button onClick={handleAssign} disabled={!selectedClient || assigning}
+                className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                {assigning ? <Loader2 size={14} className="animate-spin" /> : <Copy size={14} />}
+                {assigning ? 'Assignation...' : 'Assigner le plan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

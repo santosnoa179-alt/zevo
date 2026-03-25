@@ -132,6 +132,7 @@ export default function App() {
               <Route path="sport" element={<CoachSportPage />} />
               <Route path="nutrition" element={<CoachNutritionPage />} />
               <Route path="nutrition/new" element={<NutritionBuilder />} />
+              <Route path="nutrition/:planId" element={<NutritionBuilder />} />
               <Route path="bibliotheque" element={<CoachBibliothequePage />} />
               <Route path="formulaires" element={<CoachFormulairesPage />} />
               <Route path="rapports" element={<CoachRapportsPage />} />
