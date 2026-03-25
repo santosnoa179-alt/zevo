@@ -1127,7 +1127,9 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         .eq('coach_id', coachId)
         .eq('is_template', true)
         .order('created_at', { ascending: false })
-      setTemplates(data || [])
+      // Filter out ProgramBuilder internal seances (notes starts with 'programme:')
+      const userTemplates = (data || []).filter(t => !t.notes || !t.notes.startsWith('programme:'))
+      setTemplates(userTemplates)
       setLoadingTemplates(false)
     }
     load()
@@ -1443,38 +1445,41 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
             const jourSeances = seances.filter(s => s.date_prevue === dateStr)
 
             return (
-              <div key={i} className={`bg-[#18181b] border rounded-xl flex flex-col overflow-hidden transition-colors ${isToday ? 'border-[#FF6B2B]/30' : 'border-[#27272a]'}`}>
-                <div className={`px-2 py-2 border-b text-center flex-shrink-0 ${isToday ? 'border-[#FF6B2B]/20 bg-[#FF6B2B]/5' : 'border-[#27272a]'}`}>
-                  <p className={`text-[9px] uppercase tracking-widest font-semibold ${isToday ? 'text-[#FF6B2B]' : 'text-white/20'}`}>{JOURS_COURTS[i]}</p>
-                  <p className={`text-base font-bold ${isToday ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{date.getDate()}</p>
+              <div key={i} className={`bg-[#18181b] border rounded-2xl flex flex-col overflow-hidden transition-all ${isToday ? 'border-[#FF6B2B]/40 shadow-lg shadow-[#FF6B2B]/5' : 'border-[#27272a] hover:border-[#27272a]/80'}`}>
+                <div className={`px-3 py-3 border-b text-center flex-shrink-0 ${isToday ? 'border-[#FF6B2B]/20 bg-[#FF6B2B]/5' : 'border-[#27272a]'}`}>
+                  <p className={`text-[9px] uppercase tracking-[0.15em] font-semibold mb-1 ${isToday ? 'text-[#FF6B2B]' : 'text-white/25'}`}>{JOURS_COURTS[i]}</p>
+                  <div className={`inline-flex items-center justify-center ${isToday ? 'w-8 h-8 rounded-full bg-[#FF6B2B] text-white' : ''}`}>
+                    <p className={`text-lg font-bold ${isToday ? 'text-white' : 'text-[#F5F5F3]'}`}>{date.getDate()}</p>
+                  </div>
                 </div>
                 <div className="flex-1 p-1.5 space-y-1 overflow-y-auto">
                   {loadingSeances ? (
                     <div className="flex items-center justify-center py-4"><Loader2 size={12} className="animate-spin text-white/10" /></div>
                   ) : (
                     jourSeances.map((s) => (
-                      <div key={s.id} className="w-full bg-[#FF6B2B]/10 border border-[#FF6B2B]/15 rounded-lg px-2 py-1.5 hover:bg-[#FF6B2B]/15 transition-colors group/card">
-                        <div className="flex items-center gap-1">
-                          <Dumbbell size={9} className="text-[#FF6B2B] flex-shrink-0" />
-                          <button onClick={() => voirDetail(s)} className="text-[#F5F5F3] text-[10px] font-medium truncate text-left flex-1 min-w-0">
+                      <button key={s.id} onClick={() => voirDetail(s)}
+                        className="w-full bg-[#FF6B2B]/8 border border-[#FF6B2B]/10 rounded-xl px-2.5 py-2 hover:bg-[#FF6B2B]/15 hover:border-[#FF6B2B]/25 transition-all group/card text-left">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-1 h-4 rounded-full bg-[#FF6B2B] flex-shrink-0" />
+                          <span className="text-[#F5F5F3] text-[10px] font-semibold truncate flex-1 min-w-0">
                             {s.titre}
-                          </button>
-                          <button
+                          </span>
+                          <span
                             onClick={(e) => { e.stopPropagation(); if (onEditSeance) onEditSeance(s.id) }}
-                            className="p-0.5 rounded text-white/0 group-hover/card:text-white/25 hover:!text-[#FF6B2B] transition-all flex-shrink-0"
-                            title="Modifier les exercices"
+                            className="p-0.5 rounded text-transparent group-hover/card:text-white/20 hover:!text-[#FF6B2B] transition-all flex-shrink-0 cursor-pointer"
+                            title="Modifier"
                           >
                             <Pencil size={9} />
-                          </button>
+                          </span>
                         </div>
-                      </div>
+                      </button>
                     ))
                   )}
                 </div>
-                <div className="px-1.5 pb-1.5 flex-shrink-0">
-                  <button onClick={() => { setModalDate(dateStr); setModalSeance(true) }}
-                    className="w-full flex items-center justify-center gap-1 py-1 rounded-lg border border-dashed border-[#27272a] text-white/12 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-colors text-[9px]">
-                    <Plus size={9} /> Ajouter
+                <div className="px-2 pb-2 flex-shrink-0">
+                  <button onClick={() => { setModalDate(dateStr); setModalSeance(true); setSeanceStep(1); setSelectedTemplateForPlan(null) }}
+                    className="w-full flex items-center justify-center gap-1 py-1.5 rounded-xl border border-dashed border-[#27272a]/60 text-white/15 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/[0.03] transition-all text-[10px] font-medium">
+                    <Plus size={10} />
                   </button>
                 </div>
               </div>
@@ -1488,21 +1493,17 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       {/* PANNEAU DROIT — Modèles de séances    */}
       {/* ══════════════════════════════════════ */}
       {panelOpen && (
-        <div className="hidden md:flex w-72 flex-shrink-0 bg-[#18181b] border border-[#27272a] rounded-xl flex-col overflow-hidden">
+        <div className="hidden md:flex w-72 flex-shrink-0 bg-[#18181b] border border-[#27272a] rounded-2xl flex-col overflow-hidden">
           {/* Header */}
           <div className="p-4 border-b border-[#27272a]">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[#F5F5F3] text-sm font-semibold flex items-center gap-2">
-                <Dumbbell size={14} className="text-[#FF6B2B]" />
-                Modèles de séances
-                <span className="text-white/15 text-[10px] font-normal">{templates.length}</span>
-              </h3>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-[#F5F5F3] text-sm font-bold">Mes modèles</h3>
               <button onClick={ouvrirDrawerNouveau}
-                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FF6B2B] text-white text-[9px] font-semibold hover:bg-[#e55e24] transition-colors">
-                <Plus size={10} /> Nouveau
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#FF6B2B] text-white text-[10px] font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-sm shadow-[#FF6B2B]/20">
+                <Plus size={11} /> Nouveau
               </button>
             </div>
-            <p className="text-white/15 text-[10px]">Glissez vos modèles dans le calendrier</p>
+            <p className="text-white/20 text-[10px]">{templates.length} modèle{templates.length !== 1 ? 's' : ''} disponible{templates.length !== 1 ? 's' : ''}</p>
           </div>
 
           {/* Liste des modèles */}
@@ -1517,33 +1518,28 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
               </div>
             ) : (
               templates.map((tpl) => (
-                <div key={tpl.id} className="bg-[#09090b] border border-[#27272a] rounded-xl p-3 group hover:border-[#FF6B2B]/20 transition-colors">
-                  <div className="flex items-start gap-2.5">
-                    <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                      <Dumbbell size={15} className="text-[#FF6B2B]" />
+                <div key={tpl.id} className="bg-[#0D0D0D] border border-[#27272a] rounded-2xl p-3.5 group hover:border-[#FF6B2B]/20 transition-all">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                      <Dumbbell size={16} className="text-[#FF6B2B]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <button onClick={() => ouvrirDrawer(tpl)} className="text-[#F5F5F3] text-xs font-medium hover:text-[#FF6B2B] transition-colors text-left truncate block w-full">
+                      <button onClick={() => ouvrirDrawer(tpl)} className="text-[#F5F5F3] text-xs font-bold hover:text-[#FF6B2B] transition-colors text-left truncate block w-full">
                         {tpl.titre}
                       </button>
-                      {tpl.notes && (
-                        <p className="text-white/15 text-[9px] truncate mt-0.5">{tpl.notes}</p>
-                      )}
+                      <p className="text-white/15 text-[9px] mt-0.5">Cliquer pour modifier</p>
                     </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-1.5 mt-2.5">
-                    <button onClick={() => { setModalPlanifier(tpl); setPlanifDate(formatDateISO(new Date())) }}
-                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-[9px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
-                      <CalendarPlus size={10} />
-                      Ajouter au calendrier
-                    </button>
                     <button onClick={() => supprimerTemplate(tpl.id)}
-                      className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
+                      className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 shrink-0">
                       <Trash2 size={11} />
                     </button>
                   </div>
+
+                  <button onClick={() => { setModalPlanifier(tpl); setPlanifDate(formatDateISO(new Date())) }}
+                    className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#FF6B2B] text-white text-[10px] font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-sm shadow-[#FF6B2B]/20">
+                    <CalendarPlus size={11} />
+                    Planifier
+                  </button>
                 </div>
               ))
             )}
