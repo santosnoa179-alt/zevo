@@ -2777,10 +2777,10 @@ function NutritionTab({ coachId, clientId, clientName }) {
         const plan = plans[0]
         setAssignedPlan(plan)
 
-        // Load repas for this plan
+        // Load repas for this plan (with metadata + aliments)
         const { data: repasData } = await supabase
           .from('plan_repas')
-          .select('id, type, repas_aliments(id, aliment_id, quantite_g, ordre, aliments(*))')
+          .select('id, type, metadata, repas_aliments(id, aliment_id, quantite_g, ordre, aliments(*))')
           .eq('plan_id', plan.id)
           .order('ordre')
 
@@ -2794,21 +2794,31 @@ function NutritionTab({ coachId, clientId, clientName }) {
     loadAssigned()
   }, [coachId, clientId])
 
-  // ── Compute assigned plan macros ──
+  // ── Compute assigned plan macros (from aliments OR metadata) ──
   const assignedMacros = (() => {
     let kcal = 0, prot = 0, gluc = 0, lip = 0
     assignedRepas.forEach(r => {
-      (r.repas_aliments || []).forEach(ra => {
+      // Method 1: From metadata macros (NutritionBuilder)
+      const meta = r.metadata
+      if (meta?.macros) {
+        prot += meta.macros.p || 0
+        gluc += meta.macros.g || 0
+        lip += meta.macros.l || 0
+        kcal += (meta.macros.p || 0) * 4 + (meta.macros.g || 0) * 4 + (meta.macros.l || 0) * 9
+        return
+      }
+      // Method 2: From aliments (old daily builder)
+      ;(r.repas_aliments || []).forEach(ra => {
         const a = ra.aliments
         if (!a) return
         const ratio = (ra.quantite_g || 0) / 100
         kcal += Math.round((a.kcal_100g || 0) * ratio)
-        prot += Math.round((a.proteines || 0) * ratio * 10) / 10
-        gluc += Math.round((a.glucides || 0) * ratio * 10) / 10
-        lip += Math.round((a.lipides || 0) * ratio * 10) / 10
+        prot += (a.proteines || 0) * ratio
+        gluc += (a.glucides || 0) * ratio
+        lip += (a.lipides || 0) * ratio
       })
     })
-    return { kcal, prot: Math.round(prot), gluc: Math.round(gluc), lip: Math.round(lip) }
+    return { kcal: Math.round(kcal), prot: Math.round(prot), gluc: Math.round(gluc), lip: Math.round(lip) }
   })()
 
   // Macro ring SVG helper
@@ -3112,16 +3122,23 @@ export default function CoachClientHub() {
       if (nutPlans && nutPlans.length > 0) {
         const { data: repasData } = await supabase
           .from('plan_repas')
-          .select('repas_aliments(quantite_g, aliments(kcal_100g))')
+          .select('metadata, repas_aliments(quantite_g, aliments(kcal_100g))')
           .eq('plan_id', nutPlans[0].id)
 
         let totalKcal = 0
         ;(repasData || []).forEach(r => {
-          (r.repas_aliments || []).forEach(ra => {
+          // From metadata macros
+          if (r.metadata?.macros) {
+            const m = r.metadata.macros
+            totalKcal += (m.p || 0) * 4 + (m.g || 0) * 4 + (m.l || 0) * 9
+            return
+          }
+          // From aliments
+          ;(r.repas_aliments || []).forEach(ra => {
             if (ra.aliments) totalKcal += Math.round((ra.aliments.kcal_100g || 0) * (ra.quantite_g || 0) / 100)
           })
         })
-        setPlanCalories(totalKcal > 0 ? totalKcal : null)
+        setPlanCalories(totalKcal > 0 ? Math.round(totalKcal) : null)
       } else {
         setPlanCalories(null)
       }

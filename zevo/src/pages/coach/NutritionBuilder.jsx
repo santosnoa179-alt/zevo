@@ -112,28 +112,37 @@ export default function NutritionBuilder() {
           .order('ordre', { ascending: true })
 
         if (repasData?.length > 0) {
-          // Rebuild jours from repas data
-          // For now, put all repas in day 0 (Monday) since the old schema is date-based not day-based
+          // Rebuild jours from repas data using metadata
           const newJours = JOURS.map(() => blankDay())
-          const repasItems = repasData.map(r => ({
-            id: r.id,
-            type: r.type || 'dejeuner',
-            titre: '',
-            description: '',
-            macros: (() => {
-              let p = 0, g = 0, l = 0
-              ;(r.repas_aliments || []).forEach(ra => {
-                const a = ra.aliments
-                if (!a) return
-                const q = (ra.quantite_g || 100) / 100
-                p += (a.proteines || 0) * q
-                g += (a.glucides || 0) * q
-                l += (a.lipides || 0) * q
-              })
-              return { p: Math.round(p), g: Math.round(g), l: Math.round(l) }
-            })(),
-          }))
-          newJours[0] = { repas: repasItems }
+
+          repasData.forEach(r => {
+            const meta = r.metadata || {}
+            const dayIdx = meta.day || 0
+            const repasItem = {
+              id: r.id,
+              type: r.type || 'dejeuner',
+              titre: meta.titre || '',
+              description: meta.description || '',
+              macros: meta.macros || (() => {
+                // Fallback: compute from aliments if no metadata macros
+                let p = 0, g = 0, l = 0
+                ;(r.repas_aliments || []).forEach(ra => {
+                  const a = ra.aliments
+                  if (!a) return
+                  const q = (ra.quantite_g || 100) / 100
+                  p += (a.proteines || 0) * q
+                  g += (a.glucides || 0) * q
+                  l += (a.lipides || 0) * q
+                })
+                return { p: Math.round(p), g: Math.round(g), l: Math.round(l) }
+              })(),
+            }
+            if (dayIdx >= 0 && dayIdx < newJours.length) {
+              newJours[dayIdx].repas.push(repasItem)
+            } else {
+              newJours[0].repas.push(repasItem)
+            }
+          })
           setJours(newJours)
         }
       }
@@ -263,24 +272,36 @@ export default function NutritionBuilder() {
       // Delete old repas (cascade deletes repas_aliments)
       await supabase.from('plan_repas').delete().eq('plan_id', savedPlanId)
 
-      // Insert new repas from all days
+      // Insert new repas from all days (with metadata for macros/titre/description)
+      let totalInserted = 0
       for (let dayIdx = 0; dayIdx < jours.length; dayIdx++) {
         const day = jours[dayIdx]
         for (let rIdx = 0; rIdx < day.repas.length; rIdx++) {
           const repas = day.repas[rIdx]
-          const { error: rErr } = await supabase
+          const { data: newRepas, error: rErr } = await supabase
             .from('plan_repas')
             .insert({
               plan_id: savedPlanId,
               type: repas.type,
               ordre: dayIdx * 10 + rIdx,
+              metadata: {
+                titre: repas.titre || '',
+                description: repas.description || '',
+                macros: repas.macros || { p: 0, g: 0, l: 0 },
+                day: dayIdx,
+              },
             })
+            .select()
+            .single()
 
           if (rErr) {
             console.error('[NutritionBuilder] Erreur insert repas:', rErr)
+          } else {
+            totalInserted++
           }
         }
       }
+      console.log(`[NutritionBuilder] ${totalInserted} repas sauvegardés pour plan ${savedPlanId}`)
 
       const cl = clientId ? coachClients.find(c => c.id === clientId) : null
       const clientName = cl ? ((cl.prenom && cl.nom) ? `${cl.prenom} ${cl.nom}` : (cl.prenom || cl.nom || cl.email || 'ce client')) : null
