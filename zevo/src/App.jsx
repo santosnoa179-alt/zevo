@@ -48,6 +48,7 @@ const CoachMessagesPage = lazy(() => import('./pages/coach/CoachMessagesPage'))
 // const CoachProgrammesPage = lazy(() => import('./pages/coach/CoachProgrammesPage')) // DEPRECATED → CoachSportPage
 const CoachSportPage = lazy(() => import('./pages/coach/CoachSportPage'))
 const CoachNutritionPage = lazy(() => import('./pages/coach/CoachNutritionPage'))
+const NutritionBuilder = lazy(() => import('./pages/coach/NutritionBuilder'))
 const CoachBibliothequePage = lazy(() => import('./pages/coach/CoachBibliothequePage'))
 const CoachFormulairesPage = lazy(() => import('./pages/coach/CoachFormulairesPage'))
 const CoachRapportsPage = lazy(() => import('./pages/coach/CoachRapportsPage'))
@@ -130,6 +131,7 @@ export default function App() {
               <Route path="programmes" element={<CoachSportPage />} />
               <Route path="sport" element={<CoachSportPage />} />
               <Route path="nutrition" element={<CoachNutritionPage />} />
+              <Route path="nutrition/new" element={<NutritionBuilder />} />
               <Route path="bibliotheque" element={<CoachBibliothequePage />} />
               <Route path="formulaires" element={<CoachFormulairesPage />} />
               <Route path="rapports" element={<CoachRapportsPage />} />
