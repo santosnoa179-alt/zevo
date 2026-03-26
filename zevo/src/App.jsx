@@ -60,7 +60,7 @@ const CoachParametresPage = lazy(() => import('./pages/coach/CoachParametresPage
 const CoachProspectsPage = lazy(() => import('./pages/coach/CoachProspectsPage'))
 const CoachClientHub = lazy(() => import('./pages/coach/CoachClientHub'))
 const CoachOnboarding = lazy(() => import('./pages/coach/CoachOnboarding'))
-const CoachDrivePage = lazy(() => import('./pages/coach/CoachDrivePage'))
+// CoachDrivePage supprimée — fusionnée dans Bibliothèque
 const CoachGlobalCalendarPage = lazy(() => import('./pages/coach/CoachGlobalCalendarPage'))
 
 // ── Pages admin (lazy) ──
@@ -144,7 +144,7 @@ export default function App() {
               <Route path="messages" element={<CoachMessagesPage />} />
               <Route path="parametres" element={<CoachParametresPage />} />
               <Route path="prospects" element={<CoachProspectsPage />} />
-              <Route path="drive" element={<CoachDrivePage />} />
+              <Route path="drive" element={<Navigate to="/coach/bibliotheque" replace />} />
               <Route path="calendar" element={<CoachGlobalCalendarPage />} />
             </Route>
 

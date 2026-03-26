@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Users, UserPlus, CalendarDays,
   Dumbbell, Apple, Activity, Video,
-  Receipt, UsersRound, HardDrive, Zap, Bell,
+  Receipt, UsersRound, Zap, Bell,
   Search, MessageCircle, Rocket, LogOut, Menu, X,
   Settings, ChevronDown, ChevronLeft, BookOpen, Layers, ClipboardList,
   FileText, BarChart3, CreditCard, Paintbrush, Send, Mic,
@@ -36,7 +36,6 @@ const NAV_SECTIONS = [
       { to: '/coach/formulaires', icon: ClipboardList, label: 'Formulaires' },
       { to: '/coach/rapports', icon: FileText, label: 'Rapports' },
       { to: '/coach/statistiques', icon: BarChart3, label: 'Statistiques' },
-      { to: '/coach/drive', icon: HardDrive, label: 'Drive' },
     ],
   },
   {
@@ -73,7 +72,6 @@ const PAGE_TITLES = {
   '/coach/abonnements': 'Abonnements',
   '/coach/app-builder': 'App Builder',
   '/coach/parametres': 'Paramètres',
-  '/coach/drive': 'Drive',
   '/coach/calendar': 'Calendrier',
 }
 
