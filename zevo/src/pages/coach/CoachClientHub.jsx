@@ -2543,144 +2543,175 @@ function SuiviTab({ coachId, clientId }) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
 
-      {/* ══════════════════════════════════ */}
-      {/* SECTION 1 — Assiduité Sportive    */}
-      {/* ══════════════════════════════════ */}
-      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#27272a] flex items-center justify-between">
-          <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
-            <BarChart3 size={15} className="text-[#FF6B2B]" />
-            Assiduité Sportive
-          </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] px-2.5 py-1 rounded-full font-bold" style={{
-              backgroundColor: assiduitePct >= 80 ? 'rgba(34,197,94,0.1)' : assiduitePct >= 50 ? 'rgba(245,158,11,0.1)' : 'rgba(255,107,43,0.1)',
-              color: assiduitePct >= 80 ? '#22c55e' : assiduitePct >= 50 ? '#f59e0b' : '#FF6B2B',
+      {/* ══════════════════════════════════════════ */}
+      {/* SECTION 1 — Assiduité Sportive            */}
+      {/* ══════════════════════════════════════════ */}
+      <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <BarChart3 size={17} className="text-[#FF6B2B]" />
+            </div>
+            <div>
+              <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Assiduité Sportive</h3>
+              <p className="text-zinc-500 text-[11px] mt-0.5">4 dernières semaines</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{
+              background: assiduitePct >= 80 ? 'rgba(34,197,94,0.08)' : assiduitePct >= 50 ? 'rgba(245,158,11,0.08)' : 'rgba(255,107,43,0.08)',
             }}>
-              {assiduitePct}% ce mois
-            </span>
-            <span className="text-white/15 text-[10px]">{completedSeances}/{totalSeances} séances</span>
+              <Activity size={12} style={{ color: assiduitePct >= 80 ? '#22c55e' : assiduitePct >= 50 ? '#f59e0b' : '#FF6B2B' }} />
+              <span className="text-xs font-bold tabular-nums" style={{
+                color: assiduitePct >= 80 ? '#22c55e' : assiduitePct >= 50 ? '#f59e0b' : '#FF6B2B',
+              }}>
+                {assiduitePct}%
+              </span>
+            </div>
+            <span className="text-zinc-600 text-[11px] font-medium tabular-nums">{completedSeances}/{totalSeances} séances</span>
           </div>
         </div>
-        <div className="p-5">
-          {/* Heatmap 4 semaines */}
-          <div className="grid grid-cols-7 gap-1.5 mb-4">
-            {/* Jours header */}
-            {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((j, i) => (
-              <div key={i} className="text-center text-[8px] text-white/20 font-medium pb-1">{j}</div>
-            ))}
+
+        {/* Heatmap */}
+        <div className="px-6 pb-6">
+          <div className="bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] p-4">
+            {/* Day labels */}
+            <div className="grid grid-cols-7 gap-2 mb-2">
+              {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((j, i) => (
+                <div key={i} className="text-center text-[9px] text-zinc-600 font-medium">{j}</div>
+              ))}
+            </div>
             {/* Cells */}
-            {heatmapDays.map((day, i) => {
-              // Align to correct weekday column
-              const dayOfWeek = (day.day.getDay() + 6) % 7 // 0=lundi
-              // Only render if position matches
-              return (
+            <div className="grid grid-cols-7 gap-2">
+              {heatmapDays.map((day, i) => (
                 <div
                   key={i}
-                  className={`aspect-square rounded-md transition-all relative ${
+                  className={`aspect-square rounded-lg transition-all relative ${
                     day.allDone
-                      ? 'bg-emerald-500 shadow-[0_0_6px_rgba(34,197,94,0.3)]'
+                      ? 'bg-emerald-500/90 shadow-[0_0_8px_rgba(34,197,94,0.25)]'
                       : day.someDone
-                        ? 'bg-amber-500/60'
+                        ? 'bg-gradient-to-br from-amber-500/50 to-amber-600/30'
                         : day.hasSeance
-                          ? 'bg-red-500/30 border border-red-500/20'
-                          : 'bg-white/[0.03]'
-                  } ${day.isToday ? 'ring-1 ring-[#FF6B2B]/40' : ''}`}
-                  title={`${day.date} — ${day.allDone ? '✅ Complétée' : day.someDone ? '⚠️ Partielle' : day.hasSeance ? '❌ Manquée' : 'Repos'}`}
+                          ? 'bg-[#1a1a1e] border border-red-500/15'
+                          : 'bg-[#111113]'
+                  } ${day.isToday ? 'ring-[1.5px] ring-[#FF6B2B] ring-offset-1 ring-offset-[#0a0a0a]' : ''}`}
+                  title={`${new Date(day.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} — ${day.allDone ? '✅ Complétée' : day.someDone ? '⚠️ Partielle' : day.hasSeance ? '❌ Manquée' : 'Repos'}`}
                 >
-                  {day.isToday && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-1 h-1 rounded-full bg-white/60" />
-                    </div>
+                  {/* Date label inside cell */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className={`text-[8px] font-medium ${
+                      day.allDone ? 'text-white/80' : day.someDone ? 'text-amber-200/60' : day.hasSeance ? 'text-red-400/40' : 'text-zinc-700'
+                    }`}>
+                      {day.day.getDate()}
+                    </span>
+                  </div>
+                  {/* Completed glow dot */}
+                  {day.allDone && (
+                    <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-white/40" />
                   )}
                 </div>
-              )
-            })}
-          </div>
+              ))}
+            </div>
 
-          {/* Légende */}
-          <div className="flex items-center justify-center gap-4 text-[9px] text-white/25">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
-              <span>Complétée</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-sm bg-amber-500/60" />
-              <span>Partielle</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-sm bg-red-500/30 border border-red-500/20" />
-              <span>Manquée</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-sm bg-white/[0.03]" />
-              <span>Repos</span>
+            {/* Légende */}
+            <div className="flex items-center justify-center gap-5 mt-4 pt-3 border-t border-[#1a1a1e]">
+              {[
+                { color: 'bg-emerald-500/90', label: 'Complétée' },
+                { color: 'bg-gradient-to-br from-amber-500/50 to-amber-600/30', label: 'Partielle' },
+                { color: 'bg-[#1a1a1e] border border-red-500/15', label: 'Manquée' },
+                { color: 'bg-[#111113]', label: 'Repos' },
+              ].map((l, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className={`w-2.5 h-2.5 rounded ${l.color}`} />
+                  <span className="text-zinc-600 text-[9px] font-medium">{l.label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ══════════════════════════════════ */}
-      {/* SECTION 2 — Discipline Habitudes   */}
-      {/* ══════════════════════════════════ */}
-      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#27272a] flex items-center justify-between">
-          <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
-            <Flame size={15} className="text-[#FF6B2B]" />
-            Discipline des Habitudes
-          </h3>
-          <span className="text-white/15 text-[10px]">30 derniers jours</span>
+      {/* ══════════════════════════════════════════ */}
+      {/* SECTION 2 — Discipline des Habitudes       */}
+      {/* ══════════════════════════════════════════ */}
+      <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <Flame size={17} className="text-[#FF6B2B]" />
+            </div>
+            <div>
+              <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Discipline des Habitudes</h3>
+              <p className="text-zinc-500 text-[11px] mt-0.5">30 derniers jours</p>
+            </div>
+          </div>
+          {habitudes.length > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FF6B2B]/8">
+              <Flame size={12} className="text-[#FF6B2B]" />
+              <span className="text-[#FF6B2B] text-xs font-bold tabular-nums">
+                {Math.max(0, ...habitudes.map(h => getHabStreak(h.id)))}j
+              </span>
+              <span className="text-[#FF6B2B]/40 text-[10px] font-medium ml-0.5">meilleur</span>
+            </div>
+          )}
         </div>
-        <div className="p-5">
+
+        <div className="px-6 pb-6">
           {habitudes.length === 0 ? (
-            <p className="text-white/15 text-xs text-center py-6">Aucune habitude active</p>
+            <div className="bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] py-10 text-center">
+              <Flame size={24} className="text-zinc-800 mx-auto mb-2" />
+              <p className="text-zinc-600 text-xs">Aucune habitude active</p>
+            </div>
           ) : (
-            <div className="space-y-4">
-              {habitudes.map(hab => {
+            <div className="space-y-1">
+              {habitudes.map((hab, hi) => {
                 const streak = getHabStreak(hab.id)
                 const days = getHabDays(hab.id)
                 const rate = Math.round((days.length / 30) * 100)
                 const IconComp = getHabitIcon(hab.icone)
 
                 return (
-                  <div key={hab.id}>
-                    {/* Header */}
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: `${hab.couleur || '#FF6B2B'}15` }}>
-                        <IconComp size={13} style={{ color: hab.couleur || '#FF6B2B' }} />
+                  <div key={hab.id} className={`bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] p-4 ${hi > 0 ? '' : ''}`}>
+                    {/* Row */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${hab.couleur || '#FF6B2B'}12` }}>
+                        <IconComp size={14} style={{ color: hab.couleur || '#FF6B2B' }} />
                       </div>
-                      <span className="text-[#F5F5F3] text-xs font-semibold flex-1 truncate">{hab.nom}</span>
+                      <span className="text-[#F5F5F3] text-[13px] font-semibold flex-1 truncate">{hab.nom}</span>
                       {streak > 0 && (
-                        <div className="flex items-center gap-1 shrink-0" style={{ color: hab.couleur || '#FF6B2B' }}>
-                          <Flame size={11} />
-                          <span className="text-[10px] font-bold">{streak}j</span>
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-md shrink-0"
+                          style={{ backgroundColor: `${hab.couleur || '#FF6B2B'}12` }}>
+                          <Flame size={10} style={{ color: hab.couleur || '#FF6B2B' }} />
+                          <span className="text-[10px] font-bold tabular-nums" style={{ color: hab.couleur || '#FF6B2B' }}>{streak}j</span>
                         </div>
                       )}
-                      <span className="text-white/20 text-[10px] shrink-0">{rate}%</span>
+                      <span className="text-zinc-600 text-[11px] font-medium tabular-nums shrink-0">{rate}%</span>
                     </div>
 
-                    {/* 30-day dot timeline */}
-                    <div className="flex gap-[3px]">
+                    {/* 30-day timeline */}
+                    <div className="flex gap-[2.5px]">
                       {Array.from({ length: 30 }, (_, i) => {
                         const d = new Date()
                         d.setDate(d.getDate() - (29 - i))
                         const ds = d.toISOString().split('T')[0]
                         const done = days.includes(ds)
-                        const isToday = ds === today
+                        const isT = ds === today
                         return (
                           <div key={i}
-                            className={`h-3 flex-1 rounded-sm transition-all ${
+                            className={`h-[14px] flex-1 rounded-[3px] transition-all ${
                               done
-                                ? ''
-                                : isToday
-                                  ? 'border border-dashed border-white/15'
-                                  : 'bg-white/[0.04]'
+                                ? 'shadow-sm'
+                                : isT
+                                  ? 'ring-1 ring-[#FF6B2B]/40 ring-offset-0 bg-[#111113]'
+                                  : 'bg-[#111113]'
                             }`}
-                            style={done ? { backgroundColor: hab.couleur || '#FF6B2B' } : {}}
-                            title={`${ds} — ${done ? '✅' : '—'}`}
+                            style={done ? { backgroundColor: hab.couleur || '#FF6B2B', opacity: 0.85 } : {}}
+                            title={`${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} — ${done ? '✅' : '—'}`}
                           />
                         )
                       })}
@@ -2693,89 +2724,110 @@ function SuiviTab({ coachId, clientId }) {
         </div>
       </div>
 
-      {/* ══════════════════════════════════ */}
-      {/* SECTION 3 — Courbes de Progression */}
-      {/* ══════════════════════════════════ */}
-      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#27272a] flex items-center justify-between">
-          <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
-            <Activity size={15} className="text-[#FF6B2B]" />
-            Courbe de Poids
-          </h3>
+      {/* ══════════════════════════════════════════ */}
+      {/* SECTION 3 — Courbe de Poids               */}
+      {/* ══════════════════════════════════════════ */}
+      <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <Activity size={17} className="text-[#FF6B2B]" />
+            </div>
+            <div>
+              <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Courbe de Poids</h3>
+              <p className="text-zinc-500 text-[11px] mt-0.5">{pesees.length} pesée{pesees.length > 1 ? 's' : ''} enregistrée{pesees.length > 1 ? 's' : ''}</p>
+            </div>
+          </div>
           <button onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FF6B2B] text-white text-[10px] font-semibold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
-            <Plus size={11} /> Pesée
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B] text-white text-[11px] font-semibold hover:bg-[#e55a1b] transition-all shadow-lg shadow-[#FF6B2B]/15 active:scale-95">
+            <Plus size={13} /> Pesée
           </button>
         </div>
 
-        {/* Stats mini */}
-        <div className="grid grid-cols-4 gap-px bg-[#27272a]/30">
+        {/* Stats ribbon */}
+        <div className="grid grid-cols-4 mx-6 mb-5 bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] overflow-hidden">
           {[
             { label: 'Actuel', value: dernierPoids ? `${dernierPoids}` : '—', unit: 'kg', color: '#F5F5F3' },
             { label: 'Objectif', value: poidsObjectif ? `${poidsObjectif}` : '—', unit: 'kg', color: '#22c55e' },
             { label: 'Évolution', value: evolution ? `${parseFloat(evolution) > 0 ? '+' : ''}${evolution}` : '—', unit: 'kg', color: evolution && parseFloat(evolution) < 0 ? '#22c55e' : evolution && parseFloat(evolution) > 0 ? '#ef4444' : '#F5F5F3' },
             { label: 'Pesées', value: `${pesees.length}`, unit: '', color: '#F5F5F3' },
           ].map((s, i) => (
-            <div key={i} className="bg-[#18181b] px-3 py-3 text-center">
-              <p className="text-white/25 text-[9px] font-medium uppercase tracking-wider">{s.label}</p>
-              <p className="text-lg font-bold mt-0.5" style={{ color: s.color }}>
-                {s.value}<span className="text-[10px] text-white/20 ml-0.5">{s.unit}</span>
+            <div key={i} className={`px-4 py-3.5 text-center ${i < 3 ? 'border-r border-[#1a1a1e]' : ''}`}>
+              <p className="text-zinc-600 text-[9px] font-medium uppercase tracking-widest">{s.label}</p>
+              <p className="text-xl font-bold mt-1 tabular-nums tracking-tight" style={{ color: s.color }}>
+                {s.value}
+                {s.unit && <span className="text-[10px] text-zinc-700 ml-0.5 font-medium">{s.unit}</span>}
               </p>
             </div>
           ))}
         </div>
 
-        <div className="p-5">
-          {pesees.length < 2 ? (
-            <div className="text-center py-10">
-              <Scale size={28} className="text-white/10 mx-auto mb-2" />
-              <p className="text-white/20 text-xs">2 pesées minimum pour le graphique</p>
-              <button onClick={() => setShowModal(true)}
-                className="mt-3 text-[#FF6B2B] text-xs font-medium hover:underline">+ Ajouter une pesée</button>
-            </div>
-          ) : (
-            renderWeightChart()
-          )}
+        {/* Chart */}
+        <div className="px-6 pb-6">
+          <div className="bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] p-4">
+            {pesees.length < 2 ? (
+              <div className="text-center py-12">
+                <Scale size={28} className="text-zinc-800 mx-auto mb-3" />
+                <p className="text-zinc-600 text-xs">2 pesées minimum pour afficher le graphique</p>
+                <button onClick={() => setShowModal(true)}
+                  className="mt-3 text-[#FF6B2B] text-xs font-semibold hover:underline">+ Ajouter une pesée</button>
+              </div>
+            ) : (
+              renderWeightChart()
+            )}
+          </div>
         </div>
       </div>
 
-      {/* ── Objectifs en cours — barres de progression ── */}
+      {/* ══════════════════════════════════════════ */}
+      {/* SECTION 4 — Progression Objectifs          */}
+      {/* ══════════════════════════════════════════ */}
       {objectifs.length > 0 && (
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-[#27272a]">
-            <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
-              <Target size={15} className="text-[#FF6B2B]" />
-              Progression des Objectifs
-            </h3>
+        <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-6 py-5 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <Target size={17} className="text-[#FF6B2B]" />
+            </div>
+            <div>
+              <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Progression des Objectifs</h3>
+              <p className="text-zinc-500 text-[11px] mt-0.5">{objectifs.length} objectif{objectifs.length > 1 ? 's' : ''} en cours</p>
+            </div>
           </div>
-          <div className="p-5 space-y-4">
+          <div className="px-6 pb-6 space-y-3">
             {objectifs.map(obj => {
               const pct = calcProgress(obj.valeur_depart, obj.valeur_actuelle, obj.valeur_cible)
               const color = progressColor(pct)
               const isLoss = obj.valeur_cible < obj.valeur_depart
               const jours = joursRestants(obj.date_limite)
+              const typeInfo = OBJ_TYPES.find(t => t.id === obj.type_objectif) || OBJ_TYPES[3]
               return (
-                <div key={obj.id}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2 min-w-0">
-                      {isLoss ? <TrendingDown size={11} style={{ color }} className="shrink-0" /> : <TrendingUp size={11} style={{ color }} className="shrink-0" />}
-                      <p className="text-[#F5F5F3] text-xs font-semibold truncate">{obj.titre}</p>
+                <div key={obj.id} className="bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${typeInfo.color}12` }}>
+                        {isLoss ? <TrendingDown size={13} style={{ color }} /> : <TrendingUp size={13} style={{ color }} />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[#F5F5F3] text-[13px] font-semibold truncate">{obj.titre}</p>
+                        <p className="text-zinc-600 text-[10px] mt-0.5">
+                          {obj.valeur_actuelle ?? obj.valeur_depart} / {obj.valeur_cible} {obj.unite}
+                          {jours !== null && (
+                            <span className={`ml-2 ${jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : ''}`}>
+                              · {jours < 0 ? `${Math.abs(jours)}j retard` : jours === 0 ? "Aujourd'hui" : `${jours}j restants`}
+                            </span>
+                          )}
+                        </p>
+                      </div>
                     </div>
-                    <span className="text-xs font-bold shrink-0" style={{ color }}>{pct}%</span>
+                    <span className="text-sm font-bold tabular-nums shrink-0 ml-3" style={{ color }}>{pct}%</span>
                   </div>
-                  <div className="h-2.5 bg-white/[0.04] rounded-full overflow-hidden">
+                  <div className="h-2.5 bg-[#111113] rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-700 relative"
-                      style={{ width: `${pct}%`, backgroundColor: color }}>
-                      {pct > 8 && <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15) 50%, transparent)' }} />}
+                      style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}cc, ${color})` }}>
+                      <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12) 50%, transparent)' }} />
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-white/15 text-[9px]">{obj.valeur_actuelle ?? obj.valeur_depart} / {obj.valeur_cible} {obj.unite}</span>
-                    {jours !== null && (
-                      <span className={`text-[9px] ${jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : 'text-white/15'}`}>
-                        {jours < 0 ? `${Math.abs(jours)}j retard` : jours === 0 ? "Auj." : `${jours}j`}
-                      </span>
-                    )}
                   </div>
                 </div>
               )
@@ -2784,20 +2836,25 @@ function SuiviTab({ coachId, clientId }) {
         </div>
       )}
 
-      {/* ── Historique pesées ── */}
+      {/* ══════════════════════════════════════════ */}
+      {/* SECTION 5 — Historique Pesées              */}
+      {/* ══════════════════════════════════════════ */}
       {pesees.length > 0 && (
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-[#27272a]">
-            <h3 className="text-[#F5F5F3] text-sm font-bold">Historique des pesées</h3>
+        <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-6 py-5 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-white/[0.03] flex items-center justify-center">
+              <Clock size={17} className="text-zinc-500" />
+            </div>
+            <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Historique des pesées</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full">
               <thead>
-                <tr className="border-b border-[#27272a]">
-                  <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Date</th>
-                  <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Poids</th>
-                  <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Évol.</th>
-                  <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Notes</th>
+                <tr className="border-t border-b border-[#1a1a1e]">
+                  <th className="text-left px-6 py-3 text-zinc-600 text-[10px] font-semibold uppercase tracking-wider">Date</th>
+                  <th className="text-left px-6 py-3 text-zinc-600 text-[10px] font-semibold uppercase tracking-wider">Poids</th>
+                  <th className="text-left px-6 py-3 text-zinc-600 text-[10px] font-semibold uppercase tracking-wider">Évol.</th>
+                  <th className="text-left px-6 py-3 text-zinc-600 text-[10px] font-semibold uppercase tracking-wider">Notes</th>
                 </tr>
               </thead>
               <tbody>
@@ -2805,22 +2862,22 @@ function SuiviTab({ coachId, clientId }) {
                   const prev = arr[i + 1]
                   const diff = prev ? (p.poids - prev.poids).toFixed(1) : null
                   return (
-                    <tr key={p.id} className="border-b border-[#27272a]/30 hover:bg-white/[0.02] transition-colors">
-                      <td className="px-5 py-2.5 text-[#F5F5F3] text-xs">
-                        {new Date(p.date_pesee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                    <tr key={p.id} className="border-b border-[#1a1a1e]/50 hover:bg-white/[0.015] transition-colors">
+                      <td className="px-6 py-3 text-[#F5F5F3] text-xs font-medium tabular-nums">
+                        {new Date(p.date_pesee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: '2-digit' })}
                       </td>
-                      <td className="px-5 py-2.5 text-[#F5F5F3] text-xs font-semibold">{p.poids} kg</td>
-                      <td className="px-5 py-2.5">
+                      <td className="px-6 py-3 text-[#F5F5F3] text-xs font-bold tabular-nums">{p.poids} kg</td>
+                      <td className="px-6 py-3">
                         {diff !== null ? (
-                          <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${
-                            parseFloat(diff) < 0 ? 'text-green-400' : parseFloat(diff) > 0 ? 'text-red-400' : 'text-white/30'
+                          <span className={`inline-flex items-center gap-1 text-xs font-bold tabular-nums ${
+                            parseFloat(diff) < 0 ? 'text-emerald-400' : parseFloat(diff) > 0 ? 'text-red-400' : 'text-zinc-600'
                           }`}>
                             {parseFloat(diff) < 0 ? <TrendingDown size={10} /> : parseFloat(diff) > 0 ? <TrendingUp size={10} /> : null}
                             {parseFloat(diff) > 0 ? '+' : ''}{diff}
                           </span>
-                        ) : <span className="text-white/15 text-xs">—</span>}
+                        ) : <span className="text-zinc-700 text-xs">—</span>}
                       </td>
-                      <td className="px-5 py-2.5 text-white/25 text-xs truncate max-w-[150px]">{p.notes || '—'}</td>
+                      <td className="px-6 py-3 text-zinc-600 text-xs truncate max-w-[160px]">{p.notes || '—'}</td>
                     </tr>
                   )
                 })}
