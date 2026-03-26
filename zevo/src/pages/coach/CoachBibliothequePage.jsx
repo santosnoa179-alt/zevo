@@ -6,7 +6,8 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import {
   Plus, FileText, Video, Link2, Image, BookOpen, Search,
-  Upload, Trash2, Share2, Loader2, X, ExternalLink, Users, Filter
+  Upload, Trash2, Share2, Loader2, X, ExternalLink, Users, Filter,
+  CheckCircle2, Circle
 } from 'lucide-react'
 
 // Icônes et couleurs par type de ressource
@@ -296,71 +297,88 @@ export default function CoachBibliothequePage() {
           return (
             <div
               key={res.id}
-              className="bg-[#1E1E1E] rounded-2xl border border-white/[0.08] p-5 hover:border-white/[0.15] transition-colors group"
+              className="bg-[#1E1E1E] rounded-2xl border border-white/[0.08] hover:border-white/[0.15] transition-all group relative"
             >
-              {/* Header card */}
-              <div className="flex items-start gap-3 mb-3">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: `${config.color}15` }}
-                >
-                  <Icon size={18} style={{ color: config.color }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-[#F5F5F3] font-medium text-sm truncate">{res.titre}</h3>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span
-                      className="text-[10px] px-2 py-0.5 rounded-full"
-                      style={{ backgroundColor: `${config.color}15`, color: config.color }}
-                    >
-                      {config.label}
-                    </span>
-                    {res.categorie && (
-                      <span className="text-white/30 text-[10px]">{res.categorie}</span>
-                    )}
+              {/* Zone cliquable principale → ouvre la ressource */}
+              <button
+                type="button"
+                onClick={() => res.url && window.open(res.url, '_blank', 'noopener,noreferrer')}
+                className="w-full text-left p-5 pb-0 cursor-pointer"
+                disabled={!res.url}
+              >
+                {/* Header card */}
+                <div className="flex items-start gap-3 mb-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${config.color}15` }}
+                  >
+                    <Icon size={18} style={{ color: config.color }} />
                   </div>
-                </div>
-              </div>
-
-              {/* Description */}
-              {res.description && (
-                <p className="text-white/40 text-xs mb-3 line-clamp-2">{res.description}</p>
-              )}
-
-              {/* Actions */}
-              <div className="flex items-center justify-between pt-2 border-t border-white/[0.05]">
-                <span className="text-white/25 text-xs inline-flex items-center gap-1">
-                  <Users size={11} />
-                  {nbPartages} client{nbPartages > 1 ? 's' : ''}
-                </span>
-                <div className="flex items-center gap-1">
-                  {/* Ouvrir */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[#F5F5F3] font-medium text-sm truncate group-hover:text-white transition-colors">
+                      {res.titre}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span
+                        className="text-[10px] px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: `${config.color}15`, color: config.color }}
+                      >
+                        {config.label}
+                      </span>
+                      {res.categorie && (
+                        <span className="text-white/30 text-[10px]">{res.categorie}</span>
+                      )}
+                    </div>
+                  </div>
+                  {/* Indicateur ouverture */}
                   {res.url && (
-                    <a
-                      href={res.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.04] transition-colors"
-                      title="Ouvrir"
+                    <ExternalLink size={14} className="text-white/15 group-hover:text-white/40 transition-colors shrink-0 mt-0.5" />
+                  )}
+                </div>
+
+                {/* Description */}
+                {res.description && (
+                  <p className="text-white/40 text-xs mb-3 line-clamp-2">{res.description}</p>
+                )}
+              </button>
+
+              {/* Barre d'actions — séparée pour ne pas trigger l'ouverture */}
+              <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.05]">
+                {/* Badge clients */}
+                <span className={`text-xs inline-flex items-center gap-1.5 ${nbPartages > 0 ? 'text-[#FF6B2B]/70' : 'text-white/25'}`}>
+                  <Users size={12} />
+                  {nbPartages} client{nbPartages !== 1 ? 's' : ''}
+                </span>
+
+                <div className="flex items-center gap-0.5">
+                  {/* Ouvrir dans un nouvel onglet */}
+                  {res.url && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); window.open(res.url, '_blank', 'noopener,noreferrer') }}
+                      className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors"
+                      title="Ouvrir dans un nouvel onglet"
                     >
-                      <ExternalLink size={14} />
-                    </a>
+                      <ExternalLink size={15} />
+                    </button>
                   )}
                   {/* Partager */}
                   <button
-                    onClick={() => openShareModal(res.id)}
-                    className="p-1.5 rounded-lg text-white/30 hover:text-[#FF6B2B] hover:bg-white/[0.04] transition-colors"
-                    title="Partager"
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); openShareModal(res.id) }}
+                    className="p-2 rounded-lg text-white/30 hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/[0.06] transition-colors"
+                    title="Partager avec des clients"
                   >
-                    <Share2 size={14} />
+                    <Share2 size={15} />
                   </button>
                   {/* Supprimer */}
                   <button
-                    onClick={() => handleDelete(res.id)}
-                    className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-white/[0.04] transition-colors"
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); handleDelete(res.id) }}
+                    className="p-2 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-400/[0.06] transition-colors"
                     title="Supprimer"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={15} />
                   </button>
                 </div>
               </div>
@@ -491,7 +509,11 @@ export default function CoachBibliothequePage() {
       </Modal>
 
       {/* ══════════ MODAL PARTAGE ══════════ */}
-      <Modal isOpen={modalShare} onClose={() => setModalShare(false)} title="Partager avec">
+      <Modal
+        isOpen={modalShare}
+        onClose={() => setModalShare(false)}
+        title={`Partager — ${ressources.find(r => r.id === shareRessourceId)?.titre || 'Ressource'}`}
+      >
         {loadingClients ? (
           <div className="py-8 flex justify-center">
             <div className="w-6 h-6 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
@@ -502,33 +524,57 @@ export default function CoachBibliothequePage() {
             <p className="text-white/30 text-sm">Aucun client actif</p>
           </div>
         ) : (
-          <div className="space-y-2 max-h-[350px] overflow-y-auto">
-            {clients.map((c) => {
-              const nom = c.profiles?.nom || c.profiles?.email || 'Client'
-              const partage = partagesExistants.includes(c.id)
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => togglePartage(c.id)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-colors ${
-                    partage
-                      ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/20'
-                      : 'bg-[#2A2A2A]/50 hover:bg-[#2A2A2A] border border-transparent'
-                  }`}
-                >
-                  {/* Avatar initiale */}
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                    partage ? 'bg-[#FF6B2B] text-white' : 'bg-[#2A2A2A] text-white/50'
-                  }`}>
-                    {nom.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-[#F5F5F3] text-sm flex-1 truncate">{nom}</span>
-                  {partage && (
-                    <span className="text-[#FF6B2B] text-xs font-medium">Partagé ✓</span>
-                  )}
-                </button>
-              )
-            })}
+          <div className="space-y-3">
+            {/* Résumé */}
+            <div className="flex items-center justify-between px-1">
+              <p className="text-white/40 text-xs">{clients.length} client{clients.length > 1 ? 's' : ''}</p>
+              <p className="text-[#FF6B2B] text-xs font-medium">
+                {partagesExistants.length} partagé{partagesExistants.length > 1 ? 's' : ''}
+              </p>
+            </div>
+
+            {/* Liste des clients */}
+            <div className="space-y-1.5 max-h-[350px] overflow-y-auto">
+              {clients.map((c) => {
+                const nom = c.profiles?.nom || c.profiles?.email || 'Client'
+                const email = c.profiles?.email || ''
+                const partage = partagesExistants.includes(c.id)
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => togglePartage(c.id)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
+                      partage
+                        ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/25 hover:bg-[#FF6B2B]/15'
+                        : 'bg-[#2A2A2A]/40 hover:bg-[#2A2A2A]/70 border border-transparent'
+                    }`}
+                  >
+                    {/* Avatar */}
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${
+                      partage ? 'bg-[#FF6B2B] text-white' : 'bg-[#2A2A2A] text-white/40'
+                    }`}>
+                      {nom.charAt(0).toUpperCase()}
+                    </div>
+
+                    {/* Infos */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm truncate ${partage ? 'text-[#F5F5F3] font-medium' : 'text-[#F5F5F3]'}`}>{nom}</p>
+                      {email && nom !== email && (
+                        <p className="text-white/25 text-[10px] truncate">{email}</p>
+                      )}
+                    </div>
+
+                    {/* Checkbox visuelle */}
+                    {partage ? (
+                      <CheckCircle2 size={18} className="text-[#FF6B2B] shrink-0" />
+                    ) : (
+                      <Circle size={18} className="text-white/15 shrink-0" />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
           </div>
         )}
       </Modal>
