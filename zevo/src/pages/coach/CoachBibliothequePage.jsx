@@ -89,30 +89,39 @@ export default function CoachBibliothequePage() {
   const handleAdd = async (e) => {
     e.preventDefault()
     if (!titre.trim()) return
+
+    // Validation : il faut soit une URL soit un fichier
+    if (addMode === 'lien' && !url.trim()) return
+    if (addMode === 'fichier' && !file) return
+
     setSaving(true)
 
-    let finalUrl = url
+    let finalUrl = url.trim() || null
 
-    // Upload fichier si mode fichier
+    // 1. Upload fichier d'abord si mode fichier
     if (addMode === 'fichier' && file) {
       const ext = file.name.split('.').pop()
-      const path = `${user.id}/${Date.now()}.${ext}`
+      const path = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`
+
       const { error: upErr } = await supabase.storage
         .from('ressources')
-        .upload(path, file)
+        .upload(path, file, { contentType: file.type, upsert: false })
 
       if (upErr) {
-        console.error('Erreur upload:', upErr)
+        console.error('Erreur upload Storage:', upErr)
+        alert('Erreur lors de l\'upload du fichier. Vérifie que le bucket "ressources" existe dans Supabase Storage.')
         setSaving(false)
         return
       }
 
+      // 2. Récupère l'URL publique APRÈS upload réussi
       const { data: urlData } = supabase.storage
         .from('ressources')
         .getPublicUrl(path)
       finalUrl = urlData.publicUrl
     }
 
+    // 3. Insert dans la table (seulement après upload réussi)
     const { data, error } = await supabase
       .from('ressources')
       .insert({
@@ -126,7 +135,10 @@ export default function CoachBibliothequePage() {
       .select()
       .single()
 
-    if (!error && data) {
+    if (error) {
+      console.error('Erreur insert ressource:', error)
+      alert(`Erreur : ${error.message || 'Impossible d\'ajouter la ressource.'}`)
+    } else if (data) {
       setRessources(prev => [data, ...prev])
       resetAddForm()
       setModalAdd(false)
