@@ -30,6 +30,7 @@ const TABS = [
   { id: 'sport', label: 'Sport', icon: Dumbbell },
   { id: 'nutrition', label: 'Nutrition', icon: Apple },
   { id: 'habitudes', label: 'Habitudes', icon: Flame },
+  { id: 'objectifs', label: 'Objectifs', icon: Target },
   { id: 'suivi', label: 'Suivi', icon: BarChart3 },
   { id: 'partage', label: 'Partage', icon: Share2 },
 ]
@@ -2660,6 +2661,513 @@ const REPAS_TYPES = [
 const ALIMENT_CATEGORIES = ['Tous', 'Protéine', 'Féculent', 'Légume', 'Fruit', 'Lipide', 'Laitier', 'Légumineuse', 'Snack']
 
 // ══════════════════════════════════════
+// OBJECTIFS TAB — Module Objectifs SMART
+// ══════════════════════════════════════
+const OBJ_TYPES = [
+  { id: 'poids', label: 'Poids', icon: Scale, color: '#FF6B2B' },
+  { id: 'mensuration', label: 'Mensuration', icon: Ruler, color: '#3b82f6' },
+  { id: 'performance', label: 'Performance', icon: TrendingUp, color: '#22c55e' },
+  { id: 'autre', label: 'Autre', icon: Target, color: '#a855f7' },
+]
+
+function calcProgress(depart, actuelle, cible) {
+  if (depart == null || cible == null) return 0
+  const current = actuelle ?? depart
+  const totalDelta = cible - depart
+  if (totalDelta === 0) return current === cible ? 100 : 0
+  const currentDelta = current - depart
+  const pct = (currentDelta / totalDelta) * 100
+  return Math.max(0, Math.min(100, Math.round(pct)))
+}
+
+function progressColor(pct) {
+  if (pct >= 80) return '#22c55e'
+  if (pct >= 50) return '#f59e0b'
+  if (pct >= 25) return '#FF6B2B'
+  return '#ef4444'
+}
+
+function joursRestants(dateLimite) {
+  if (!dateLimite) return null
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+  const target = new Date(dateLimite)
+  target.setHours(0, 0, 0, 0)
+  const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24))
+  return diff
+}
+
+function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
+  const toast = useToast()
+  const [objectifs, setObjectifs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [editingValue, setEditingValue] = useState({}) // { [id]: string }
+  const [updatingId, setUpdatingId] = useState(null)
+
+  // Form
+  const [formTitre, setFormTitre] = useState('')
+  const [formType, setFormType] = useState('poids')
+  const [formDepart, setFormDepart] = useState('')
+  const [formCible, setFormCible] = useState('')
+  const [formActuelle, setFormActuelle] = useState('')
+  const [formUnite, setFormUnite] = useState('kg')
+  const [formDateLimite, setFormDateLimite] = useState('')
+
+  const loadData = useCallback(async () => {
+    if (!clientId) return
+    setLoading(true)
+    const { data } = await supabase
+      .from('objectifs')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false })
+    setObjectifs(data || [])
+    setLoading(false)
+  }, [clientId])
+
+  useEffect(() => { loadData() }, [loadData])
+
+  // ── Créer un objectif ──
+  const handleCreate = async (e) => {
+    e.preventDefault()
+    if (!formTitre.trim() || !formDepart || !formCible) return
+    setSaving(true)
+
+    const payload = {
+      client_id: clientId,
+      titre: formTitre.trim(),
+      type_objectif: formType,
+      valeur_depart: parseFloat(formDepart),
+      valeur_cible: parseFloat(formCible),
+      valeur_actuelle: formActuelle ? parseFloat(formActuelle) : parseFloat(formDepart),
+      unite: formUnite.trim() || 'kg',
+      date_limite: formDateLimite || null,
+      statut: 'en_cours',
+    }
+
+    const { data, error } = await supabase.from('objectifs').insert(payload).select().single()
+    if (!error && data) {
+      setObjectifs(prev => [data, ...prev])
+      resetForm()
+      setShowModal(false)
+      toast.success('Objectif créé !')
+      onObjectifsChanged?.()
+    } else {
+      toast.error('Erreur : ' + (error?.message || 'Échec'))
+    }
+    setSaving(false)
+  }
+
+  const resetForm = () => {
+    setFormTitre(''); setFormType('poids'); setFormDepart(''); setFormCible('')
+    setFormActuelle(''); setFormUnite('kg'); setFormDateLimite('')
+  }
+
+  // ── Mettre à jour la valeur actuelle ──
+  const handleUpdateValue = async (obj) => {
+    const newVal = parseFloat(editingValue[obj.id])
+    if (isNaN(newVal)) return
+    setUpdatingId(obj.id)
+
+    const isAtteint = obj.valeur_cible > obj.valeur_depart
+      ? newVal >= obj.valeur_cible
+      : newVal <= obj.valeur_cible
+
+    const { error } = await supabase.from('objectifs').update({
+      valeur_actuelle: newVal,
+      statut: isAtteint ? 'atteint' : 'en_cours',
+    }).eq('id', obj.id)
+
+    if (!error) {
+      setObjectifs(prev => prev.map(o => o.id === obj.id ? {
+        ...o,
+        valeur_actuelle: newVal,
+        statut: isAtteint ? 'atteint' : 'en_cours',
+      } : o))
+      setEditingValue(prev => { const c = { ...prev }; delete c[obj.id]; return c })
+      toast.success(isAtteint ? '🎉 Objectif atteint !' : 'Valeur mise à jour')
+      onObjectifsChanged?.()
+    }
+    setUpdatingId(null)
+  }
+
+  // ── Archiver ──
+  const handleArchive = async (id) => {
+    await supabase.from('objectifs').update({ archive: true }).eq('id', id)
+    setObjectifs(prev => prev.filter(o => o.id !== id))
+    toast.success('Objectif archivé')
+    onObjectifsChanged?.()
+  }
+
+  // ── Supprimer ──
+  const handleDelete = async (id) => {
+    if (!window.confirm('Supprimer définitivement cet objectif ?')) return
+    await supabase.from('objectifs').delete().eq('id', id)
+    setObjectifs(prev => prev.filter(o => o.id !== id))
+    toast.success('Objectif supprimé')
+    onObjectifsChanged?.()
+  }
+
+  const enCours = objectifs.filter(o => o.statut === 'en_cours')
+  const atteints = objectifs.filter(o => o.statut === 'atteint')
+
+  if (loading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-24 bg-[#18181b] rounded-2xl" />
+        <div className="h-20 bg-[#18181b] rounded-2xl" />
+        <div className="h-20 bg-[#18181b] rounded-2xl" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-5">
+
+      {/* ── Header stats ── */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
+          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">En cours</p>
+          <p className="text-[#FF6B2B] text-2xl font-bold mt-1">{enCours.length}</p>
+        </div>
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
+          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">Atteints</p>
+          <p className="text-emerald-400 text-2xl font-bold mt-1">{atteints.length}</p>
+        </div>
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
+          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">Progression moy.</p>
+          <p className="text-[#F5F5F3] text-2xl font-bold mt-1">
+            {enCours.length > 0
+              ? Math.round(enCours.reduce((s, o) => s + calcProgress(o.valeur_depart, o.valeur_actuelle, o.valeur_cible), 0) / enCours.length)
+              : 0}%
+          </p>
+        </div>
+      </div>
+
+      {/* ── Action bar ── */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-[#F5F5F3] text-sm font-bold">
+          Objectifs de {clientName || 'ce client'}
+        </h3>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF6B2B] hover:bg-[#e55a1b] text-white text-xs font-semibold transition-all active:scale-95"
+        >
+          <Plus size={14} /> Nouvel objectif
+        </button>
+      </div>
+
+      {/* ── Liste objectifs en cours ── */}
+      {enCours.length === 0 && atteints.length === 0 ? (
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl py-16 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
+            <Target size={24} className="text-[#FF6B2B]" />
+          </div>
+          <p className="text-white/40 text-sm">Aucun objectif défini</p>
+          <p className="text-white/20 text-xs mt-1">Cliquez sur "Nouvel objectif" pour commencer</p>
+        </div>
+      ) : (
+        <>
+          {/* En cours */}
+          {enCours.length > 0 && (
+            <div className="space-y-2.5">
+              {enCours.map((obj) => {
+                const pct = calcProgress(obj.valeur_depart, obj.valeur_actuelle, obj.valeur_cible)
+                const color = progressColor(pct)
+                const jours = joursRestants(obj.date_limite)
+                const typeInfo = OBJ_TYPES.find(t => t.id === obj.type_objectif) || OBJ_TYPES[3]
+                const IconComp = typeInfo.icon
+                const isLoss = obj.valeur_cible < obj.valeur_depart
+
+                return (
+                  <div key={obj.id} className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5 hover:border-[#27272a]/80 transition-all group">
+
+                    {/* Header */}
+                    <div className="flex items-start gap-3.5 mb-4">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${typeInfo.color}15` }}>
+                        <IconComp size={18} style={{ color: typeInfo.color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-[#F5F5F3] text-sm font-semibold truncate">{obj.titre}</p>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full font-bold shrink-0"
+                            style={{ backgroundColor: `${typeInfo.color}15`, color: typeInfo.color }}>
+                            {typeInfo.label}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-white/30 text-[10px]">
+                            {obj.valeur_depart} → {obj.valeur_cible} {obj.unite}
+                          </span>
+                          {jours !== null && (
+                            <span className={`text-[10px] flex items-center gap-1 ${
+                              jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : 'text-white/25'
+                            }`}>
+                              <Calendar size={9} />
+                              {jours < 0 ? `${Math.abs(jours)}j en retard` : jours === 0 ? "Aujourd'hui" : `${jours}j restants`}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions (hover) */}
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <button onClick={() => handleArchive(obj.id)}
+                          className="p-1.5 rounded-lg text-white/20 hover:text-amber-400 hover:bg-amber-500/10 transition-all" title="Archiver">
+                          <FolderOpen size={13} />
+                        </button>
+                        <button onClick={() => handleDelete(obj.id)}
+                          className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Supprimer">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Progress bar */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          {isLoss ? <TrendingDown size={12} style={{ color }} /> : <TrendingUp size={12} style={{ color }} />}
+                          <span className="text-xs font-bold" style={{ color }}>
+                            {obj.valeur_actuelle ?? obj.valeur_depart} {obj.unite}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold" style={{ color }}>{pct}%</span>
+                      </div>
+                      <div className="h-2.5 bg-white/[0.04] rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700 relative"
+                          style={{ width: `${pct}%`, backgroundColor: color }}>
+                          {pct > 8 && (
+                            <div className="absolute inset-0 rounded-full"
+                              style={{ background: `linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)` }} />
+                          )}
+                        </div>
+                      </div>
+                      {/* Scale markers */}
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-[9px] text-white/15">{obj.valeur_depart} {obj.unite}</span>
+                        <span className="text-[9px] text-white/15">{obj.valeur_cible} {obj.unite}</span>
+                      </div>
+                    </div>
+
+                    {/* Update value inline */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-[#27272a]/40">
+                      <span className="text-white/25 text-[10px] shrink-0">Mise à jour :</span>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={editingValue[obj.id] ?? ''}
+                        onChange={(e) => setEditingValue(prev => ({ ...prev, [obj.id]: e.target.value }))}
+                        placeholder={`${obj.valeur_actuelle ?? obj.valeur_depart}`}
+                        className="flex-1 bg-[#0a0a0a] border border-[#27272a] rounded-lg px-3 py-1.5 text-[#F5F5F3] text-xs placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors min-w-0"
+                      />
+                      <span className="text-white/20 text-[10px] shrink-0">{obj.unite}</span>
+                      <button
+                        onClick={() => handleUpdateValue(obj)}
+                        disabled={!editingValue[obj.id] || updatingId === obj.id}
+                        className="px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold hover:bg-[#FF6B2B]/20 transition-all disabled:opacity-30 shrink-0 flex items-center gap-1"
+                      >
+                        {updatingId === obj.id ? <Loader2 size={10} className="animate-spin" /> : <Save size={10} />}
+                        OK
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Atteints */}
+          {atteints.length > 0 && (
+            <div>
+              <p className="text-white/25 text-[10px] uppercase tracking-wider font-medium mb-2">
+                ✅ Objectifs atteints ({atteints.length})
+              </p>
+              <div className="space-y-2">
+                {atteints.map((obj) => {
+                  const typeInfo = OBJ_TYPES.find(t => t.id === obj.type_objectif) || OBJ_TYPES[3]
+                  return (
+                    <div key={obj.id} className="bg-emerald-500/[0.04] border border-emerald-500/10 rounded-2xl px-5 py-3.5 flex items-center gap-3.5 group">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={16} className="text-emerald-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-emerald-300/80 text-sm font-semibold truncate">{obj.titre}</p>
+                        <p className="text-emerald-400/30 text-[10px] mt-0.5">
+                          {obj.valeur_depart} → {obj.valeur_actuelle ?? obj.valeur_cible} {obj.unite} · {typeInfo.label}
+                        </p>
+                      </div>
+                      <span className="text-emerald-400 text-xs font-bold shrink-0">100%</span>
+                      <button onClick={() => handleDelete(obj.id)}
+                        className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" title="Supprimer">
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ══════════════════════════════════ */}
+      {/* MODAL — Créer un objectif SMART   */}
+      {/* ══════════════════════════════════ */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}>
+          <div className="bg-[#18181b] border border-[#27272a] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+              <div>
+                <h3 className="text-[#F5F5F3] text-base font-bold">Nouvel objectif</h3>
+                <p className="text-white/20 text-xs mt-0.5">Définir un objectif SMART pour {clientName}</p>
+              </div>
+              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreate} className="p-6 space-y-4">
+              {/* Titre */}
+              <div>
+                <label className="block text-xs text-white/40 font-medium mb-1.5">Titre</label>
+                <input
+                  type="text"
+                  value={formTitre}
+                  onChange={(e) => setFormTitre(e.target.value)}
+                  placeholder="Ex : Perte de masse grasse"
+                  required
+                  autoFocus
+                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                />
+              </div>
+
+              {/* Type */}
+              <div>
+                <label className="block text-xs text-white/40 font-medium mb-1.5">Type</label>
+                <div className="flex flex-wrap gap-2">
+                  {OBJ_TYPES.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setFormType(t.id)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                        formType === t.id
+                          ? 'border text-[#F5F5F3]'
+                          : 'bg-[#0a0a0a] text-white/40 border border-[#27272a] hover:text-white/60'
+                      }`}
+                      style={formType === t.id ? { backgroundColor: `${t.color}15`, borderColor: `${t.color}40`, color: t.color } : {}}
+                    >
+                      <t.icon size={13} />
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Valeurs : Départ / Cible / Actuelle */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-white/40 font-medium mb-1.5">Départ</label>
+                  <input
+                    type="number" step="0.1" value={formDepart} required
+                    onChange={(e) => setFormDepart(e.target.value)}
+                    placeholder="90"
+                    className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-3 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-white/40 font-medium mb-1.5">Cible</label>
+                  <input
+                    type="number" step="0.1" value={formCible} required
+                    onChange={(e) => setFormCible(e.target.value)}
+                    placeholder="80"
+                    className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-3 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-white/40 font-medium mb-1.5">Actuelle <span className="text-white/15">(opt.)</span></label>
+                  <input
+                    type="number" step="0.1" value={formActuelle}
+                    onChange={(e) => setFormActuelle(e.target.value)}
+                    placeholder={formDepart || '—'}
+                    className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-3 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Unité + Date limite */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-white/40 font-medium mb-1.5">Unité</label>
+                  <input
+                    type="text" value={formUnite}
+                    onChange={(e) => setFormUnite(e.target.value)}
+                    placeholder="kg, cm, reps..."
+                    className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-3 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-white/40 font-medium mb-1.5">Date limite</label>
+                  <input
+                    type="date" value={formDateLimite}
+                    onChange={(e) => setFormDateLimite(e.target.value)}
+                    className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-3 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-colors [color-scheme:dark]"
+                  />
+                </div>
+              </div>
+
+              {/* Preview */}
+              {formDepart && formCible && (
+                <div className="bg-[#0a0a0a] border border-[#27272a]/50 rounded-xl p-3">
+                  <p className="text-white/20 text-[10px] uppercase tracking-wider mb-1.5">Aperçu</p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-white/40">{formDepart} {formUnite}</span>
+                    <span className="text-white/15">→</span>
+                    {parseFloat(formCible) < parseFloat(formDepart)
+                      ? <TrendingDown size={12} className="text-[#FF6B2B]" />
+                      : <TrendingUp size={12} className="text-emerald-400" />
+                    }
+                    <span className="text-[#F5F5F3] font-bold">{formCible} {formUnite}</span>
+                    <span className="text-white/15 ml-auto">
+                      Δ {Math.abs(parseFloat(formCible) - parseFloat(formDepart)).toFixed(1)} {formUnite}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { resetForm(); setShowModal(false) }}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#27272a] text-white/60 text-sm font-medium hover:bg-[#333] transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving || !formTitre.trim() || !formDepart || !formCible}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#FF6B2B] hover:bg-[#e55a1b] text-white text-sm font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                >
+                  {saving ? <Loader2 size={14} className="animate-spin" /> : <Target size={14} />}
+                  Créer l'objectif
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ══════════════════════════════════════
 // ICÔNES HABITUDES — Sélection coach
 // ══════════════════════════════════════
 const HABIT_ICONS = [
@@ -3653,7 +4161,7 @@ export default function CoachClientHub() {
         supabase.from('profiles').select('*').eq('id', selectedId).single(),
         supabase.from('clients').select('actif, created_at').eq('id', selectedId).single(),
         supabase.from('habitudes').select('id, nom, couleur, icone, description').eq('client_id', selectedId).eq('actif', true),
-        supabase.from('objectifs').select('*').eq('client_id', selectedId).eq('archive', false),
+        supabase.from('objectifs').select('*').eq('client_id', selectedId).order('created_at', { ascending: false }),
         supabase.from('habitudes_log').select('habitude_id').eq('client_id', selectedId).eq('date', today),
         supabase.from('sommeil_log').select('*').eq('client_id', selectedId).eq('date', today).maybeSingle(),
         supabase.from('humeur_log').select('*').eq('client_id', selectedId).eq('date', today).maybeSingle(),
@@ -3736,6 +4244,17 @@ export default function CoachClientHub() {
     })
     setScore(s)
   }, [selectedId, today])
+
+  // ── Rafraîchir les objectifs (appelé par ObjectifsTab après modif) ──
+  const refreshObjectifs = useCallback(async () => {
+    if (!selectedId) return
+    const { data } = await supabase
+      .from('objectifs')
+      .select('*')
+      .eq('client_id', selectedId)
+      .order('created_at', { ascending: false })
+    setObjectifs(data || [])
+  }, [selectedId])
 
   // ── Invitation ──
   const envoyerInvitation = async (e) => {
@@ -3974,7 +4493,7 @@ export default function CoachClientHub() {
                     { icon: Flame, label: 'Calories', value: planCalories ? `${planCalories}` : (p?.calories_cibles ? `${p.calories_cibles}` : '—'), sub: 'kcal/j', spark: [2000,2100,1950,2000,2050,2000,2100], color: '#f59e0b' },
                     { icon: Activity, label: 'Activité', value: p?.niveau_activite || '—', spark: [3,5,4,6,5,7,6], color: '#22c55e' },
                     { icon: Dumbbell, label: 'Séances', value: '—', sub: 'cette sem.', spark: [2,3,2,4,3,3,4], color: '#3b82f6' },
-                    { icon: Target, label: 'Objectifs', value: `${objectifs.length}`, sub: 'actifs', spark: [1,1,2,2,3,3,3], color: '#a855f7' },
+                    { icon: Target, label: 'Objectifs', value: `${objectifs.filter(o => o.statut === 'en_cours').length}`, sub: 'en cours', spark: [1,1,2,2,3,3,3], color: '#a855f7' },
                   ].map((card, ci) => (
                     <div key={ci} className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 flex flex-col justify-between min-h-[120px]">
                       <div className="flex items-start justify-between">
@@ -4062,51 +4581,90 @@ export default function CoachClientHub() {
                     )}
                   </div>
 
-                  {/* Carte Objectifs */}
+                  {/* Carte Objectifs SMART */}
                   <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
                         <Target size={15} className="text-[#FF6B2B]" />
                         Objectifs
                       </h3>
-                      {p?.objectif_type && (
-                        <span className="text-[9px] px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{p.objectif_type}</span>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="bg-[#09090b] rounded-xl p-3.5">
-                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-0.5">Début coaching</p>
-                        <p className="text-[#F5F5F3] text-sm font-semibold">
-                          {selectedClient?.created_at
-                            ? new Date(selectedClient.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-                            : '—'}
-                        </p>
-                      </div>
-                      <div className="bg-[#09090b] rounded-xl p-3.5">
-                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-0.5">Échéance</p>
-                        <p className="text-[#F5F5F3] text-sm font-semibold">
-                          {p?.date_echeance
-                            ? new Date(p.date_echeance).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-                            : '—'}
-                        </p>
+                      <div className="flex items-center gap-2">
+                        {objectifs.filter(o => o.statut === 'en_cours').length > 0 && (
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
+                            {objectifs.filter(o => o.statut === 'en_cours').length} en cours
+                          </span>
+                        )}
+                        <button
+                          onClick={() => setActiveTab('objectifs')}
+                          className="text-white/20 hover:text-[#FF6B2B] transition-colors"
+                          title="Gérer les objectifs"
+                        >
+                          <Settings size={13} />
+                        </button>
                       </div>
                     </div>
-                    {objectifs.length > 0 ? (
-                      <div className="space-y-3">
-                        {objectifs.slice(0, 3).map((o) => (
-                          <div key={o.id}>
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-[#F5F5F3] text-xs font-medium truncate">{o.titre}</p>
-                              <span className="text-[#FF6B2B] text-[10px] font-bold ml-2">{o.score || 0}%</span>
+                    {objectifs.filter(o => o.statut === 'en_cours').length > 0 ? (
+                      <div className="space-y-3.5">
+                        {objectifs.filter(o => o.statut === 'en_cours').slice(0, 3).map((o) => {
+                          const pct = calcProgress(o.valeur_depart, o.valeur_actuelle, o.valeur_cible)
+                          const color = progressColor(pct)
+                          const jours = joursRestants(o.date_limite)
+                          const isLoss = o.valeur_cible < o.valeur_depart
+                          return (
+                            <div key={o.id}>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  {isLoss
+                                    ? <TrendingDown size={11} style={{ color }} className="shrink-0" />
+                                    : <TrendingUp size={11} style={{ color }} className="shrink-0" />
+                                  }
+                                  <p className="text-[#F5F5F3] text-xs font-medium truncate">{o.titre}</p>
+                                </div>
+                                <span className="text-xs font-bold ml-2 shrink-0" style={{ color }}>{pct}%</span>
+                              </div>
+                              <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                                <div className="h-full rounded-full transition-all duration-700 relative"
+                                  style={{ width: `${pct}%`, backgroundColor: color }}>
+                                  {pct > 8 && (
+                                    <div className="absolute inset-0 rounded-full"
+                                      style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15) 50%, transparent)' }} />
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-between mt-1">
+                                <span className="text-white/15 text-[9px]">
+                                  {o.valeur_actuelle ?? o.valeur_depart} / {o.valeur_cible} {o.unite}
+                                </span>
+                                {jours !== null && (
+                                  <span className={`text-[9px] ${jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : 'text-white/15'}`}>
+                                    {jours < 0 ? `${Math.abs(jours)}j retard` : jours === 0 ? "Auj." : `${jours}j`}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bg-[#FF6B2B] transition-all" style={{ width: `${o.score || 0}%` }} />
-                            </div>
-                          </div>
-                        ))}
+                          )
+                        })}
+                        {objectifs.filter(o => o.statut === 'atteint').length > 0 && (
+                          <p className="text-emerald-400/50 text-[10px] text-center pt-1">
+                            ✅ {objectifs.filter(o => o.statut === 'atteint').length} objectif{objectifs.filter(o => o.statut === 'atteint').length > 1 ? 's' : ''} atteint{objectifs.filter(o => o.statut === 'atteint').length > 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
+                    ) : objectifs.filter(o => o.statut === 'atteint').length > 0 ? (
+                      <div className="text-center py-4">
+                        <p className="text-emerald-400 text-sm font-bold">🎉 Tous les objectifs atteints</p>
+                        <p className="text-emerald-400/30 text-xs mt-1">{objectifs.filter(o => o.statut === 'atteint').length} objectif{objectifs.filter(o => o.statut === 'atteint').length > 1 ? 's' : ''}</p>
                       </div>
                     ) : (
-                      <p className="text-white/15 text-xs text-center py-4">Aucun objectif défini</p>
+                      <div className="text-center py-4">
+                        <p className="text-white/15 text-xs">Aucun objectif défini</p>
+                        <button
+                          onClick={() => setActiveTab('objectifs')}
+                          className="text-[#FF6B2B] text-xs font-medium mt-2 hover:underline"
+                        >
+                          + Créer un objectif
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -4294,8 +4852,20 @@ export default function CoachClientHub() {
               />
             )}
 
+            {activeTab === 'objectifs' && (
+              <ObjectifsTab
+                coachId={user?.id}
+                clientId={selectedId}
+                clientName={(() => {
+                  const c = clients.find(c => c.id === selectedId)
+                  return c?.profiles?.prenom || c?.profiles?.nom || 'ce client'
+                })()}
+                onObjectifsChanged={refreshObjectifs}
+              />
+            )}
+
             {/* ── Placeholder pour les autres onglets ── */}
-            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && activeTab !== 'infos' && activeTab !== 'suivi' && activeTab !== 'habitudes' && (
+            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && activeTab !== 'infos' && activeTab !== 'suivi' && activeTab !== 'habitudes' && activeTab !== 'objectifs' && (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
                   <BarChart3 size={36} className="text-white/10 mx-auto mb-3" />
