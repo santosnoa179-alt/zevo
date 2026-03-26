@@ -238,7 +238,9 @@ export default function CoachRapportsPage() {
     const typeLabel = TYPES_RAPPORT.find(t => t.id === preview.type)?.label?.toUpperCase() || 'RAPPORT'
 
     let y = 0
-    const ensureSpace = (n) => { if (y > pageH - n) { doc.addPage(); y = 22 } }
+    // Marge basse : on garde 24mm pour le footer
+    const FOOTER_H = 24
+    const ensureSpace = (n) => { if (y > pageH - FOOTER_H - n) { doc.addPage(); y = 22 } }
 
     // ── Helpers ──
     const drawBar = (x, yp, w, pct, h = 3) => {
@@ -247,19 +249,25 @@ export default function CoachRapportsPage() {
     }
 
     const drawSection = (title, yp) => {
-      ensureSpace(30)
+      ensureSpace(18)
       doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...MED)
       doc.text(title.toUpperCase(), M, yp)
       doc.setDrawColor(...LT); doc.setLineWidth(0.3); doc.line(M, yp + 2, pageW - M, yp + 2)
-      return yp + 10
+      return yp + 8
     }
 
     const drawKPI = (x, yp, w, h, value, label, unit = '') => {
       doc.setFillColor(...BG); doc.setDrawColor(...LT); doc.setLineWidth(0.25)
       doc.roundedRect(x, yp, w, h, 2.5, 2.5, 'FD')
       doc.setFontSize(20); doc.setFont('helvetica', 'bold'); doc.setTextColor(...OG)
-      const vt = `${value}`; doc.text(vt, x + w / 2, yp + h / 2 - 2, { align: 'center' })
-      if (unit) { doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED); doc.text(unit, x + w / 2 + doc.getTextWidth(vt) / 2 + 1.5, yp + h / 2 - 2) }
+      const vt = `${value}`
+      // Mesurer la largeur du texte AVANT de changer de taille de police
+      const vtWidth = doc.getTextWidth(vt)
+      doc.text(vt, x + w / 2, yp + h / 2 - 2, { align: 'center' })
+      if (unit) {
+        doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
+        doc.text(unit, x + w / 2 + vtWidth / 2 + 2, yp + h / 2 - 2)
+      }
       doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
       doc.text(label.toUpperCase(), x + w / 2, yp + h / 2 + 6.5, { align: 'center' })
     }
@@ -291,11 +299,11 @@ export default function CoachRapportsPage() {
     doc.setDrawColor(...LT); doc.setLineWidth(0.4); doc.line(M, y, pageW - M, y)
     y += 10
 
-    doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(...INK)
+    doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(...INK)
     doc.text(typeLabel, M, y); y += 5
-    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
     doc.text(preview.type === 'financier' ? 'Synthese financiere' : 'Synthese de progression', M, y)
-    y += 12
+    y += 10
 
     // ══════════ BODY ══════════
 
@@ -312,89 +320,90 @@ export default function CoachRapportsPage() {
       doc.text(`${nom}  \u2014  ${preview.jours} derniers jours`, M, y); y += 12
 
       // ── 3 KPIs principaux ──
-      const gap = 8; const cw = (pageW - M * 2 - gap * 2) / 3
-      drawKPI(M, y, cw, 36, `${d.tauxHabitudes}`, 'Habitudes', '%')
-      drawKPI(M + cw + gap, y, cw, 36, `${d.seancesCompleted}/${d.seancesTotal}`, 'Seances')
-      const poidsLabel = d.deltaPoids !== null ? `${parseFloat(d.deltaPoids) > 0 ? '+' : ''}${d.deltaPoids}` : '\u2014'
-      drawKPI(M + (cw + gap) * 2, y, cw, 36, poidsLabel, 'Evol. poids', d.deltaPoids !== null ? 'kg' : '')
-      y += 42
+      const gap = 6; const cw = (pageW - M * 2 - gap * 2) / 3
+      drawKPI(M, y, cw, 34, `${d.tauxHabitudes}`, 'Habitudes', '%')
+      drawKPI(M + cw + gap, y, cw, 34, `${d.seancesCompleted}/${d.seancesTotal}`, 'Seances')
+      const poidsLabel = d.deltaPoids !== null ? `${parseFloat(d.deltaPoids) > 0 ? '+' : ''}${d.deltaPoids}` : '--'
+      drawKPI(M + (cw + gap) * 2, y, cw, 34, poidsLabel, 'Evol. poids', d.deltaPoids !== null ? 'kg' : '')
+      y += 40
 
       // Deltas (mensuel)
       if (d.comparaison) {
         drawDelta(M + cw / 2 - 6, y, d.comparaison.habitudes, '%')
         drawDelta(M + cw + gap + cw / 2 - 6, y, d.comparaison.seances, '%')
-        y += 8
+        y += 6
       }
 
       // ── HABITUDES (détail) ──
       y = drawSection('Habitudes', y)
       if (d.habitudesDetail.length === 0) {
         doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
-        doc.text('Aucune habitude active', M, y); y += 8
+        doc.text('Aucune habitude active', M, y); y += 6
       } else {
         d.habitudesDetail.forEach(h => {
-          ensureSpace(12)
-          doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...INK)
+          ensureSpace(10)
+          doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...INK)
           doc.text(h.nom, M, y)
           doc.setFont('helvetica', 'bold'); doc.setTextColor(...OG)
           doc.text(`${h.taux}%`, pageW - M, y, { align: 'right' })
-          y += 4
-          drawBar(M, y, pageW - M * 2, h.taux, 2.5)
-          y += 7
+          y += 3.5
+          drawBar(M, y, pageW - M * 2, h.taux, 2)
+          y += 5.5
         })
       }
-      y += 4
+      y += 2
 
       // ── ENTRAÎNEMENTS ──
       y = drawSection('Entrainements', y)
       if (d.seanceData.length === 0) {
         doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
-        doc.text('Aucune seance sur cette periode', M, y); y += 8
+        doc.text('Aucune seance sur cette periode', M, y); y += 6
       } else {
         // Tableau simplifié
-        doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...MED)
+        doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(...MED)
         doc.text('DATE', M, y); doc.text('SEANCE', M + 25, y); doc.text('STATUT', pageW - M, y, { align: 'right' })
         y += 2
         doc.setDrawColor(...LT); doc.setLineWidth(0.2); doc.line(M, y, pageW - M, y)
-        y += 5
+        y += 4
 
         d.seanceData.forEach(s => {
-          ensureSpace(8)
+          ensureSpace(6)
           const dateS = new Date(s.date_prevue).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })
-          doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
+          doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
           doc.text(dateS, M, y)
           doc.setTextColor(...INK)
-          doc.text(s.titre || 'Seance', M + 25, y)
+          const titre = (s.titre || 'Seance').substring(0, 40)
+          doc.text(titre, M + 25, y)
           if (s.is_completed) {
             doc.setFont('helvetica', 'bold'); doc.setTextColor(...OG)
-            doc.text('\u2713 Fait', pageW - M, y, { align: 'right' })
+            doc.text('Fait', pageW - M, y, { align: 'right' })
           } else {
             doc.setFont('helvetica', 'normal'); doc.setTextColor(180, 180, 180)
-            doc.text('\u2014 Manque', pageW - M, y, { align: 'right' })
+            doc.text('Manque', pageW - M, y, { align: 'right' })
           }
-          y += 5.5
+          y += 5
         })
       }
-      y += 4
+      y += 2
 
       // ── ÉVOLUTION POIDS ──
       if (d.poidsActuel !== null || d.objPoids) {
         y = drawSection('Evolution corporelle', y)
-        const halfW = (pageW - M * 2 - 8) / 2
+        const halfW = (pageW - M * 2 - 6) / 2
 
         // Poids actuel + delta
         if (d.poidsActuel !== null) {
-          drawKPI(M, y, halfW, 28, `${d.poidsActuel}`, 'Poids actuel', 'kg')
+          drawKPI(M, y, halfW, 26, `${d.poidsActuel}`, 'Poids actuel', 'kg')
           if (d.deltaPoids !== null) {
-            drawKPI(M + halfW + 8, y, halfW, 28, `${parseFloat(d.deltaPoids) > 0 ? '+' : ''}${d.deltaPoids}`, 'Variation', 'kg')
+            drawKPI(M + halfW + 6, y, halfW, 26, `${parseFloat(d.deltaPoids) > 0 ? '+' : ''}${d.deltaPoids}`, 'Variation', 'kg')
           }
-          y += 36
+          y += 32
         }
 
         // Mini courbe de poids (SVG-like avec jsPDF lines)
         if (d.allPoidsData.length >= 2) {
-          ensureSpace(35)
-          const chartX = M; const chartY = y; const chartW = pageW - M * 2; const chartH = 25
+          ensureSpace(28)
+          const chartX = M + 12; const chartY = y; const chartW = pageW - M * 2 - 12; const chartH = 20
           const pts = d.allPoidsData.slice(-20) // 20 dernières pesées max
           const minP = Math.min(...pts.map(p => p.poids)) - 0.5
           const maxP = Math.max(...pts.map(p => p.poids)) + 0.5
@@ -402,15 +411,15 @@ export default function CoachRapportsPage() {
 
           // Axes légers
           doc.setDrawColor(...LT); doc.setLineWidth(0.15)
-          doc.line(chartX, chartY + chartH, chartX + chartW, chartY + chartH) // axe X
+          doc.line(chartX, chartY + chartH, chartX + chartW, chartY + chartH)
 
           // Labels min/max
-          doc.setFontSize(6.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
-          doc.text(`${maxP.toFixed(1)}`, chartX - 1, chartY + 2, { align: 'right' })
-          doc.text(`${minP.toFixed(1)}`, chartX - 1, chartY + chartH, { align: 'right' })
+          doc.setFontSize(6); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
+          doc.text(`${maxP.toFixed(1)}`, chartX - 2, chartY + 2, { align: 'right' })
+          doc.text(`${minP.toFixed(1)}`, chartX - 2, chartY + chartH, { align: 'right' })
 
           // Ligne de la courbe
-          doc.setDrawColor(...OG); doc.setLineWidth(0.6)
+          doc.setDrawColor(...OG); doc.setLineWidth(0.5)
           for (let i = 1; i < pts.length; i++) {
             const x1 = chartX + ((i - 1) / (pts.length - 1)) * chartW
             const y1 = chartY + chartH - ((pts[i - 1].poids - minP) / rangeP) * chartH
@@ -423,23 +432,30 @@ export default function CoachRapportsPage() {
           pts.forEach((p, i) => {
             const px = chartX + (i / (pts.length - 1)) * chartW
             const py = chartY + chartH - ((p.poids - minP) / rangeP) * chartH
-            doc.setFillColor(...OG); doc.circle(px, py, 0.8, 'F')
+            doc.setFillColor(...OG); doc.circle(px, py, 0.7, 'F')
           })
 
-          y += chartH + 8
+          y += chartH + 6
         }
 
-        // Objectif poids
+        // Objectif poids — format propre sans caractère unicode
         if (d.objPoids) {
-          ensureSpace(14)
-          doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...INK)
-          doc.text(`Objectif : ${d.objPoids.valeur_depart} \u2192 ${d.objPoids.valeur_cible} kg`, M, y)
-          const pct = calcProgress(d.objPoids.valeur_depart, d.objPoids.valeur_actuelle, d.objPoids.valeur_cible)
+          ensureSpace(12)
+          const dep = d.objPoids.valeur_depart != null ? Number(d.objPoids.valeur_depart) : null
+          const cib = d.objPoids.valeur_cible != null ? Number(d.objPoids.valeur_cible) : null
+          const act = d.objPoids.valeur_actuelle != null ? Number(d.objPoids.valeur_actuelle) : dep
+          const pct = calcProgress(dep, act, cib)
+
+          doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...INK)
+          const objLabel = dep != null && cib != null
+            ? `Depart : ${dep} kg  |  Objectif : ${cib} kg`
+            : 'Objectif poids'
+          doc.text(objLabel, M, y)
           doc.setFont('helvetica', 'bold'); doc.setTextColor(...OG)
           doc.text(`${pct}%`, pageW - M, y, { align: 'right' })
-          y += 4.5
+          y += 4
           drawBar(M, y, pageW - M * 2, pct, 2.5)
-          y += 8
+          y += 7
         }
       }
       y += 2
@@ -449,43 +465,61 @@ export default function CoachRapportsPage() {
       if (autresObj.length > 0) {
         y = drawSection('Objectifs', y)
         autresObj.forEach(o => {
-          ensureSpace(12)
+          ensureSpace(11)
           const typeLabel = o.type_objectif === 'poids' ? 'Poids' : o.type_objectif === 'mensuration' ? 'Mensuration' : o.type_objectif === 'performance' ? 'Performance' : 'Objectif'
-          doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...INK)
-          doc.text(`${o.titre}`, M, y)
-          doc.setFontSize(7); doc.setTextColor(...MED)
-          doc.text(`${typeLabel} \u2022 ${o.valeur_actuelle ?? o.valeur_depart}/${o.valeur_cible} ${o.unite || ''}`, M, y + 4)
-          doc.setFont('helvetica', 'bold'); doc.setTextColor(...OG); doc.setFontSize(9)
+          const act = o.valeur_actuelle ?? o.valeur_depart
+          const cib = o.valeur_cible
+          const unite = o.unite || ''
+
+          doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...INK)
+          doc.text(o.titre || typeLabel, M, y)
+          doc.setFont('helvetica', 'bold'); doc.setTextColor(...OG); doc.setFontSize(8.5)
           doc.text(`${o.progression}%`, pageW - M, y, { align: 'right' })
+
+          // Sous-texte : "Poids - 82 / 75 kg"
+          doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
+          const subText = act != null && cib != null
+            ? `${typeLabel} - ${act} / ${cib} ${unite}`.trim()
+            : typeLabel
+          doc.text(subText, M, y + 3.5)
           y += 5
-          drawBar(M, y, pageW - M * 2, o.progression, 2.5)
-          y += 9
+          drawBar(M, y, pageW - M * 2, o.progression, 2)
+          y += 7
         })
       }
-      y += 2
+      y += 1
 
       // ── COMMENTAIRE ──
       if (commentaire.trim()) {
-        ensureSpace(40)
-        y = drawSection('Mot du coach', y)
         const lines = doc.splitTextToSize(commentaire, pageW - M * 2 - 14)
-        const blockH = lines.length * 4.5 + 6
+        const blockH = lines.length * 4 + 6
+        ensureSpace(blockH + 14)
+        y = drawSection('Mot du coach', y)
         doc.setFillColor(255, 107, 43); doc.setGState(new doc.GState({ opacity: 0.06 }))
         doc.roundedRect(M, y - 2, pageW - M * 2, blockH, 2, 2, 'F')
         doc.setGState(new doc.GState({ opacity: 1 }))
         doc.setFillColor(...OG); doc.roundedRect(M, y - 2, 1.8, blockH, 0.9, 0.9, 'F')
-        doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...INK)
+        doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...INK)
         doc.text(lines, M + 8, y + 3)
-        y += blockH + 6
+        y += blockH + 4
       }
     }
 
-    // ══════════ FOOTER ══════════
-    doc.setDrawColor(...LT); doc.setLineWidth(0.25); doc.line(M, pageH - 18, pageW - M, pageH - 18)
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
-    doc.text(nomApp, M, pageH - 12); doc.text(`Genere le ${dateStr}`, M, pageH - 8)
-    doc.setFont('helvetica', 'bold'); doc.setTextColor(...OG)
-    doc.text('CONFIDENTIEL', pageW - M, pageH - 10, { align: 'right' })
+    // ══════════ FOOTER (sur toutes les pages) ══════════
+    const totalPages = doc.internal.getNumberOfPages()
+    for (let p = 1; p <= totalPages; p++) {
+      doc.setPage(p)
+      doc.setDrawColor(...LT); doc.setLineWidth(0.25); doc.line(M, pageH - 18, pageW - M, pageH - 18)
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
+      doc.text(nomApp, M, pageH - 12)
+      doc.text(`Genere le ${dateStr}`, M, pageH - 8)
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(...OG)
+      doc.text('CONFIDENTIEL', pageW - M, pageH - 10, { align: 'right' })
+      if (totalPages > 1) {
+        doc.setFontSize(6.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
+        doc.text(`${p}/${totalPages}`, pageW / 2, pageH - 8, { align: 'center' })
+      }
+    }
 
     const nomFichier = preview.type === 'financier'
       ? `rapport-financier-${dateStr}.pdf`
@@ -727,7 +761,7 @@ export default function CoachRapportsPage() {
                           return (
                             <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3">
                               <div className="flex items-center justify-between mb-1.5">
-                                <span className="text-[#18181B] text-xs font-medium">Objectif : {op.valeur_depart} → {op.valeur_cible} kg</span>
+                                <span className="text-[#18181B] text-xs font-medium">Départ : {op.valeur_depart} kg | Objectif : {op.valeur_cible} kg</span>
                                 <span className="text-[#FF6B2B] text-xs font-bold">{pct}%</span>
                               </div>
                               <div className="h-[5px] bg-[#E4E4E7] rounded-full overflow-hidden">
