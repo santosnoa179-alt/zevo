@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
-import { Send, MessageSquare } from 'lucide-react'
+import { Send, MessageSquare, Mic } from 'lucide-react'
+import { AudioBubble, VoiceRecorder } from '../../components/chat/VoiceMessage'
 
 // Initiales colorées pour la liste de clients
 const COULEURS = ['#FF6B2B', '#3b82f6', '#22c55e', '#a855f7', '#f59e0b', '#ec4899']
@@ -26,6 +27,7 @@ export default function CoachMessagesPage() {
   const [messages, setMessages] = useState([])
   const [texte, setTexte] = useState('')
   const [envoi, setEnvoi] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
   const [loading, setLoading] = useState(true)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
@@ -156,6 +158,24 @@ export default function CoachMessagesPage() {
     inputRef.current?.focus()
   }
 
+  // Envoie un message vocal
+  const envoyerVocal = async (audioUrl, audioDuration) => {
+    if (!clientSelectionne) return
+    const msg = {
+      coach_id: user.id,
+      client_id: clientSelectionne.id,
+      expediteur: 'coach',
+      contenu: '🎤 Note vocale',
+      audio_url: audioUrl,
+      audio_duration: Math.round(audioDuration),
+    }
+    const tempId = `temp-${Date.now()}`
+    setMessages(prev => [...prev, { ...msg, id: tempId, created_at: new Date().toISOString(), lu: false }])
+    const { data } = await supabase.from('messages').insert(msg).select().single()
+    if (data) setMessages(prev => prev.map(m => m.id === tempId ? data : m))
+    setIsRecording(false)
+  }
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -203,7 +223,7 @@ export default function CoachMessagesPage() {
                   </div>
                   {c.dernierMsg && (
                     <p className="text-white/30 text-xs truncate mt-0.5">
-                      {c.dernierMsg.expediteur === 'coach' ? 'Vous : ' : ''}{c.dernierMsg.contenu}
+                      {c.dernierMsg.expediteur === 'coach' ? 'Vous : ' : ''}{c.dernierMsg.audio_url ? '🎤 Note vocale' : c.dernierMsg.contenu}
                     </p>
                   )}
                 </div>
@@ -239,18 +259,28 @@ export default function CoachMessagesPage() {
               </div>
             ) : (
               messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.expediteur === 'coach' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[72%] px-4 py-2.5 rounded-2xl text-sm ${
-                    msg.expediteur === 'coach'
-                      ? 'bg-[#FF6B2B] text-white rounded-br-sm'
-                      : 'bg-[#2A2A2A] text-[#F5F5F3] rounded-bl-sm'
-                  }`}>
-                    <p>{msg.contenu}</p>
-                    <p className={`text-[10px] mt-1 ${msg.expediteur === 'coach' ? 'text-white/60' : 'text-white/30'}`}>
-                      {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
+                msg.audio_url ? (
+                  <AudioBubble
+                    key={msg.id}
+                    audioUrl={msg.audio_url}
+                    audioDuration={msg.audio_duration}
+                    estMoi={msg.expediteur === 'coach'}
+                    createdAt={msg.created_at}
+                  />
+                ) : (
+                  <div key={msg.id} className={`flex ${msg.expediteur === 'coach' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[72%] px-4 py-2.5 rounded-2xl text-sm ${
+                      msg.expediteur === 'coach'
+                        ? 'bg-[#FF6B2B] text-white rounded-br-sm'
+                        : 'bg-[#2A2A2A] text-[#F5F5F3] rounded-bl-sm'
+                    }`}>
+                      <p>{msg.contenu}</p>
+                      <p className={`text-[10px] mt-1 ${msg.expediteur === 'coach' ? 'text-white/60' : 'text-white/30'}`}>
+                        {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )
               ))
             )}
             <div ref={bottomRef} />
@@ -268,18 +298,36 @@ export default function CoachMessagesPage() {
 
           {/* Saisie */}
           <form onSubmit={envoyerMessage} className="flex items-center gap-2 px-4 py-3 border-t border-white/[0.06] flex-shrink-0">
-            <input
-              ref={inputRef}
-              value={texte}
-              onChange={(e) => setTexte(e.target.value)}
-              placeholder="Écrire un message…"
-              className="flex-1 bg-[#2A2A2A] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e) }}
-            />
-            <button type="submit" disabled={!texte.trim() || envoi}
-              className="w-10 h-10 rounded-xl bg-[#FF6B2B] flex items-center justify-center hover:bg-[#FF9A6C] transition-colors disabled:opacity-40">
-              <Send size={16} className="text-white" />
-            </button>
+            {isRecording ? (
+              <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />
+            ) : (
+              <>
+                <input
+                  ref={inputRef}
+                  value={texte}
+                  onChange={(e) => setTexte(e.target.value)}
+                  placeholder="Écrire un message…"
+                  className="flex-1 bg-[#2A2A2A] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e) }}
+                />
+                {/* Micro — visible seulement quand l'input est vide */}
+                {!texte.trim() ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsRecording(true)}
+                    className="w-10 h-10 rounded-xl bg-[#2A2A2A] border border-white/[0.08] flex items-center justify-center text-white/40 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all flex-shrink-0"
+                    title="Note vocale"
+                  >
+                    <Mic size={16} />
+                  </button>
+                ) : (
+                  <button type="submit" disabled={!texte.trim() || envoi}
+                    className="w-10 h-10 rounded-xl bg-[#FF6B2B] flex items-center justify-center hover:bg-[#FF9A6C] transition-colors disabled:opacity-40 flex-shrink-0">
+                    <Send size={16} className="text-white" />
+                  </button>
+                )}
+              </>
+            )}
           </form>
         </div>
       ) : (

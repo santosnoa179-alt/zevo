@@ -1,10 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
-import { Send } from 'lucide-react'
+import { Send, Mic } from 'lucide-react'
+import { AudioBubble, VoiceRecorder } from '../../components/chat/VoiceMessage'
 
 // Bulle de message individuelle
 function Bulle({ message, estMoi }) {
+  // Message vocal → AudioBubble
+  if (message.audio_url) {
+    return (
+      <AudioBubble
+        audioUrl={message.audio_url}
+        audioDuration={message.audio_duration}
+        estMoi={estMoi}
+        createdAt={message.created_at}
+      />
+    )
+  }
+
   return (
     <div className={`flex ${estMoi ? 'justify-end' : 'justify-start'} mb-2`}>
       <div
@@ -30,6 +43,7 @@ export default function MessagesClientPage() {
   const [loading, setLoading] = useState(true)
   const [texte, setTexte] = useState('')
   const [envoi, setEnvoi] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -135,6 +149,26 @@ export default function MessagesClientPage() {
     inputRef.current?.focus()
   }
 
+  // Envoie un message vocal
+  const envoyerVocal = async (audioUrl, audioDuration) => {
+    if (!coachId) return
+    const msg = {
+      coach_id: coachId,
+      client_id: user.id,
+      expediteur: 'client',
+      contenu: '🎤 Note vocale',
+      audio_url: audioUrl,
+      audio_duration: Math.round(audioDuration),
+    }
+    const tempId = `temp-${Date.now()}`
+    setMessages(prev => [...prev, { ...msg, id: tempId, created_at: new Date().toISOString(), lu: false }])
+    const { data, error } = await supabase.from('messages').insert(msg).select().single()
+    if (!error && data) {
+      setMessages(prev => prev.map(m => m.id === tempId ? data : m))
+    }
+    setIsRecording(false)
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col h-[calc(100vh-64px)] md:h-screen items-center justify-center">
@@ -187,23 +221,41 @@ export default function MessagesClientPage() {
         onSubmit={envoyerMessage}
         className="flex items-center gap-2 px-4 py-3 border-t border-white/[0.06] bg-[#0D0D0D] flex-shrink-0"
       >
-        <input
-          ref={inputRef}
-          value={texte}
-          onChange={(e) => setTexte(e.target.value)}
-          placeholder="Écris un message…"
-          className="flex-1 bg-[#2A2A2A] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e)
-          }}
-        />
-        <button
-          type="submit"
-          disabled={!texte.trim() || envoi}
-          className="w-10 h-10 rounded-xl bg-[#FF6B2B] flex items-center justify-center flex-shrink-0 hover:bg-[#FF9A6C] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <Send size={16} className="text-white" />
-        </button>
+        {isRecording ? (
+          <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />
+        ) : (
+          <>
+            <input
+              ref={inputRef}
+              value={texte}
+              onChange={(e) => setTexte(e.target.value)}
+              placeholder="Écris un message…"
+              className="flex-1 bg-[#2A2A2A] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e)
+              }}
+            />
+            {/* Micro quand input vide, Send quand texte présent */}
+            {!texte.trim() ? (
+              <button
+                type="button"
+                onClick={() => setIsRecording(true)}
+                className="w-10 h-10 rounded-xl bg-[#2A2A2A] border border-white/[0.08] flex items-center justify-center flex-shrink-0 text-white/40 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all"
+                title="Note vocale"
+              >
+                <Mic size={16} />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={!texte.trim() || envoi}
+                className="w-10 h-10 rounded-xl bg-[#FF6B2B] flex items-center justify-center flex-shrink-0 hover:bg-[#FF9A6C] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Send size={16} className="text-white" />
+              </button>
+            )}
+          </>
+        )}
       </form>
 
     </div>
