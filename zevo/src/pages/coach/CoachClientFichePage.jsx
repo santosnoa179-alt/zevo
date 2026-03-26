@@ -10,8 +10,9 @@ import { Modal } from '../../components/ui/Modal'
 import {
   ArrowLeft, CheckCircle2, Circle, Target, MessageSquare,
   Plus, Lock, TrendingUp, Layers, Play, Pause, CheckSquare, Download,
-  ChevronRight, Loader2, Dumbbell
+  ChevronRight, Loader2, Dumbbell, Mic, Send
 } from 'lucide-react'
+import { AudioBubble, VoiceRecorder } from '../../components/chat/VoiceMessage'
 import { useToast } from '../../components/ui/Toast'
 import { exportHabitudes, exportObjectifs } from '../../utils/exportCsv'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
@@ -60,6 +61,7 @@ export default function CoachClientFichePage() {
   // Saisie message
   const [texteMsg, setTexteMsg] = useState('')
   const [envoi, setEnvoi] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
 
   const today = new Date().toISOString().split('T')[0]
 
@@ -392,6 +394,24 @@ export default function CoachClientFichePage() {
     setEnvoi(false)
   }
 
+  // Envoie un message vocal
+  const envoyerVocal = async (audioUrl, audioDuration) => {
+    if (!clientId) return
+    const msg = {
+      coach_id: user.id,
+      client_id: clientId,
+      expediteur: 'coach',
+      contenu: '🎤 Note vocale',
+      audio_url: audioUrl,
+      audio_duration: Math.round(audioDuration),
+    }
+    const tempId = `temp-${Date.now()}`
+    setMessages(prev => [...prev, { ...msg, id: tempId, created_at: new Date().toISOString(), lu: false }])
+    const { data } = await supabase.from('messages').insert(msg).select().single()
+    if (data) setMessages(prev => prev.map(m => m.id === tempId ? data : m))
+    setIsRecording(false)
+  }
+
   // Score du jour
   const todayLogs = logs30j.filter(l => l.date === today)
   const todaySommeil = sommeilLog.find(s => s.date === today) ?? null
@@ -679,18 +699,28 @@ export default function CoachClientFichePage() {
               </div>
             ) : (
               messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.expediteur === 'coach' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${
-                    msg.expediteur === 'coach'
-                      ? 'bg-[#FF6B2B] text-white rounded-br-sm'
-                      : 'bg-[#2A2A2A] text-[#F5F5F3] rounded-bl-sm'
-                  }`}>
-                    <p>{msg.contenu}</p>
-                    <p className={`text-[10px] mt-1 ${msg.expediteur === 'coach' ? 'text-white/60' : 'text-white/30'}`}>
-                      {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
+                msg.audio_url ? (
+                  <AudioBubble
+                    key={msg.id}
+                    audioUrl={msg.audio_url}
+                    audioDuration={msg.audio_duration}
+                    estMoi={msg.expediteur === 'coach'}
+                    createdAt={msg.created_at}
+                  />
+                ) : (
+                  <div key={msg.id} className={`flex ${msg.expediteur === 'coach' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${
+                      msg.expediteur === 'coach'
+                        ? 'bg-[#FF6B2B] text-white rounded-br-sm'
+                        : 'bg-[#2A2A2A] text-[#F5F5F3] rounded-bl-sm'
+                    }`}>
+                      <p>{msg.contenu}</p>
+                      <p className={`text-[10px] mt-1 ${msg.expediteur === 'coach' ? 'text-white/60' : 'text-white/30'}`}>
+                        {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )
               ))
             )}
           </div>
@@ -707,16 +737,34 @@ export default function CoachClientFichePage() {
 
           {/* Saisie message */}
           <form onSubmit={envoyerMessage} className="flex gap-2">
-            <input
-              value={texteMsg}
-              onChange={(e) => setTexteMsg(e.target.value)}
-              placeholder="Écrire un message…"
-              className="flex-1 bg-[#2A2A2A] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
-            />
-            <button type="submit" disabled={!texteMsg.trim() || envoi}
-              className="w-10 h-10 rounded-xl bg-[#FF6B2B] flex items-center justify-center hover:bg-[#FF9A6C] transition-colors disabled:opacity-40">
-              <TrendingUp size={15} className="text-white" />
-            </button>
+            {isRecording ? (
+              <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />
+            ) : (
+              <>
+                <input
+                  value={texteMsg}
+                  onChange={(e) => setTexteMsg(e.target.value)}
+                  placeholder="Écrire un message…"
+                  className="flex-1 bg-[#2A2A2A] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e) }}
+                />
+                {!texteMsg.trim() ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsRecording(true)}
+                    className="w-10 h-10 rounded-xl bg-[#2A2A2A] border border-white/[0.08] flex items-center justify-center text-white/40 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all flex-shrink-0"
+                    title="Note vocale"
+                  >
+                    <Mic size={16} />
+                  </button>
+                ) : (
+                  <button type="submit" disabled={!texteMsg.trim() || envoi}
+                    className="w-10 h-10 rounded-xl bg-[#FF6B2B] flex items-center justify-center hover:bg-[#FF9A6C] transition-colors disabled:opacity-40 flex-shrink-0">
+                    <Send size={15} className="text-white" />
+                  </button>
+                )}
+              </>
+            )}
           </form>
         </div>
       )}
