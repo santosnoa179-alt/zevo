@@ -1,16 +1,18 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import {
   Calendar, ChevronLeft, ChevronRight, Plus, Clock, User,
   Dumbbell, X, CheckSquare, Phone, FileText, Users as UsersIcon,
-  Star, Loader2
+  Star, Loader2, Filter
 } from 'lucide-react'
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+const JOURS_FULL = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 
 const EVENT_TYPES = [
+  { id: 'seance', label: 'Séance', icon: Dumbbell, color: '#FF6B2B' },
   { id: 'bilan', label: 'Bilan', icon: CheckSquare, color: '#22c55e' },
   { id: 'appel', label: 'Appel', icon: Phone, color: '#3b82f6' },
   { id: 'reunion', label: 'Réunion', icon: UsersIcon, color: '#a855f7' },
@@ -18,6 +20,16 @@ const EVENT_TYPES = [
   { id: 'perso', label: 'Personnel', icon: Star, color: '#ec4899' },
   { id: 'autre', label: 'Autre', icon: Calendar, color: '#64748b' },
 ]
+
+// ── Date helpers ──
+
+function isSameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+}
+
+function formatHHmm(dateStr) {
+  return new Date(dateStr).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+}
 
 function getWeekDates(offset) {
   const now = new Date()
@@ -33,36 +45,78 @@ function getWeekDates(offset) {
   })
 }
 
-function formatHHmm(dateStr) {
-  const d = new Date(dateStr)
-  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+function getMonthGrid(offset) {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + offset
+  const first = new Date(year, month, 1)
+  const last = new Date(year, month + 1, 0)
+
+  // Lundi = 0, Dimanche = 6 (ISO)
+  let startDay = first.getDay() - 1
+  if (startDay < 0) startDay = 6
+
+  const cells = []
+  // Days from previous month
+  for (let i = startDay - 1; i >= 0; i--) {
+    const d = new Date(first)
+    d.setDate(d.getDate() - i - 1)
+    cells.push({ date: d, inMonth: false })
+  }
+  // Days in current month
+  for (let i = 1; i <= last.getDate(); i++) {
+    cells.push({ date: new Date(year, month, i), inMonth: true })
+  }
+  // Fill remaining to complete 6 rows (42 cells) or 5 rows (35 cells)
+  const targetLen = cells.length > 35 ? 42 : 35
+  while (cells.length < targetLen) {
+    const next = new Date(last)
+    next.setDate(next.getDate() + (cells.length - (startDay + last.getDate()) + 1))
+    cells.push({ date: next, inMonth: false })
+  }
+
+  return { cells, monthLabel: first.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }), first, last }
 }
 
-function formatDateRange(dates) {
+function formatWeekRange(dates) {
   if (!dates.length) return ''
   const opts = { day: 'numeric', month: 'short' }
-  const start = dates[0].toLocaleDateString('fr-FR', opts)
-  const end = dates[6].toLocaleDateString('fr-FR', opts)
-  const year = dates[0].getFullYear()
-  return `${start} — ${end} ${year}`
+  return `${dates[0].toLocaleDateString('fr-FR', opts)} — ${dates[6].toLocaleDateString('fr-FR', opts)} ${dates[0].getFullYear()}`
 }
 
-function isSameDay(a, b) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
-}
+// ── Hours for week view ──
+const HOURS = Array.from({ length: 14 }, (_, i) => i + 7) // 7h → 20h
+
+// ══════════════════════════════════════
+// COMPONENT
+// ══════════════════════════════════════
 
 export default function CoachGlobalCalendarPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+
+  // View state
+  const [view, setView] = useState('month')
   const [weekOffset, setWeekOffset] = useState(0)
+  const [monthOffset, setMonthOffset] = useState(0)
+
+  // Data
   const [seances, setSeances] = useState([])
   const [events, setEvents] = useState([])
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [modalType, setModalType] = useState(null) // null = choice, 'event' = form
 
-  // Event form state
+  // Filters
+  const [filterClient, setFilterClient] = useState('')
+  const [filterType, setFilterType] = useState('')
+
+  // Month popover
+  const [popoverDay, setPopoverDay] = useState(null)
+  const popoverRef = useRef(null)
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalType, setModalType] = useState(null)
   const [evtTitle, setEvtTitle] = useState('')
   const [evtDate, setEvtDate] = useState('')
   const [evtTime, setEvtTime] = useState('09:00')
@@ -71,33 +125,53 @@ export default function CoachGlobalCalendarPage() {
   const [evtNotes, setEvtNotes] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const weekDates = getWeekDates(weekOffset)
   const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
+  // ── Date ranges ──
+  const weekDates = getWeekDates(weekOffset)
+  const monthGrid = getMonthGrid(monthOffset)
+
+  // Compute fetch range depending on view
+  const getDateRange = useCallback(() => {
+    if (view === 'week') {
+      const wd = getWeekDates(weekOffset)
+      const start = new Date(wd[0])
+      start.setHours(0, 0, 0, 0)
+      const end = new Date(wd[6])
+      end.setHours(23, 59, 59, 999)
+      return { start, end }
+    } else {
+      const mg = getMonthGrid(monthOffset)
+      const start = new Date(mg.cells[0].date)
+      start.setHours(0, 0, 0, 0)
+      const end = new Date(mg.cells[mg.cells.length - 1].date)
+      end.setHours(23, 59, 59, 999)
+      return { start, end }
+    }
+  }, [view, weekOffset, monthOffset])
+
+  // ── Data fetching ──
   const fetchData = useCallback(async () => {
     if (!user?.id) return
     setLoading(true)
-
-    const start = weekDates[0].toISOString()
-    const endDate = new Date(weekDates[6])
-    endDate.setHours(23, 59, 59, 999)
-    const end = endDate.toISOString()
+    const { start, end } = getDateRange()
 
     const [seancesRes, eventsRes, clientsRes] = await Promise.all([
       supabase
         .from('seances')
-        .select('id, titre, date_prevue, client_id, profiles!seances_client_id_fkey(nom)')
+        .select('id, titre, date_prevue, client_id, is_completed, profiles!seances_client_id_fkey(nom)')
         .eq('coach_id', user.id)
         .eq('is_template', false)
-        .gte('date_prevue', start)
-        .lte('date_prevue', end)
+        .gte('date_prevue', start.toISOString())
+        .lte('date_prevue', end.toISOString())
         .order('date_prevue', { ascending: true }),
       supabase
         .from('coach_events')
         .select('id, title, event_date, event_type, client_id, notes')
         .eq('coach_id', user.id)
-        .gte('event_date', start)
-        .lte('event_date', end)
+        .gte('event_date', start.toISOString())
+        .lte('event_date', end.toISOString())
         .order('event_date', { ascending: true }),
       supabase
         .from('clients')
@@ -110,71 +184,90 @@ export default function CoachGlobalCalendarPage() {
     setEvents(eventsRes.data ?? [])
     setClients(clientsRes.data ?? [])
     setLoading(false)
-  }, [user?.id, weekOffset])
+  }, [user?.id, getDateRange])
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  // Stats
-  const totalItems = seances.length + events.length
-  const uniqueClients = new Set([
-    ...seances.map(s => s.client_id),
-    ...events.filter(e => e.client_id).map(e => e.client_id),
-  ].filter(Boolean)).size
-  const itemsToday = seances.filter(s => isSameDay(new Date(s.date_prevue), today)).length +
-    events.filter(e => isSameDay(new Date(e.event_date), today)).length
+  // Close popover on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) setPopoverDay(null)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
-  // Group items by day
-  function itemsForDay(date) {
-    const daySeances = seances.filter(s => isSameDay(new Date(s.date_prevue), date)).map(s => ({
-      ...s, _type: 'seance', _time: s.date_prevue,
-    }))
-    const dayEvents = events.filter(e => isSameDay(new Date(e.event_date), date)).map(e => ({
-      ...e, _type: 'event', _time: e.event_date,
-    }))
-    return [...daySeances, ...dayEvents].sort((a, b) => new Date(a._time) - new Date(b._time))
-  }
-
-  // Open modal
-  const openNewModal = () => {
-    setModalType(null)
-    setEvtTitle('')
-    setEvtDate(new Date().toISOString().split('T')[0])
-    setEvtTime('09:00')
-    setEvtType('bilan')
-    setEvtClient('')
-    setEvtNotes('')
-    setModalOpen(true)
-  }
-
-  // Save event
-  const saveEvent = async () => {
-    if (!evtTitle.trim() || !evtDate) return
-    setSaving(true)
-    const eventDate = new Date(`${evtDate}T${evtTime}:00`)
-    await supabase.from('coach_events').insert({
-      coach_id: user.id,
-      client_id: evtClient || null,
-      title: evtTitle.trim(),
-      event_date: eventDate.toISOString(),
-      event_type: evtType,
-      notes: evtNotes.trim() || null,
-    })
-    setSaving(false)
-    setModalOpen(false)
-    fetchData()
-  }
-
-  // Client name lookup from loaded clients list
+  // ── Client name lookup ──
   function getClientName(clientId) {
     if (!clientId) return null
     const c = clients.find(cl => cl.id === clientId)
     return c?.profiles?.nom || null
   }
 
-  // Event type info
   function getEventTypeInfo(typeId) {
     return EVENT_TYPES.find(t => t.id === typeId) || EVENT_TYPES[EVENT_TYPES.length - 1]
   }
+
+  // ── Filter + merge items for a day ──
+  function itemsForDay(date) {
+    const daySeances = seances
+      .filter(s => isSameDay(new Date(s.date_prevue), date))
+      .map(s => ({ ...s, _type: 'seance', _time: s.date_prevue, _clientId: s.client_id }))
+    const dayEvents = events
+      .filter(e => isSameDay(new Date(e.event_date), date))
+      .map(e => ({ ...e, _type: 'event', _time: e.event_date, _clientId: e.client_id }))
+
+    let items = [...daySeances, ...dayEvents].sort((a, b) => new Date(a._time) - new Date(b._time))
+
+    // Apply filters
+    if (filterClient) items = items.filter(i => i._clientId === filterClient)
+    if (filterType) {
+      if (filterType === 'seance') items = items.filter(i => i._type === 'seance')
+      else items = items.filter(i => i._type === 'event' && i.event_type === filterType)
+    }
+
+    return items
+  }
+
+  // ── Stats ──
+  const allFiltered = (() => {
+    const wd = view === 'week' ? weekDates : monthGrid.cells.filter(c => c.inMonth).map(c => c.date)
+    return wd.flatMap(d => itemsForDay(d))
+  })()
+  const totalItems = allFiltered.length
+  const uniqueClients = new Set(allFiltered.map(i => i._clientId).filter(Boolean)).size
+  const itemsToday = itemsForDay(today).length
+
+  // ── Navigation ──
+  const goBack = () => view === 'week' ? setWeekOffset(o => o - 1) : setMonthOffset(o => o - 1)
+  const goForward = () => view === 'week' ? setWeekOffset(o => o + 1) : setMonthOffset(o => o + 1)
+  const goToday = () => { setWeekOffset(0); setMonthOffset(0) }
+  const isAtToday = view === 'week' ? weekOffset === 0 : monthOffset === 0
+  const navLabel = view === 'week' ? formatWeekRange(weekDates) : monthGrid.monthLabel.charAt(0).toUpperCase() + monthGrid.monthLabel.slice(1)
+
+  // ── Modal ──
+  const openNewModal = () => {
+    setModalType(null)
+    setEvtTitle(''); setEvtDate(new Date().toISOString().split('T')[0]); setEvtTime('09:00')
+    setEvtType('bilan'); setEvtClient(''); setEvtNotes('')
+    setModalOpen(true)
+  }
+
+  const saveEvent = async () => {
+    if (!evtTitle.trim() || !evtDate) return
+    setSaving(true)
+    const eventDate = new Date(`${evtDate}T${evtTime}:00`)
+    await supabase.from('coach_events').insert({
+      coach_id: user.id, client_id: evtClient || null,
+      title: evtTitle.trim(), event_date: eventDate.toISOString(),
+      event_type: evtType, notes: evtNotes.trim() || null,
+    })
+    setSaving(false); setModalOpen(false); fetchData()
+  }
+
+  // ══════════════════════════════════════
+  // RENDER
+  // ══════════════════════════════════════
 
   if (loading) {
     return (
@@ -183,20 +276,9 @@ export default function CoachGlobalCalendarPage() {
           <div className="h-8 w-56 bg-[#27272a] rounded-lg animate-pulse" />
           <div className="h-10 w-40 bg-[#27272a] rounded-lg animate-pulse" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="bg-[#09090b] border border-[#27272a] rounded-xl p-4 space-y-2">
-              <div className="h-4 w-24 bg-[#27272a] rounded animate-pulse" />
-              <div className="h-7 w-12 bg-[#27272a] rounded animate-pulse" />
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
-          {Array.from({ length: 7 }, (_, i) => (
-            <div key={i} className="bg-[#09090b] border border-[#27272a] rounded-xl p-3 space-y-3">
-              <div className="h-5 w-16 bg-[#27272a] rounded animate-pulse" />
-              <div className="h-16 bg-[#27272a] rounded-lg animate-pulse" />
-            </div>
+        <div className="grid grid-cols-7 gap-px bg-[#27272a] rounded-xl overflow-hidden">
+          {Array.from({ length: 35 }, (_, i) => (
+            <div key={i} className="bg-[#09090b] p-3 h-24 animate-pulse" />
           ))}
         </div>
       </div>
@@ -204,132 +286,349 @@ export default function CoachGlobalCalendarPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 w-full space-y-5 max-w-[1400px]">
+    <div className="p-4 md:p-6 w-full space-y-4 max-w-[1400px]">
 
-      {/* ── Header ── */}
+      {/* ═══════ HEADER ═══════ */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <Calendar className="w-6 h-6 text-[#FF6B2B]" />
-          <h1 className="text-xl md:text-2xl font-bold text-[#F5F5F3]">Calendrier Global</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-[#F5F5F3]">Calendrier</h1>
         </div>
         <button
           onClick={openNewModal}
           className="flex items-center gap-2 bg-[#FF6B2B] hover:bg-[#e55e24] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
         >
-          <Plus className="w-4 h-4" />
-          Nouvel événement
+          <Plus className="w-4 h-4" /> Nouvel événement
         </button>
       </div>
 
-      {/* ── Week navigation ── */}
-      <div className="flex items-center justify-between bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-3">
-        <button onClick={() => setWeekOffset(o => o - 1)} className="p-1.5 rounded-lg hover:bg-[#27272a] text-white/40 hover:text-white transition-colors">
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <div className="flex items-center gap-3">
-          <span className="text-sm md:text-base font-medium text-[#F5F5F3]">{formatDateRange(weekDates)}</span>
-          {weekOffset !== 0 && (
-            <button onClick={() => setWeekOffset(0)} className="text-[10px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
+      {/* ═══════ TOOLBAR : Nav + Toggle + Filtres ═══════ */}
+      <div className="flex flex-col md:flex-row md:items-center gap-3">
+
+        {/* Navigation */}
+        <div className="flex items-center gap-2 bg-[#09090b] border border-[#27272a] rounded-xl px-3 py-2 flex-1 min-w-0">
+          <button onClick={goBack} className="p-1 rounded-lg hover:bg-[#27272a] text-white/40 hover:text-white transition-colors flex-shrink-0">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="text-sm font-medium text-[#F5F5F3] flex-1 text-center truncate">{navLabel}</span>
+          {!isAtToday && (
+            <button onClick={goToday} className="text-[10px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold hover:bg-[#FF6B2B]/20 transition-colors flex-shrink-0 whitespace-nowrap">
               Aujourd'hui
             </button>
           )}
+          <button onClick={goForward} className="p-1 rounded-lg hover:bg-[#27272a] text-white/40 hover:text-white transition-colors flex-shrink-0">
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
-        <button onClick={() => setWeekOffset(o => o + 1)} className="p-1.5 rounded-lg hover:bg-[#27272a] text-white/40 hover:text-white transition-colors">
-          <ChevronRight className="w-5 h-5" />
-        </button>
+
+        {/* Toggle Mois / Semaine */}
+        <div className="flex items-center bg-[#09090b] border border-[#27272a] rounded-xl p-1 flex-shrink-0">
+          {[{ id: 'month', label: 'Mois' }, { id: 'week', label: 'Semaine' }].map(v => (
+            <button
+              key={v.id}
+              onClick={() => setView(v.id)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                view === v.id
+                  ? 'bg-[#FF6B2B] text-white shadow-sm'
+                  : 'text-white/40 hover:text-white/70'
+              }`}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Filtres */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="relative">
+            <select
+              value={filterClient}
+              onChange={(e) => setFilterClient(e.target.value)}
+              className="appearance-none bg-[#09090b] border border-[#27272a] rounded-xl pl-8 pr-4 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer min-w-[130px]"
+            >
+              <option value="">Tous les clients</option>
+              {clients.map(c => (
+                <option key={c.id} value={c.id}>{c.profiles?.nom || 'Client'}</option>
+              ))}
+            </select>
+            <User className="w-3.5 h-3.5 text-white/30 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+          <div className="relative">
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="appearance-none bg-[#09090b] border border-[#27272a] rounded-xl pl-8 pr-4 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer min-w-[130px]"
+            >
+              <option value="">Tous les types</option>
+              {EVENT_TYPES.map(t => (
+                <option key={t.id} value={t.id}>{t.label}</option>
+              ))}
+            </select>
+            <Filter className="w-3.5 h-3.5 text-white/30 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
       </div>
 
-      {/* ── Stats ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* ═══════ STATS ═══════ */}
+      <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Événements cette semaine', value: totalItems, icon: Calendar, color: '#FF6B2B' },
-          { label: 'Clients concernés', value: uniqueClients, icon: User, color: '#3b82f6' },
+          { label: view === 'week' ? 'Cette semaine' : 'Ce mois', value: totalItems, icon: Calendar, color: '#FF6B2B' },
+          { label: 'Clients', value: uniqueClients, icon: User, color: '#3b82f6' },
           { label: "Aujourd'hui", value: itemsToday, icon: Clock, color: '#22c55e' },
         ].map((s, i) => (
-          <div key={i} className="bg-[#09090b] border border-[#27272a] rounded-xl p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: `${s.color}15` }}>
-              <s.icon className="w-5 h-5" style={{ color: s.color }} />
+          <div key={i} className="bg-[#09090b] border border-[#27272a] rounded-xl p-3 flex items-center gap-3">
+            <div className="p-1.5 rounded-lg flex-shrink-0" style={{ backgroundColor: `${s.color}15` }}>
+              <s.icon className="w-4 h-4" style={{ color: s.color }} />
             </div>
-            <div>
-              <p className="text-xs text-white/40">{s.label}</p>
-              <p className="text-lg font-bold text-[#F5F5F3]">{s.value}</p>
+            <div className="min-w-0">
+              <p className="text-[10px] text-white/40 truncate">{s.label}</p>
+              <p className="text-lg font-bold text-[#F5F5F3] leading-tight">{s.value}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* ── Week grid ── */}
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
-        {weekDates.map((date, idx) => {
-          const dayItems = itemsForDay(date)
-          const isToday = isSameDay(date, today)
+      {/* ═══════ CALENDAR VIEWS ═══════ */}
 
-          return (
-            <div
-              key={idx}
-              className={`rounded-xl border p-3 min-h-[140px] flex flex-col gap-2 ${
-                isToday ? 'bg-[#FF6B2B]/[0.03] border-[#FF6B2B]/30' : 'bg-[#09090b] border-[#27272a]'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-white/40">{JOURS[idx]}</span>
-                <span className={`text-sm font-semibold ${isToday ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>
-                  {date.getDate()}
-                </span>
-              </div>
+      {view === 'month' ? (
+        /* ────────── VUE MOIS ────────── */
+        <div className="bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden">
+          {/* Jours header */}
+          <div className="grid grid-cols-7 border-b border-[#27272a]">
+            {JOURS.map(j => (
+              <div key={j} className="px-2 py-2 text-center text-[10px] font-semibold text-white/30 uppercase tracking-wider">{j}</div>
+            ))}
+          </div>
 
-              {dayItems.length === 0 ? (
-                <p className="text-[11px] text-white/20 italic mt-1">Aucun événement</p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {dayItems.map((item) => {
-                    if (item._type === 'seance') {
-                      return (
-                        <div key={`s-${item.id}`} className="bg-[#18181b] border border-[#27272a] border-l-2 border-l-[#FF6B2B] rounded-lg p-2.5">
-                          <div className="flex items-center gap-1.5 mb-0.5">
-                            <Dumbbell className="w-3 h-3 text-[#FF6B2B]" />
-                            <span className="text-[10px] font-medium text-[#FF6B2B]">{formatHHmm(item.date_prevue)}</span>
+          {/* Grid */}
+          <div className="grid grid-cols-7">
+            {monthGrid.cells.map((cell, idx) => {
+              const isTo = isSameDay(cell.date, today)
+              const dayItems = itemsForDay(cell.date)
+              const maxShow = 2
+              const overflow = dayItems.length - maxShow
+              const showPopover = popoverDay && isSameDay(popoverDay, cell.date)
+
+              return (
+                <div
+                  key={idx}
+                  className={`relative border-b border-r border-[#27272a] min-h-[90px] md:min-h-[100px] p-1.5 flex flex-col ${
+                    cell.inMonth ? '' : 'bg-[#0a0a0a]'
+                  } ${isTo ? 'bg-[#FF6B2B]/[0.04]' : ''}`}
+                >
+                  {/* Date number */}
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-xs font-medium leading-none ${
+                      isTo ? 'w-6 h-6 flex items-center justify-center rounded-full bg-[#FF6B2B] text-white text-[11px] font-bold'
+                        : cell.inMonth ? 'text-white/60' : 'text-white/20'
+                    }`}>
+                      {cell.date.getDate()}
+                    </span>
+                    {dayItems.length > 0 && (
+                      <span className="text-[9px] text-white/25 font-medium">{dayItems.length}</span>
+                    )}
+                  </div>
+
+                  {/* Compact events */}
+                  <div className="flex flex-col gap-0.5 flex-1 overflow-hidden">
+                    {dayItems.slice(0, maxShow).map((item) => {
+                      if (item._type === 'seance') {
+                        return (
+                          <div key={`s-${item.id}`} className="flex items-center gap-1 px-1 py-0.5 rounded bg-[#FF6B2B]/10 truncate">
+                            <Dumbbell className="w-2.5 h-2.5 text-[#FF6B2B] flex-shrink-0" />
+                            <span className="text-[10px] text-[#F5F5F3] truncate">{item.profiles?.nom || item.titre}</span>
                           </div>
-                          <p className="text-xs font-medium text-[#F5F5F3] leading-snug truncate">{item.titre}</p>
-                          {item.profiles?.nom && (
-                            <p className="text-[10px] text-white/35 mt-0.5 truncate">({item.profiles.nom})</p>
-                          )}
-                        </div>
-                      )
-                    } else {
-                      const typeInfo = getEventTypeInfo(item.event_type)
-                      const TypeIcon = typeInfo.icon
-                      return (
-                        <div key={`e-${item.id}`} className="bg-[#18181b] border border-[#27272a] rounded-lg p-2.5" style={{ borderLeftWidth: 2, borderLeftColor: typeInfo.color }}>
-                          <div className="flex items-center gap-1.5 mb-0.5">
-                            <TypeIcon className="w-3 h-3" style={{ color: typeInfo.color }} />
-                            <span className="text-[10px] font-medium" style={{ color: typeInfo.color }}>{formatHHmm(item.event_date)}</span>
+                        )
+                      } else {
+                        const ti = getEventTypeInfo(item.event_type)
+                        const TI = ti.icon
+                        return (
+                          <div key={`e-${item.id}`} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: `${ti.color}15` }}>
+                            <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
+                            <span className="text-[10px] text-[#F5F5F3] truncate">{getClientName(item.client_id) || item.title}</span>
                           </div>
-                          <p className="text-xs font-medium text-[#F5F5F3] leading-snug truncate">{item.title}</p>
-                          {getClientName(item.client_id) && (
-                            <p className="text-[10px] text-white/35 mt-0.5 truncate">({getClientName(item.client_id)})</p>
-                          )}
+                        )
+                      }
+                    })}
+
+                    {/* "+X autres" button */}
+                    {overflow > 0 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setPopoverDay(showPopover ? null : cell.date) }}
+                        className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] px-1 py-0.5 text-left transition-colors"
+                      >
+                        +{overflow} autre{overflow > 1 ? 's' : ''}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Popover */}
+                  {showPopover && (
+                    <div
+                      ref={popoverRef}
+                      className="absolute z-30 top-full left-0 mt-1 w-56 bg-[#18181b] border border-[#27272a] rounded-xl shadow-2xl p-3 space-y-1.5"
+                      style={{ maxHeight: 240, overflowY: 'auto' }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-semibold text-[#F5F5F3]">
+                          {cell.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })}
+                        </p>
+                        <button onClick={() => setPopoverDay(null)} className="text-white/30 hover:text-white"><X size={14} /></button>
+                      </div>
+                      {dayItems.map(item => {
+                        if (item._type === 'seance') {
+                          return (
+                            <div key={`ps-${item.id}`} className="flex items-center gap-2 p-1.5 rounded-lg bg-[#FF6B2B]/10">
+                              <Dumbbell className="w-3 h-3 text-[#FF6B2B] flex-shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-[11px] font-medium text-[#F5F5F3] truncate">{item.titre}</p>
+                                <p className="text-[10px] text-white/35">{formatHHmm(item.date_prevue)} {item.profiles?.nom ? `- ${item.profiles.nom}` : ''}</p>
+                              </div>
+                            </div>
+                          )
+                        } else {
+                          const ti = getEventTypeInfo(item.event_type)
+                          const TI = ti.icon
+                          return (
+                            <div key={`pe-${item.id}`} className="flex items-center gap-2 p-1.5 rounded-lg" style={{ backgroundColor: `${ti.color}15` }}>
+                              <TI className="w-3 h-3 flex-shrink-0" style={{ color: ti.color }} />
+                              <div className="min-w-0">
+                                <p className="text-[11px] font-medium text-[#F5F5F3] truncate">{item.title}</p>
+                                <p className="text-[10px] text-white/35">{formatHHmm(item.event_date)} {getClientName(item.client_id) ? `- ${getClientName(item.client_id)}` : ''}</p>
+                              </div>
+                            </div>
+                          )
+                        }
+                      })}
+                      {/* Link to switch to week view */}
+                      <button
+                        onClick={() => {
+                          setPopoverDay(null)
+                          // Calculate week offset to contain this date
+                          const d = cell.date
+                          const diffMs = d.getTime() - today.getTime()
+                          const diffDays = Math.floor(diffMs / 86400000)
+                          const todayDay = today.getDay() === 0 ? 6 : today.getDay() - 1
+                          const targetDay = d.getDay() === 0 ? 6 : d.getDay() - 1
+                          setWeekOffset(Math.floor((diffDays + todayDay - targetDay) / 7))
+                          setView('week')
+                        }}
+                        className="w-full text-center text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] py-1 mt-1 border-t border-[#27272a] transition-colors"
+                      >
+                        Voir la semaine
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ) : (
+        /* ────────── VUE SEMAINE ────────── */
+        <div className="bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden">
+          {/* All-day section */}
+          {(() => {
+            const hasAllDay = weekDates.some(d => {
+              const items = itemsForDay(d)
+              return items.some(i => i._type === 'seance')
+            })
+            if (!hasAllDay) return null
+
+            return (
+              <div className="border-b border-[#27272a]">
+                <div className="grid grid-cols-[60px_repeat(7,1fr)]">
+                  <div className="p-2 border-r border-[#27272a] flex items-center justify-center">
+                    <span className="text-[9px] text-white/25 uppercase font-semibold">Séances</span>
+                  </div>
+                  {weekDates.map((date, idx) => {
+                    const daySeances = itemsForDay(date).filter(i => i._type === 'seance')
+                    return (
+                      <div key={idx} className={`p-1.5 border-r border-[#27272a] last:border-r-0 min-h-[40px] ${isSameDay(date, today) ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
+                        <div className="flex flex-col gap-1">
+                          {daySeances.map(s => (
+                            <div key={`ad-${s.id}`} className="flex items-center gap-1 px-1.5 py-1 rounded-md bg-[#FF6B2B]/10 border border-[#FF6B2B]/20">
+                              <Dumbbell className="w-2.5 h-2.5 text-[#FF6B2B] flex-shrink-0" />
+                              <span className="text-[10px] font-medium text-[#F5F5F3] truncate">{s.titre}</span>
+                            </div>
+                          ))}
                         </div>
-                      )
-                    }
+                      </div>
+                    )
                   })}
                 </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+              </div>
+            )
+          })()}
 
-      {/* ══════════════════════════════════════ */}
-      {/* MODAL NOUVEL ÉVÉNEMENT                */}
-      {/* ══════════════════════════════════════ */}
+          {/* Header row */}
+          <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[#27272a]">
+            <div className="p-2 border-r border-[#27272a]" />
+            {weekDates.map((date, idx) => {
+              const isTo = isSameDay(date, today)
+              return (
+                <div key={idx} className={`p-2 border-r border-[#27272a] last:border-r-0 text-center ${isTo ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
+                  <p className="text-[10px] text-white/30 uppercase font-semibold">{JOURS[idx]}</p>
+                  <p className={`text-sm font-bold mt-0.5 ${isTo ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{date.getDate()}</p>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Time grid */}
+          <div className="grid grid-cols-[60px_repeat(7,1fr)] relative" style={{ maxHeight: 560, overflowY: 'auto' }}>
+            {HOURS.map(h => (
+              <div key={h} className="contents">
+                {/* Hour label */}
+                <div className="h-[40px] border-r border-b border-[#27272a] flex items-start justify-end pr-2 pt-0.5">
+                  <span className="text-[10px] text-white/25 font-medium tabular-nums">{String(h).padStart(2, '0')}:00</span>
+                </div>
+                {/* Day columns */}
+                {weekDates.map((date, dIdx) => {
+                  const isTo = isSameDay(date, today)
+                  // Events that start at this hour
+                  const dayEvts = itemsForDay(date).filter(i => i._type === 'event')
+                  const hourEvts = dayEvts.filter(e => {
+                    const eH = new Date(e.event_date).getHours()
+                    return eH === h
+                  })
+                  return (
+                    <div key={dIdx} className={`h-[40px] border-r border-b border-[#27272a] last:border-r-0 relative ${isTo ? 'bg-[#FF6B2B]/[0.02]' : ''}`}>
+                      {hourEvts.map(evt => {
+                        const ti = getEventTypeInfo(evt.event_type)
+                        const TI = ti.icon
+                        return (
+                          <div
+                            key={`we-${evt.id}`}
+                            className="absolute inset-x-0.5 top-0.5 rounded-md px-1.5 py-1 z-10 border"
+                            style={{ backgroundColor: `${ti.color}20`, borderColor: `${ti.color}40` }}
+                          >
+                            <div className="flex items-center gap-1">
+                              <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
+                              <span className="text-[10px] font-medium text-[#F5F5F3] truncate">{evt.title}</span>
+                            </div>
+                            {getClientName(evt.client_id) && (
+                              <p className="text-[9px] text-white/35 truncate">{getClientName(evt.client_id)}</p>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ═══════ MODAL ═══════ */}
       {modalOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
 
-              {/* Header */}
               <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
                 <h2 className="text-[#F5F5F3] font-semibold text-base">
                   {modalType === null ? 'Nouvel événement' : 'Événement classique'}
@@ -339,10 +638,8 @@ export default function CoachGlobalCalendarPage() {
                 </button>
               </div>
 
-              {/* Contenu */}
               <div className="p-6">
                 {modalType === null ? (
-                  /* Choix du type */
                   <div className="space-y-3">
                     <p className="text-white/40 text-sm mb-4">Quel type d'événement souhaitez-vous créer ?</p>
                     <button
@@ -373,107 +670,58 @@ export default function CoachGlobalCalendarPage() {
                     </button>
                   </div>
                 ) : (
-                  /* Formulaire événement */
                   <div className="space-y-4">
-                    {/* Titre */}
                     <div>
                       <label className="block text-white/40 text-xs mb-1.5">Titre</label>
-                      <input
-                        type="text"
-                        value={evtTitle}
-                        onChange={(e) => setEvtTitle(e.target.value)}
-                        placeholder="Ex: Bilan mensuel avec Noa"
-                        autoFocus
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
-                      />
+                      <input type="text" value={evtTitle} onChange={(e) => setEvtTitle(e.target.value)} placeholder="Ex: Bilan mensuel avec Noa" autoFocus
+                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                     </div>
-
-                    {/* Date + Heure */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-white/40 text-xs mb-1.5">Date</label>
-                        <input
-                          type="date"
-                          value={evtDate}
-                          onChange={(e) => setEvtDate(e.target.value)}
-                          className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
-                        />
+                        <input type="date" value={evtDate} onChange={(e) => setEvtDate(e.target.value)}
+                          className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                       </div>
                       <div>
                         <label className="block text-white/40 text-xs mb-1.5">Heure</label>
-                        <input
-                          type="time"
-                          value={evtTime}
-                          onChange={(e) => setEvtTime(e.target.value)}
-                          className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
-                        />
+                        <input type="time" value={evtTime} onChange={(e) => setEvtTime(e.target.value)}
+                          className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                       </div>
                     </div>
-
-                    {/* Type */}
                     <div>
                       <label className="block text-white/40 text-xs mb-1.5">Type</label>
                       <div className="flex flex-wrap gap-2">
-                        {EVENT_TYPES.map((t) => (
-                          <button
-                            key={t.id}
-                            onClick={() => setEvtType(t.id)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                              evtType === t.id
-                                ? 'border-2'
-                                : 'border border-[#27272a] text-white/40 hover:text-white/60'
-                            }`}
+                        {EVENT_TYPES.filter(t => t.id !== 'seance').map((t) => (
+                          <button key={t.id} onClick={() => setEvtType(t.id)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${evtType === t.id ? 'border-2' : 'border border-[#27272a] text-white/40 hover:text-white/60'}`}
                             style={evtType === t.id ? { borderColor: t.color, color: t.color, backgroundColor: `${t.color}10` } : {}}
                           >
-                            <t.icon size={12} />
-                            {t.label}
+                            <t.icon size={12} /> {t.label}
                           </button>
                         ))}
                       </div>
                     </div>
-
-                    {/* Client associé */}
                     <div>
                       <label className="block text-white/40 text-xs mb-1.5">Client associé (optionnel)</label>
-                      <select
-                        value={evtClient}
-                        onChange={(e) => setEvtClient(e.target.value)}
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
-                      >
+                      <select value={evtClient} onChange={(e) => setEvtClient(e.target.value)}
+                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
                         <option value="">Aucun client</option>
                         {clients.map((c) => (
                           <option key={c.id} value={c.id}>{c.profiles?.nom || 'Client'}</option>
                         ))}
                       </select>
                     </div>
-
-                    {/* Notes */}
                     <div>
                       <label className="block text-white/40 text-xs mb-1.5">Notes</label>
-                      <textarea
-                        value={evtNotes}
-                        onChange={(e) => setEvtNotes(e.target.value)}
-                        placeholder="Notes optionnelles..."
-                        rows={2}
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none"
-                      />
+                      <textarea value={evtNotes} onChange={(e) => setEvtNotes(e.target.value)} placeholder="Notes optionnelles..." rows={2}
+                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none" />
                     </div>
-
-                    {/* Actions */}
                     <div className="flex gap-2 pt-1">
-                      <button
-                        onClick={() => setModalType(null)}
-                        className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors"
-                      >
-                        Retour
-                      </button>
-                      <button
-                        onClick={saveEvent}
-                        disabled={!evtTitle.trim() || !evtDate || saving}
-                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40"
-                      >
-                        {saving ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
-                        Créer
+                      <button onClick={() => setModalType(null)}
+                        className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Retour</button>
+                      <button onClick={saveEvent} disabled={!evtTitle.trim() || !evtDate || saving}
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
+                        {saving ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Créer
                       </button>
                     </div>
                   </div>
