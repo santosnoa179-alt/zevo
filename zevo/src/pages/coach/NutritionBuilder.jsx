@@ -268,6 +268,14 @@ export default function NutritionBuilder() {
           setJours(newJours)
         }
       }
+      // Fetch documents
+      const { data: docsData } = await supabase
+        .from('plan_documents')
+        .select('*')
+        .eq('plan_id', plan.id)
+        .order('created_at', { ascending: false })
+      setDocuments(docsData || [])
+
       setLoadingPlan(false)
     }
     load()
@@ -458,6 +466,60 @@ export default function NutritionBuilder() {
       toast.error('Erreur : ' + (err.message || 'Sauvegarde échouée'))
     }
     setSaving(false)
+  }
+
+  // ── Document management ──
+  const handleDocUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const pid = existingPlanId
+    if (!pid) {
+      toast.error('Sauvegardez le plan avant d\'ajouter des documents')
+      return
+    }
+    setUploadingDoc(true)
+    try {
+      const filePath = `${pid}/${Date.now()}_${file.name}`
+      const { error: upErr } = await supabase.storage.from('plan-documents').upload(filePath, file)
+      if (upErr) throw upErr
+
+      const { data: { publicUrl } } = supabase.storage.from('plan-documents').getPublicUrl(filePath)
+
+      const docRow = {
+        plan_id: pid,
+        nom: file.name,
+        url: publicUrl,
+        type: file.type?.includes('pdf') ? 'pdf' : file.type?.includes('image') ? 'image' : 'autre',
+      }
+      const { data: newDoc, error: dbErr } = await supabase.from('plan_documents').insert(docRow).select().single()
+      if (dbErr) throw dbErr
+
+      setDocuments(prev => [newDoc, ...prev])
+      toast.success(`${file.name} uploadé !`)
+    } catch (err) {
+      console.error('[NutritionBuilder] Erreur upload doc:', err)
+      toast.error('Erreur upload : ' + (err.message || 'Inconnu'))
+    }
+    setUploadingDoc(false)
+    e.target.value = '' // reset input
+  }
+
+  const handleDocDelete = async (doc) => {
+    if (!window.confirm(`Supprimer "${doc.nom}" ?`)) return
+    try {
+      // Extract path from URL for storage deletion
+      const urlParts = doc.url?.split('/plan-documents/')
+      const storagePath = urlParts?.[1]
+      if (storagePath) {
+        await supabase.storage.from('plan-documents').remove([decodeURIComponent(storagePath)])
+      }
+      await supabase.from('plan_documents').delete().eq('id', doc.id)
+      setDocuments(prev => prev.filter(d => d.id !== doc.id))
+      toast.success('Document supprimé')
+    } catch (err) {
+      console.error('[NutritionBuilder] Erreur suppression doc:', err)
+      toast.error('Erreur suppression')
+    }
   }
 
   if (loadingPlan) {
@@ -791,6 +853,70 @@ export default function NutritionBuilder() {
           </div>
         </>
       )}
+
+      {/* ═══ Documents & Pièces jointes ═══ */}
+      <div className="mt-6 bg-[#1E1E1E] rounded-2xl border border-[#27272a] overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
+          <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+            <Paperclip size={14} className="text-[#FF6B2B]" />
+            Documents & Pièces jointes
+            {documents.length > 0 && (
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{documents.length}</span>
+            )}
+          </h3>
+          <label className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            uploadingDoc ? 'bg-[#27272a] text-white/30' : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20'
+          }`}>
+            {uploadingDoc ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+            {uploadingDoc ? 'Upload...' : 'Ajouter un fichier'}
+            <input type="file" className="hidden" onChange={handleDocUpload} disabled={uploadingDoc || !existingPlanId}
+              accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx" />
+          </label>
+        </div>
+
+        <div className="p-4">
+          {!existingPlanId ? (
+            <p className="text-white/20 text-xs text-center py-6 italic">
+              Sauvegardez le plan pour pouvoir ajouter des documents
+            </p>
+          ) : documents.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText size={28} className="text-white/10 mx-auto mb-2" />
+              <p className="text-white/20 text-xs">Aucun document joint</p>
+              <p className="text-white/10 text-[10px] mt-1">PDF, images, documents Word/Excel acceptés</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {documents.map(doc => (
+                <div key={doc.id}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D0D0D] border border-[#27272a]/50 hover:border-[#27272a] transition-all group">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                    doc.type === 'pdf' ? 'bg-red-500/10' : doc.type === 'image' ? 'bg-blue-500/10' : 'bg-[#FF6B2B]/10'
+                  }`}>
+                    <FileText size={16} className={
+                      doc.type === 'pdf' ? 'text-red-400' : doc.type === 'image' ? 'text-blue-400' : 'text-[#FF6B2B]'
+                    } />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[#F5F5F3] text-sm font-medium truncate">{doc.nom}</p>
+                    <p className="text-white/20 text-[10px] mt-0.5">
+                      {doc.type?.toUpperCase()} • {new Date(doc.created_at).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  <a href={doc.url} target="_blank" rel="noopener noreferrer"
+                    className="p-2 rounded-lg text-white/20 hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-all" title="Ouvrir">
+                    <ExternalLink size={14} />
+                  </a>
+                  <button onClick={() => handleDocDelete(doc)}
+                    className="p-2 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100" title="Supprimer">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* ═══ Save Modal ═══ */}
       {showSaveModal && (

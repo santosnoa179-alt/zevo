@@ -15,7 +15,7 @@ import {
   Pencil, ExternalLink, Coffee, UtensilsCrossed, Moon, Cookie, Minus,
   Wheat, Beef, Fish, Egg, Carrot, Grape, Droplets, TrendingUp, TrendingDown,
   Ruler, Weight, ChevronUp, ChevronDown as ChevronDownIcon,
-  FolderOpen
+  FolderOpen, Paperclip
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -2665,6 +2665,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
   const [assignedRepas, setAssignedRepas] = useState([])
   const [loadingAssigned, setLoadingAssigned] = useState(true)
   const [historyPlans, setHistoryPlans] = useState([])
+  const [planDocuments, setPlanDocuments] = useState([])
   const [activating, setActivating] = useState(null)
 
   // Assign template modal
@@ -2838,9 +2839,18 @@ function NutritionTab({ coachId, clientId, clientName }) {
           .order('ordre')
 
         setAssignedRepas(repasData || [])
+
+        // Load documents for active plan
+        const { data: docsData } = await supabase
+          .from('plan_documents')
+          .select('*')
+          .eq('plan_id', activePlan.id)
+          .order('created_at', { ascending: false })
+        setPlanDocuments(docsData || [])
       } else {
         setAssignedPlan(null)
         setAssignedRepas([])
+        setPlanDocuments([])
       }
 
       setHistoryPlans(otherPlans)
@@ -3022,6 +3032,40 @@ function NutritionTab({ coachId, clientId, clientName }) {
           </div>
         )
       }
+
+      {/* ── Documents du plan ── */}
+      {planDocuments.length > 0 && (
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-[#27272a]">
+            <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+              <Paperclip size={14} className="text-[#FF6B2B]" />
+              Documents joints
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{planDocuments.length}</span>
+            </h3>
+          </div>
+          <div className="p-4 space-y-2">
+            {planDocuments.map(doc => (
+              <a key={doc.id} href={doc.url} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D0D0D] border border-[#27272a]/50 hover:border-[#FF6B2B]/20 transition-all group cursor-pointer">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                  doc.type === 'pdf' ? 'bg-red-500/10' : doc.type === 'image' ? 'bg-blue-500/10' : 'bg-[#FF6B2B]/10'
+                }`}>
+                  <FileText size={16} className={
+                    doc.type === 'pdf' ? 'text-red-400' : doc.type === 'image' ? 'text-blue-400' : 'text-[#FF6B2B]'
+                  } />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[#F5F5F3] text-sm font-medium truncate">{doc.nom}</p>
+                  <p className="text-white/20 text-[10px] mt-0.5">
+                    {doc.type?.toUpperCase()} • {new Date(doc.created_at).toLocaleDateString('fr-FR')}
+                  </p>
+                </div>
+                <ExternalLink size={14} className="text-white/10 group-hover:text-[#FF6B2B] transition-all shrink-0" />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Historique des plans ── */}
       {historyPlans.length > 0 && (
