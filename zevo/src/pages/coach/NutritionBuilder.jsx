@@ -889,7 +889,8 @@ export default function NutritionBuilder() {
             <div className="space-y-2">
               {documents.map(doc => (
                 <div key={doc.id}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D0D0D] border border-[#27272a]/50 hover:border-[#27272a] transition-all group">
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D0D0D] border border-[#27272a]/50 hover:border-[#27272a] transition-all group cursor-pointer"
+                  onClick={() => doc.url && window.open(doc.url, '_blank')}>
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                     doc.type === 'pdf' ? 'bg-red-500/10' : doc.type === 'image' ? 'bg-blue-500/10' : 'bg-[#FF6B2B]/10'
                   }`}>
@@ -904,10 +905,11 @@ export default function NutritionBuilder() {
                     </p>
                   </div>
                   <a href={doc.url} target="_blank" rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
                     className="p-2 rounded-lg text-white/20 hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-all" title="Ouvrir">
                     <ExternalLink size={14} />
                   </a>
-                  <button onClick={() => handleDocDelete(doc)}
+                  <button onClick={(e) => { e.stopPropagation(); handleDocDelete(doc) }}
                     className="p-2 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100" title="Supprimer">
                     <Trash2 size={14} />
                   </button>

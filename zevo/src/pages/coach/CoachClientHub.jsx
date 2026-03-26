@@ -15,7 +15,7 @@ import {
   Pencil, ExternalLink, Coffee, UtensilsCrossed, Moon, Cookie, Minus,
   Wheat, Beef, Fish, Egg, Carrot, Grape, Droplets, TrendingUp, TrendingDown,
   Ruler, Weight, ChevronUp, ChevronDown as ChevronDownIcon,
-  FolderOpen, Paperclip
+  FolderOpen, Paperclip, FileText
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
