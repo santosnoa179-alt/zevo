@@ -15,7 +15,8 @@ import {
   Pencil, ExternalLink, Coffee, UtensilsCrossed, Moon, Cookie, Minus,
   Wheat, Beef, Fish, Egg, Carrot, Grape, Droplets, TrendingUp, TrendingDown,
   Ruler, Weight, ChevronUp, ChevronDown as ChevronDownIcon,
-  FolderOpen, Paperclip, FileText
+  FolderOpen, Paperclip, FileText,
+  CheckCircle2, Circle, Footprints, BookOpen
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -28,6 +29,7 @@ const TABS = [
   { id: 'calendar', label: 'Calendrier', icon: Calendar },
   { id: 'sport', label: 'Sport', icon: Dumbbell },
   { id: 'nutrition', label: 'Nutrition', icon: Apple },
+  { id: 'habitudes', label: 'Habitudes', icon: Flame },
   { id: 'suivi', label: 'Suivi', icon: BarChart3 },
   { id: 'partage', label: 'Partage', icon: Share2 },
 ]
@@ -2657,6 +2659,431 @@ const REPAS_TYPES = [
 
 const ALIMENT_CATEGORIES = ['Tous', 'Protéine', 'Féculent', 'Légume', 'Fruit', 'Lipide', 'Laitier', 'Légumineuse', 'Snack']
 
+// ══════════════════════════════════════
+// ICÔNES HABITUDES — Sélection coach
+// ══════════════════════════════════════
+const HABIT_ICONS = [
+  { id: 'Droplets', icon: Droplets, label: 'Eau' },
+  { id: 'Footprints', icon: Footprints, label: 'Marche' },
+  { id: 'BookOpen', icon: BookOpen, label: 'Lecture' },
+  { id: 'Moon', icon: Moon, label: 'Sommeil' },
+  { id: 'Dumbbell', icon: Dumbbell, label: 'Sport' },
+  { id: 'Apple', icon: Apple, label: 'Nutrition' },
+  { id: 'Heart', icon: Heart, label: 'Bien-être' },
+  { id: 'Target', icon: Target, label: 'Focus' },
+  { id: 'Flame', icon: Flame, label: 'Énergie' },
+  { id: 'Coffee', icon: Coffee, label: 'Routine' },
+]
+
+const HABIT_COULEURS = ['#FF6B2B', '#22c55e', '#3b82f6', '#a855f7', '#f59e0b', '#ec4899', '#14b8a6']
+
+function getHabitIcon(iconeName) {
+  const found = HABIT_ICONS.find(i => i.id === iconeName)
+  return found ? found.icon : Flame
+}
+
+function calculerStreak(logsDates) {
+  if (!logsDates.length) return 0
+  const sorted = [...logsDates].sort((a, b) => b.localeCompare(a))
+  let streak = 0
+  const base = new Date()
+  base.setHours(0, 0, 0, 0)
+  for (let i = 0; ; i++) {
+    const d = new Date(base)
+    d.setDate(d.getDate() - i)
+    const ds = d.toISOString().split('T')[0]
+    if (sorted.includes(ds)) streak++
+    else if (i === 0) continue
+    else break
+  }
+  return streak
+}
+
+// ══════════════════════════════════════
+// HABITUDES TAB — Gestion des habitudes client
+// ══════════════════════════════════════
+function HabitudesTab({ coachId, clientId, clientName }) {
+  const toast = useToast()
+  const [habitudes, setHabitudes] = useState([])
+  const [todayLogs, setTodayLogs] = useState([])
+  const [allLogs, setAllLogs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [deactivating, setDeactivating] = useState(null)
+
+  // Form state
+  const [formNom, setFormNom] = useState('')
+  const [formDescription, setFormDescription] = useState('')
+  const [formCouleur, setFormCouleur] = useState('#FF6B2B')
+  const [formIcone, setFormIcone] = useState('Droplets')
+
+  const today = new Date().toISOString().split('T')[0]
+
+  const loadData = useCallback(async () => {
+    if (!clientId) return
+    setLoading(true)
+    const il30j = new Date()
+    il30j.setDate(il30j.getDate() - 29)
+    const dateMin = il30j.toISOString().split('T')[0]
+
+    const [habsRes, todayRes, allRes] = await Promise.all([
+      supabase.from('habitudes').select('*').eq('client_id', clientId).eq('actif', true).order('created_at'),
+      supabase.from('habitudes_log').select('habitude_id').eq('client_id', clientId).eq('date', today),
+      supabase.from('habitudes_log').select('habitude_id, date').eq('client_id', clientId).gte('date', dateMin),
+    ])
+
+    setHabitudes(habsRes.data || [])
+    setTodayLogs((todayRes.data || []).map(l => l.habitude_id))
+    setAllLogs(allRes.data || [])
+    setLoading(false)
+  }, [clientId, today])
+
+  useEffect(() => { loadData() }, [loadData])
+
+  // ── Ajouter une habitude ──
+  const handleAdd = async (e) => {
+    e.preventDefault()
+    if (!formNom.trim()) return
+    setSaving(true)
+
+    const { data, error } = await supabase.from('habitudes').insert({
+      client_id: clientId,
+      nom: formNom.trim(),
+      couleur: formCouleur,
+      icone: formIcone,
+      description: formDescription.trim() || null,
+      assigned_by: coachId,
+      actif: true,
+    }).select().single()
+
+    if (!error && data) {
+      setHabitudes(prev => [...prev, data])
+      setFormNom('')
+      setFormDescription('')
+      setFormCouleur('#FF6B2B')
+      setFormIcone('Droplets')
+      setShowModal(false)
+      toast.success('Habitude assignée !')
+    } else {
+      toast.error('Erreur : ' + (error?.message || 'Échec'))
+    }
+    setSaving(false)
+  }
+
+  // ── Désactiver ──
+  const handleDeactivate = async (id) => {
+    setDeactivating(id)
+    const { error } = await supabase.from('habitudes').update({ actif: false }).eq('id', id)
+    if (!error) {
+      setHabitudes(prev => prev.filter(h => h.id !== id))
+      toast.success('Habitude désactivée')
+    }
+    setDeactivating(null)
+  }
+
+  // ── Supprimer définitivement ──
+  const handleDelete = async (id) => {
+    if (!window.confirm('Supprimer définitivement cette habitude et tout son historique ?')) return
+    await supabase.from('habitudes_log').delete().eq('habitude_id', id)
+    await supabase.from('habitudes').delete().eq('id', id)
+    setHabitudes(prev => prev.filter(h => h.id !== id))
+    toast.success('Habitude supprimée')
+  }
+
+  const cochees = habitudes.filter(h => todayLogs.includes(h.id)).length
+
+  if (loading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-24 bg-[#18181b] rounded-2xl" />
+        <div className="h-16 bg-[#18181b] rounded-2xl" />
+        <div className="h-16 bg-[#18181b] rounded-2xl" />
+        <div className="h-16 bg-[#18181b] rounded-2xl" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-5">
+
+      {/* ── Header stats ── */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
+          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">Actives</p>
+          <p className="text-[#F5F5F3] text-2xl font-bold mt-1">{habitudes.length}</p>
+        </div>
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
+          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">Aujourd'hui</p>
+          <p className="text-2xl font-bold mt-1" style={{ color: cochees === habitudes.length && habitudes.length > 0 ? '#22c55e' : '#FF6B2B' }}>
+            {cochees}/{habitudes.length}
+          </p>
+        </div>
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
+          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">Meilleur streak</p>
+          <p className="text-[#FF6B2B] text-2xl font-bold mt-1 flex items-center justify-center gap-1">
+            <Flame size={16} />
+            {Math.max(0, ...habitudes.map(h => calculerStreak(allLogs.filter(l => l.habitude_id === h.id).map(l => l.date))))}j
+          </p>
+        </div>
+      </div>
+
+      {/* ── Action bar ── */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-[#F5F5F3] text-sm font-bold">
+          Habitudes de {clientName || 'ce client'}
+        </h3>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF6B2B] hover:bg-[#e55a1b] text-white text-xs font-semibold transition-all active:scale-95"
+        >
+          <Plus size={14} /> Assigner
+        </button>
+      </div>
+
+      {/* ── Liste des habitudes ── */}
+      {habitudes.length === 0 ? (
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl py-16 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
+            <Flame size={24} className="text-[#FF6B2B]" />
+          </div>
+          <p className="text-white/40 text-sm">Aucune habitude assignée</p>
+          <p className="text-white/20 text-xs mt-1">Cliquez sur "Assigner" pour créer la première habitude</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {habitudes.map((h) => {
+            const fait = todayLogs.includes(h.id)
+            const logsDates = allLogs.filter(l => l.habitude_id === h.id).map(l => l.date)
+            const streak = calculerStreak(logsDates)
+            const rate = Math.round((logsDates.length / 30) * 100)
+            const IconComp = getHabitIcon(h.icone)
+
+            return (
+              <div key={h.id}
+                className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 hover:border-[#27272a]/80 transition-all group">
+
+                {/* Ligne principale */}
+                <div className="flex items-center gap-3.5">
+                  {/* Icône + état today */}
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `${h.couleur || '#FF6B2B'}15` }}>
+                      <IconComp size={18} style={{ color: h.couleur || '#FF6B2B' }} />
+                    </div>
+                    {fait && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
+                        <CheckCircle2 size={10} className="text-white" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Nom + description */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[#F5F5F3] text-sm font-semibold truncate">{h.nom}</p>
+                      {fait && (
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold shrink-0">
+                          Fait
+                        </span>
+                      )}
+                      {!fait && (
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-white/25 font-bold shrink-0">
+                          En attente
+                        </span>
+                      )}
+                    </div>
+                    {h.description && (
+                      <p className="text-white/25 text-xs mt-0.5 truncate">{h.description}</p>
+                    )}
+                  </div>
+
+                  {/* Streak */}
+                  {streak > 0 && (
+                    <div className="flex items-center gap-1 shrink-0" style={{ color: h.couleur || '#FF6B2B' }}>
+                      <Flame size={13} />
+                      <span className="text-xs font-bold">{streak}j</span>
+                    </div>
+                  )}
+
+                  {/* Taux */}
+                  <span className="text-white/20 text-[10px] font-medium shrink-0">{rate}%</span>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <button
+                      onClick={() => handleDeactivate(h.id)}
+                      disabled={deactivating === h.id}
+                      className="p-1.5 rounded-lg text-white/20 hover:text-amber-400 hover:bg-amber-500/10 transition-all disabled:opacity-30"
+                      title="Désactiver"
+                    >
+                      <Circle size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(h.id)}
+                      className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                      title="Supprimer"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Barre de progression 30j */}
+                <div className="mt-3 h-1 bg-white/[0.04] rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${rate}%`, backgroundColor: h.couleur || '#FF6B2B' }}
+                  />
+                </div>
+
+                {/* Mini heatmap 7 derniers jours */}
+                <div className="flex gap-1 mt-2.5 justify-end">
+                  {Array.from({ length: 7 }, (_, i) => {
+                    const d = new Date()
+                    d.setDate(d.getDate() - (6 - i))
+                    const ds = d.toISOString().split('T')[0]
+                    const done = logsDates.includes(ds)
+                    const isToday = ds === today
+                    return (
+                      <div key={i} className="flex flex-col items-center gap-0.5">
+                        <div
+                          className={`w-5 h-5 rounded-md transition-all ${
+                            done
+                              ? ''
+                              : isToday
+                                ? 'border border-dashed border-white/15'
+                                : 'bg-white/[0.03]'
+                          }`}
+                          style={done ? { backgroundColor: `${h.couleur || '#FF6B2B'}` } : {}}
+                          title={`${['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][d.getDay()]} ${d.getDate()}`}
+                        />
+                        <span className={`text-[8px] ${isToday ? 'text-white/40' : 'text-white/15'}`}>
+                          {['D', 'L', 'M', 'M', 'J', 'V', 'S'][d.getDay()]}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ══════════════════════════════ */}
+      {/* MODAL — Assigner une habitude */}
+      {/* ══════════════════════════════ */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}>
+          <div className="bg-[#18181b] border border-[#27272a] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+              <h3 className="text-[#F5F5F3] text-base font-bold">Nouvelle habitude</h3>
+              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAdd} className="p-6 space-y-5">
+              {/* Titre */}
+              <div>
+                <label className="block text-xs text-white/40 font-medium mb-2">Titre de l'habitude</label>
+                <input
+                  type="text"
+                  value={formNom}
+                  onChange={(e) => setFormNom(e.target.value)}
+                  placeholder="Ex : Boire 2L d'eau"
+                  required
+                  autoFocus
+                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                />
+              </div>
+
+              {/* Description (optionnelle) */}
+              <div>
+                <label className="block text-xs text-white/40 font-medium mb-2">Description <span className="text-white/20">(optionnelle)</span></label>
+                <input
+                  type="text"
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="Ex : Au moins 8 verres répartis dans la journée"
+                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                />
+              </div>
+
+              {/* Choix d'icône */}
+              <div>
+                <label className="block text-xs text-white/40 font-medium mb-2">Icône</label>
+                <div className="flex flex-wrap gap-2">
+                  {HABIT_ICONS.map((ic) => {
+                    const isSelected = formIcone === ic.id
+                    return (
+                      <button
+                        key={ic.id}
+                        type="button"
+                        onClick={() => setFormIcone(ic.id)}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                          isSelected
+                            ? 'bg-[#FF6B2B]/15 text-[#FF6B2B] border border-[#FF6B2B]/30'
+                            : 'bg-[#0a0a0a] text-white/40 border border-[#27272a] hover:border-[#27272a]/80 hover:text-white/60'
+                        }`}
+                      >
+                        <ic.icon size={14} />
+                        {ic.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Choix couleur */}
+              <div>
+                <label className="block text-xs text-white/40 font-medium mb-2">Couleur</label>
+                <div className="flex gap-2">
+                  {HABIT_COULEURS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setFormCouleur(c)}
+                      className={`w-8 h-8 rounded-full transition-all ${
+                        formCouleur === c
+                          ? 'ring-2 ring-offset-2 ring-offset-[#18181b] ring-white/50 scale-110'
+                          : 'hover:scale-105 opacity-60 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#27272a] text-white/60 text-sm font-medium hover:bg-[#333] transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving || !formNom.trim()}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#FF6B2B] hover:bg-[#e55a1b] text-white text-sm font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                >
+                  {saving ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+                  Assigner
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function NutritionTab({ coachId, clientId, clientName }) {
   const toast = useToast()
 
@@ -3174,6 +3601,7 @@ export default function CoachClientHub() {
 
   // Stats du client sélectionné
   const [habitudes, setHabitudes] = useState([])
+  const [habitudeLogs, setHabitudeLogs] = useState([]) // today's completed habit IDs
   const [objectifs, setObjectifs] = useState([])
   const [score, setScore] = useState(0)
   const [planCalories, setPlanCalories] = useState(null) // from nutrition plan
@@ -3221,7 +3649,7 @@ export default function CoachClientHub() {
       const [profileRes, clientRes, habsRes, objsRes, logsRes, sommeilRes, humeurRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', selectedId).single(),
         supabase.from('clients').select('actif, created_at').eq('id', selectedId).single(),
-        supabase.from('habitudes').select('id, nom, couleur').eq('client_id', selectedId).eq('actif', true),
+        supabase.from('habitudes').select('id, nom, couleur, icone, description').eq('client_id', selectedId).eq('actif', true),
         supabase.from('objectifs').select('*').eq('client_id', selectedId).eq('archive', false),
         supabase.from('habitudes_log').select('habitude_id').eq('client_id', selectedId).eq('date', today),
         supabase.from('sommeil_log').select('*').eq('client_id', selectedId).eq('date', today).maybeSingle(),
@@ -3232,8 +3660,10 @@ export default function CoachClientHub() {
       setSelectedClient(clientRes.data)
 
       const habs = habsRes.data || []
-      const cochees = (logsRes.data || []).length
+      const logsData = logsRes.data || []
+      const cochees = logsData.length
       setHabitudes(habs)
+      setHabitudeLogs(logsData.map(l => l.habitude_id))
       setObjectifs(objsRes.data || [])
 
       const s = calculerScoreBienEtre({
@@ -3713,26 +4143,66 @@ export default function CoachClientHub() {
                     </div>
                   </div>
 
-                  {/* Carte Habitudes */}
+                  {/* Carte Habitudes du jour */}
                   <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
                         <Flame size={15} className="text-[#FF6B2B]" />
-                        Habitudes actives
+                        Habitudes du jour
                       </h3>
-                      <span className="text-[9px] px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{habitudes.length}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          habitudes.length > 0 && habitudeLogs.length === habitudes.length
+                            ? 'bg-emerald-500/10 text-emerald-400'
+                            : 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
+                        }`}>
+                          {habitudeLogs.length}/{habitudes.length}
+                        </span>
+                        <button
+                          onClick={() => setActiveTab('habitudes')}
+                          className="text-white/20 hover:text-[#FF6B2B] transition-colors"
+                          title="Gérer les habitudes"
+                        >
+                          <Settings size={13} />
+                        </button>
+                      </div>
                     </div>
                     {habitudes.length === 0 ? (
-                      <p className="text-white/15 text-xs text-center py-6">Aucune habitude active</p>
+                      <div className="text-center py-5">
+                        <p className="text-white/15 text-xs">Aucune habitude assignée</p>
+                        <button
+                          onClick={() => setActiveTab('habitudes')}
+                          className="text-[#FF6B2B] text-xs font-medium mt-2 hover:underline"
+                        >
+                          + Assigner une habitude
+                        </button>
+                      </div>
                     ) : (
-                      <div className="space-y-2">
-                        {habitudes.map((h) => (
-                          <div key={h.id} className="flex items-center gap-3 bg-[#09090b] rounded-xl px-3.5 py-2.5">
-                            <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: h.couleur }} />
-                            <span className="text-[#F5F5F3] text-xs font-medium flex-1 truncate">{h.nom}</span>
-                            <span className="text-white/15 text-[10px]">Quotidien</span>
-                          </div>
-                        ))}
+                      <div className="space-y-1.5">
+                        {habitudes.map((h) => {
+                          const fait = habitudeLogs.includes(h.id)
+                          const IconComp = getHabitIcon(h.icone)
+                          return (
+                            <div key={h.id} className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 transition-all ${
+                              fait ? 'bg-emerald-500/[0.06]' : 'bg-[#09090b]'
+                            }`}>
+                              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                                style={{ backgroundColor: `${h.couleur || '#FF6B2B'}15` }}>
+                                <IconComp size={13} style={{ color: h.couleur || '#FF6B2B' }} />
+                              </div>
+                              <span className={`text-xs font-medium flex-1 truncate ${
+                                fait ? 'text-emerald-400 line-through' : 'text-[#F5F5F3]'
+                              }`}>
+                                {h.nom}
+                              </span>
+                              {fait ? (
+                                <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+                              ) : (
+                                <Circle size={15} className="text-white/15 shrink-0" />
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
@@ -3787,8 +4257,19 @@ export default function CoachClientHub() {
               <SuiviTab coachId={user?.id} clientId={selectedId} />
             )}
 
+            {activeTab === 'habitudes' && (
+              <HabitudesTab
+                coachId={user?.id}
+                clientId={selectedId}
+                clientName={(() => {
+                  const c = clients.find(c => c.id === selectedId)
+                  return c?.profiles?.prenom || c?.profiles?.nom || 'ce client'
+                })()}
+              />
+            )}
+
             {/* ── Placeholder pour les autres onglets ── */}
-            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && activeTab !== 'infos' && activeTab !== 'suivi' && (
+            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && activeTab !== 'infos' && activeTab !== 'suivi' && activeTab !== 'habitudes' && (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
                   <BarChart3 size={36} className="text-white/10 mx-auto mb-3" />
