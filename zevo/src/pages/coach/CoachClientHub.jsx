@@ -4491,7 +4491,7 @@ export default function CoachClientHub() {
                 {/* ── Données de suivi — 6 cartes avec sparklines ── */}
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
                   {[
-                    { icon: Scale, label: 'Poids', value: (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—', spark: [80,79,78.5,78,77.8,77.5,77], color: '#FF6B2B' },
+                    { icon: Scale, label: 'Poids', value: (() => { const po = objectifs.find(o => o.type_objectif === 'poids' && o.statut === 'en_cours'); return po ? `${po.valeur_actuelle ?? po.valeur_depart} kg` : (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—' })(), spark: [80,79,78.5,78,77.8,77.5,77], color: '#FF6B2B' },
                     { icon: Heart, label: 'IMC', value: imc || '—', sub: imc ? (imc < 18.5 ? 'Insuffisant' : imc < 25 ? 'Normal' : imc < 30 ? 'Surpoids' : 'Obésité') : null, spark: [26,25.5,25,24.8,24.5,24.3,24], color: '#FF6B2B' },
                     { icon: Flame, label: 'Calories', value: planCalories ? `${planCalories}` : (p?.calories_cibles ? `${p.calories_cibles}` : '—'), sub: 'kcal/j', spark: [2000,2100,1950,2000,2050,2000,2100], color: '#f59e0b' },
                     { icon: Activity, label: 'Activité', value: p?.niveau_activite || '—', spark: [3,5,4,6,5,7,6], color: '#22c55e' },
@@ -4539,52 +4539,112 @@ export default function CoachClientHub() {
                 {/* ── Row: Poids + Objectifs ── */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                  {/* Carte Poids — Départ → Cible */}
-                  <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
-                    <div className="flex items-center justify-between mb-5">
-                      <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
-                        <Scale size={15} className="text-[#FF6B2B]" />
-                        Poids
-                      </h3>
-                      <button onClick={() => setActiveTab('suivi')} className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
-                        Voir le suivi →
-                      </button>
-                    </div>
-                    <div className="bg-[#09090b] rounded-xl p-4 flex items-center">
-                      <div className="flex-1 text-center">
-                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Poids de départ</p>
-                        <p className="text-[#F5F5F3] text-2xl font-bold">{p?.poids_depart || '—'}<span className="text-sm text-white/20 ml-1">kg</span></p>
-                      </div>
-                      <div className="flex items-center gap-1.5 px-3 shrink-0">
-                        <div className="w-6 h-[1.5px] bg-[#27272a]" />
-                        <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center">
-                          <ChevronRight size={12} className="text-[#FF6B2B]" />
-                        </div>
-                        <div className="w-6 h-[1.5px] bg-[#27272a]" />
-                      </div>
-                      <div className="flex-1 text-center">
-                        <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Poids cible</p>
-                        <p className="text-[#FF6B2B] text-2xl font-bold">{p?.poids_cible || '—'}<span className="text-sm text-[#FF6B2B]/40 ml-1">kg</span></p>
-                      </div>
-                    </div>
-                    {p?.poids_depart && p?.poids_cible && (
-                      <div className="mt-4">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-white/25 text-[10px]">Progression</span>
-                          <span className="text-[#FF6B2B] text-[10px] font-bold">
-                            {Math.min(100, Math.max(0, Math.round(((p.poids_depart - (p.poids_actuel || p.poids_depart)) / (p.poids_depart - p.poids_cible)) * 100)))}%
-                          </span>
-                        </div>
-                        <div className="h-2 bg-[#27272a] rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] transition-all"
-                            style={{ width: `${Math.min(100, Math.max(0, ((p.poids_depart - (p.poids_actuel || p.poids_depart)) / (p.poids_depart - p.poids_cible)) * 100))}%` }} />
-                        </div>
-                        <p className="text-white/15 text-[10px] mt-1.5">Poids actuel : <span className="text-[#F5F5F3] font-semibold">{p.poids_actuel || p.poids_depart} kg</span></p>
-                      </div>
-                    )}
-                  </div>
+                  {/* Carte Poids — Dynamique depuis objectifs */}
+                  {(() => {
+                    const poidsObj = objectifs.find(o => o.type_objectif === 'poids' && o.statut === 'en_cours')
+                    const depart = poidsObj?.valeur_depart ?? p?.poids_depart
+                    const cible = poidsObj?.valeur_cible ?? p?.poids_cible
+                    const actuel = poidsObj?.valeur_actuelle ?? p?.poids_actuel ?? depart
+                    const unite = poidsObj?.unite || 'kg'
+                    const pct = (depart && cible) ? calcProgress(depart, actuel, cible) : 0
+                    const color = progressColor(pct)
+                    const jours = poidsObj ? joursRestants(poidsObj.date_limite) : null
+                    const delta = (depart && actuel) ? Math.abs(actuel - depart).toFixed(1) : null
+                    const isLoss = cible < depart
 
-                  {/* Carte Objectifs SMART */}
+                    return (
+                      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+                        <div className="flex items-center justify-between mb-5">
+                          <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+                            <Scale size={15} className="text-[#FF6B2B]" />
+                            Poids
+                          </h3>
+                          <div className="flex items-center gap-3">
+                            {jours !== null && (
+                              <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${
+                                jours < 0 ? 'bg-red-500/10 text-red-400' : jours <= 14 ? 'bg-amber-500/10 text-amber-400' : 'bg-white/5 text-white/25'
+                              }`}>
+                                {jours < 0 ? `${Math.abs(jours)}j retard` : jours === 0 ? "Auj." : `${jours}j restants`}
+                              </span>
+                            )}
+                            <button onClick={() => setActiveTab('objectifs')} className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
+                              {poidsObj ? 'Modifier →' : 'Définir →'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Départ → Actuel → Cible */}
+                        <div className="bg-[#09090b] rounded-xl p-4 flex items-center">
+                          <div className="flex-1 text-center">
+                            <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Départ</p>
+                            <p className="text-[#F5F5F3] text-2xl font-bold">{depart || '—'}<span className="text-sm text-white/20 ml-1">{unite}</span></p>
+                          </div>
+                          <div className="flex flex-col items-center gap-0.5 px-2 shrink-0">
+                            <div className="flex items-center gap-1">
+                              <div className="w-4 h-[1.5px] bg-[#27272a]" />
+                              <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
+                                {isLoss ? <TrendingDown size={11} style={{ color }} /> : <TrendingUp size={11} style={{ color }} />}
+                              </div>
+                              <div className="w-4 h-[1.5px] bg-[#27272a]" />
+                            </div>
+                            {delta && delta !== '0.0' && (
+                              <span className="text-[9px] font-bold" style={{ color }}>
+                                {isLoss ? '-' : '+'}{delta}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 text-center">
+                            <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Cible</p>
+                            <p className="text-2xl font-bold" style={{ color: '#FF6B2B' }}>{cible || '—'}<span className="text-sm opacity-40 ml-1">{unite}</span></p>
+                          </div>
+                        </div>
+
+                        {/* Barre de progression */}
+                        {depart && cible ? (
+                          <div className="mt-4">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-white/25 text-[10px]">Progression</span>
+                              <span className="text-[10px] font-bold" style={{ color }}>{pct}%</span>
+                            </div>
+                            <div className="h-2.5 bg-white/[0.04] rounded-full overflow-hidden">
+                              <div className="h-full rounded-full transition-all duration-700 relative"
+                                style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, ${color}cc)` }}>
+                                {pct > 8 && (
+                                  <div className="absolute inset-0 rounded-full"
+                                    style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15) 50%, transparent)' }} />
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-1.5">
+                              <p className="text-white/15 text-[10px]">
+                                Actuel : <span className="text-[#F5F5F3] font-semibold">{actuel} {unite}</span>
+                              </p>
+                              {depart && cible && (
+                                <p className="text-white/10 text-[9px]">
+                                  Reste {Math.abs(actuel - cible).toFixed(1)} {unite}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-4 text-center py-2">
+                            <p className="text-white/15 text-xs">Aucun objectif poids défini</p>
+                            <button onClick={() => setActiveTab('objectifs')} className="text-[#FF6B2B] text-xs font-medium mt-1 hover:underline">
+                              + Créer un objectif poids
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+
+                  {/* Carte Autres Objectifs (hors poids, déjà affiché à gauche) */}
+                  {(() => {
+                    const autresEnCours = objectifs.filter(o => o.statut === 'en_cours' && o.type_objectif !== 'poids')
+                    const atteints = objectifs.filter(o => o.statut === 'atteint')
+                    const totalEnCours = objectifs.filter(o => o.statut === 'en_cours').length
+
+                    return (
                   <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
@@ -4592,9 +4652,9 @@ export default function CoachClientHub() {
                         Objectifs
                       </h3>
                       <div className="flex items-center gap-2">
-                        {objectifs.filter(o => o.statut === 'en_cours').length > 0 && (
+                        {totalEnCours > 0 && (
                           <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
-                            {objectifs.filter(o => o.statut === 'en_cours').length} en cours
+                            {totalEnCours} en cours
                           </span>
                         )}
                         <button
@@ -4606,9 +4666,9 @@ export default function CoachClientHub() {
                         </button>
                       </div>
                     </div>
-                    {objectifs.filter(o => o.statut === 'en_cours').length > 0 ? (
+                    {autresEnCours.length > 0 ? (
                       <div className="space-y-3.5">
-                        {objectifs.filter(o => o.statut === 'en_cours').slice(0, 3).map((o) => {
+                        {autresEnCours.slice(0, 4).map((o) => {
                           const pct = calcProgress(o.valeur_depart, o.valeur_actuelle, o.valeur_cible)
                           const color = progressColor(pct)
                           const jours = joursRestants(o.date_limite)
@@ -4647,16 +4707,16 @@ export default function CoachClientHub() {
                             </div>
                           )
                         })}
-                        {objectifs.filter(o => o.statut === 'atteint').length > 0 && (
+                        {atteints.length > 0 && (
                           <p className="text-emerald-400/50 text-[10px] text-center pt-1">
-                            ✅ {objectifs.filter(o => o.statut === 'atteint').length} objectif{objectifs.filter(o => o.statut === 'atteint').length > 1 ? 's' : ''} atteint{objectifs.filter(o => o.statut === 'atteint').length > 1 ? 's' : ''}
+                            ✅ {atteints.length} objectif{atteints.length > 1 ? 's' : ''} atteint{atteints.length > 1 ? 's' : ''}
                           </p>
                         )}
                       </div>
-                    ) : objectifs.filter(o => o.statut === 'atteint').length > 0 ? (
+                    ) : atteints.length > 0 ? (
                       <div className="text-center py-4">
                         <p className="text-emerald-400 text-sm font-bold">🎉 Tous les objectifs atteints</p>
-                        <p className="text-emerald-400/30 text-xs mt-1">{objectifs.filter(o => o.statut === 'atteint').length} objectif{objectifs.filter(o => o.statut === 'atteint').length > 1 ? 's' : ''}</p>
+                        <p className="text-emerald-400/30 text-xs mt-1">{atteints.length} objectif{atteints.length > 1 ? 's' : ''}</p>
                       </div>
                     ) : (
                       <div className="text-center py-4">
@@ -4670,6 +4730,8 @@ export default function CoachClientHub() {
                       </div>
                     )}
                   </div>
+                    )
+                  })()}
                 </div>
 
                 {/* ── Row: Nutrition + Habitudes ── */}
