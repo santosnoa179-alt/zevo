@@ -4119,6 +4119,7 @@ export default function CoachClientHub() {
   const [objectifs, setObjectifs] = useState([])
   const [score, setScore] = useState(0)
   const [planCalories, setPlanCalories] = useState(null) // from nutrition plan
+  const [weekSeances, setWeekSeances] = useState({ total: 0, done: 0, spark: [0,0,0,0,0,0,0] }) // seances cette semaine
 
   // Invitation modal
   const [modalInvit, setModalInvit] = useState(false)
@@ -4220,6 +4221,42 @@ export default function CoachClientHub() {
       } else {
         setPlanCalories(null)
       }
+
+      // Fetch seances de la semaine en cours
+      const now = new Date()
+      const dayOfWeek = now.getDay() // 0=dimanche
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+      const monday = new Date(now)
+      monday.setDate(now.getDate() + mondayOffset)
+      monday.setHours(0, 0, 0, 0)
+      const sunday = new Date(monday)
+      sunday.setDate(monday.getDate() + 6)
+      sunday.setHours(23, 59, 59, 999)
+      const mondayStr = monday.toISOString().split('T')[0]
+      const sundayStr = sunday.toISOString().split('T')[0]
+
+      const { data: weekData } = await supabase
+        .from('seances')
+        .select('id, date_prevue')
+        .eq('client_id', selectedId)
+        .eq('is_template', false)
+        .gte('date_prevue', mondayStr)
+        .lte('date_prevue', sundayStr)
+
+      const seancesWeek = weekData || []
+      const todayDate = new Date()
+      todayDate.setHours(0, 0, 0, 0)
+      const doneCount = seancesWeek.filter(s => new Date(s.date_prevue) < todayDate).length
+
+      // Sparkline : nombre de séances par jour (lun→dim)
+      const sparkByDay = [0, 0, 0, 0, 0, 0, 0]
+      seancesWeek.forEach(s => {
+        const d = new Date(s.date_prevue)
+        const idx = (d.getDay() + 6) % 7 // 0=lundi, 6=dimanche
+        sparkByDay[idx]++
+      })
+
+      setWeekSeances({ total: seancesWeek.length, done: doneCount, spark: sparkByDay })
 
       setLoadingProfile(false)
     }
@@ -4495,10 +4532,11 @@ export default function CoachClientHub() {
                     { icon: Heart, label: 'IMC', value: imc || '—', sub: imc ? (imc < 18.5 ? 'Insuffisant' : imc < 25 ? 'Normal' : imc < 30 ? 'Surpoids' : 'Obésité') : null, spark: [26,25.5,25,24.8,24.5,24.3,24], color: '#FF6B2B' },
                     { icon: Flame, label: 'Calories', value: planCalories ? `${planCalories}` : (p?.calories_cibles ? `${p.calories_cibles}` : '—'), sub: 'kcal/j', spark: [2000,2100,1950,2000,2050,2000,2100], color: '#f59e0b' },
                     { icon: Activity, label: 'Activité', value: p?.niveau_activite || '—', spark: [3,5,4,6,5,7,6], color: '#22c55e' },
-                    { icon: Dumbbell, label: 'Séances', value: '—', sub: 'cette sem.', spark: [2,3,2,4,3,3,4], color: '#3b82f6' },
-                    { icon: Target, label: 'Objectifs', value: `${objectifs.filter(o => o.statut === 'en_cours').length}`, sub: 'en cours', spark: [1,1,2,2,3,3,3], color: '#a855f7' },
+                    { icon: Dumbbell, label: 'Séances', value: weekSeances.total > 0 ? `${weekSeances.total}` : '—', sub: weekSeances.total > 0 ? `${weekSeances.done} faite${weekSeances.done > 1 ? 's' : ''} sur ${weekSeances.total}` : 'cette sem.', spark: weekSeances.spark.some(v => v > 0) ? weekSeances.spark : [0,1,0,1,0,1,0], color: '#3b82f6', onClick: () => setActiveTab('sport') },
+                    { icon: Target, label: 'Objectifs', value: `${objectifs.filter(o => o.statut === 'en_cours').length}`, sub: 'en cours', spark: [1,1,2,2,3,3,3], color: '#a855f7', onClick: () => setActiveTab('objectifs') },
                   ].map((card, ci) => (
-                    <div key={ci} className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 flex flex-col justify-between min-h-[120px]">
+                    <div key={ci} onClick={card.onClick || undefined}
+                      className={`bg-[#18181b] border border-[#27272a] rounded-2xl p-4 flex flex-col justify-between min-h-[120px] transition-all ${card.onClick ? 'cursor-pointer hover:border-[#3f3f46] hover:bg-[#1c1c1f] active:scale-[0.98]' : ''}`}>
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="text-white/30 text-[10px] font-medium uppercase tracking-wider">{card.label}</p>
