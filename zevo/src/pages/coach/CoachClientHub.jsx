@@ -2702,7 +2702,7 @@ function calculerStreak(logsDates) {
 // ══════════════════════════════════════
 // HABITUDES TAB — Gestion des habitudes client
 // ══════════════════════════════════════
-function HabitudesTab({ coachId, clientId, clientName }) {
+function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
   const toast = useToast()
   const [habitudes, setHabitudes] = useState([])
   const [todayLogs, setTodayLogs] = useState([])
@@ -2765,6 +2765,7 @@ function HabitudesTab({ coachId, clientId, clientName }) {
       setFormIcone('Droplets')
       setShowModal(false)
       toast.success('Habitude assignée !')
+      onHabitudesChanged?.()
     } else {
       toast.error('Erreur : ' + (error?.message || 'Échec'))
     }
@@ -2778,6 +2779,7 @@ function HabitudesTab({ coachId, clientId, clientName }) {
     if (!error) {
       setHabitudes(prev => prev.filter(h => h.id !== id))
       toast.success('Habitude désactivée')
+      onHabitudesChanged?.()
     }
     setDeactivating(null)
   }
@@ -2789,6 +2791,7 @@ function HabitudesTab({ coachId, clientId, clientName }) {
     await supabase.from('habitudes').delete().eq('id', id)
     setHabitudes(prev => prev.filter(h => h.id !== id))
     toast.success('Habitude supprimée')
+    onHabitudesChanged?.()
   }
 
   const cochees = habitudes.filter(h => todayLogs.includes(h.id)).length
@@ -3712,6 +3715,28 @@ export default function CoachClientHub() {
     load()
   }, [selectedId, today, user?.id])
 
+  // ── Rafraîchir uniquement les habitudes (appelé par HabitudesTab après modif) ──
+  const refreshHabitudes = useCallback(async () => {
+    if (!selectedId) return
+    const [habsRes, logsRes] = await Promise.all([
+      supabase.from('habitudes').select('id, nom, couleur, icone, description').eq('client_id', selectedId).eq('actif', true),
+      supabase.from('habitudes_log').select('habitude_id').eq('client_id', selectedId).eq('date', today),
+    ])
+    const habs = habsRes.data || []
+    const logsData = logsRes.data || []
+    setHabitudes(habs)
+    setHabitudeLogs(logsData.map(l => l.habitude_id))
+
+    // Recalculer le score bien-être
+    const s = calculerScoreBienEtre({
+      habitudes: { cochees: logsData.length, total: habs.length },
+      sommeil: null,
+      humeur: null,
+      sport: null,
+    })
+    setScore(s)
+  }, [selectedId, today])
+
   // ── Invitation ──
   const envoyerInvitation = async (e) => {
     e.preventDefault()
@@ -4265,6 +4290,7 @@ export default function CoachClientHub() {
                   const c = clients.find(c => c.id === selectedId)
                   return c?.profiles?.prenom || c?.profiles?.nom || 'ce client'
                 })()}
+                onHabitudesChanged={refreshHabitudes}
               />
             )}
 
