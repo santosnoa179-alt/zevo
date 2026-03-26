@@ -6,9 +6,10 @@ import {
   Receipt, UsersRound, HardDrive, Zap, Bell,
   Search, MessageCircle, Rocket, LogOut, Menu, X,
   Settings, ChevronDown, ChevronLeft, BookOpen, Layers, ClipboardList,
-  FileText, BarChart3, CreditCard, Paintbrush, Send,
+  FileText, BarChart3, CreditCard, Paintbrush, Send, Mic,
   CheckCircle, Flame, TrendingDown, FolderOpen, Trophy, UtensilsCrossed
 } from 'lucide-react'
+import { AudioBubble, VoiceRecorder } from '../chat/VoiceMessage'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 
@@ -86,6 +87,7 @@ function MessagingDrawer({ open, onClose }) {
   const [selectedContact, setSelectedContact] = useState(null)
   const [messageInput, setMessageInput] = useState('')
   const [messages, setMessages] = useState({})
+  const [isRecording, setIsRecording] = useState(false)
   const [isComposingNew, setIsComposingNew] = useState(false)
   const [newMsgSearch, setNewMsgSearch] = useState('')
   const [composeMode, setComposeMode] = useState('direct') // 'direct' | 'group'
@@ -221,12 +223,31 @@ function MessagingDrawer({ open, onClose }) {
     setMessageInput('')
   }
 
+  // Envoi d'un vocal (local + futur Supabase)
+  const sendVocal = async (audioUrl, audioDuration) => {
+    if (!selectedContact) return
+    const newMsg = {
+      id: Date.now(),
+      from: 'coach',
+      text: '🎤 Note vocale',
+      audio_url: audioUrl,
+      audio_duration: Math.round(audioDuration),
+      time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+    }
+    setMessages((prev) => ({
+      ...prev,
+      [selectedContact.id]: [...(prev[selectedContact.id] || []), newMsg],
+    }))
+    setIsRecording(false)
+  }
+
   // Reset quand le tiroir se ferme
   useEffect(() => {
     if (!open) {
       setTimeout(() => {
         setSelectedContact(null)
         setMessageInput('')
+        setIsRecording(false)
         setIsComposingNew(false)
         setNewMsgSearch('')
         setComposeMode('direct')
@@ -289,44 +310,70 @@ function MessagingDrawer({ open, onClose }) {
             {/* Zone de messages */}
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
               {currentMessages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.from === 'coach' ? 'justify-end' : 'justify-start'}`}
-                >
+                msg.audio_url ? (
+                  <AudioBubble
+                    key={msg.id}
+                    audioUrl={msg.audio_url}
+                    audioDuration={msg.audio_duration}
+                    estMoi={msg.from === 'coach'}
+                    createdAt={msg.created_at || null}
+                  />
+                ) : (
                   <div
-                    className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                      msg.from === 'coach'
-                        ? 'bg-[#FF6B2B] text-white rounded-br-md'
-                        : 'bg-[#27272a] text-[#F5F5F3] rounded-bl-md'
-                    }`}
+                    key={msg.id}
+                    className={`flex ${msg.from === 'coach' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <p>{msg.text}</p>
-                    <p className={`text-[9px] mt-1 ${msg.from === 'coach' ? 'text-white/50' : 'text-white/25'}`}>
-                      {msg.time}
-                    </p>
+                    <div
+                      className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                        msg.from === 'coach'
+                          ? 'bg-[#FF6B2B] text-white rounded-br-md'
+                          : 'bg-[#27272a] text-[#F5F5F3] rounded-bl-md'
+                      }`}
+                    >
+                      <p>{msg.text}</p>
+                      <p className={`text-[9px] mt-1 ${msg.from === 'coach' ? 'text-white/50' : 'text-white/25'}`}>
+                        {msg.time}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )
               ))}
             </div>
 
             {/* Zone de saisie */}
             <div className="px-4 py-3 border-t border-[#27272a]">
               <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                  placeholder="Écrivez votre message..."
-                  className="flex-1 bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={!messageInput.trim()}
-                  className="p-2.5 rounded-xl bg-[#FF6B2B] text-white hover:bg-[#e55e24] transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
-                >
-                  <Send size={16} />
-                </button>
+                {isRecording ? (
+                  <VoiceRecorder onSend={sendVocal} disabled={false} />
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      value={messageInput}
+                      onChange={(e) => setMessageInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                      placeholder="Écrivez votre message..."
+                      className="flex-1 bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                    />
+                    {!messageInput.trim() ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsRecording(true)}
+                        className="p-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white/40 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all flex-shrink-0"
+                        title="Note vocale"
+                      >
+                        <Mic size={16} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={sendMessage}
+                        className="p-2.5 rounded-xl bg-[#FF6B2B] text-white hover:bg-[#e55e24] transition-colors flex-shrink-0"
+                      >
+                        <Send size={16} />
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </>
