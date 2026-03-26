@@ -2395,19 +2395,32 @@ function SuiviTab({ coachId, clientId }) {
     const load = async () => {
       setLoading(true)
 
-      // Dates pour 4 semaines / 30 jours
+      // Dates pour 4 semaines alignées Lun→Dim
+      // Lundi de la semaine courante
+      const now = new Date()
+      const dayOfWeek = now.getDay() // 0=Dim, 1=Lun, ..., 6=Sam
+      const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // jours depuis lundi
+      const mondayThisWeek = new Date(now)
+      mondayThisWeek.setDate(now.getDate() - diffToMonday)
+      // Lundi d'il y a 3 semaines (= début de la grille 4 semaines)
+      const gridStart = new Date(mondayThisWeek)
+      gridStart.setDate(mondayThisWeek.getDate() - 21)
+      // Dimanche de la semaine courante (= fin de la grille)
+      const gridEnd = new Date(mondayThisWeek)
+      gridEnd.setDate(mondayThisWeek.getDate() + 6)
+
+      const dateMin28 = gridStart.toISOString().split('T')[0]
+      const dateMax28 = gridEnd.toISOString().split('T')[0]
+
+      // Habitudes : 30 derniers jours
       const il30j = new Date()
       il30j.setDate(il30j.getDate() - 29)
       const dateMin30 = il30j.toISOString().split('T')[0]
 
-      const il28j = new Date()
-      il28j.setDate(il28j.getDate() - 27)
-      const dateMin28 = il28j.toISOString().split('T')[0]
-
       const [peseesRes, profileRes, seancesRes, habsRes, logsRes, objsRes] = await Promise.all([
         supabase.from('suivi_poids').select('*').eq('client_id', clientId).eq('coach_id', coachId).order('date_pesee', { ascending: true }),
         supabase.from('profiles').select('poids_depart, poids_cible, poids_actuel').eq('id', clientId).single(),
-        supabase.from('seances').select('id, date_prevue, is_completed').eq('client_id', clientId).eq('is_template', false).gte('date_prevue', dateMin28).lte('date_prevue', today),
+        supabase.from('seances').select('id, date_prevue, is_completed').eq('client_id', clientId).eq('is_template', false).gte('date_prevue', dateMin28).lte('date_prevue', dateMax28),
         supabase.from('habitudes').select('id, nom, couleur, icone').eq('client_id', clientId).eq('actif', true),
         supabase.from('habitudes_log').select('habitude_id, date').eq('client_id', clientId).gte('date', dateMin30),
         supabase.from('objectifs').select('*').eq('client_id', clientId).eq('statut', 'en_cours').order('created_at', { ascending: false }),
@@ -2463,11 +2476,20 @@ function SuiviTab({ coachId, clientId }) {
   const completedSeances = seancesMonth.filter(s => s.is_completed).length
   const assiduitePct = totalSeances > 0 ? Math.round((completedSeances / totalSeances) * 100) : 0
 
-  // Heatmap: 28 derniers jours (4 semaines)
+  // Heatmap: 4 semaines alignées Lun→Dim
+  // Recalcul du lundi de la semaine courante (identique au useEffect)
+  const nowHm = new Date()
+  const dowHm = nowHm.getDay() // 0=Dim, 1=Lun, ..., 6=Sam
+  const diffHm = dowHm === 0 ? 6 : dowHm - 1
+  const mondayHm = new Date(nowHm.getFullYear(), nowHm.getMonth(), nowHm.getDate() - diffHm)
+  // Premier jour de la grille = lundi d'il y a 3 semaines
+  const gridStartHm = new Date(mondayHm)
+  gridStartHm.setDate(mondayHm.getDate() - 21)
+
   const heatmapDays = Array.from({ length: 28 }, (_, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() - (27 - i))
-    const ds = d.toISOString().split('T')[0]
+    const d = new Date(gridStartHm)
+    d.setDate(gridStartHm.getDate() + i)
+    const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     const daySeances = seancesMonth.filter(s => s.date_prevue === ds)
     const hasSeance = daySeances.length > 0
     const allDone = hasSeance && daySeances.every(s => s.is_completed)
