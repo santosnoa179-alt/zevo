@@ -210,146 +210,141 @@ export default function CoachRapportsPage() {
     }
   }
 
-  // ── Générer et télécharger le PDF (Premium + White-label) ──
+  // ── Générer et télécharger le PDF — Premium Fitness Editorial ──
   const telechargerPDF = async () => {
     if (!preview) return
 
     const { default: jsPDF } = await import('jspdf')
 
     const doc = new jsPDF('p', 'mm', 'a4')
-    const couleur = coachInfo?.couleur_primaire || '#FF6B2B'
     const nomApp = coachInfo?.nom_app || 'Zevo'
     const pageW = doc.internal.pageSize.getWidth()
     const pageH = doc.internal.pageSize.getHeight()
-    const margin = 20
+    const M = 22 // marge généreuse
 
-    const hexToRgb = (hex) => {
-      const r = parseInt(hex.slice(1, 3), 16)
-      const g = parseInt(hex.slice(3, 5), 16)
-      const b = parseInt(hex.slice(5, 7), 16)
-      return [r, g, b]
-    }
-    const [cr, cg, cb] = hexToRgb(couleur)
+    // ── Palette Premium ──
+    const ANTHRACITE = [24, 24, 27]      // #18181B
+    const GREY_MED = [113, 113, 122]     // #71717A
+    const GREY_LIGHT = [228, 228, 231]   // #E4E4E7
+    const GREY_BG = [250, 250, 250]      // #FAFAFA
+    const ACCENT = [255, 107, 43]        // #FF6B2B
+    const WHITE = [255, 255, 255]
 
     const dateStr = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-    const typeLabel = TYPES_RAPPORT.find(t => t.id === preview.type)?.label || 'Rapport'
+    const typeLabel = TYPES_RAPPORT.find(t => t.id === preview.type)?.label?.toUpperCase() || 'RAPPORT'
 
-    // ── Helper : barre de progression ──
-    const drawProgressBar = (x, yPos, w, percent, height = 4) => {
-      doc.setFillColor(230, 230, 230)
-      doc.roundedRect(x, yPos, w, height, height / 2, height / 2, 'F')
-      if (percent > 0) {
-        doc.setFillColor(cr, cg, cb)
-        doc.roundedRect(x, yPos, Math.max(w * percent / 100, height), height, height / 2, height / 2, 'F')
+    // ── Helper : ensure page space ──
+    const ensureSpace = (needed) => {
+      if (y > pageH - needed) { doc.addPage(); y = 22 }
+    }
+
+    // ── Helper : barre de progression fine ──
+    const drawBar = (x, yPos, w, pct, h = 3) => {
+      doc.setFillColor(...GREY_LIGHT)
+      doc.roundedRect(x, yPos, w, h, h / 2, h / 2, 'F')
+      if (pct > 0) {
+        doc.setFillColor(...ACCENT)
+        doc.roundedRect(x, yPos, Math.max(w * Math.min(pct, 100) / 100, h), h, h / 2, h / 2, 'F')
       }
     }
 
-    // ── Helper : section title avec pastille couleur ──
-    const drawSectionTitle = (title, yPos) => {
-      doc.setFillColor(cr, cg, cb)
-      doc.circle(margin + 2, yPos - 1.5, 2, 'F')
-      doc.setFontSize(13)
+    // ── Helper : section header (majuscules, tracking large, filet) ──
+    const drawSection = (title, yPos) => {
+      ensureSpace(30)
+      doc.setFontSize(8.5)
       doc.setFont('helvetica', 'bold')
-      doc.setTextColor(30, 30, 30)
-      doc.text(title, margin + 8, yPos)
-      return yPos + 8
+      doc.setTextColor(...GREY_MED)
+      doc.text(title.toUpperCase(), M, yPos)
+      doc.setDrawColor(...GREY_LIGHT)
+      doc.setLineWidth(0.3)
+      doc.line(M, yPos + 2, pageW - M, yPos + 2)
+      return yPos + 10
     }
 
-    // ── Helper : stat card ──
-    const drawStatCard = (x, yPos, w, h, label, value, unit = '') => {
-      doc.setFillColor(248, 248, 248)
-      doc.roundedRect(x, yPos, w, h, 3, 3, 'F')
-      doc.setFontSize(18)
+    // ── Helper : KPI card minimaliste ──
+    const drawKPI = (x, yPos, w, h, value, label, unit = '') => {
+      // Fond ultra-léger + bordure fine
+      doc.setFillColor(...GREY_BG)
+      doc.setDrawColor(...GREY_LIGHT)
+      doc.setLineWidth(0.25)
+      doc.roundedRect(x, yPos, w, h, 2.5, 2.5, 'FD')
+
+      // Valeur grande en orange
+      doc.setFontSize(20)
       doc.setFont('helvetica', 'bold')
-      doc.setTextColor(cr, cg, cb)
-      doc.text(`${value}`, x + w / 2, yPos + h / 2 - 1, { align: 'center' })
+      doc.setTextColor(...ACCENT)
+      const valText = `${value}`
+      doc.text(valText, x + w / 2, yPos + h / 2 - 2, { align: 'center' })
+
+      // Unité à droite de la valeur
       if (unit) {
+        const valW = doc.getTextWidth(valText)
         doc.setFontSize(9)
         doc.setFont('helvetica', 'normal')
-        doc.setTextColor(100, 100, 100)
-        doc.text(unit, x + w / 2 + doc.getTextWidth(`${value}`) / 2 + 2, yPos + h / 2 - 1)
+        doc.setTextColor(...GREY_MED)
+        doc.text(unit, x + w / 2 + valW / 2 + 1.5, yPos + h / 2 - 2)
       }
-      doc.setFontSize(8)
+
+      // Label en dessous
+      doc.setFontSize(7.5)
       doc.setFont('helvetica', 'normal')
-      doc.setTextColor(120, 120, 120)
-      doc.text(label, x + w / 2, yPos + h / 2 + 7, { align: 'center' })
+      doc.setTextColor(...GREY_MED)
+      doc.text(label.toUpperCase(), x + w / 2, yPos + h / 2 + 6.5, { align: 'center' })
     }
 
-    // ── Helper : variation badge ──
-    const drawVariation = (x, yPos, val, suffix = '') => {
+    // ── Helper : variation ──
+    const drawDelta = (x, yPos, val, suffix = '') => {
       if (val === null || val === undefined) return
       const n = parseFloat(val)
-      const text = `${n >= 0 ? '+' : ''}${val}${suffix}`
-      doc.setFontSize(8)
+      doc.setFontSize(7.5)
       doc.setFont('helvetica', 'bold')
-      if (n >= 0) {
-        doc.setTextColor(34, 139, 34)
-      } else {
-        doc.setTextColor(220, 53, 69)
-      }
-      doc.text(text, x, yPos)
-      doc.setTextColor(30, 30, 30)
+      doc.setTextColor(n >= 0 ? 34 : 220, n >= 0 ? 139 : 53, n >= 0 ? 34 : 69)
+      doc.text(`${n >= 0 ? '\u25B2' : '\u25BC'} ${n >= 0 ? '+' : ''}${val}${suffix}`, x, yPos)
     }
 
     let y = 0
 
     // ══════════════════════════════════════
-    // HEADER — White background + logo + fine separator
+    // HEADER — Logo / Titre / Date / Filet
     // ══════════════════════════════════════
 
-    // Charger le logo du coach si disponible
     let logoImg = null
     if (coachInfo?.logo_url) {
       try {
         const response = await fetch(coachInfo.logo_url)
         const blob = await response.blob()
         const reader = new FileReader()
-        logoImg = await new Promise((resolve) => {
-          reader.onload = () => resolve(reader.result)
-          reader.readAsDataURL(blob)
-        })
-      } catch { /* logo non chargeable, on continue sans */ }
+        logoImg = await new Promise((resolve) => { reader.onload = () => resolve(reader.result); reader.readAsDataURL(blob) })
+      } catch { /* continue sans logo */ }
     }
 
-    y = 15
+    y = 18
+    // Logo ou nom de l'app (aligné à gauche)
     if (logoImg) {
-      try {
-        doc.addImage(logoImg, 'PNG', margin, y, 0, 12)
-        y += 16
-      } catch {
-        // Fallback : texte du nom si l'image ne charge pas
-        doc.setFontSize(20)
-        doc.setFont('helvetica', 'bold')
-        doc.setTextColor(cr, cg, cb)
-        doc.text(nomApp, margin, y + 8)
-        y += 16
+      try { doc.addImage(logoImg, 'PNG', M, y - 5, 0, 10); } catch {
+        doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ACCENT); doc.text(nomApp.toUpperCase(), M, y)
       }
     } else {
-      doc.setFontSize(20)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(cr, cg, cb)
-      doc.text(nomApp, margin, y + 8)
-      y += 16
+      doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ACCENT); doc.text(nomApp.toUpperCase(), M, y)
     }
 
-    // Fine separator line
-    doc.setDrawColor(cr, cg, cb)
-    doc.setLineWidth(0.8)
-    doc.line(margin, y, pageW - margin, y)
+    // Date (alignée à droite)
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY_MED)
+    doc.text(dateStr, pageW - M, y, { align: 'right' })
+    y += 6
+
+    // Filet fin
+    doc.setDrawColor(...GREY_LIGHT); doc.setLineWidth(0.4)
+    doc.line(M, y, pageW - M, y)
     y += 10
 
-    // Titre du rapport
-    doc.setFontSize(22)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(30, 30, 30)
-    doc.text(typeLabel, margin, y)
-    y += 7
-
-    // Badge période
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(100, 100, 100)
-    doc.text(dateStr, margin, y)
+    // Titre du rapport — majuscules, large, tracking
+    doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(...ANTHRACITE)
+    doc.text(typeLabel, M, y)
+    y += 5
+    // Sous-titre
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY_MED)
+    doc.text(preview.type === 'financier' ? 'Synthese financiere' : `Synthese de progression`, M, y)
     y += 12
 
     // ══════════════════════════════════════
@@ -357,145 +352,133 @@ export default function CoachRapportsPage() {
     // ══════════════════════════════════════
 
     if (preview.type === 'financier') {
-      y = drawSectionTitle('Vue financiere', y)
+      y = drawSection('Indicateurs financiers', y)
       const d = preview.data
-      const cardW = (pageW - margin * 2 - 6) / 2
-      drawStatCard(margin, y, cardW, 30, 'Clients actifs', d.nbClients)
-      drawStatCard(margin + cardW + 6, y, cardW, 30, 'CA du mois', `${d.caMois.toFixed(2)}`, '\u20AC')
-      y += 36
-      drawStatCard(margin, y, cardW, 30, 'Paiements ce mois', d.nbPaiements)
-      drawStatCard(margin + cardW + 6, y, cardW, 30, 'Total paiements', d.totalPaiements)
-      y += 36
+      const cw = (pageW - M * 2 - 8) / 2
+      drawKPI(M, y, cw, 34, d.nbClients, 'Clients actifs')
+      drawKPI(M + cw + 8, y, cw, 34, `${d.caMois.toFixed(0)}`, 'CA du mois', '\u20AC')
+      y += 42
+      drawKPI(M, y, cw, 34, d.nbPaiements, 'Paiements ce mois')
+      drawKPI(M + cw + 8, y, cw, 34, d.totalPaiements, 'Total paiements')
+      y += 42
     } else {
       const nomClient = preview.client?.profiles?.nom || preview.client?.profiles?.email || 'Client'
       const d = preview.data
 
-      // Client info
-      doc.setFontSize(11)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(80, 80, 80)
-      doc.text(`Client : ${nomClient}  |  Periode : ${preview.jours} jours`, margin, y)
+      // Bandeau client
+      doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY_MED)
+      doc.text(`${nomClient}`, M, y)
+      doc.setFontSize(8)
+      doc.text(`  \u2014  ${preview.jours} derniers jours`, M + doc.getTextWidth(`${nomClient}  `), y)
       y += 12
 
-      // ── Stats grid (4 colonnes) ──
-      const cardW = (pageW - margin * 2 - 18) / 4
-      drawStatCard(margin, y, cardW, 32, 'Habitudes', `${d.tauxHabitudes}%`)
-      drawStatCard(margin + cardW + 6, y, cardW, 32, 'Sommeil', `${d.moyenneSommeil}`, 'h')
-      drawStatCard(margin + (cardW + 6) * 2, y, cardW, 32, 'Qualite', `${d.moyenneQualite}`, '/5')
-      drawStatCard(margin + (cardW + 6) * 3, y, cardW, 32, 'Humeur', `${d.moyenneHumeur}`, '/10')
-      y += 38
+      // ── KPI Grid (4 colonnes) ──
+      const gap = 6
+      const cw = (pageW - M * 2 - gap * 3) / 4
+      drawKPI(M, y, cw, 36, `${d.tauxHabitudes}`, 'Habitudes', '%')
+      drawKPI(M + cw + gap, y, cw, 36, `${d.moyenneSommeil}`, 'Sommeil', 'h')
+      drawKPI(M + (cw + gap) * 2, y, cw, 36, `${d.moyenneQualite}`, 'Qualite', '/5')
+      drawKPI(M + (cw + gap) * 3, y, cw, 36, `${d.moyenneHumeur}`, 'Humeur', '/10')
+      y += 42
 
-      // Variations si mensuel
+      // Variations (mensuel)
       if (d.comparaison) {
-        drawVariation(margin + cardW / 2 - 8, y, d.comparaison.habitudes, '%')
-        if (d.comparaison.sommeil) drawVariation(margin + cardW + 6 + cardW / 2 - 8, y, d.comparaison.sommeil, 'h')
-        if (d.comparaison.humeur) drawVariation(margin + (cardW + 6) * 3 + cardW / 2 - 8, y, d.comparaison.humeur)
+        drawDelta(M + cw / 2 - 6, y, d.comparaison.habitudes, '%')
+        if (d.comparaison.sommeil) drawDelta(M + cw + gap + cw / 2 - 6, y, d.comparaison.sommeil, 'h')
+        if (d.comparaison.humeur) drawDelta(M + (cw + gap) * 3 + cw / 2 - 6, y, d.comparaison.humeur)
         y += 8
       }
 
-      // ── Section Habitudes ──
-      y = drawSectionTitle('Habitudes', y)
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(80, 80, 80)
-      doc.text(`Taux de completion : ${d.tauxHabitudes}%`, margin + 8, y)
+      // ── HABITUDES ──
+      y = drawSection('Habitudes', y)
+      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ANTHRACITE)
+      doc.text(`Taux de completion`, M, y)
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(...ACCENT)
+      doc.text(`${d.tauxHabitudes}%`, M + doc.getTextWidth('Taux de completion  '), y)
       y += 5
-      drawProgressBar(margin + 8, y, pageW - margin * 2 - 8, d.tauxHabitudes, 5)
-      y += 10
+      drawBar(M, y, pageW - M * 2, d.tauxHabitudes, 3)
+      y += 9
 
       d.habitudes.forEach(h => {
-        doc.setFontSize(9)
-        doc.setFont('helvetica', 'normal')
-        doc.setTextColor(60, 60, 60)
-        doc.text(`\u2022  ${h.nom}`, margin + 12, y)
+        ensureSpace(8)
+        doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ANTHRACITE)
+        doc.text(`\u2022  ${h.nom}`, M + 4, y)
         y += 5
       })
       y += 6
 
-      // ── Section Objectifs ──
-      y = drawSectionTitle('Objectifs', y)
+      // ── OBJECTIFS ──
+      y = drawSection('Objectifs', y)
       if (d.objectifs.length === 0) {
-        doc.setFontSize(9)
-        doc.setFont('helvetica', 'normal')
-        doc.setTextColor(150, 150, 150)
-        doc.text('Aucun objectif actif', margin + 8, y)
+        doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY_MED)
+        doc.text('Aucun objectif actif', M, y)
         y += 8
       } else {
         d.objectifs.forEach(o => {
-          doc.setFontSize(10)
-          doc.setFont('helvetica', 'normal')
-          doc.setTextColor(50, 50, 50)
-          doc.text(o.titre, margin + 8, y)
-          doc.setFont('helvetica', 'bold')
-          doc.setTextColor(cr, cg, cb)
-          doc.text(`${o.score}%`, pageW - margin - 15, y, { align: 'right' })
-          y += 4
-          drawProgressBar(margin + 8, y, pageW - margin * 2 - 30, o.score, 3.5)
+          ensureSpace(14)
+          // Titre + score aligné à droite
+          doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ANTHRACITE)
+          doc.text(o.titre, M, y)
+          doc.setFont('helvetica', 'bold'); doc.setTextColor(...ACCENT)
+          doc.text(`${o.score || 0}%`, pageW - M, y, { align: 'right' })
+          y += 4.5
+          drawBar(M, y, pageW - M * 2, o.score || 0, 2.5)
           y += 8
         })
       }
       y += 4
 
-      // ── Section Sommeil ──
-      y = drawSectionTitle('Sommeil', y)
-      const sommeilW = (pageW - margin * 2 - 14) / 2
-      drawStatCard(margin + 8, y, sommeilW, 26, 'Moyenne / nuit', d.moyenneSommeil, 'h')
-      drawStatCard(margin + 8 + sommeilW + 6, y, sommeilW, 26, 'Qualite moyenne', d.moyenneQualite, '/5')
-      y += 32
+      // ── SOMMEIL ──
+      y = drawSection('Sommeil', y)
+      const halfW = (pageW - M * 2 - 8) / 2
+      drawKPI(M, y, halfW, 28, `${d.moyenneSommeil}`, 'Moyenne / nuit', 'h')
+      drawKPI(M + halfW + 8, y, halfW, 28, `${d.moyenneQualite}`, 'Qualite moyenne', '/5')
+      y += 36
 
-      // ── Section Humeur ──
-      y = drawSectionTitle('Humeur', y)
-      drawStatCard(margin + 8, y, sommeilW, 26, 'Score moyen', d.moyenneHumeur, '/10')
-      y += 32
+      // ── HUMEUR ──
+      y = drawSection('Humeur', y)
+      drawKPI(M, y, halfW, 28, `${d.moyenneHumeur}`, 'Score moyen', '/10')
+      y += 36
 
-      // ── Commentaire du coach ──
+      // ── COMMENTAIRE ──
       if (commentaire.trim()) {
-        // Vérifier si on a assez de place, sinon nouvelle page
-        if (y > pageH - 60) {
-          doc.addPage()
-          y = 20
-        }
-        y = drawSectionTitle('Commentaire du coach', y)
-        doc.setFillColor(cr, cg, cb)
-        doc.setGState(new doc.GState({ opacity: 0.08 }))
-        doc.roundedRect(margin + 8, y - 3, pageW - margin * 2 - 8, 4 + commentaire.length * 0.15, 3, 3, 'F')
+        ensureSpace(40)
+        y = drawSection('Mot du coach', y)
+
+        // Bande latérale orange + fond léger
+        const lines = doc.splitTextToSize(commentaire, pageW - M * 2 - 14)
+        const blockH = lines.length * 4.5 + 6
+
+        doc.setFillColor(255, 107, 43); doc.setGState(new doc.GState({ opacity: 0.06 }))
+        doc.roundedRect(M, y - 2, pageW - M * 2, blockH, 2, 2, 'F')
         doc.setGState(new doc.GState({ opacity: 1 }))
 
-        doc.setDrawColor(cr, cg, cb)
-        doc.setLineWidth(0.6)
-        doc.line(margin + 8, y - 3, margin + 8, y + 3 + commentaire.length * 0.12)
+        // Barre latérale orange
+        doc.setFillColor(...ACCENT)
+        doc.roundedRect(M, y - 2, 1.8, blockH, 0.9, 0.9, 'F')
 
-        doc.setFontSize(10)
-        doc.setFont('helvetica', 'normal')
-        doc.setTextColor(50, 50, 50)
-        const lines = doc.splitTextToSize(commentaire, pageW - margin * 2 - 20)
-        doc.text(lines, margin + 14, y + 2)
-        y += lines.length * 5 + 8
+        doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(...ANTHRACITE)
+        doc.text(lines, M + 8, y + 3)
+        y += blockH + 6
       }
     }
 
     // ══════════════════════════════════════
-    // FOOTER — Professional styled
+    // FOOTER — Filet + mentions discrètes
     // ══════════════════════════════════════
-    doc.setDrawColor(220, 220, 220)
-    doc.setLineWidth(0.3)
-    doc.line(margin, pageH - 20, pageW - margin, pageH - 20)
+    doc.setDrawColor(...GREY_LIGHT); doc.setLineWidth(0.25)
+    doc.line(M, pageH - 18, pageW - M, pageH - 18)
 
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(150, 150, 150)
-    doc.text(`${nomApp}`, margin, pageH - 14)
-    doc.text('Rapport genere automatiquement', margin, pageH - 10)
-    doc.text(dateStr, pageW - margin, pageH - 14, { align: 'right' })
-    doc.setTextColor(cr, cg, cb)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Confidentiel', pageW - margin, pageH - 10, { align: 'right' })
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...GREY_MED)
+    doc.text(nomApp, M, pageH - 12)
+    doc.text(`Genere le ${dateStr}`, M, pageH - 8)
+    doc.setFont('helvetica', 'bold'); doc.setTextColor(...ACCENT)
+    doc.text('CONFIDENTIEL', pageW - M, pageH - 10, { align: 'right' })
 
-    // Télécharger
+    // ── Télécharger ──
     const nomFichier = preview.type === 'financier'
       ? `rapport-financier-${dateStr}.pdf`
       : `rapport-${preview.type}-${preview.client?.profiles?.nom || 'client'}-${dateStr}.pdf`
-
     doc.save(nomFichier.replace(/\s+/g, '-').toLowerCase())
   }
 
@@ -618,36 +601,40 @@ export default function CoachRapportsPage() {
               <p className="text-white/15 text-xs mt-1">La prévisualisation apparaîtra ici</p>
             </div>
           ) : (
-            <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl overflow-hidden">
-              {/* Header préview */}
-              <div
-                className="p-5 text-white"
-                style={{ backgroundColor: coachInfo?.couleur_primaire || '#FF6B2B' }}
-              >
-                <p className="text-lg font-bold">{coachInfo?.nom_app || 'Zevo'}</p>
-                <p className="text-white/80 text-xs mt-0.5">
-                  {TYPES_RAPPORT.find(t => t.id === preview.type)?.label} — {new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            <div className="bg-white rounded-xl overflow-hidden border border-[#E4E4E7] shadow-sm">
+              {/* ── Header éditorial (fond blanc) ── */}
+              <div className="px-6 pt-6 pb-4 border-b border-[#E4E4E7]">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[#FF6B2B] text-xs font-bold tracking-widest uppercase">
+                    {coachInfo?.nom_app || 'Zevo'}
+                  </span>
+                  <span className="text-[#71717A] text-[10px]">
+                    {new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </span>
+                </div>
+                <h2 className="text-[#18181B] text-lg font-bold tracking-tight">
+                  {TYPES_RAPPORT.find(t => t.id === preview.type)?.label?.toUpperCase()}
+                </h2>
+                <p className="text-[#71717A] text-xs mt-0.5">
+                  {preview.type === 'financier' ? 'Synthèse financière' : 'Synthèse de progression'}
                 </p>
               </div>
 
-              <div className="p-5 space-y-6">
+              <div className="p-6 space-y-6 bg-white">
                 {preview.type === 'financier' ? (
                   /* ── Preview financier ── */
                   <>
-                    <h3 className="text-[#F5F5F3] font-semibold text-sm flex items-center gap-2">
-                      <TrendingUp size={16} className="text-[#FF6B2B]" />
-                      Données financières
-                    </h3>
+                    <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase">Indicateurs financiers</p>
                     <div className="grid grid-cols-2 gap-3">
                       {[
-                        { label: 'Clients actifs', val: preview.data.nbClients },
-                        { label: 'CA du mois', val: `${preview.data.caMois.toFixed(2)} €` },
-                        { label: 'Paiements ce mois', val: preview.data.nbPaiements },
-                        { label: 'Total paiements', val: preview.data.totalPaiements },
+                        { label: 'CLIENTS ACTIFS', val: preview.data.nbClients },
+                        { label: 'CA DU MOIS', val: `${preview.data.caMois.toFixed(0)} €` },
+                        { label: 'PAIEMENTS CE MOIS', val: preview.data.nbPaiements },
+                        { label: 'TOTAL PAIEMENTS', val: preview.data.totalPaiements },
                       ].map(({ label, val }) => (
-                        <div key={label} className="bg-[#2A2A2A] rounded-lg p-3">
-                          <p className="text-white/40 text-xs">{label}</p>
-                          <p className="text-[#F5F5F3] text-lg font-bold mt-1">{val}</p>
+                        <div key={label} className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-4">
+                          <p className="text-[#71717A] text-[9px] tracking-wider font-medium">{label}</p>
+                          <p className="text-[#FF6B2B] text-2xl font-bold mt-1 tabular-nums">{val}</p>
                         </div>
                       ))}
                     </div>
@@ -655,66 +642,64 @@ export default function CoachRapportsPage() {
                 ) : (
                   /* ── Preview client ── */
                   <>
-                    <div className="flex items-center gap-2 text-white/40 text-xs">
-                      <User size={14} />
-                      {preview.client?.profiles?.nom || preview.client?.profiles?.email}
-                      <span className="text-white/20">•</span>
+                    <div className="flex items-center gap-2 text-[#71717A] text-xs">
+                      <User size={13} />
+                      <span className="text-[#18181B] font-medium">{preview.client?.profiles?.nom || preview.client?.profiles?.email}</span>
+                      <span className="text-[#D4D4D8]">—</span>
                       {preview.jours} derniers jours
+                    </div>
+
+                    {/* KPIs grid */}
+                    <div className="grid grid-cols-4 gap-2.5">
+                      {[
+                        { label: 'HABITUDES', val: `${preview.data.tauxHabitudes}%`, delta: preview.data.comparaison?.habitudes, deltaSuffix: '%' },
+                        { label: 'SOMMEIL', val: `${preview.data.moyenneSommeil}h`, delta: preview.data.comparaison?.sommeil, deltaSuffix: 'h' },
+                        { label: 'QUALITÉ', val: `${preview.data.moyenneQualite}/5` },
+                        { label: 'HUMEUR', val: `${preview.data.moyenneHumeur}/10`, delta: preview.data.comparaison?.humeur },
+                      ].map(k => (
+                        <div key={k.label} className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3 text-center">
+                          <p className="text-[#FF6B2B] text-xl font-bold tabular-nums">{k.val}</p>
+                          <p className="text-[#71717A] text-[8px] tracking-wider font-medium mt-1">{k.label}</p>
+                          {k.delta !== undefined && k.delta !== null && (
+                            <p className={`text-[9px] font-bold mt-0.5 ${parseFloat(k.delta) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                              {parseFloat(k.delta) >= 0 ? '+' : ''}{k.delta}{k.deltaSuffix || ''}
+                            </p>
+                          )}
+                        </div>
+                      ))}
                     </div>
 
                     {/* Habitudes */}
                     <div>
-                      <h3 className="text-[#F5F5F3] font-semibold text-sm flex items-center gap-2 mb-3">
-                        <CheckSquare size={16} className="text-[#FF6B2B]" />
-                        Habitudes
-                        <Variation val={preview.data.comparaison?.habitudes} suffix="%" />
-                      </h3>
-                      <div className="bg-[#2A2A2A] rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-white/40 text-xs">Taux de complétion</span>
-                          <span className="text-[#F5F5F3] font-bold">{preview.data.tauxHabitudes}%</span>
-                        </div>
-                        <div className="h-2 bg-[#0D0D0D] rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${preview.data.tauxHabitudes}%`,
-                              backgroundColor: coachInfo?.couleur_primaire || '#FF6B2B'
-                            }}
-                          />
-                        </div>
-                        <div className="mt-2 space-y-1">
-                          {preview.data.habitudes.map(h => (
-                            <p key={h.id} className="text-white/30 text-xs">• {h.nom}</p>
-                          ))}
-                        </div>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase">Habitudes</p>
+                        <span className="text-[#FF6B2B] text-sm font-bold tabular-nums">{preview.data.tauxHabitudes}%</span>
+                      </div>
+                      <div className="h-[6px] bg-[#F4F4F5] rounded-full overflow-hidden mb-3">
+                        <div className="h-full rounded-full bg-[#FF6B2B] transition-all" style={{ width: `${preview.data.tauxHabitudes}%` }} />
+                      </div>
+                      <div className="space-y-1">
+                        {preview.data.habitudes.map(h => (
+                          <p key={h.id} className="text-[#71717A] text-[11px]">• {h.nom}</p>
+                        ))}
                       </div>
                     </div>
 
                     {/* Objectifs */}
                     <div>
-                      <h3 className="text-[#F5F5F3] font-semibold text-sm flex items-center gap-2 mb-3">
-                        <Target size={16} className="text-[#FF6B2B]" />
-                        Objectifs
-                      </h3>
+                      <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase mb-3">Objectifs</p>
                       {preview.data.objectifs.length === 0 ? (
-                        <p className="text-white/20 text-xs">Aucun objectif actif</p>
+                        <p className="text-[#A1A1AA] text-xs italic">Aucun objectif actif</p>
                       ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {preview.data.objectifs.map(o => (
-                            <div key={o.id} className="bg-[#2A2A2A] rounded-lg p-3">
+                            <div key={o.id}>
                               <div className="flex items-center justify-between mb-1.5">
-                                <span className="text-[#F5F5F3] text-sm">{o.titre}</span>
-                                <span className="text-white/50 text-xs font-medium">{o.score}%</span>
+                                <span className="text-[#18181B] text-xs font-medium">{o.titre}</span>
+                                <span className="text-[#FF6B2B] text-xs font-bold tabular-nums">{o.score || 0}%</span>
                               </div>
-                              <div className="h-1.5 bg-[#0D0D0D] rounded-full overflow-hidden">
-                                <div
-                                  className="h-full rounded-full"
-                                  style={{
-                                    width: `${o.score}%`,
-                                    backgroundColor: coachInfo?.couleur_primaire || '#FF6B2B'
-                                  }}
-                                />
+                              <div className="h-[5px] bg-[#F4F4F5] rounded-full overflow-hidden">
+                                <div className="h-full rounded-full bg-[#FF6B2B]" style={{ width: `${o.score || 0}%` }} />
                               </div>
                             </div>
                           ))}
@@ -724,41 +709,39 @@ export default function CoachRapportsPage() {
 
                     {/* Sommeil */}
                     <div>
-                      <h3 className="text-[#F5F5F3] font-semibold text-sm flex items-center gap-2 mb-3">
-                        <Moon size={16} className="text-[#FF6B2B]" />
-                        Sommeil
+                      <div className="flex items-center gap-2 mb-3">
+                        <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase">Sommeil</p>
                         <Variation val={preview.data.comparaison?.sommeil} suffix="h" />
-                      </h3>
+                      </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-[#2A2A2A] rounded-lg p-3">
-                          <p className="text-white/40 text-xs">Moyenne</p>
-                          <p className="text-[#F5F5F3] text-lg font-bold mt-1">{preview.data.moyenneSommeil}h</p>
+                        <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3">
+                          <p className="text-[#71717A] text-[9px] tracking-wider font-medium">MOYENNE</p>
+                          <p className="text-[#FF6B2B] text-xl font-bold mt-1">{preview.data.moyenneSommeil}h</p>
                         </div>
-                        <div className="bg-[#2A2A2A] rounded-lg p-3">
-                          <p className="text-white/40 text-xs">Qualité</p>
-                          <p className="text-[#F5F5F3] text-lg font-bold mt-1">{preview.data.moyenneQualite}/5</p>
+                        <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3">
+                          <p className="text-[#71717A] text-[9px] tracking-wider font-medium">QUALITÉ</p>
+                          <p className="text-[#FF6B2B] text-xl font-bold mt-1">{preview.data.moyenneQualite}/5</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Humeur */}
                     <div>
-                      <h3 className="text-[#F5F5F3] font-semibold text-sm flex items-center gap-2 mb-3">
-                        <Smile size={16} className="text-[#FF6B2B]" />
-                        Humeur
+                      <div className="flex items-center gap-2 mb-3">
+                        <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase">Humeur</p>
                         <Variation val={preview.data.comparaison?.humeur} />
-                      </h3>
-                      <div className="bg-[#2A2A2A] rounded-lg p-3">
-                        <p className="text-white/40 text-xs">Score moyen</p>
-                        <p className="text-[#F5F5F3] text-lg font-bold mt-1">{preview.data.moyenneHumeur}/10</p>
+                      </div>
+                      <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3">
+                        <p className="text-[#71717A] text-[9px] tracking-wider font-medium">SCORE MOYEN</p>
+                        <p className="text-[#FF6B2B] text-xl font-bold mt-1">{preview.data.moyenneHumeur}/10</p>
                       </div>
                     </div>
 
                     {/* Commentaire */}
                     {commentaire.trim() && (
-                      <div className="bg-[#2A2A2A] border-l-2 rounded-lg p-4" style={{ borderColor: coachInfo?.couleur_primaire || '#FF6B2B' }}>
-                        <p className="text-white/40 text-xs mb-1 font-semibold">Commentaire du coach</p>
-                        <p className="text-[#F5F5F3] text-sm whitespace-pre-wrap">{commentaire}</p>
+                      <div className="border-l-[3px] border-[#FF6B2B] bg-[#FFF7ED] rounded-r-lg p-4">
+                        <p className="text-[#71717A] text-[9px] font-semibold tracking-wider uppercase mb-1">Mot du coach</p>
+                        <p className="text-[#18181B] text-sm leading-relaxed whitespace-pre-wrap">{commentaire}</p>
                       </div>
                     )}
                   </>
@@ -766,7 +749,7 @@ export default function CoachRapportsPage() {
               </div>
 
               {/* Actions */}
-              <div className="p-5 border-t border-white/[0.06] flex gap-3">
+              <div className="px-6 py-4 border-t border-[#E4E4E7] bg-[#FAFAFA] flex gap-3">
                 <button
                   onClick={telechargerPDF}
                   className="flex items-center gap-2 bg-[#FF6B2B] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-colors"
@@ -776,7 +759,7 @@ export default function CoachRapportsPage() {
                 </button>
                 <button
                   onClick={genererPreview}
-                  className="px-4 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-sm text-[#71717A] hover:text-[#18181B] hover:bg-[#E4E4E7] transition-colors"
                 >
                   Rafraîchir
                 </button>
