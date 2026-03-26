@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import { Modal } from '../../components/ui/Modal'
 import { calculerScoreBienEtre, couleurScore } from '../../utils/wellbeing'
+import ProgramBuilder from './ProgramBuilder'
 import {
   Search, MessageCircle, Settings, UserPlus, Mail,
   Target, Apple, Scale, Activity, Dumbbell,
@@ -63,7 +64,7 @@ function StatCard({ icon: Icon, label, value, sub, accent = false }) {
 // CARTE PROGRAMME — Premium card pour overview
 // ══════════════════════════════════════
 
-function ClientProgrammesSection({ clientId, coachId }) {
+function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNutrition }) {
   const [sportProgrammes, setSportProgrammes] = useState([])
   const [nutritionPlans, setNutritionPlans] = useState([])
   const [loading, setLoading] = useState(true)
@@ -145,10 +146,11 @@ function ClientProgrammesSection({ clientId, coachId }) {
                       <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Phase {a.phase_actuelle}</span>
                     </div>
                   </div>
-                  <a href="/coach/sport"
+                  <button
+                    onClick={() => onOpenProgramme?.(a.programmes)}
                     className="px-3 py-2 rounded-xl bg-[#2A2A2A] text-white/50 text-[11px] font-medium hover:bg-[#3f3f46] hover:text-white transition-all flex items-center gap-1.5 shrink-0">
                     Ouvrir <ChevronRight size={12} />
-                  </a>
+                  </button>
                 </div>
               ))}
             </div>
@@ -4109,6 +4111,7 @@ export default function CoachClientHub() {
   const [recherche, setRecherche] = useState('')
   const [activeTab, setActiveTab] = useState('overview')
   const [editingSeanceId, setEditingSeanceId] = useState(null)
+  const [openProgramme, setOpenProgramme] = useState(null) // programme object to open in Sport tab
 
   // Stats du client sélectionné
   const [habitudes, setHabitudes] = useState([])
@@ -4359,7 +4362,7 @@ export default function CoachClientHub() {
               return (
                 <button
                   key={c.id}
-                  onClick={() => { setSelectedId(c.id); setActiveTab('overview'); setEditingSeanceId(null) }}
+                  onClick={() => { setSelectedId(c.id); setActiveTab('overview'); setEditingSeanceId(null); setOpenProgramme(null) }}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all ${
                     isSelected
                       ? 'bg-[#18181b] border-l-2 border-[#FF6B2B]'
@@ -4465,7 +4468,7 @@ export default function CoachClientHub() {
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => { setActiveTab(tab.id); if (tab.id !== 'sport') setOpenProgramme(null) }}
                     className={`relative px-4 py-2.5 text-xs font-medium whitespace-nowrap transition-all ${
                       isActive
                         ? 'text-[#F5F5F3]'
@@ -4792,7 +4795,14 @@ export default function CoachClientHub() {
                 </div>
 
                 {/* ── Programmes assignés ── */}
-                <ClientProgrammesSection clientId={selectedId} coachId={user?.id} />
+                <ClientProgrammesSection
+                  clientId={selectedId}
+                  coachId={user?.id}
+                  onOpenProgramme={(prog) => {
+                    setOpenProgramme(prog)
+                    setActiveTab('sport')
+                  }}
+                />
 
                 {/* ── Prochaines séances ── */}
                 <ClientSeancesSection clientId={selectedId} onOpenCalendar={() => setActiveTab('calendar')} />
@@ -4809,16 +4819,23 @@ export default function CoachClientHub() {
               />
             )}
 
-            {/* ── Onglet Sport — Éditeur de séances ── */}
+            {/* ── Onglet Sport — Éditeur de séances ou ProgramBuilder ── */}
             {activeTab === 'sport' && (
-              <SportTab
-                clientName={fullName}
-                coachId={user?.id}
-                clientId={selectedId}
-                editingSeanceId={editingSeanceId}
-                onSeanceSaved={() => {}}
-                onClearEditing={() => setEditingSeanceId(null)}
-              />
+              openProgramme ? (
+                <ProgramBuilder
+                  programme={openProgramme}
+                  onBack={() => { setOpenProgramme(null); setActiveTab('overview') }}
+                />
+              ) : (
+                <SportTab
+                  clientName={fullName}
+                  coachId={user?.id}
+                  clientId={selectedId}
+                  editingSeanceId={editingSeanceId}
+                  onSeanceSaved={() => {}}
+                  onClearEditing={() => setEditingSeanceId(null)}
+                />
+              )
             )}
 
             {activeTab === 'nutrition' && (
