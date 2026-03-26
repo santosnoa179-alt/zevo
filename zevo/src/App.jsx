@@ -39,6 +39,7 @@ const RessourcesPage = lazy(() => import('./pages/client/RessourcesPage'))
 const FormulairesPage = lazy(() => import('./pages/client/FormulairesPage'))
 const AbonnementPage = lazy(() => import('./pages/client/AbonnementPage'))
 const ProgrammePage = lazy(() => import('./pages/client/ProgrammePage'))
+const SeancesPage = lazy(() => import('./pages/client/SeancesPage'))
 
 // ── Pages coach (lazy) ──
 const CoachDashboardPage = lazy(() => import('./pages/coach/CoachDashboardPage'))
@@ -99,6 +100,7 @@ export default function App() {
               <Route path="formulaires" element={<FormulairesPage />} />
               <Route path="abonnement" element={<AbonnementPage />} />
               <Route path="programme" element={<ProgrammePage />} />
+              <Route path="seances" element={<SeancesPage />} />
             </Route>
 
             {/* ── Onboarding coach (hors layout) ── */}

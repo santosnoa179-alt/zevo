@@ -1108,7 +1108,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       setLoadingSeances(true)
       const { data } = await supabase
         .from('seances')
-        .select('id, titre, date_prevue, notes')
+        .select('id, titre, date_prevue, notes, is_completed')
         .eq('coach_id', coachId)
         .eq('client_id', clientId)
         .eq('is_template', false)
@@ -1463,12 +1463,19 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                   ) : (
                     jourSeances.map((s) => (
                       <button key={s.id} onClick={() => voirDetail(s)}
-                        className="w-full bg-[#FF6B2B]/8 border border-[#FF6B2B]/10 rounded-xl px-2.5 py-2 hover:bg-[#FF6B2B]/15 hover:border-[#FF6B2B]/25 transition-all group/card text-left">
+                        className={`w-full border rounded-xl px-2.5 py-2 hover:border-opacity-40 transition-all group/card text-left ${
+                          s.is_completed
+                            ? 'bg-emerald-500/8 border-emerald-500/15 hover:bg-emerald-500/15'
+                            : 'bg-[#FF6B2B]/8 border-[#FF6B2B]/10 hover:bg-[#FF6B2B]/15 hover:border-[#FF6B2B]/25'
+                        }`}>
                         <div className="flex items-center gap-1.5">
-                          <div className="w-1 h-4 rounded-full bg-[#FF6B2B] flex-shrink-0" />
-                          <span className="text-[#F5F5F3] text-[10px] font-semibold truncate flex-1 min-w-0">
+                          <div className={`w-1 h-4 rounded-full flex-shrink-0 ${s.is_completed ? 'bg-emerald-400' : 'bg-[#FF6B2B]'}`} />
+                          <span className={`text-[10px] font-semibold truncate flex-1 min-w-0 ${
+                            s.is_completed ? 'text-emerald-300/70 line-through' : 'text-[#F5F5F3]'
+                          }`}>
                             {s.titre}
                           </span>
+                          {s.is_completed && <CheckCircle2 size={10} className="text-emerald-400 shrink-0" />}
                           <span
                             onClick={(e) => { e.stopPropagation(); if (onEditSeance) onEditSeance(s.id) }}
                             className="p-0.5 rounded text-transparent group-hover/card:text-white/20 hover:!text-[#FF6B2B] transition-all flex-shrink-0 cursor-pointer"
@@ -4237,16 +4244,14 @@ export default function CoachClientHub() {
 
       const { data: weekData } = await supabase
         .from('seances')
-        .select('id, date_prevue')
+        .select('id, date_prevue, is_completed')
         .eq('client_id', selectedId)
         .eq('is_template', false)
         .gte('date_prevue', mondayStr)
         .lte('date_prevue', sundayStr)
 
       const seancesWeek = weekData || []
-      const todayDate = new Date()
-      todayDate.setHours(0, 0, 0, 0)
-      const doneCount = seancesWeek.filter(s => new Date(s.date_prevue) < todayDate).length
+      const doneCount = seancesWeek.filter(s => s.is_completed).length
 
       // Sparkline : nombre de séances par jour (lun→dim)
       const sparkByDay = [0, 0, 0, 0, 0, 0, 0]
