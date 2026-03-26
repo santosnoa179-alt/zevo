@@ -2362,55 +2362,80 @@ function InfosTab({ coachId, clientId }) {
 
 
 // ══════════════════════════════════════
-// SUIVI TAB — Poids & évolution
+// SUIVI TAB — Dashboard Performance Global
 // ══════════════════════════════════════
 function SuiviTab({ coachId, clientId }) {
   const toast = useToast()
+
+  // ── Poids ──
   const [pesees, setPesees] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [newPoids, setNewPoids] = useState('')
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0])
   const [newNote, setNewNote] = useState('')
   const [saving, setSaving] = useState(false)
-  const [profile, setProfile] = useState(null)
+
+  // ── Assiduité Sport ──
+  const [seancesMonth, setSeancesMonth] = useState([]) // { date_prevue, is_completed }
+
+  // ── Habitudes ──
+  const [habitudes, setHabitudes] = useState([])
+  const [habLogs, setHabLogs] = useState([]) // { habitude_id, date }
+
+  // ── Objectifs ──
+  const [objectifs, setObjectifs] = useState([])
+
+  const [loading, setLoading] = useState(true)
+
+  const today = new Date().toISOString().split('T')[0]
 
   useEffect(() => {
     if (!clientId || !coachId) return
     const load = async () => {
       setLoading(true)
-      const [peseesRes, profileRes] = await Promise.all([
+
+      // Dates pour 4 semaines / 30 jours
+      const il30j = new Date()
+      il30j.setDate(il30j.getDate() - 29)
+      const dateMin30 = il30j.toISOString().split('T')[0]
+
+      const il28j = new Date()
+      il28j.setDate(il28j.getDate() - 27)
+      const dateMin28 = il28j.toISOString().split('T')[0]
+
+      const [peseesRes, profileRes, seancesRes, habsRes, logsRes, objsRes] = await Promise.all([
         supabase.from('suivi_poids').select('*').eq('client_id', clientId).eq('coach_id', coachId).order('date_pesee', { ascending: true }),
         supabase.from('profiles').select('poids_depart, poids_cible, poids_actuel').eq('id', clientId).single(),
+        supabase.from('seances').select('id, date_prevue, is_completed').eq('client_id', clientId).eq('is_template', false).gte('date_prevue', dateMin28).lte('date_prevue', today),
+        supabase.from('habitudes').select('id, nom, couleur, icone').eq('client_id', clientId).eq('actif', true),
+        supabase.from('habitudes_log').select('habitude_id, date').eq('client_id', clientId).gte('date', dateMin30),
+        supabase.from('objectifs').select('*').eq('client_id', clientId).eq('statut', 'en_cours').order('created_at', { ascending: false }),
       ])
+
       setPesees(peseesRes.data || [])
       setProfile(profileRes.data)
+      setSeancesMonth(seancesRes.data || [])
+      setHabitudes(habsRes.data || [])
+      setHabLogs(logsRes.data || [])
+      setObjectifs(objsRes.data || [])
       setLoading(false)
     }
     load()
-  }, [clientId, coachId])
+  }, [clientId, coachId, today])
 
+  // ── Ajouter pesée ──
   const ajouterPesee = async () => {
     if (!newPoids) return
     setSaving(true)
     const { error } = await supabase.from('suivi_poids').upsert({
-      client_id: clientId,
-      coach_id: coachId,
-      date_pesee: newDate,
-      poids: parseFloat(newPoids),
-      notes: newNote || null,
+      client_id: clientId, coach_id: coachId, date_pesee: newDate,
+      poids: parseFloat(newPoids), notes: newNote || null,
     }, { onConflict: 'client_id,date_pesee' })
-
-    if (error) {
-      toast.error('Erreur lors de l\'ajout')
-    } else {
-      // Mettre à jour poids_actuel sur le profil
+    if (error) { toast.error('Erreur'); } else {
       await supabase.from('profiles').update({ poids_actuel: parseFloat(newPoids) }).eq('id', clientId)
       toast.success('Pesée enregistrée !')
-      setShowModal(false)
-      setNewPoids('')
-      setNewNote('')
-      // Recharger
+      setShowModal(false); setNewPoids(''); setNewNote('')
       const { data } = await supabase.from('suivi_poids').select('*').eq('client_id', clientId).eq('coach_id', coachId).order('date_pesee', { ascending: true })
       setPesees(data || [])
     }
@@ -2419,86 +2444,97 @@ function SuiviTab({ coachId, clientId }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin text-[#FF6B2B]" size={28} />
+      <div className="space-y-4 animate-pulse">
+        <div className="grid grid-cols-4 gap-3">{[1,2,3,4].map(i => <div key={i} className="h-20 bg-[#18181b] rounded-2xl" />)}</div>
+        <div className="h-48 bg-[#18181b] rounded-2xl" />
+        <div className="h-48 bg-[#18181b] rounded-2xl" />
       </div>
     )
   }
 
+  // ── Calculs Poids ──
   const dernierPoids = pesees.length > 0 ? pesees[pesees.length - 1].poids : (profile?.poids_actuel || profile?.poids_depart || null)
   const premierPoids = pesees.length > 0 ? pesees[0].poids : (profile?.poids_depart || null)
   const evolution = dernierPoids && premierPoids ? (dernierPoids - premierPoids).toFixed(1) : null
-  const objectif = profile?.poids_cible
+  const poidsObjectif = profile?.poids_cible
 
-  // Simple SVG chart
-  const chartHeight = 200
-  const chartWidth = 600
-  const chartPadding = 40
+  // ── Calculs Assiduité ──
+  const totalSeances = seancesMonth.length
+  const completedSeances = seancesMonth.filter(s => s.is_completed).length
+  const assiduitePct = totalSeances > 0 ? Math.round((completedSeances / totalSeances) * 100) : 0
 
-  const renderChart = () => {
+  // Heatmap: 28 derniers jours (4 semaines)
+  const heatmapDays = Array.from({ length: 28 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (27 - i))
+    const ds = d.toISOString().split('T')[0]
+    const daySeances = seancesMonth.filter(s => s.date_prevue === ds)
+    const hasSeance = daySeances.length > 0
+    const allDone = hasSeance && daySeances.every(s => s.is_completed)
+    const someDone = hasSeance && daySeances.some(s => s.is_completed) && !allDone
+    return { date: ds, day: d, hasSeance, allDone, someDone, isToday: ds === today }
+  })
+
+  // ── Calculs Habitudes ──
+  const getHabStreak = (habId) => {
+    const dates = habLogs.filter(l => l.habitude_id === habId).map(l => l.date)
+    return calculerStreak(dates)
+  }
+
+  const getHabDays = (habId) => {
+    return habLogs.filter(l => l.habitude_id === habId).map(l => l.date)
+  }
+
+  // ── SVG Weight Chart ──
+  const renderWeightChart = () => {
     if (pesees.length < 2) return null
+    const cW = 600, cH = 180, cP = 35
     const poids = pesees.map(p => p.poids)
-    const minP = Math.min(...poids) - 1
-    const maxP = Math.max(...poids) + 1
-    const rangeP = maxP - minP || 1
+    const allVals = [...poids]
+    if (poidsObjectif) allVals.push(poidsObjectif)
+    const minP = Math.min(...allVals) - 1
+    const maxP = Math.max(...allVals) + 1
+    const rng = maxP - minP || 1
 
-    const points = pesees.map((p, i) => {
-      const x = chartPadding + (i / (pesees.length - 1)) * (chartWidth - chartPadding * 2)
-      const y = chartPadding + (1 - (p.poids - minP) / rangeP) * (chartHeight - chartPadding * 2)
-      return { x, y, poids: p.poids, date: p.date_pesee }
-    })
-
-    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
-    // Gradient area
-    const areaD = `${pathD} L ${points[points.length - 1].x} ${chartHeight - chartPadding} L ${points[0].x} ${chartHeight - chartPadding} Z`
+    const pts = pesees.map((p, i) => ({
+      x: cP + (i / (pesees.length - 1)) * (cW - cP * 2),
+      y: cP + (1 - (p.poids - minP) / rng) * (cH - cP * 2),
+      poids: p.poids, date: p.date_pesee,
+    }))
+    const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+    const areaD = `${pathD} L ${pts[pts.length - 1].x} ${cH - cP} L ${pts[0].x} ${cH - cP} Z`
+    const objY = poidsObjectif ? cP + (1 - (poidsObjectif - minP) / rng) * (cH - cP * 2) : null
 
     return (
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+      <svg viewBox={`0 0 ${cW} ${cH}`} className="w-full h-auto">
         <defs>
-          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FF6B2B" stopOpacity="0.3" />
+          <linearGradient id="suiviGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FF6B2B" stopOpacity="0.25" />
             <stop offset="100%" stopColor="#FF6B2B" stopOpacity="0" />
           </linearGradient>
         </defs>
-        {/* Grid lines */}
         {[0, 0.25, 0.5, 0.75, 1].map(pct => {
-          const y = chartPadding + pct * (chartHeight - chartPadding * 2)
-          const val = (maxP - pct * rangeP).toFixed(1)
-          return (
-            <g key={pct}>
-              <line x1={chartPadding} y1={y} x2={chartWidth - chartPadding} y2={y} stroke="rgba(255,255,255,0.05)" />
-              <text x={chartPadding - 8} y={y + 4} textAnchor="end" fill="rgba(255,255,255,0.2)" fontSize="9">{val}</text>
-            </g>
-          )
+          const y = cP + pct * (cH - cP * 2)
+          return <line key={pct} x1={cP} y1={y} x2={cW - cP} y2={y} stroke="rgba(255,255,255,0.04)" />
         })}
-        {/* Objectif line */}
-        {objectif && objectif >= minP && objectif <= maxP && (
+        {objY !== null && objY >= cP && objY <= cH - cP && (
           <>
-            <line
-              x1={chartPadding} y1={chartPadding + (1 - (objectif - minP) / rangeP) * (chartHeight - chartPadding * 2)}
-              x2={chartWidth - chartPadding} y2={chartPadding + (1 - (objectif - minP) / rangeP) * (chartHeight - chartPadding * 2)}
-              stroke="#22c55e" strokeDasharray="4 4" strokeWidth="1" opacity="0.5"
-            />
-            <text x={chartWidth - chartPadding + 5} y={chartPadding + (1 - (objectif - minP) / rangeP) * (chartHeight - chartPadding * 2) + 3}
-              fill="#22c55e" fontSize="9" opacity="0.6">Objectif</text>
+            <line x1={cP} y1={objY} x2={cW - cP} y2={objY} stroke="#22c55e" strokeDasharray="4 4" strokeWidth="1" opacity="0.5" />
+            <text x={cW - cP + 4} y={objY + 3} fill="#22c55e" fontSize="8" opacity="0.6">Cible</text>
           </>
         )}
-        {/* Area */}
-        <path d={areaD} fill="url(#chartGrad)" />
-        {/* Line */}
-        <path d={pathD} fill="none" stroke="#FF6B2B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        {/* Points */}
-        {points.map((p, i) => (
+        <path d={areaD} fill="url(#suiviGrad)" />
+        <path d={pathD} fill="none" stroke="#FF6B2B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {pts.map((p, i) => (
           <g key={i}>
-            <circle cx={p.x} cy={p.y} r="4" fill="#09090b" stroke="#FF6B2B" strokeWidth="2" />
-            {(i === 0 || i === points.length - 1) && (
-              <text x={p.x} y={p.y - 10} textAnchor="middle" fill="#F5F5F3" fontSize="9" fontWeight="600">{p.poids}kg</text>
+            <circle cx={p.x} cy={p.y} r="3.5" fill="#09090b" stroke="#FF6B2B" strokeWidth="1.5" />
+            {(i === 0 || i === pts.length - 1) && (
+              <text x={p.x} y={p.y - 8} textAnchor="middle" fill="#F5F5F3" fontSize="8" fontWeight="600">{p.poids}</text>
             )}
           </g>
         ))}
-        {/* Date labels */}
-        {points.filter((_, i) => i === 0 || i === points.length - 1 || i % Math.ceil(points.length / 5) === 0).map((p, i) => (
-          <text key={i} x={p.x} y={chartHeight - 10} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="8">
+        {pts.filter((_, i) => i === 0 || i === pts.length - 1).map((p, i) => (
+          <text key={i} x={p.x} y={cH - 8} textAnchor="middle" fill="rgba(255,255,255,0.15)" fontSize="7">
             {new Date(p.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
           </text>
         ))}
@@ -2507,58 +2543,248 @@ function SuiviTab({ coachId, clientId }) {
   }
 
   return (
-    <div className="space-y-5 max-w-4xl">
-      {/* Stats summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 text-center">
-          <p className="text-white/30 text-[10px] font-medium mb-1">Poids actuel</p>
-          <p className="text-[#F5F5F3] text-2xl font-bold">{dernierPoids ? `${dernierPoids}` : '—'}<span className="text-sm text-white/30 ml-1">kg</span></p>
+    <div className="space-y-5">
+
+      {/* ══════════════════════════════════ */}
+      {/* SECTION 1 — Assiduité Sportive    */}
+      {/* ══════════════════════════════════ */}
+      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#27272a] flex items-center justify-between">
+          <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+            <BarChart3 size={15} className="text-[#FF6B2B]" />
+            Assiduité Sportive
+          </h3>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] px-2.5 py-1 rounded-full font-bold" style={{
+              backgroundColor: assiduitePct >= 80 ? 'rgba(34,197,94,0.1)' : assiduitePct >= 50 ? 'rgba(245,158,11,0.1)' : 'rgba(255,107,43,0.1)',
+              color: assiduitePct >= 80 ? '#22c55e' : assiduitePct >= 50 ? '#f59e0b' : '#FF6B2B',
+            }}>
+              {assiduitePct}% ce mois
+            </span>
+            <span className="text-white/15 text-[10px]">{completedSeances}/{totalSeances} séances</span>
+          </div>
         </div>
-        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 text-center">
-          <p className="text-white/30 text-[10px] font-medium mb-1">Objectif</p>
-          <p className="text-[#F5F5F3] text-2xl font-bold">{objectif ? `${objectif}` : '—'}<span className="text-sm text-white/30 ml-1">kg</span></p>
-        </div>
-        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 text-center">
-          <p className="text-white/30 text-[10px] font-medium mb-1">Évolution totale</p>
-          <p className={`text-2xl font-bold ${evolution && parseFloat(evolution) < 0 ? 'text-green-400' : evolution && parseFloat(evolution) > 0 ? 'text-red-400' : 'text-[#F5F5F3]'}`}>
-            {evolution ? `${parseFloat(evolution) > 0 ? '+' : ''}${evolution}` : '—'}<span className="text-sm text-white/30 ml-1">kg</span>
-          </p>
-        </div>
-        <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 text-center">
-          <p className="text-white/30 text-[10px] font-medium mb-1">Pesées</p>
-          <p className="text-[#F5F5F3] text-2xl font-bold">{pesees.length}</p>
+        <div className="p-5">
+          {/* Heatmap 4 semaines */}
+          <div className="grid grid-cols-7 gap-1.5 mb-4">
+            {/* Jours header */}
+            {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((j, i) => (
+              <div key={i} className="text-center text-[8px] text-white/20 font-medium pb-1">{j}</div>
+            ))}
+            {/* Cells */}
+            {heatmapDays.map((day, i) => {
+              // Align to correct weekday column
+              const dayOfWeek = (day.day.getDay() + 6) % 7 // 0=lundi
+              // Only render if position matches
+              return (
+                <div
+                  key={i}
+                  className={`aspect-square rounded-md transition-all relative ${
+                    day.allDone
+                      ? 'bg-emerald-500 shadow-[0_0_6px_rgba(34,197,94,0.3)]'
+                      : day.someDone
+                        ? 'bg-amber-500/60'
+                        : day.hasSeance
+                          ? 'bg-red-500/30 border border-red-500/20'
+                          : 'bg-white/[0.03]'
+                  } ${day.isToday ? 'ring-1 ring-[#FF6B2B]/40' : ''}`}
+                  title={`${day.date} — ${day.allDone ? '✅ Complétée' : day.someDone ? '⚠️ Partielle' : day.hasSeance ? '❌ Manquée' : 'Repos'}`}
+                >
+                  {day.isToday && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-1 h-1 rounded-full bg-white/60" />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Légende */}
+          <div className="flex items-center justify-center gap-4 text-[9px] text-white/25">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
+              <span>Complétée</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-sm bg-amber-500/60" />
+              <span>Partielle</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-sm bg-red-500/30 border border-red-500/20" />
+              <span>Manquée</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-sm bg-white/[0.03]" />
+              <span>Repos</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Graphique */}
+      {/* ══════════════════════════════════ */}
+      {/* SECTION 2 — Discipline Habitudes   */}
+      {/* ══════════════════════════════════ */}
       <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-[#27272a] flex items-center justify-between">
           <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
-            <Activity size={15} className="text-[#FF6B2B]" />
-            Courbe de poids
+            <Flame size={15} className="text-[#FF6B2B]" />
+            Discipline des Habitudes
           </h3>
-          <button onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
-            <Plus size={13} /> Nouvelle pesée
-          </button>
+          <span className="text-white/15 text-[10px]">30 derniers jours</span>
         </div>
         <div className="p-5">
-          {pesees.length < 2 ? (
-            <div className="text-center py-12">
-              <Scale size={32} className="text-white/10 mx-auto mb-3" />
-              <p className="text-white/20 text-sm">Ajoutez au moins 2 pesées pour voir le graphique</p>
-              <button onClick={() => setShowModal(true)}
-                className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold hover:bg-[#FF6B2B]/20 transition-all">
-                <Plus size={13} /> Ajouter une pesée
-              </button>
-            </div>
+          {habitudes.length === 0 ? (
+            <p className="text-white/15 text-xs text-center py-6">Aucune habitude active</p>
           ) : (
-            renderChart()
+            <div className="space-y-4">
+              {habitudes.map(hab => {
+                const streak = getHabStreak(hab.id)
+                const days = getHabDays(hab.id)
+                const rate = Math.round((days.length / 30) * 100)
+                const IconComp = getHabitIcon(hab.icone)
+
+                return (
+                  <div key={hab.id}>
+                    {/* Header */}
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${hab.couleur || '#FF6B2B'}15` }}>
+                        <IconComp size={13} style={{ color: hab.couleur || '#FF6B2B' }} />
+                      </div>
+                      <span className="text-[#F5F5F3] text-xs font-semibold flex-1 truncate">{hab.nom}</span>
+                      {streak > 0 && (
+                        <div className="flex items-center gap-1 shrink-0" style={{ color: hab.couleur || '#FF6B2B' }}>
+                          <Flame size={11} />
+                          <span className="text-[10px] font-bold">{streak}j</span>
+                        </div>
+                      )}
+                      <span className="text-white/20 text-[10px] shrink-0">{rate}%</span>
+                    </div>
+
+                    {/* 30-day dot timeline */}
+                    <div className="flex gap-[3px]">
+                      {Array.from({ length: 30 }, (_, i) => {
+                        const d = new Date()
+                        d.setDate(d.getDate() - (29 - i))
+                        const ds = d.toISOString().split('T')[0]
+                        const done = days.includes(ds)
+                        const isToday = ds === today
+                        return (
+                          <div key={i}
+                            className={`h-3 flex-1 rounded-sm transition-all ${
+                              done
+                                ? ''
+                                : isToday
+                                  ? 'border border-dashed border-white/15'
+                                  : 'bg-white/[0.04]'
+                            }`}
+                            style={done ? { backgroundColor: hab.couleur || '#FF6B2B' } : {}}
+                            title={`${ds} — ${done ? '✅' : '—'}`}
+                          />
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           )}
         </div>
       </div>
 
-      {/* Historique */}
+      {/* ══════════════════════════════════ */}
+      {/* SECTION 3 — Courbes de Progression */}
+      {/* ══════════════════════════════════ */}
+      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#27272a] flex items-center justify-between">
+          <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+            <Activity size={15} className="text-[#FF6B2B]" />
+            Courbe de Poids
+          </h3>
+          <button onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#FF6B2B] text-white text-[10px] font-semibold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
+            <Plus size={11} /> Pesée
+          </button>
+        </div>
+
+        {/* Stats mini */}
+        <div className="grid grid-cols-4 gap-px bg-[#27272a]/30">
+          {[
+            { label: 'Actuel', value: dernierPoids ? `${dernierPoids}` : '—', unit: 'kg', color: '#F5F5F3' },
+            { label: 'Objectif', value: poidsObjectif ? `${poidsObjectif}` : '—', unit: 'kg', color: '#22c55e' },
+            { label: 'Évolution', value: evolution ? `${parseFloat(evolution) > 0 ? '+' : ''}${evolution}` : '—', unit: 'kg', color: evolution && parseFloat(evolution) < 0 ? '#22c55e' : evolution && parseFloat(evolution) > 0 ? '#ef4444' : '#F5F5F3' },
+            { label: 'Pesées', value: `${pesees.length}`, unit: '', color: '#F5F5F3' },
+          ].map((s, i) => (
+            <div key={i} className="bg-[#18181b] px-3 py-3 text-center">
+              <p className="text-white/25 text-[9px] font-medium uppercase tracking-wider">{s.label}</p>
+              <p className="text-lg font-bold mt-0.5" style={{ color: s.color }}>
+                {s.value}<span className="text-[10px] text-white/20 ml-0.5">{s.unit}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-5">
+          {pesees.length < 2 ? (
+            <div className="text-center py-10">
+              <Scale size={28} className="text-white/10 mx-auto mb-2" />
+              <p className="text-white/20 text-xs">2 pesées minimum pour le graphique</p>
+              <button onClick={() => setShowModal(true)}
+                className="mt-3 text-[#FF6B2B] text-xs font-medium hover:underline">+ Ajouter une pesée</button>
+            </div>
+          ) : (
+            renderWeightChart()
+          )}
+        </div>
+      </div>
+
+      {/* ── Objectifs en cours — barres de progression ── */}
+      {objectifs.length > 0 && (
+        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#27272a]">
+            <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+              <Target size={15} className="text-[#FF6B2B]" />
+              Progression des Objectifs
+            </h3>
+          </div>
+          <div className="p-5 space-y-4">
+            {objectifs.map(obj => {
+              const pct = calcProgress(obj.valeur_depart, obj.valeur_actuelle, obj.valeur_cible)
+              const color = progressColor(pct)
+              const isLoss = obj.valeur_cible < obj.valeur_depart
+              const jours = joursRestants(obj.date_limite)
+              return (
+                <div key={obj.id}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {isLoss ? <TrendingDown size={11} style={{ color }} className="shrink-0" /> : <TrendingUp size={11} style={{ color }} className="shrink-0" />}
+                      <p className="text-[#F5F5F3] text-xs font-semibold truncate">{obj.titre}</p>
+                    </div>
+                    <span className="text-xs font-bold shrink-0" style={{ color }}>{pct}%</span>
+                  </div>
+                  <div className="h-2.5 bg-white/[0.04] rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-700 relative"
+                      style={{ width: `${pct}%`, backgroundColor: color }}>
+                      {pct > 8 && <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15) 50%, transparent)' }} />}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-white/15 text-[9px]">{obj.valeur_actuelle ?? obj.valeur_depart} / {obj.valeur_cible} {obj.unite}</span>
+                    {jours !== null && (
+                      <span className={`text-[9px] ${jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : 'text-white/15'}`}>
+                        {jours < 0 ? `${Math.abs(jours)}j retard` : jours === 0 ? "Auj." : `${jours}j`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Historique pesées ── */}
       {pesees.length > 0 && (
         <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
           <div className="px-5 py-3.5 border-b border-[#27272a]">
@@ -2570,33 +2796,31 @@ function SuiviTab({ coachId, clientId }) {
                 <tr className="border-b border-[#27272a]">
                   <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Date</th>
                   <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Poids</th>
-                  <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Évolution</th>
+                  <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Évol.</th>
                   <th className="text-left px-5 py-2.5 text-white/30 text-xs font-medium">Notes</th>
                 </tr>
               </thead>
               <tbody>
-                {[...pesees].reverse().map((p, i, arr) => {
+                {[...pesees].reverse().slice(0, 10).map((p, i, arr) => {
                   const prev = arr[i + 1]
                   const diff = prev ? (p.poids - prev.poids).toFixed(1) : null
                   return (
                     <tr key={p.id} className="border-b border-[#27272a]/30 hover:bg-white/[0.02] transition-colors">
-                      <td className="px-5 py-3 text-[#F5F5F3] text-xs">
-                        {new Date(p.date_pesee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      <td className="px-5 py-2.5 text-[#F5F5F3] text-xs">
+                        {new Date(p.date_pesee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                       </td>
-                      <td className="px-5 py-3 text-[#F5F5F3] text-xs font-semibold">{p.poids} kg</td>
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-2.5 text-[#F5F5F3] text-xs font-semibold">{p.poids} kg</td>
+                      <td className="px-5 py-2.5">
                         {diff !== null ? (
-                          <span className={`inline-flex items-center gap-1 text-xs font-semibold ${
+                          <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${
                             parseFloat(diff) < 0 ? 'text-green-400' : parseFloat(diff) > 0 ? 'text-red-400' : 'text-white/30'
                           }`}>
-                            {parseFloat(diff) < 0 ? <TrendingDown size={12} /> : parseFloat(diff) > 0 ? <TrendingUp size={12} /> : null}
-                            {parseFloat(diff) > 0 ? '+' : ''}{diff} kg
+                            {parseFloat(diff) < 0 ? <TrendingDown size={10} /> : parseFloat(diff) > 0 ? <TrendingUp size={10} /> : null}
+                            {parseFloat(diff) > 0 ? '+' : ''}{diff}
                           </span>
-                        ) : (
-                          <span className="text-white/15 text-xs">—</span>
-                        )}
+                        ) : <span className="text-white/15 text-xs">—</span>}
                       </td>
-                      <td className="px-5 py-3 text-white/30 text-xs truncate max-w-[200px]">{p.notes || '—'}</td>
+                      <td className="px-5 py-2.5 text-white/25 text-xs truncate max-w-[150px]">{p.notes || '—'}</td>
                     </tr>
                   )
                 })}
@@ -2606,45 +2830,43 @@ function SuiviTab({ coachId, clientId }) {
         </div>
       )}
 
-      {/* Modal nouvelle pesée */}
+      {/* ── Modal pesée ── */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative w-full max-w-sm bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+          <div className="relative w-full max-w-sm bg-[#18181b] rounded-2xl border border-[#27272a] shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
             <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-            <div className="px-6 pt-5 pb-4 border-b border-white/[0.06] flex items-center justify-between">
-              <h2 className="text-[#F5F5F3] text-lg font-bold">Nouvelle pesée</h2>
-              <button onClick={() => setShowModal(false)} className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
-                <X size={18} />
-              </button>
+            <div className="px-6 pt-5 pb-4 border-b border-[#27272a] flex items-center justify-between">
+              <h2 className="text-[#F5F5F3] text-base font-bold">Nouvelle pesée</h2>
+              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors"><X size={16} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-xs text-white/40 mb-1.5 font-medium">Poids (kg)</label>
                 <input type="number" step="0.1" value={newPoids} onChange={e => setNewPoids(e.target.value)}
                   placeholder="75.5" autoFocus
-                  className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-lg font-bold text-center placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all" />
+                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-lg font-bold text-center placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
               </div>
               <div>
                 <label className="block text-xs text-white/40 mb-1.5 font-medium">Date</label>
                 <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
-                  className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all [color-scheme:dark]" />
               </div>
               <div>
-                <label className="block text-xs text-white/40 mb-1.5 font-medium">Notes (optionnel)</label>
+                <label className="block text-xs text-white/40 mb-1.5 font-medium">Notes (opt.)</label>
                 <input type="text" value={newNote} onChange={e => setNewNote(e.target.value)}
                   placeholder="Après le sport, à jeun..."
-                  className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
               </div>
             </div>
             <div className="px-6 pb-6 flex gap-3">
               <button onClick={() => setShowModal(false)}
-                className="flex-1 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-all border border-white/[0.04]">
+                className="flex-1 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-[#27272a] transition-all border border-[#27272a]">
                 Annuler
               </button>
               <button onClick={ajouterPesee} disabled={!newPoids || saving}
-                className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                className="flex-1 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55a1b] transition-all disabled:opacity-40 flex items-center justify-center gap-2">
                 {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                 Enregistrer
               </button>
