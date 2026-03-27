@@ -1067,18 +1067,29 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
 }
 
 // ══════════════════════════════════════
-// CALENDAR TAB — Vue hebdomadaire
+// CALENDAR TAB — Vue Mois / Semaine (miroir du Global Calendar)
 // ══════════════════════════════════════
 
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 const JOURS_COURTS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
+const EVENT_TYPES_CAL = [
+  { id: 'seance', label: 'Séance', icon: Dumbbell, color: '#FF6B2B' },
+  { id: 'bilan', label: 'Bilan', icon: CheckCircle2, color: '#22c55e' },
+  { id: 'appel', label: 'Appel', icon: Calendar, color: '#3b82f6' },
+  { id: 'reunion', label: 'Réunion', icon: Calendar, color: '#a855f7' },
+  { id: 'note', label: 'Note', icon: FileText, color: '#f59e0b' },
+  { id: 'perso', label: 'Personnel', icon: Star, color: '#ec4899' },
+  { id: 'autre', label: 'Autre', icon: Calendar, color: '#64748b' },
+]
+
 function getWeekDates(offset = 0) {
   const now = new Date()
-  now.setDate(now.getDate() + offset * 7)
   const day = now.getDay()
+  const diffToMonday = day === 0 ? -6 : 1 - day
   const monday = new Date(now)
-  monday.setDate(now.getDate() - ((day + 6) % 7))
+  monday.setDate(now.getDate() + diffToMonday + offset * 7)
+  monday.setHours(0, 0, 0, 0)
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday)
     d.setDate(monday.getDate() + i)
@@ -1086,34 +1097,95 @@ function getWeekDates(offset = 0) {
   })
 }
 
+function getMonthGridCal(offset) {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + offset
+  const first = new Date(year, month, 1)
+  const last = new Date(year, month + 1, 0)
+  let startDay = first.getDay() - 1
+  if (startDay < 0) startDay = 6
+  const cells = []
+  for (let i = startDay - 1; i >= 0; i--) {
+    const d = new Date(first)
+    d.setDate(d.getDate() - i - 1)
+    cells.push({ date: d, inMonth: false })
+  }
+  for (let i = 1; i <= last.getDate(); i++) {
+    cells.push({ date: new Date(year, month, i), inMonth: true })
+  }
+  const targetLen = cells.length > 35 ? 42 : 35
+  while (cells.length < targetLen) {
+    const next = new Date(last)
+    next.setDate(next.getDate() + (cells.length - (startDay + last.getDate()) + 1))
+    cells.push({ date: next, inMonth: false })
+  }
+  return { cells, monthLabel: first.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }), first, last }
+}
+
 function formatDateISO(d) {
   return d.toISOString().split('T')[0]
 }
 
+function isSameDayCal(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+}
+
+function formatHHmmCal(dateStr) {
+  return new Date(dateStr).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+}
+
+const HOURS_CAL = Array.from({ length: 14 }, (_, i) => i + 7) // 7h → 20h
+
 function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   const toast = useToast()
-  const [weekOffset, setWeekOffset] = useState(0)
-  const [seances, setSeances] = useState([])
-  const [loadingSeances, setLoadingSeances] = useState(true)
 
-  // Flow création de séance (3 étapes Apple)
+  // ── View state (Mois / Semaine) ──
+  const [calView, setCalView] = useState('month')
+  const [weekOffset, setWeekOffset] = useState(0)
+  const [monthOffset, setMonthOffset] = useState(0)
+
+  // ── Data ──
+  const [seances, setSeances] = useState([])
+  const [events, setEvents] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // ── Filter type ──
+  const [filterType, setFilterType] = useState('')
+
+  // ── Creation modal ──
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalType, setModalType] = useState(null) // null=choice, 'event'=form
+  const [evtTitle, setEvtTitle] = useState('')
+  const [evtDate, setEvtDate] = useState('')
+  const [evtTime, setEvtTime] = useState('09:00')
+  const [evtType, setEvtType] = useState('bilan')
+  const [evtNotes, setEvtNotes] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  // ── Séance creation flow (3-step Apple) ──
   const [modalSeance, setModalSeance] = useState(false)
   const [modalDate, setModalDate] = useState(null)
   const [newSeanceTitre, setNewSeanceTitre] = useState('')
   const [newSeanceNotes, setNewSeanceNotes] = useState('')
   const [creatingSeance, setCreatingSeance] = useState(false)
-  const [seanceStep, setSeanceStep] = useState(1) // 1=template, 2=date
-  const [selectedTemplateForPlan, setSelectedTemplateForPlan] = useState(null) // template or 'new'
+  const [seanceStep, setSeanceStep] = useState(1)
+  const [selectedTemplateForPlan, setSelectedTemplateForPlan] = useState(null)
 
-  // Modale détail d'une séance
+  // ── Detail modals ──
+  const [dayDetailDate, setDayDetailDate] = useState(null)
   const [detailSeance, setDetailSeance] = useState(null)
   const [detailExercices, setDetailExercices] = useState([])
   const [loadingDetail, setLoadingDetail] = useState(false)
+  const [detailEvent, setDetailEvent] = useState(null)
+  const [editingNotes, setEditingNotes] = useState(false)
+  const [editNotesValue, setEditNotesValue] = useState('')
+  const [savingNotes, setSavingNotes] = useState(false)
 
-  // ── Templates (Modèles) ──
+  // ── Templates (Modèles) — drawer ──
   const [templates, setTemplates] = useState([])
   const [loadingTemplates, setLoadingTemplates] = useState(true)
-  const [panelOpen, setPanelOpen] = useState(true)
+  const [panelOpen, setPanelOpen] = useState(false)
 
   // Modale : créer un modèle
   const [modalTemplate, setModalTemplate] = useState(false)
@@ -1121,7 +1193,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   const [newTemplateNotes, setNewTemplateNotes] = useState('')
   const [creatingTemplate, setCreatingTemplate] = useState(false)
 
-  // Modale : ajouter un modèle au calendrier
+  // Modale : planifier un modèle
   const [modalPlanifier, setModalPlanifier] = useState(null)
   const [planifDate, setPlanifDate] = useState('')
   const [planifying, setPlanifying] = useState(false)
@@ -1132,8 +1204,8 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   const [loadingPreview, setLoadingPreview] = useState(false)
 
   // Workout builder drawer
-  const [drawerTemplate, setDrawerTemplate] = useState(null) // template object to edit
-  const [drawerExos, setDrawerExos] = useState([]) // [{exercice_id, nom, series, reps, repos, ordre}]
+  const [drawerTemplate, setDrawerTemplate] = useState(null)
+  const [drawerExos, setDrawerExos] = useState([])
   const [drawerSaving, setDrawerSaving] = useState(false)
   const [drawerTitle, setDrawerTitle] = useState('')
   const [drawerSearch, setDrawerSearch] = useState('')
@@ -1142,31 +1214,76 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   const [allExercicesDrawer, setAllExercicesDrawer] = useState([])
   const [loadingDrawerExos, setLoadingDrawerExos] = useState(false)
 
+  // ── Computed date ranges ──
+  const todayCal = new Date()
+  todayCal.setHours(0, 0, 0, 0)
   const weekDates = getWeekDates(weekOffset)
-  const weekStart = formatDateISO(weekDates[0])
-  const weekEnd = formatDateISO(weekDates[6])
+  const monthGrid = getMonthGridCal(monthOffset)
 
-  // ── Charger les séances de la semaine ──
-  useEffect(() => {
+  const getDateRange = useCallback(() => {
+    if (calView === 'week') {
+      const wd = getWeekDates(weekOffset)
+      const start = new Date(wd[0]); start.setHours(0, 0, 0, 0)
+      const end = new Date(wd[6]); end.setHours(23, 59, 59, 999)
+      return { start, end }
+    } else {
+      const mg = getMonthGridCal(monthOffset)
+      const start = new Date(mg.cells[0].date); start.setHours(0, 0, 0, 0)
+      const end = new Date(mg.cells[mg.cells.length - 1].date); end.setHours(23, 59, 59, 999)
+      return { start, end }
+    }
+  }, [calView, weekOffset, monthOffset])
+
+  // ── Data fetching (silent = true → no skeleton flash) ──
+  const fetchCalData = useCallback(async (silent = false) => {
     if (!clientId || !coachId) return
-    const load = async () => {
-      setLoadingSeances(true)
-      const { data, error } = await supabase
+    if (!silent) setLoading(true)
+    const { start, end } = getDateRange()
+    const startISO = start.toISOString().slice(0, 10)
+    const endISO = end.toISOString().slice(0, 10)
+
+    const [seancesRes, eventsRes] = await Promise.all([
+      supabase
         .from('seances')
-        .select('id, titre, date_prevue, notes, is_completed')
+        .select('id, titre, date_prevue, notes, is_completed, is_template')
         .eq('coach_id', coachId)
         .eq('client_id', clientId)
         .eq('is_template', false)
         .not('client_id', 'is', null)
-        .gte('date_prevue', weekStart)
-        .lte('date_prevue', weekEnd)
-        .order('date_prevue')
-      if (error) console.error('[Hub/Semaine] Erreur fetch séances:', error.message)
-      setSeances(data || [])
-      setLoadingSeances(false)
-    }
-    load()
-  }, [clientId, coachId, weekStart, weekEnd])
+        .gte('date_prevue', startISO)
+        .lte('date_prevue', endISO)
+        .order('date_prevue', { ascending: true }),
+      supabase
+        .from('coach_events')
+        .select('id, title, event_date, event_type, client_id, notes')
+        .eq('coach_id', coachId)
+        .eq('client_id', clientId)
+        .gte('event_date', start.toISOString())
+        .lte('event_date', end.toISOString())
+        .order('event_date', { ascending: true }),
+    ])
+
+    if (seancesRes.error) console.error('[Hub/Calendar] Erreur fetch séances:', seancesRes.error.message)
+    if (eventsRes.error) console.error('[Hub/Calendar] Erreur fetch events:', eventsRes.error.message)
+
+    setSeances(seancesRes.data ?? [])
+    setEvents(eventsRes.data ?? [])
+    setLoading(false)
+  }, [clientId, coachId, getDateRange])
+
+  useEffect(() => { fetchCalData() }, [fetchCalData])
+
+  // ── Realtime ──
+  useEffect(() => {
+    if (!coachId) return
+    const silentRefresh = () => fetchCalData(true)
+    const channel = supabase
+      .channel(`hub-calendar-${clientId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'seances', filter: `coach_id=eq.${coachId}` }, silentRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'coach_events', filter: `coach_id=eq.${coachId}` }, silentRefresh)
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [coachId, clientId, fetchCalData])
 
   // ── Charger les modèles du coach ──
   useEffect(() => {
@@ -1179,7 +1296,6 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         .eq('coach_id', coachId)
         .eq('is_template', true)
         .order('created_at', { ascending: false })
-      // Filter out ProgramBuilder internal seances (notes starts with 'programme:')
       const userTemplates = (data || []).filter(t => !t.notes || !t.notes.startsWith('programme:'))
       setTemplates(userTemplates)
       setLoadingTemplates(false)
@@ -1187,7 +1303,120 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     load()
   }, [coachId])
 
-  // ── Créer une séance ──
+  // ── Helpers ──
+  function getEventTypeInfoCal(typeId) {
+    return EVENT_TYPES_CAL.find(t => t.id === typeId) || EVENT_TYPES_CAL[EVENT_TYPES_CAL.length - 1]
+  }
+
+  function itemsForDayCal(date) {
+    const daySeances = seances
+      .filter(s => isSameDayCal(new Date(s.date_prevue + 'T00:00:00'), date))
+      .map(s => ({ ...s, _type: 'seance', _time: s.date_prevue, _clientId: s.client_id || clientId }))
+    const dayEvents = events
+      .filter(e => isSameDayCal(new Date(e.event_date), date))
+      .map(e => ({ ...e, _type: 'event', _time: e.event_date, _clientId: e.client_id }))
+    let items = [...daySeances, ...dayEvents].sort((a, b) => new Date(a._time) - new Date(b._time))
+    if (filterType) {
+      if (filterType === 'seance') items = items.filter(i => i._type === 'seance')
+      else items = items.filter(i => i._type === 'event' && i.event_type === filterType)
+    }
+    return items
+  }
+
+  // ── Navigation ──
+  const goBack = () => calView === 'week' ? setWeekOffset(o => o - 1) : setMonthOffset(o => o - 1)
+  const goForward = () => calView === 'week' ? setWeekOffset(o => o + 1) : setMonthOffset(o => o + 1)
+  const goToday = () => { setWeekOffset(0); setMonthOffset(0) }
+  const isAtToday = calView === 'week' ? weekOffset === 0 : monthOffset === 0
+  const navLabel = calView === 'week'
+    ? `${weekDates[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} — ${weekDates[6].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} ${weekDates[0].getFullYear()}`
+    : monthGrid.monthLabel.charAt(0).toUpperCase() + monthGrid.monthLabel.slice(1)
+
+  // ── Stats ──
+  const allFiltered = (() => {
+    const wd = calView === 'week' ? weekDates : monthGrid.cells.filter(c => c.inMonth).map(c => c.date)
+    return wd.flatMap(d => itemsForDayCal(d))
+  })()
+  const totalItems = allFiltered.length
+  const itemsToday = itemsForDayCal(todayCal).length
+
+  // ── Click-to-add (client_id verrouillé) ──
+  const openNewModal = (prefilledDate = null) => {
+    setModalType(null)
+    setEvtTitle('')
+    setEvtDate(prefilledDate || new Date().toISOString().split('T')[0])
+    setEvtTime('09:00')
+    setEvtType('bilan'); setEvtNotes('')
+    setModalOpen(true)
+  }
+
+  const handleDayClick = (date) => {
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    openNewModal(dateStr)
+  }
+
+  const saveEvent = async () => {
+    if (!evtTitle.trim() || !evtDate) return
+    setSaving(true)
+    const eventDate = new Date(`${evtDate}T${evtTime}:00`)
+    await supabase.from('coach_events').insert({
+      coach_id: coachId, client_id: clientId,
+      title: evtTitle.trim(), event_date: eventDate.toISOString(),
+      event_type: evtType, notes: evtNotes.trim() || null,
+    })
+    setSaving(false); setModalOpen(false); fetchCalData()
+  }
+
+  // ── Detail handlers ──
+  const openDayDetail = (date, e) => { e.stopPropagation(); setDayDetailDate(date) }
+
+  const openSeanceDetail = async (seance, e) => {
+    e.stopPropagation()
+    setDetailSeance(seance)
+    setDetailExercices([])
+    setLoadingDetail(true)
+    const { data } = await supabase
+      .from('seance_exercices')
+      .select('*, exercices(nom, muscle_group, equipment)')
+      .eq('seance_id', seance.id)
+      .order('ordre')
+    setDetailExercices(data || [])
+    setLoadingDetail(false)
+  }
+
+  const openEventDetail = (evt, e) => {
+    e.stopPropagation()
+    setDetailEvent(evt)
+    setEditingNotes(false)
+    setEditNotesValue(evt.notes || '')
+  }
+
+  const saveEventNotes = async () => {
+    if (!detailEvent) return
+    setSavingNotes(true)
+    const { error } = await supabase
+      .from('coach_events')
+      .update({ notes: editNotesValue.trim() || null })
+      .eq('id', detailEvent.id)
+    if (!error) {
+      setDetailEvent(prev => ({ ...prev, notes: editNotesValue.trim() || null }))
+      setEditingNotes(false)
+      fetchCalData(true)
+    }
+    setSavingNotes(false)
+  }
+
+  // ── Séance creation (from modal) ──
+  const openSeanceCreationModal = (prefilledDate) => {
+    setModalDate(prefilledDate)
+    setModalSeance(true)
+    setSeanceStep(1)
+    setSelectedTemplateForPlan(null)
+    setNewSeanceTitre('')
+    setNewSeanceNotes('')
+    setModalOpen(false)
+  }
+
   const creerSeance = async (e) => {
     e.preventDefault()
     if (!newSeanceTitre.trim()) return
@@ -1209,12 +1438,11 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       console.error('[Hub/creerSeance] Erreur INSERT:', error.message, error.details)
       toast.error('Erreur lors de la création')
     } else {
-      setSeances(prev => [...prev, data])
       toast.success('Séance créée ! Ajoutez des exercices.')
       setModalSeance(false)
       setNewSeanceTitre('')
       setNewSeanceNotes('')
-      // Basculer vers l'éditeur Sport avec cette séance
+      fetchCalData(true)
       if (onEditSeance) onEditSeance(data.id)
     }
     setCreatingSeance(false)
@@ -1258,9 +1486,9 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       console.error('[Hub/supprimerSeance] Erreur DELETE:', error.message)
       toast.error('Erreur lors de la suppression')
     } else {
-      setSeances(prev => prev.filter(s => s.id !== id))
       setDetailSeance(null)
       toast.success('Séance supprimée')
+      fetchCalData(true)
     }
   }
 
@@ -1274,19 +1502,6 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       setTemplates(prev => prev.filter(t => t.id !== id))
       toast.success('Modèle supprimé')
     }
-  }
-
-  // ── Charger le détail d'une séance (exercices) ──
-  const voirDetail = async (seance) => {
-    setDetailSeance(seance)
-    setLoadingDetail(true)
-    const { data } = await supabase
-      .from('seance_exercices')
-      .select('*, exercices(nom, muscle_group, equipment)')
-      .eq('seance_id', seance.id)
-      .order('ordre')
-    setDetailExercices(data || [])
-    setLoadingDetail(false)
   }
 
   // ── Preview d'un template ──
@@ -1349,10 +1564,8 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       await supabase.from('seance_exercices').insert(copies)
     }
 
-    // 3. Mettre à jour le calendrier si la date est dans la semaine affichée
-    if (planifDate >= weekStart && planifDate <= weekEnd) {
-      setSeances(prev => [...prev, newSeance])
-    }
+    // 3. Mettre à jour le calendrier
+    fetchCalData(true)
 
     const exoCount = templateExos?.length || 0
     toast.success(`"${modalPlanifier.titre}" planifié le ${new Date(planifDate + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} (${exoCount} exercice${exoCount > 1 ? 's' : ''} copiés)`)
@@ -1462,404 +1675,520 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     return matchSearch && matchCat
   })
 
-  // Helpers
-  const moisAnnee = weekDates[0].toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
-  const today = formatDateISO(new Date())
+  // ── Loading skeleton ──
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="h-8 w-56 bg-[#27272a] rounded-lg animate-pulse" />
+          <div className="h-10 w-40 bg-[#27272a] rounded-lg animate-pulse" />
+        </div>
+        <div className="grid grid-cols-7 gap-px bg-[#27272a] rounded-xl overflow-hidden">
+          {Array.from({ length: 35 }, (_, i) => (
+            <div key={i} className="bg-[#09090b] p-3 h-20 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex gap-4 h-[calc(100vh-16rem)] min-h-[500px]">
+    <div className="space-y-4">
 
-      {/* ══════════════════════════════════════ */}
-      {/* ZONE GAUCHE — Calendrier              */}
-      {/* ══════════════════════════════════════ */}
-      <div className={`flex-1 flex flex-col overflow-hidden transition-all ${panelOpen ? '' : ''}`}>
-
-        {/* Header semaine */}
-        <div className="flex items-center justify-between mb-4 flex-shrink-0">
-          <div>
-            <h3 className="text-[#F5F5F3] text-lg font-bold capitalize">{moisAnnee}</h3>
-            <p className="text-white/20 text-xs mt-0.5">Programmation de {clientName}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setWeekOffset(0)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${weekOffset === 0 ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]' : 'bg-[#27272a] text-white/30 hover:text-white/50'}`}>
+      {/* ═══════ TOOLBAR : Nav + Toggle + Filtres + Templates ═══════ */}
+      <div className="flex flex-col md:flex-row md:items-center gap-3">
+        {/* Navigation */}
+        <div className="flex items-center gap-2 bg-[#09090b] border border-[#27272a] rounded-xl px-3 py-2 flex-1 min-w-0">
+          <button onClick={goBack} className="p-1 rounded-lg hover:bg-[#27272a] text-white/40 hover:text-white transition-colors flex-shrink-0">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="text-sm font-medium text-[#F5F5F3] flex-1 text-center truncate capitalize">{navLabel}</span>
+          {!isAtToday && (
+            <button onClick={goToday} className="text-[10px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold hover:bg-[#FF6B2B]/20 transition-colors flex-shrink-0 whitespace-nowrap">
               Aujourd'hui
             </button>
-            <button onClick={() => setWeekOffset(w => w - 1)} className="p-2 rounded-lg bg-[#27272a] text-white/30 hover:text-white/60 transition-colors">
-              <ChevronLeft size={15} />
+          )}
+          <button onClick={goForward} className="p-1 rounded-lg hover:bg-[#27272a] text-white/40 hover:text-white transition-colors flex-shrink-0">
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Toggle Mois / Semaine */}
+        <div className="flex items-center bg-[#09090b] border border-[#27272a] rounded-xl p-1 flex-shrink-0">
+          {[{ id: 'month', label: 'Mois' }, { id: 'week', label: 'Semaine' }].map(v => (
+            <button
+              key={v.id}
+              onClick={() => setCalView(v.id)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                calView === v.id ? 'bg-[#FF6B2B] text-white shadow-sm' : 'text-white/40 hover:text-white/70'
+              }`}
+            >
+              {v.label}
             </button>
-            <button onClick={() => setWeekOffset(w => w + 1)} className="p-2 rounded-lg bg-[#27272a] text-white/30 hover:text-white/60 transition-colors">
-              <ChevronRight size={15} />
-            </button>
-            <div className="w-px h-5 bg-[#27272a] mx-1" />
-            <button onClick={() => setPanelOpen(p => !p)}
-              className={`p-2 rounded-lg transition-colors ${panelOpen ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]' : 'bg-[#27272a] text-white/30 hover:text-white/50'}`}
-              title={panelOpen ? 'Masquer les modèles' : 'Afficher les modèles'}>
-              {panelOpen ? <PanelRightClose size={15} /> : <PanelRightOpen size={15} />}
-            </button>
+          ))}
+        </div>
+
+        {/* Filtre type + Templates drawer toggle */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="relative">
+            <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
+              className="appearance-none bg-[#09090b] border border-[#27272a] rounded-xl pl-8 pr-4 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer min-w-[120px]">
+              <option value="">Tous les types</option>
+              {EVENT_TYPES_CAL.map(t => (
+                <option key={t.id} value={t.id}>{t.label}</option>
+              ))}
+            </select>
+            <Filter className="w-3.5 h-3.5 text-white/30 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
-        </div>
-
-        {/* Grille 7 jours */}
-        <div className="flex-1 overflow-x-auto">
-          <div className="grid grid-cols-7 gap-2 min-w-[700px]">
-          {weekDates.map((date, i) => {
-            const dateStr = formatDateISO(date)
-            const isToday = dateStr === today
-            const jourSeances = seances.filter(s => s.date_prevue === dateStr)
-
-            return (
-              <div key={i} className={`bg-[#18181b] border rounded-2xl flex flex-col overflow-hidden transition-all ${isToday ? 'border-[#FF6B2B]/40 shadow-lg shadow-[#FF6B2B]/5' : 'border-[#27272a] hover:border-[#27272a]/80'}`}>
-                <div className={`px-3 py-3 border-b text-center flex-shrink-0 ${isToday ? 'border-[#FF6B2B]/20 bg-[#FF6B2B]/5' : 'border-[#27272a]'}`}>
-                  <p className={`text-[9px] uppercase tracking-[0.15em] font-semibold mb-1 ${isToday ? 'text-[#FF6B2B]' : 'text-white/25'}`}>{JOURS_COURTS[i]}</p>
-                  <div className={`inline-flex items-center justify-center ${isToday ? 'w-8 h-8 rounded-full bg-[#FF6B2B] text-white' : ''}`}>
-                    <p className={`text-lg font-bold ${isToday ? 'text-white' : 'text-[#F5F5F3]'}`}>{date.getDate()}</p>
-                  </div>
-                </div>
-                <div className="flex-1 p-1.5 space-y-1 overflow-y-auto">
-                  {loadingSeances ? (
-                    <div className="flex items-center justify-center py-4"><Loader2 size={12} className="animate-spin text-white/10" /></div>
-                  ) : (
-                    jourSeances.map((s) => (
-                      <button key={s.id} onClick={() => voirDetail(s)}
-                        className={`w-full border rounded-xl px-2.5 py-2 hover:border-opacity-40 transition-all group/card text-left ${
-                          s.is_completed
-                            ? 'bg-emerald-500/8 border-emerald-500/15 hover:bg-emerald-500/15'
-                            : 'bg-[#FF6B2B]/8 border-[#FF6B2B]/10 hover:bg-[#FF6B2B]/15 hover:border-[#FF6B2B]/25'
-                        }`}>
-                        <div className="flex items-center gap-1.5">
-                          <div className={`w-1 h-4 rounded-full flex-shrink-0 ${s.is_completed ? 'bg-emerald-400' : 'bg-[#FF6B2B]'}`} />
-                          <span className={`text-[10px] font-semibold truncate flex-1 min-w-0 ${
-                            s.is_completed ? 'text-emerald-300/70 line-through' : 'text-[#F5F5F3]'
-                          }`}>
-                            {s.titre}
-                          </span>
-                          {s.is_completed && <CheckCircle2 size={10} className="text-emerald-400 shrink-0" />}
-                          <span
-                            onClick={(e) => { e.stopPropagation(); if (onEditSeance) onEditSeance(s.id) }}
-                            className="p-0.5 rounded text-transparent group-hover/card:text-white/20 hover:!text-[#FF6B2B] transition-all flex-shrink-0 cursor-pointer"
-                            title="Modifier"
-                          >
-                            <Pencil size={9} />
-                          </span>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-                <div className="px-2 pb-2 flex-shrink-0">
-                  <button onClick={() => { setModalDate(dateStr); setModalSeance(true); setSeanceStep(1); setSelectedTemplateForPlan(null) }}
-                    className="w-full flex items-center justify-center gap-1 py-1.5 rounded-xl border border-dashed border-[#27272a]/60 text-white/15 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/[0.03] transition-all text-[10px] font-medium">
-                    <Plus size={10} />
-                  </button>
-                </div>
-              </div>
-            )
-          })}
+          <button onClick={() => setPanelOpen(p => !p)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+              panelOpen ? 'bg-[#FF6B2B] text-white' : 'bg-[#09090b] border border-[#27272a] text-white/40 hover:text-white/70'
+            }`}
+            title="Modèles de séances">
+            {panelOpen ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
+            Modèles
+          </button>
+          <button onClick={() => openNewModal()} className="flex items-center gap-1.5 bg-[#FF6B2B] hover:bg-[#e55e24] text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors">
+            <Plus className="w-3.5 h-3.5" /> Ajouter
+          </button>
         </div>
       </div>
-      </div>
 
-      {/* ══════════════════════════════════════ */}
-      {/* PANNEAU DROIT — Modèles de séances    */}
-      {/* ══════════════════════════════════════ */}
-      {panelOpen && (
-        <div className="hidden md:flex w-72 flex-shrink-0 bg-[#18181b] border border-[#27272a] rounded-2xl flex-col overflow-hidden">
-          {/* Header */}
-          <div className="p-4 border-b border-[#27272a]">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-[#F5F5F3] text-sm font-bold">Mes modèles</h3>
-              <button onClick={ouvrirDrawerNouveau}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#FF6B2B] text-white text-[10px] font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-sm shadow-[#FF6B2B]/20">
-                <Plus size={11} /> Nouveau
-              </button>
+      {/* ═══════ STATS ═══════ */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: calView === 'week' ? 'Cette semaine' : 'Ce mois', value: totalItems, icon: Calendar, color: '#FF6B2B' },
+          { label: 'Séances', value: allFiltered.filter(i => i._type === 'seance').length, icon: Dumbbell, color: '#3b82f6' },
+          { label: "Aujourd'hui", value: itemsToday, icon: Clock, color: '#22c55e' },
+        ].map((s, i) => (
+          <div key={i} className="bg-[#09090b] border border-[#27272a] rounded-xl p-3 flex items-center gap-3">
+            <div className="p-1.5 rounded-lg flex-shrink-0" style={{ backgroundColor: `${s.color}15` }}>
+              <s.icon className="w-4 h-4" style={{ color: s.color }} />
             </div>
-            <p className="text-white/20 text-[10px]">{templates.length} modèle{templates.length !== 1 ? 's' : ''} disponible{templates.length !== 1 ? 's' : ''}</p>
+            <div className="min-w-0">
+              <p className="text-[10px] text-white/40 truncate">{s.label}</p>
+              <p className="text-lg font-bold text-[#F5F5F3] leading-tight">{s.value}</p>
+            </div>
           </div>
+        ))}
+      </div>
 
-          {/* Liste des modèles */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {loadingTemplates ? (
-              <div className="flex items-center justify-center py-8"><Loader2 size={16} className="animate-spin text-white/10" /></div>
-            ) : templates.length === 0 ? (
-              <div className="text-center py-8">
-                <Layers size={28} className="text-white/8 mx-auto mb-3" />
-                <p className="text-white/15 text-xs mb-1">Aucun modèle</p>
-                <p className="text-white/10 text-[10px]">Créez des modèles de séances pour les réutiliser facilement</p>
-              </div>
-            ) : (
-              templates.map((tpl) => (
-                <div key={tpl.id} className="bg-[#0D0D0D] border border-[#27272a] rounded-2xl p-3.5 group hover:border-[#FF6B2B]/20 transition-all">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                      <Dumbbell size={16} className="text-[#FF6B2B]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <button onClick={() => ouvrirDrawer(tpl)} className="text-[#F5F5F3] text-xs font-bold hover:text-[#FF6B2B] transition-colors text-left truncate block w-full">
-                        {tpl.titre}
-                      </button>
-                      <p className="text-white/15 text-[9px] mt-0.5">Cliquer pour modifier</p>
-                    </div>
-                    <button onClick={() => supprimerTemplate(tpl.id)}
-                      className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 shrink-0">
-                      <Trash2 size={11} />
-                    </button>
-                  </div>
+      {/* ═══════ CALENDAR + TEMPLATES DRAWER ═══════ */}
+      <div className="flex gap-4">
+        {/* Calendar zone */}
+        <div className="flex-1 min-w-0">
 
-                  <button onClick={() => { setModalPlanifier(tpl); setPlanifDate(formatDateISO(new Date())) }}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#FF6B2B] text-white text-[10px] font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-sm shadow-[#FF6B2B]/20">
-                    <CalendarPlus size={11} />
-                    Planifier
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════ */}
-      {/* MODAL — Planifier une séance (3 étapes Apple) */}
-      {/* ══════════════════════════════════════ */}
-      {modalSeance && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => { setModalSeance(false); setSeanceStep(1); setSelectedTemplateForPlan(null) }}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative w-full max-w-lg bg-[#1E1E1E] rounded-2xl border border-white/[0.06] shadow-2xl overflow-hidden"
-            onClick={e => e.stopPropagation()}>
-            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-
-            {/* Progress bar */}
-            <div className="px-6 pt-5 pb-3">
-              <div className="flex items-center gap-2 mb-2">
-                {[1, 2].map(s => (
-                  <div key={s} className={`flex-1 h-1 rounded-full transition-all duration-300 ${
-                    seanceStep >= s ? 'bg-[#FF6B2B]' : 'bg-[#27272a]'
-                  }`} />
+          {calView === 'month' ? (
+            /* ────────── VUE MOIS ────────── */
+            <div className="bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden">
+              {/* Jours header */}
+              <div className="grid grid-cols-7 border-b border-[#27272a]">
+                {JOURS_COURTS.map(j => (
+                  <div key={j} className="px-2 py-2 text-center text-[10px] font-semibold text-white/30 uppercase tracking-wider">{j}</div>
                 ))}
               </div>
-              <p className="text-white/25 text-[10px] font-medium">Étape {seanceStep} sur 2</p>
+              {/* Grid */}
+              <div className="grid grid-cols-7">
+                {monthGrid.cells.map((cell, idx) => {
+                  const isTo = isSameDayCal(cell.date, todayCal)
+                  const dayItems = itemsForDayCal(cell.date)
+                  const maxShow = 2
+                  const overflow = dayItems.length - maxShow
+
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => handleDayClick(cell.date)}
+                      className={`relative border-b border-r border-[#27272a] min-h-[85px] p-1.5 flex flex-col cursor-pointer transition-colors hover:bg-white/[0.02] ${
+                        cell.inMonth ? '' : 'bg-[#0a0a0a] hover:bg-[#0e0e0e]'
+                      } ${isTo ? 'bg-[#FF6B2B]/[0.04] hover:bg-[#FF6B2B]/[0.07]' : ''}`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span
+                          onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
+                          className={`text-xs font-medium leading-none ${
+                            isTo ? 'w-6 h-6 flex items-center justify-center rounded-full bg-[#FF6B2B] text-white text-[11px] font-bold'
+                              : cell.inMonth ? 'text-white/60' : 'text-white/20'
+                          } ${dayItems.length > 0 ? 'hover:underline cursor-pointer' : ''}`}
+                        >
+                          {cell.date.getDate()}
+                        </span>
+                        {dayItems.length > 0 && (
+                          <span className="text-[9px] text-white/25 font-medium">{dayItems.length}</span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-0.5 flex-1 overflow-hidden">
+                        {dayItems.slice(0, maxShow).map((item) => {
+                          if (item._type === 'seance') {
+                            return (
+                              <div
+                                key={`s-${item.id}`}
+                                onClick={(e) => openSeanceDetail(item, e)}
+                                className={`flex items-center gap-1 px-1 py-0.5 rounded truncate cursor-pointer transition-colors ${
+                                  item.is_completed ? 'bg-emerald-500/10 hover:bg-emerald-500/20' : 'bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/20'
+                                }`}
+                              >
+                                <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: item.is_completed ? '#22c55e' : '#FF6B2B' }} />
+                                <span className={`text-[10px] truncate ${item.is_completed ? 'text-emerald-300/70 line-through' : 'text-[#F5F5F3]'}`}>{item.titre}</span>
+                              </div>
+                            )
+                          } else {
+                            const ti = getEventTypeInfoCal(item.event_type)
+                            const TI = ti.icon
+                            return (
+                              <div
+                                key={`e-${item.id}`}
+                                onClick={(e) => openEventDetail(item, e)}
+                                className="flex items-center gap-1 px-1 py-0.5 rounded truncate cursor-pointer hover:brightness-125 transition-all"
+                                style={{ backgroundColor: `${ti.color}15` }}
+                              >
+                                <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
+                                <span className="text-[10px] text-[#F5F5F3] truncate">{item.title}</span>
+                              </div>
+                            )
+                          }
+                        })}
+                        {overflow > 0 && (
+                          <button
+                            onClick={(e) => openDayDetail(cell.date, e)}
+                            className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] px-1 py-0.5 text-left transition-colors"
+                          >
+                            +{overflow} autre{overflow > 1 ? 's' : ''}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-
-            {/* Step 1 — Choisir ou créer un modèle */}
-            {seanceStep === 1 && (
-              <div className="px-6 pb-6 space-y-4">
-                <div>
-                  <h2 className="text-[#F5F5F3] text-xl font-bold">Choisir une séance</h2>
-                  <p className="text-white/30 text-sm mt-1">Sélectionnez un modèle existant ou créez-en un nouveau.</p>
-                </div>
-
-                {/* Créer une nouvelle */}
-                <div className="space-y-2">
-                  <button onClick={() => { setSelectedTemplateForPlan('new'); setNewSeanceTitre(''); }}
-                    className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl border-2 border-dashed transition-all ${
-                      selectedTemplateForPlan === 'new' ? 'border-[#FF6B2B] bg-[#FF6B2B]/5' : 'border-[#27272a] hover:border-[#FF6B2B]/30'
-                    }`}>
-                    <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
-                      <Plus size={18} className="text-[#FF6B2B]" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-[#F5F5F3] text-sm font-semibold">Nouvelle séance</p>
-                      <p className="text-white/25 text-[11px]">Créer une séance personnalisée</p>
-                    </div>
-                  </button>
-                  {selectedTemplateForPlan === 'new' && (
-                    <input type="text" value={newSeanceTitre} onChange={e => setNewSeanceTitre(e.target.value)}
-                      placeholder="Nom de la séance..." autoFocus
-                      className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
-                  )}
-                </div>
-
-                {/* Modèles existants */}
-                {templates.length > 0 && (
-                  <div className="space-y-1.5">
-                    <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Ou utiliser un modèle</p>
-                    <div className="max-h-48 overflow-y-auto space-y-1.5">
-                      {templates.map(tpl => (
-                        <button key={tpl.id} onClick={() => { setSelectedTemplateForPlan(tpl); setNewSeanceTitre(tpl.titre) }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
-                            selectedTemplateForPlan?.id === tpl.id ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'bg-[#0D0D0D] hover:bg-[#0D0D0D]/80 border border-transparent'
-                          }`}>
-                          <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
-                            <Dumbbell size={14} className="text-[#FF6B2B]" />
+          ) : (
+            /* ────────── VUE SEMAINE ────────── */
+            <div className="bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden">
+              {/* All-day séances section */}
+              {(() => {
+                const hasAllDay = weekDates.some(d => itemsForDayCal(d).some(i => i._type === 'seance'))
+                if (!hasAllDay) return null
+                return (
+                  <div className="border-b border-[#27272a]">
+                    <div className="grid grid-cols-[60px_repeat(7,1fr)]">
+                      <div className="p-2 border-r border-[#27272a] flex items-center justify-center">
+                        <span className="text-[9px] text-white/25 uppercase font-semibold">Séances</span>
+                      </div>
+                      {weekDates.map((date, idx) => {
+                        const daySeances = itemsForDayCal(date).filter(i => i._type === 'seance')
+                        return (
+                          <div key={idx} className={`p-1.5 border-r border-[#27272a] last:border-r-0 min-h-[40px] ${isSameDayCal(date, todayCal) ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
+                            <div className="flex flex-col gap-1">
+                              {daySeances.map(s => (
+                                <div
+                                  key={`ad-${s.id}`}
+                                  onClick={(e) => openSeanceDetail(s, e)}
+                                  className={`flex items-center gap-1 px-1.5 py-1 rounded-md border cursor-pointer transition-colors ${
+                                    s.is_completed
+                                      ? 'bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20'
+                                      : 'bg-[#FF6B2B]/10 border-[#FF6B2B]/20 hover:bg-[#FF6B2B]/20'
+                                  }`}
+                                >
+                                  <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: s.is_completed ? '#22c55e' : '#FF6B2B' }} />
+                                  <span className={`text-[10px] font-medium truncate ${s.is_completed ? 'text-emerald-300/70 line-through' : 'text-[#F5F5F3]'}`}>{s.titre}</span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[#F5F5F3] text-xs font-semibold truncate">{tpl.titre}</p>
-                            {tpl.notes && <p className="text-white/15 text-[9px] truncate">{tpl.notes}</p>}
-                          </div>
-                        </button>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
-                )}
+                )
+              })()}
 
-                {/* Next button */}
-                <div className="flex gap-2 pt-2">
-                  <button onClick={() => { setModalSeance(false); setSeanceStep(1) }}
-                    className="flex-1 py-3 rounded-xl text-sm text-white/30 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">
-                    Annuler
-                  </button>
-                  <button onClick={() => setSeanceStep(2)}
-                    disabled={!selectedTemplateForPlan || (selectedTemplateForPlan === 'new' && !newSeanceTitre.trim())}
-                    className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
-                    Suivant <ChevronRight size={14} />
-                  </button>
-                </div>
+              {/* Header row */}
+              <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[#27272a]">
+                <div className="p-2 border-r border-[#27272a]" />
+                {weekDates.map((date, idx) => {
+                  const isTo = isSameDayCal(date, todayCal)
+                  return (
+                    <div key={idx} className={`p-2 border-r border-[#27272a] last:border-r-0 text-center ${isTo ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
+                      <p className="text-[10px] text-white/30 uppercase font-semibold">{JOURS_COURTS[idx]}</p>
+                      <p className={`text-sm font-bold mt-0.5 ${isTo ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{date.getDate()}</p>
+                    </div>
+                  )
+                })}
               </div>
-            )}
 
-            {/* Step 2 — Choisir la date */}
-            {seanceStep === 2 && (
-              <div className="px-6 pb-6 space-y-5">
-                <div>
-                  <h2 className="text-[#F5F5F3] text-xl font-bold">Planifier la date</h2>
-                  <p className="text-white/30 text-sm mt-1">
-                    {selectedTemplateForPlan === 'new' ? `"${newSeanceTitre}"` : `"${selectedTemplateForPlan?.titre}"`} pour {clientName}
-                  </p>
-                </div>
-
-                {/* Résumé visuel */}
-                <div className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
-                    <Dumbbell size={18} className="text-[#FF6B2B]" />
+              {/* Time grid */}
+              <div className="grid grid-cols-[60px_repeat(7,1fr)] relative" style={{ maxHeight: 480, overflowY: 'auto' }}>
+                {HOURS_CAL.map(h => (
+                  <div key={h} className="contents">
+                    <div className="h-[40px] border-r border-b border-[#27272a] flex items-start justify-end pr-2 pt-0.5">
+                      <span className="text-[10px] text-white/25 font-medium tabular-nums">{String(h).padStart(2, '0')}:00</span>
+                    </div>
+                    {weekDates.map((date, dIdx) => {
+                      const isTo = isSameDayCal(date, todayCal)
+                      const dayEvts = itemsForDayCal(date).filter(i => i._type === 'event')
+                      const hourEvts = dayEvts.filter(e => new Date(e.event_date).getHours() === h)
+                      return (
+                        <div
+                          key={dIdx}
+                          onClick={() => handleDayClick(date)}
+                          className={`h-[40px] border-r border-b border-[#27272a] last:border-r-0 relative cursor-pointer hover:bg-white/[0.02] transition-colors ${isTo ? 'bg-[#FF6B2B]/[0.02]' : ''}`}
+                        >
+                          {hourEvts.map(evt => {
+                            const ti = getEventTypeInfoCal(evt.event_type)
+                            const TI = ti.icon
+                            return (
+                              <div
+                                key={`we-${evt.id}`}
+                                onClick={(e) => openEventDetail(evt, e)}
+                                className="absolute inset-x-0.5 top-0.5 rounded-md px-1.5 py-1 z-10 border cursor-pointer hover:brightness-125 transition-all"
+                                style={{ backgroundColor: `${ti.color}20`, borderColor: `${ti.color}40` }}
+                              >
+                                <div className="flex items-center gap-1">
+                                  <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
+                                  <span className="text-[10px] font-medium text-[#F5F5F3] truncate">{evt.title}</span>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )
+                    })}
                   </div>
-                  <div>
-                    <p className="text-[#F5F5F3] text-sm font-semibold">
-                      {selectedTemplateForPlan === 'new' ? newSeanceTitre : selectedTemplateForPlan?.titre}
-                    </p>
-                    <p className="text-white/20 text-[10px]">
-                      {selectedTemplateForPlan === 'new' ? 'Nouvelle séance' : 'Modèle existant (exercices copiés)'}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Date de la séance</label>
-                  <input type="date" value={modalDate || ''} onChange={e => setModalDate(e.target.value)}
-                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
-                </div>
-
-                <div>
-                  <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Notes (optionnel)</label>
-                  <textarea value={newSeanceNotes} onChange={e => setNewSeanceNotes(e.target.value)}
-                    placeholder="Instructions spécifiques..." rows={2}
-                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-all resize-none" />
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <button onClick={() => setSeanceStep(1)}
-                    className="flex-1 py-3 rounded-xl text-sm text-white/30 bg-[#27272a] hover:bg-[#3f3f46] transition-colors flex items-center justify-center gap-1.5">
-                    <ChevronLeft size={14} /> Retour
-                  </button>
-                  <button
-                    onClick={async (e) => {
-                      if (selectedTemplateForPlan && selectedTemplateForPlan !== 'new') {
-                        // Copier depuis un template
-                        setModalPlanifier(selectedTemplateForPlan)
-                        setPlanifDate(modalDate || formatDateISO(new Date()))
-                        setModalSeance(false)
-                        setSeanceStep(1)
-                        setSelectedTemplateForPlan(null)
-                      } else {
-                        // Créer une nouvelle séance
-                        await creerSeance(e)
-                        setSeanceStep(1)
-                        setSelectedTemplateForPlan(null)
-                      }
-                    }}
-                    disabled={creatingSeance || !modalDate}
-                    className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
-                    {creatingSeance ? <Loader2 size={14} className="animate-spin" /> : <Calendar size={14} />}
-                    Planifier
-                  </button>
-                </div>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-      )}
 
-      {/* ══════════════════════════════════════ */}
-      {/* MODAL — Créer un modèle              */}
-      {/* ══════════════════════════════════════ */}
-      <Modal isOpen={modalTemplate} onClose={() => setModalTemplate(false)} title="Nouveau modèle de séance">
-        <form onSubmit={creerTemplate} className="space-y-4">
-          <div className="bg-[#09090b] rounded-lg p-3 flex items-start gap-2.5">
-            <Layers size={16} className="text-[#FF6B2B] mt-0.5 flex-shrink-0" />
-            <p className="text-white/30 text-xs leading-relaxed">Un modèle est une séance type réutilisable. Créez-le ici, puis ajoutez-lui des exercices via l'onglet Sport.</p>
-          </div>
-          <div>
-            <label className="block text-sm text-white/50 mb-1.5">Titre du modèle *</label>
-            <input type="text" value={newTemplateTitre} onChange={(e) => setNewTemplateTitre(e.target.value)}
-              placeholder="Ex: Push Day, Full Body débutant, Cardio HIIT..." autoFocus required
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
-          </div>
-          <div>
-            <label className="block text-sm text-white/50 mb-1.5">Notes (optionnel)</label>
-            <textarea value={newTemplateNotes} onChange={(e) => setNewTemplateNotes(e.target.value)}
-              placeholder="Description ou objectifs de cette séance..." rows={3}
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none" />
-          </div>
-          <div className="flex gap-2 pt-1">
-            <button type="button" onClick={() => setModalTemplate(false)}
-              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
-            <button type="submit" disabled={creatingTemplate}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
-              {creatingTemplate ? <Loader2 size={15} className="animate-spin" /> : <Layers size={15} />}
-              Créer le modèle
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* ══════════════════════════════════════ */}
-      {/* MODAL — Planifier un modèle           */}
-      {/* ══════════════════════════════════════ */}
-      <Modal isOpen={!!modalPlanifier} onClose={() => setModalPlanifier(null)} title="Ajouter au calendrier">
-        {modalPlanifier && (
-          <div className="space-y-4">
-            {/* Résumé du modèle */}
-            <div className="bg-[#09090b] rounded-xl p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                <Copy size={16} className="text-[#FF6B2B]" />
+        {/* ═══════ TEMPLATES DRAWER (PANNEAU DROIT) ═══════ */}
+        {panelOpen && (
+          <div className="hidden md:flex w-72 flex-shrink-0 bg-[#18181b] border border-[#27272a] rounded-2xl flex-col overflow-hidden" style={{ maxHeight: 'calc(100vh - 20rem)' }}>
+            <div className="p-4 border-b border-[#27272a]">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-[#F5F5F3] text-sm font-bold">Mes modèles</h3>
+                <button onClick={ouvrirDrawerNouveau}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#FF6B2B] text-white text-[10px] font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-sm shadow-[#FF6B2B]/20">
+                  <Plus size={11} /> Nouveau
+                </button>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[#F5F5F3] text-sm font-semibold truncate">{modalPlanifier.titre}</p>
-                <p className="text-white/20 text-[10px]">Ce modèle et tous ses exercices seront copiés</p>
-              </div>
+              <p className="text-white/20 text-[10px]">{templates.length} modèle{templates.length !== 1 ? 's' : ''} disponible{templates.length !== 1 ? 's' : ''}</p>
             </div>
-
-            {/* Client cible */}
-            <div className="bg-[#09090b] rounded-lg p-3 flex items-center gap-2">
-              <User size={14} className="text-[#FF6B2B]" />
-              <span className="text-[#F5F5F3] text-sm">{clientName}</span>
-              <span className="text-white/15 text-[10px] ml-auto">Client sélectionné</span>
-            </div>
-
-            {/* Sélection de la date */}
-            <div>
-              <label className="block text-sm text-white/50 mb-1.5">Date de la séance *</label>
-              <input type="date" value={planifDate} onChange={(e) => setPlanifDate(e.target.value)} required
-                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors" />
-            </div>
-
-            <div className="flex gap-2 pt-1">
-              <button onClick={() => setModalPlanifier(null)}
-                className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">
-                Annuler
-              </button>
-              <button onClick={planifierTemplate} disabled={planifying || !planifDate}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
-                {planifying ? <Loader2 size={15} className="animate-spin" /> : <CalendarPlus size={15} />}
-                Confirmer
-              </button>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {loadingTemplates ? (
+                <div className="flex items-center justify-center py-8"><Loader2 size={16} className="animate-spin text-white/10" /></div>
+              ) : templates.length === 0 ? (
+                <div className="text-center py-8">
+                  <Layers size={28} className="text-white/8 mx-auto mb-3" />
+                  <p className="text-white/15 text-xs mb-1">Aucun modèle</p>
+                  <p className="text-white/10 text-[10px]">Créez des modèles de séances pour les réutiliser</p>
+                </div>
+              ) : (
+                templates.map((tpl) => (
+                  <div key={tpl.id} className="bg-[#0D0D0D] border border-[#27272a] rounded-2xl p-3.5 group hover:border-[#FF6B2B]/20 transition-all">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                        <Dumbbell size={16} className="text-[#FF6B2B]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <button onClick={() => ouvrirDrawer(tpl)} className="text-[#F5F5F3] text-xs font-bold hover:text-[#FF6B2B] transition-colors text-left truncate block w-full">
+                          {tpl.titre}
+                        </button>
+                        <p className="text-white/15 text-[9px] mt-0.5">Cliquer pour modifier</p>
+                      </div>
+                      <button onClick={() => supprimerTemplate(tpl.id)}
+                        className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 shrink-0">
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                    <button onClick={() => { setModalPlanifier(tpl); setPlanifDate(formatDateISO(new Date())) }}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#FF6B2B] text-white text-[10px] font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-sm shadow-[#FF6B2B]/20">
+                      <CalendarPlus size={11} /> Planifier
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
-      </Modal>
+      </div>
 
-      {/* ══════════════════════════════════════ */}
-      {/* MODAL — Détail d'une séance           */}
-      {/* ══════════════════════════════════════ */}
+      {/* ═══════ MODAL CRÉATION EVENT/SÉANCE ═══════ */}
+      {modalOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+                <h2 className="text-[#F5F5F3] font-semibold text-base">
+                  {modalType === null ? 'Ajouter pour ' + clientName : 'Événement classique'}
+                </h2>
+                <button onClick={() => setModalOpen(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-6">
+                {modalType === null ? (
+                  <div className="space-y-3">
+                    <p className="text-white/40 text-sm mb-4">Que souhaitez-vous ajouter ?</p>
+                    <button
+                      onClick={() => { openSeanceCreationModal(evtDate) }}
+                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[#27272a] hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/[0.03] transition-colors text-left"
+                    >
+                      <div className="w-11 h-11 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                        <Dumbbell size={20} className="text-[#FF6B2B]" />
+                      </div>
+                      <div>
+                        <p className="text-[#F5F5F3] text-sm font-semibold">Séance de sport</p>
+                        <p className="text-white/30 text-xs mt-0.5">Planifier depuis un modèle ou créer</p>
+                      </div>
+                      <ChevronRight size={16} className="text-white/15 ml-auto" />
+                    </button>
+                    <button
+                      onClick={() => setModalType('event')}
+                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[#27272a] hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/[0.03] transition-colors text-left"
+                    >
+                      <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                        <Calendar size={20} className="text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="text-[#F5F5F3] text-sm font-semibold">Événement classique</p>
+                        <p className="text-white/30 text-xs mt-0.5">Bilan, appel, réunion, note...</p>
+                      </div>
+                      <ChevronRight size={16} className="text-white/15 ml-auto" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-white/40 text-xs mb-1.5">Titre</label>
+                      <input type="text" value={evtTitle} onChange={(e) => setEvtTitle(e.target.value)} placeholder="Ex: Bilan mensuel" autoFocus
+                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-white/40 text-xs mb-1.5">Date</label>
+                        <input type="date" value={evtDate} onChange={(e) => setEvtDate(e.target.value)}
+                          className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                      </div>
+                      <div>
+                        <label className="block text-white/40 text-xs mb-1.5">Heure</label>
+                        <input type="time" value={evtTime} onChange={(e) => setEvtTime(e.target.value)}
+                          className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-white/40 text-xs mb-1.5">Type</label>
+                      <div className="flex flex-wrap gap-2">
+                        {EVENT_TYPES_CAL.filter(t => t.id !== 'seance').map((t) => (
+                          <button key={t.id} onClick={() => setEvtType(t.id)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${evtType === t.id ? 'border-2' : 'border border-[#27272a] text-white/40 hover:text-white/60'}`}
+                            style={evtType === t.id ? { borderColor: t.color, color: t.color, backgroundColor: `${t.color}10` } : {}}>
+                            <t.icon size={12} /> {t.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Client is locked — show info */}
+                    <div className="bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 flex items-center gap-2">
+                      <User size={14} className="text-[#FF6B2B]" />
+                      <span className="text-sm text-[#F5F5F3]">{clientName}</span>
+                      <span className="text-[10px] text-white/20 ml-auto">Verrouillé</span>
+                    </div>
+                    <div>
+                      <label className="block text-white/40 text-xs mb-1.5">Notes</label>
+                      <textarea value={evtNotes} onChange={(e) => setEvtNotes(e.target.value)} placeholder="Notes optionnelles..." rows={2}
+                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none" />
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button onClick={() => setModalType(null)}
+                        className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Retour</button>
+                      <button onClick={saveEvent} disabled={!evtTitle.trim() || !evtDate || saving}
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
+                        {saving ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Créer
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ═══════ MODAL DÉTAIL JOUR ═══════ */}
+      {dayDetailDate && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setDayDetailDate(null)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+                <h2 className="text-[#F5F5F3] font-semibold text-base">
+                  {dayDetailDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </h2>
+                <button onClick={() => setDayDetailDate(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-4 space-y-2 max-h-[400px] overflow-y-auto">
+                {itemsForDayCal(dayDetailDate).length === 0 ? (
+                  <p className="text-center text-white/25 text-sm py-8">Aucun événement ce jour</p>
+                ) : itemsForDayCal(dayDetailDate).map(item => {
+                  if (item._type === 'seance') {
+                    return (
+                      <button
+                        key={`dd-s-${item.id}`}
+                        onClick={(e) => { setDayDetailDate(null); openSeanceDetail(item, e) }}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl border hover:brightness-110 transition-all text-left ${
+                          item.is_completed ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-[#FF6B2B]/10 border-[#FF6B2B]/20'
+                        }`}
+                      >
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${item.is_completed ? 'bg-emerald-500/20' : 'bg-[#FF6B2B]/20'}`}>
+                          <Dumbbell size={16} className={item.is_completed ? 'text-emerald-400' : 'text-[#FF6B2B]'} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-sm font-medium truncate ${item.is_completed ? 'text-emerald-300/70 line-through' : 'text-[#F5F5F3]'}`}>{item.titre}</p>
+                          <p className="text-[11px] text-white/35 mt-0.5">Séance{item.is_completed ? ' — Complétée' : ''}</p>
+                        </div>
+                      </button>
+                    )
+                  } else {
+                    const ti = getEventTypeInfoCal(item.event_type)
+                    const TI = ti.icon
+                    return (
+                      <button
+                        key={`dd-e-${item.id}`}
+                        onClick={(e) => { setDayDetailDate(null); openEventDetail(item, e) }}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border hover:brightness-110 transition-all text-left"
+                        style={{ backgroundColor: `${ti.color}10`, borderColor: `${ti.color}25` }}
+                      >
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${ti.color}20` }}>
+                          <TI size={16} style={{ color: ti.color }} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-[#F5F5F3] truncate">{item.title}</p>
+                          <p className="text-[11px] text-white/35 mt-0.5">{formatHHmmCal(item.event_date)}</p>
+                        </div>
+                      </button>
+                    )
+                  }
+                })}
+              </div>
+              <div className="px-4 pb-4">
+                <button
+                  onClick={() => { setDayDetailDate(null); handleDayClick(dayDetailDate) }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-xs font-medium hover:text-white/60 hover:border-[#3f3f46] transition-colors"
+                >
+                  <Plus size={14} /> Ajouter un événement
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ═══════ MODAL DÉTAIL SÉANCE ═══════ */}
       <Modal isOpen={!!detailSeance} onClose={() => setDetailSeance(null)} title={detailSeance?.titre || 'Séance'}>
         <div className="space-y-4">
           <div className="flex items-center gap-3 bg-[#09090b] rounded-lg p-3">
@@ -1869,6 +2198,11 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                 ? new Date(detailSeance.date_prevue + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
                 : ''}
             </span>
+            {detailSeance?.is_completed && (
+              <span className="ml-auto flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-medium">
+                <CheckCircle2 size={10} /> Complétée
+              </span>
+            )}
           </div>
           {detailSeance?.notes && (
             <p className="text-white/30 text-xs bg-[#09090b] rounded-lg p-3">{detailSeance.notes}</p>
@@ -1913,16 +2247,293 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         </div>
       </Modal>
 
-      {/* ══════════════════════════════════════ */}
-      {/* MODAL — Preview d'un modèle           */}
-      {/* ══════════════════════════════════════ */}
+      {/* ═══════ MODAL DÉTAIL ÉVÉNEMENT ═══════ */}
+      {detailEvent && (() => {
+        const ti = getEventTypeInfoCal(detailEvent.event_type)
+        const TI = ti.icon
+        return (
+          <>
+            <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setDetailEvent(null)} />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${ti.color}20` }}>
+                      <TI size={18} style={{ color: ti.color }} />
+                    </div>
+                    <div>
+                      <h2 className="text-[#F5F5F3] font-semibold text-base">{detailEvent.title}</h2>
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${ti.color}15`, color: ti.color }}>
+                        {ti.label}
+                      </span>
+                    </div>
+                  </div>
+                  <button onClick={() => setDetailEvent(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                    <X size={18} />
+                  </button>
+                </div>
+                <div className="px-6 py-4 border-b border-[#27272a] flex flex-wrap items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar size={14} className="text-white/30" />
+                    <span className="text-sm text-[#F5F5F3]">
+                      {new Date(detailEvent.event_date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-white/30" />
+                    <span className="text-sm text-[#F5F5F3]">{formatHHmmCal(detailEvent.event_date)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <User size={14} className="text-white/30" />
+                    <span className="text-sm text-[#F5F5F3]">{clientName}</span>
+                  </div>
+                </div>
+                <div className="px-6 py-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold">Notes</p>
+                    {!editingNotes && (
+                      <button onClick={() => { setEditingNotes(true); setEditNotesValue(detailEvent.notes || '') }}
+                        className="flex items-center gap-1 text-[10px] text-[#FF6B2B] font-medium hover:text-[#FF9A6C] transition-colors">
+                        <Pencil size={11} /> Modifier
+                      </button>
+                    )}
+                  </div>
+                  {editingNotes ? (
+                    <div className="space-y-3">
+                      <textarea value={editNotesValue} onChange={(e) => setEditNotesValue(e.target.value)} rows={4} autoFocus
+                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-3 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none"
+                        placeholder="Ajouter des notes..." />
+                      <div className="flex gap-2">
+                        <button onClick={() => setEditingNotes(false)}
+                          className="flex-1 py-2 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
+                        <button onClick={saveEventNotes} disabled={savingNotes}
+                          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
+                          {savingNotes ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Enregistrer
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 min-h-[60px]">
+                      {detailEvent.notes ? (
+                        <p className="text-sm text-[#F5F5F3] leading-relaxed whitespace-pre-wrap">{detailEvent.notes}</p>
+                      ) : (
+                        <p className="text-sm text-white/20 italic">Aucune note pour cet événement</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )
+      })()}
+
+      {/* ═══════ MODAL — Séance 3 étapes Apple ═══════ */}
+      {modalSeance && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => { setModalSeance(false); setSeanceStep(1); setSelectedTemplateForPlan(null) }}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-lg bg-[#1E1E1E] rounded-2xl border border-white/[0.06] shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}>
+            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+            <div className="px-6 pt-5 pb-3">
+              <div className="flex items-center gap-2 mb-2">
+                {[1, 2].map(s => (
+                  <div key={s} className={`flex-1 h-1 rounded-full transition-all duration-300 ${seanceStep >= s ? 'bg-[#FF6B2B]' : 'bg-[#27272a]'}`} />
+                ))}
+              </div>
+              <p className="text-white/25 text-[10px] font-medium">Étape {seanceStep} sur 2</p>
+            </div>
+            {seanceStep === 1 && (
+              <div className="px-6 pb-6 space-y-4">
+                <div>
+                  <h2 className="text-[#F5F5F3] text-xl font-bold">Choisir une séance</h2>
+                  <p className="text-white/30 text-sm mt-1">Sélectionnez un modèle ou créez-en un nouveau.</p>
+                </div>
+                <div className="space-y-2">
+                  <button onClick={() => { setSelectedTemplateForPlan('new'); setNewSeanceTitre('') }}
+                    className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl border-2 border-dashed transition-all ${
+                      selectedTemplateForPlan === 'new' ? 'border-[#FF6B2B] bg-[#FF6B2B]/5' : 'border-[#27272a] hover:border-[#FF6B2B]/30'
+                    }`}>
+                    <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                      <Plus size={18} className="text-[#FF6B2B]" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[#F5F5F3] text-sm font-semibold">Nouvelle séance</p>
+                      <p className="text-white/25 text-[11px]">Créer une séance personnalisée</p>
+                    </div>
+                  </button>
+                  {selectedTemplateForPlan === 'new' && (
+                    <input type="text" value={newSeanceTitre} onChange={e => setNewSeanceTitre(e.target.value)}
+                      placeholder="Nom de la séance..." autoFocus
+                      className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                  )}
+                </div>
+                {templates.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Ou utiliser un modèle</p>
+                    <div className="max-h-48 overflow-y-auto space-y-1.5">
+                      {templates.map(tpl => (
+                        <button key={tpl.id} onClick={() => { setSelectedTemplateForPlan(tpl); setNewSeanceTitre(tpl.titre) }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
+                            selectedTemplateForPlan?.id === tpl.id ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'bg-[#0D0D0D] hover:bg-[#0D0D0D]/80 border border-transparent'
+                          }`}>
+                          <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                            <Dumbbell size={14} className="text-[#FF6B2B]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[#F5F5F3] text-xs font-semibold truncate">{tpl.titre}</p>
+                            {tpl.notes && <p className="text-white/15 text-[9px] truncate">{tpl.notes}</p>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => { setModalSeance(false); setSeanceStep(1) }}
+                    className="flex-1 py-3 rounded-xl text-sm text-white/30 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
+                  <button onClick={() => setSeanceStep(2)}
+                    disabled={!selectedTemplateForPlan || (selectedTemplateForPlan === 'new' && !newSeanceTitre.trim())}
+                    className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
+                    Suivant <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+            {seanceStep === 2 && (
+              <div className="px-6 pb-6 space-y-5">
+                <div>
+                  <h2 className="text-[#F5F5F3] text-xl font-bold">Planifier la date</h2>
+                  <p className="text-white/30 text-sm mt-1">
+                    {selectedTemplateForPlan === 'new' ? `"${newSeanceTitre}"` : `"${selectedTemplateForPlan?.titre}"`} pour {clientName}
+                  </p>
+                </div>
+                <div className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                    <Dumbbell size={18} className="text-[#FF6B2B]" />
+                  </div>
+                  <div>
+                    <p className="text-[#F5F5F3] text-sm font-semibold">
+                      {selectedTemplateForPlan === 'new' ? newSeanceTitre : selectedTemplateForPlan?.titre}
+                    </p>
+                    <p className="text-white/20 text-[10px]">
+                      {selectedTemplateForPlan === 'new' ? 'Nouvelle séance' : 'Modèle existant (exercices copiés)'}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Date de la séance</label>
+                  <input type="date" value={modalDate || ''} onChange={e => setModalDate(e.target.value)}
+                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Notes (optionnel)</label>
+                  <textarea value={newSeanceNotes} onChange={e => setNewSeanceNotes(e.target.value)}
+                    placeholder="Instructions spécifiques..." rows={2}
+                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-all resize-none" />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => setSeanceStep(1)}
+                    className="flex-1 py-3 rounded-xl text-sm text-white/30 bg-[#27272a] hover:bg-[#3f3f46] transition-colors flex items-center justify-center gap-1.5">
+                    <ChevronLeft size={14} /> Retour
+                  </button>
+                  <button
+                    onClick={async (e) => {
+                      if (selectedTemplateForPlan && selectedTemplateForPlan !== 'new') {
+                        setModalPlanifier(selectedTemplateForPlan)
+                        setPlanifDate(modalDate || formatDateISO(new Date()))
+                        setModalSeance(false); setSeanceStep(1); setSelectedTemplateForPlan(null)
+                      } else {
+                        await creerSeance(e)
+                        setSeanceStep(1); setSelectedTemplateForPlan(null)
+                      }
+                    }}
+                    disabled={creatingSeance || !modalDate}
+                    className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                    {creatingSeance ? <Loader2 size={14} className="animate-spin" /> : <Calendar size={14} />}
+                    Planifier
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══════ MODAL — Créer un modèle ═══════ */}
+      <Modal isOpen={modalTemplate} onClose={() => setModalTemplate(false)} title="Nouveau modèle de séance">
+        <form onSubmit={creerTemplate} className="space-y-4">
+          <div className="bg-[#09090b] rounded-lg p-3 flex items-start gap-2.5">
+            <Layers size={16} className="text-[#FF6B2B] mt-0.5 flex-shrink-0" />
+            <p className="text-white/30 text-xs leading-relaxed">Un modèle est une séance type réutilisable.</p>
+          </div>
+          <div>
+            <label className="block text-sm text-white/50 mb-1.5">Titre du modèle *</label>
+            <input type="text" value={newTemplateTitre} onChange={(e) => setNewTemplateTitre(e.target.value)}
+              placeholder="Ex: Push Day, Full Body débutant..." autoFocus required
+              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+          </div>
+          <div>
+            <label className="block text-sm text-white/50 mb-1.5">Notes (optionnel)</label>
+            <textarea value={newTemplateNotes} onChange={(e) => setNewTemplateNotes(e.target.value)}
+              placeholder="Description ou objectifs..." rows={3}
+              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none" />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button type="button" onClick={() => setModalTemplate(false)}
+              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
+            <button type="submit" disabled={creatingTemplate}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
+              {creatingTemplate ? <Loader2 size={15} className="animate-spin" /> : <Layers size={15} />}
+              Créer le modèle
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ═══════ MODAL — Planifier un modèle ═══════ */}
+      <Modal isOpen={!!modalPlanifier} onClose={() => setModalPlanifier(null)} title="Ajouter au calendrier">
+        {modalPlanifier && (
+          <div className="space-y-4">
+            <div className="bg-[#09090b] rounded-xl p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                <Copy size={16} className="text-[#FF6B2B]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[#F5F5F3] text-sm font-semibold truncate">{modalPlanifier.titre}</p>
+                <p className="text-white/20 text-[10px]">Ce modèle et ses exercices seront copiés</p>
+              </div>
+            </div>
+            <div className="bg-[#09090b] rounded-lg p-3 flex items-center gap-2">
+              <User size={14} className="text-[#FF6B2B]" />
+              <span className="text-[#F5F5F3] text-sm">{clientName}</span>
+              <span className="text-white/15 text-[10px] ml-auto">Client verrouillé</span>
+            </div>
+            <div>
+              <label className="block text-sm text-white/50 mb-1.5">Date de la séance *</label>
+              <input type="date" value={planifDate} onChange={(e) => setPlanifDate(e.target.value)} required
+                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => setModalPlanifier(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
+              <button onClick={planifierTemplate} disabled={planifying || !planifDate}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
+                {planifying ? <Loader2 size={15} className="animate-spin" /> : <CalendarPlus size={15} />}
+                Confirmer
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ═══════ MODAL — Preview modèle ═══════ */}
       <Modal isOpen={!!previewTemplate} onClose={() => setPreviewTemplate(null)} title={previewTemplate?.titre || 'Modèle'}>
         {previewTemplate && (
           <div className="space-y-4">
             <div className="bg-[#09090b] rounded-lg p-3 flex items-center gap-2">
               <Layers size={14} className="text-[#FF6B2B]" />
               <span className="text-[#FF6B2B] text-[10px] font-bold">MODÈLE</span>
-              {previewTemplate.notes && <span className="text-white/20 text-xs ml-auto truncate">{previewTemplate.notes}</span>}
             </div>
             <div>
               <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">Exercices ({previewExos.length})</p>
@@ -1932,7 +2543,6 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                 <div className="text-center py-6 bg-[#09090b] rounded-lg">
                   <Dumbbell size={20} className="text-white/10 mx-auto mb-2" />
                   <p className="text-white/15 text-xs">Aucun exercice dans ce modèle</p>
-                  <p className="text-white/10 text-[10px] mt-1">Ajoutez des exercices via l'onglet Sport</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -1941,11 +2551,8 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                       <span className="w-5 h-5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-[#F5F5F3] text-sm font-medium truncate">{ex.exercices?.nom || 'Exercice'}</p>
-                        <p className="text-white/20 text-[10px]">{ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''} {ex.repos ? `· ${ex.repos}s repos` : ''}</p>
+                        <p className="text-white/20 text-[10px]">{ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''}</p>
                       </div>
-                      {ex.exercices?.muscle_group && (
-                        <span className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400">{ex.exercices.muscle_group}</span>
-                      )}
                     </div>
                   ))}
                 </div>
