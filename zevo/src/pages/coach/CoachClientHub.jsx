@@ -17,7 +17,7 @@ import {
   Wheat, Beef, Fish, Egg, Carrot, Grape, Droplets, TrendingUp, TrendingDown,
   Ruler, Weight, ChevronUp, ChevronDown as ChevronDownIcon,
   FolderOpen, Paperclip, FileText,
-  CheckCircle2, Circle, Footprints, BookOpen
+  CheckCircle2, Circle, Footprints, BookOpen, Smile
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -67,6 +67,7 @@ function StatCard({ icon: Icon, label, value, sub, accent = false }) {
 function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNutrition }) {
   const [sportProgrammes, setSportProgrammes] = useState([])
   const [nutritionPlans, setNutritionPlans] = useState([])
+  const [progProgress, setProgProgress] = useState({}) // {assignation_id: {total, done, pct}}
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -75,11 +76,33 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
 
     const loadAll = async () => {
       // Sport programmes
-      const { data: sportData } = await supabase
+      const { data: sportData, error: sportErr } = await supabase
         .from('programme_assignations')
         .select('id, date_debut, statut, phase_actuelle, programmes(id, titre, duree_semaines, categorie)')
         .eq('coach_id', coachId)
-      setSportProgrammes((sportData || []).filter(a => a.programmes))
+
+      if (sportErr) console.error('[Programmes] Erreur fetch assignations:', sportErr.message)
+      const progs = (sportData || []).filter(a => a.programmes)
+      setSportProgrammes(progs)
+
+      // Calculer la progression de chaque programme
+      const progressMap = {}
+      for (const assign of progs) {
+        if (!assign.programmes?.id) continue
+        const marker = `programme:${assign.programmes.id}`
+        const { data: seancesData, error: seErr } = await supabase
+          .from('seances')
+          .select('id, is_completed')
+          .eq('client_id', clientId)
+          .eq('is_template', false)
+          .not('client_id', 'is', null)
+          .eq('notes', marker)
+        if (seErr) console.error('[Programmes] Erreur fetch séances programme:', seErr.message)
+        const all = seancesData || []
+        const done = all.filter(s => s.is_completed).length
+        progressMap[assign.id] = { total: all.length, done, pct: all.length > 0 ? Math.round((done / all.length) * 100) : 0 }
+      }
+      setProgProgress(progressMap)
 
       // Nutrition plans (from client_nutrition_plans table)
       const { data: nutritionData, error: nutritionErr } = await supabase
@@ -131,28 +154,47 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
             </div>
           ) : (
             <div className="space-y-2.5">
-              {sportProgrammes.map(a => (
-                <div key={a.id} className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
-                    <Dumbbell size={18} className="text-[#FF6B2B]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[#F5F5F3] text-sm font-semibold truncate">{a.programmes?.titre}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#2A2A2A] text-white/35 font-medium">{a.programmes?.duree_semaines} sem.</span>
-                      {a.programmes?.categorie && (
-                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium">{a.programmes.categorie}</span>
-                      )}
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Phase {a.phase_actuelle}</span>
+              {sportProgrammes.map(a => {
+                const prog = progProgress[a.id]
+                const pct = prog?.pct ?? 0
+                const progressColor = pct >= 80 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#FF6B2B'
+                return (
+                  <div key={a.id} className="bg-[#0D0D0D] rounded-xl p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+                        <Dumbbell size={18} className="text-[#FF6B2B]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[#F5F5F3] text-sm font-semibold truncate">{a.programmes?.titre}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#2A2A2A] text-white/35 font-medium">{a.programmes?.duree_semaines} sem.</span>
+                          {a.programmes?.categorie && (
+                            <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium">{a.programmes.categorie}</span>
+                          )}
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Phase {a.phase_actuelle}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => onOpenProgramme?.(a.programmes)}
+                        className="px-3 py-2 rounded-xl bg-[#2A2A2A] text-white/50 text-[11px] font-medium hover:bg-[#3f3f46] hover:text-white transition-all flex items-center gap-1.5 shrink-0">
+                        Ouvrir <ChevronRight size={12} />
+                      </button>
                     </div>
+                    {/* Barre de progression réelle */}
+                    {prog && prog.total > 0 && (
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-white/25 text-[10px]">{prog.done}/{prog.total} séances complétées</span>
+                          <span className="text-[10px] font-bold" style={{ color: progressColor }}>{pct}%</span>
+                        </div>
+                        <div className="h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: progressColor }} />
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <button
-                    onClick={() => onOpenProgramme?.(a.programmes)}
-                    className="px-3 py-2 rounded-xl bg-[#2A2A2A] text-white/50 text-[11px] font-medium hover:bg-[#3f3f46] hover:text-white transition-all flex items-center gap-1.5 shrink-0">
-                    Ouvrir <ChevronRight size={12} />
-                  </button>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -4453,6 +4495,13 @@ export default function CoachClientHub() {
   const [planCalories, setPlanCalories] = useState(null) // from nutrition plan
   const [weekSeances, setWeekSeances] = useState({ total: 0, done: 0, spark: [0,0,0,0,0,0,0] }) // seances cette semaine
 
+  // Données 7 jours pour sparklines et KPIs
+  const [sommeil7j, setSommeil7j] = useState([])   // [{date, heures, qualite}]
+  const [humeur7j, setHumeur7j] = useState([])     // [{date, score}]
+  const [habLogs7j, setHabLogs7j] = useState([])   // [{date, count}]
+  const [poids7j, setPoids7j] = useState([])        // [{date, poids}]
+  const [progSeances, setProgSeances] = useState({ total: 0, done: 0 }) // programme en cours
+
   // Invitation modal
   const [modalInvit, setModalInvit] = useState(false)
   const [invitEmail, setInvitEmail] = useState('')
@@ -4589,6 +4638,62 @@ export default function CoachClientHub() {
       })
 
       setWeekSeances({ total: seancesWeek.length, done: doneCount, spark: sparkByDay })
+
+      // ── 7 jours de données pour sparklines & KPIs ──
+      const il7j = new Date()
+      il7j.setDate(il7j.getDate() - 6)
+      const date7jStr = il7j.toISOString().split('T')[0]
+
+      const [sommeil7Res, humeur7Res, habLogs7Res, poids7Res] = await Promise.all([
+        supabase.from('sommeil_log').select('date, heures, qualite').eq('client_id', selectedId).gte('date', date7jStr).order('date'),
+        supabase.from('humeur_log').select('date, score').eq('client_id', selectedId).gte('date', date7jStr).order('date'),
+        supabase.from('habitudes_log').select('date, habitude_id').eq('client_id', selectedId).gte('date', date7jStr),
+        supabase.from('suivi_poids').select('date_pesee, poids').eq('client_id', selectedId).gte('date_pesee', date7jStr).order('date_pesee'),
+      ])
+
+      if (sommeil7Res.error) console.error('[Hub/7j] Erreur sommeil:', sommeil7Res.error.message)
+      if (humeur7Res.error) console.error('[Hub/7j] Erreur humeur:', humeur7Res.error.message)
+      if (habLogs7Res.error) console.error('[Hub/7j] Erreur hab_logs:', habLogs7Res.error.message)
+      if (poids7Res.error) console.error('[Hub/7j] Erreur poids:', poids7Res.error.message)
+
+      setSommeil7j(sommeil7Res.data || [])
+      setHumeur7j(humeur7Res.data || [])
+      setPoids7j(poids7Res.data || [])
+
+      // Agréger les logs habitudes par jour
+      const habByDay = {}
+      ;(habLogs7Res.data || []).forEach(l => {
+        habByDay[l.date] = (habByDay[l.date] || 0) + 1
+      })
+      setHabLogs7j(Object.entries(habByDay).map(([date, count]) => ({ date, count })))
+
+      // ── Programme en cours : progression séances ──
+      const { data: assignations, error: progErr } = await supabase
+        .from('programme_assignations')
+        .select('id, programmes(id, titre)')
+        .eq('coach_id', user.id)
+        .eq('statut', 'actif')
+
+      if (progErr) console.error('[Hub/Programme] Erreur fetch assignations:', progErr.message)
+
+      const activeAssign = (assignations || []).find(a => a.programmes)
+      if (activeAssign?.programmes?.id) {
+        const marker = `programme:${activeAssign.programmes.id}`
+        const { data: progSeancesData, error: psErr } = await supabase
+          .from('seances')
+          .select('id, is_completed')
+          .eq('client_id', selectedId)
+          .eq('is_template', false)
+          .not('client_id', 'is', null)
+          .or(`notes.eq.${marker},coach_id.eq.${user.id}`)
+
+        // Fallback : toutes les séances non-template du client pour ce coach
+        if (psErr) console.error('[Hub/Programme] Erreur fetch séances programme:', psErr.message)
+        const allProgSeances = progSeancesData || []
+        setProgSeances({ total: allProgSeances.length, done: allProgSeances.filter(s => s.is_completed).length })
+      } else {
+        setProgSeances({ total: 0, done: 0 })
+      }
 
       setLoadingProfile(false)
     }
@@ -4859,14 +4964,39 @@ export default function CoachClientHub() {
 
                 {/* ── Données de suivi — 6 cartes avec sparklines ── */}
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-                  {[
-                    { icon: Scale, label: 'Poids', value: (() => { const po = objectifs.find(o => o.type_objectif === 'poids' && o.statut === 'en_cours'); return po ? `${po.valeur_actuelle ?? po.valeur_depart} kg` : (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—' })(), spark: [80,79,78.5,78,77.8,77.5,77], color: '#FF6B2B' },
-                    { icon: Heart, label: 'IMC', value: imc || '—', sub: imc ? (imc < 18.5 ? 'Insuffisant' : imc < 25 ? 'Normal' : imc < 30 ? 'Surpoids' : 'Obésité') : null, spark: [26,25.5,25,24.8,24.5,24.3,24], color: '#FF6B2B' },
-                    { icon: Flame, label: 'Calories', value: planCalories ? `${planCalories}` : (p?.calories_cibles ? `${p.calories_cibles}` : '—'), sub: 'kcal/j', spark: [2000,2100,1950,2000,2050,2000,2100], color: '#f59e0b' },
-                    { icon: Activity, label: 'Activité', value: p?.niveau_activite || '—', spark: [3,5,4,6,5,7,6], color: '#22c55e' },
-                    { icon: Dumbbell, label: 'Séances', value: weekSeances.total > 0 ? `${weekSeances.total}` : '—', sub: weekSeances.total > 0 ? `${weekSeances.done} faite${weekSeances.done > 1 ? 's' : ''} sur ${weekSeances.total}` : 'cette sem.', spark: weekSeances.spark.some(v => v > 0) ? weekSeances.spark : [0,1,0,1,0,1,0], color: '#3b82f6', onClick: () => setActiveTab('sport') },
-                    { icon: Target, label: 'Objectifs', value: `${objectifs.filter(o => o.statut === 'en_cours').length}`, sub: 'en cours', spark: [1,1,2,2,3,3,3], color: '#a855f7', onClick: () => setActiveTab('objectifs') },
-                  ].map((card, ci) => (
+                  {(() => {
+                    // ── Sparklines dynamiques ──
+                    const poidsSparkRaw = poids7j.map(p => p.poids)
+                    const poidsSpark = poidsSparkRaw.length >= 2 ? poidsSparkRaw : [1, 1]
+
+                    // Sommeil : heures par jour sur 7j
+                    const sommeilSparkRaw = sommeil7j.map(s => s.heures || 0)
+                    const sommeilSpark = sommeilSparkRaw.length >= 2 ? sommeilSparkRaw : [0, 0]
+                    const sommeilMoy = sommeil7j.length > 0
+                      ? (sommeil7j.reduce((s, v) => s + (v.heures || 0), 0) / sommeil7j.length).toFixed(1)
+                      : null
+
+                    // Humeur : score par jour sur 7j
+                    const humeurSparkRaw = humeur7j.map(h => h.score || 0)
+                    const humeurSpark = humeurSparkRaw.length >= 2 ? humeurSparkRaw : [0, 0]
+                    const humeurMoy = humeur7j.length > 0
+                      ? (humeur7j.reduce((s, v) => s + (v.score || 0), 0) / humeur7j.length).toFixed(1)
+                      : null
+
+                    // Habitudes : ratio complété par jour
+                    const habSpark = habLogs7j.length >= 2
+                      ? habLogs7j.map(h => h.count)
+                      : habitudes.length > 0 ? [habitudeLogs.length] : [0, 0]
+
+                    return [
+                      { icon: Scale, label: 'Poids', value: (() => { const po = objectifs.find(o => o.type_objectif === 'poids' && o.statut === 'en_cours'); return po ? `${po.valeur_actuelle ?? po.valeur_depart} kg` : (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—' })(), spark: poidsSpark, color: '#FF6B2B' },
+                      { icon: Moon, label: 'Sommeil', value: sommeilMoy ? `${sommeilMoy}h` : 'N/A', sub: sommeil7j.length > 0 ? `moy. 7j (${sommeil7j.length} entrée${sommeil7j.length > 1 ? 's' : ''})` : 'Aucune donnée', spark: sommeilSpark, color: '#8b5cf6' },
+                      { icon: Smile, label: 'Humeur', value: humeurMoy ? `${humeurMoy}/10` : 'N/A', sub: humeur7j.length > 0 ? `moy. 7j (${humeur7j.length} entrée${humeur7j.length > 1 ? 's' : ''})` : 'Aucune donnée', spark: humeurSpark, color: '#f59e0b' },
+                      { icon: Flame, label: 'Habitudes', value: habitudes.length > 0 ? `${habitudeLogs.length}/${habitudes.length}` : 'N/A', sub: habitudes.length > 0 ? "aujourd'hui" : 'Aucune assignée', spark: habSpark.length >= 2 ? habSpark : [0, 0], color: '#22c55e', onClick: () => setActiveTab('habitudes') },
+                      { icon: Dumbbell, label: 'Séances', value: weekSeances.total > 0 ? `${weekSeances.total}` : '—', sub: weekSeances.total > 0 ? `${weekSeances.done} faite${weekSeances.done > 1 ? 's' : ''} sur ${weekSeances.total}` : 'cette sem.', spark: weekSeances.spark.some(v => v > 0) ? weekSeances.spark : [0, 0], color: '#3b82f6', onClick: () => setActiveTab('sport') },
+                      { icon: Target, label: 'Objectifs', value: `${objectifs.filter(o => o.statut === 'en_cours').length}`, sub: 'en cours', spark: [objectifs.filter(o => o.statut === 'en_cours').length], color: '#a855f7', onClick: () => setActiveTab('objectifs') },
+                    ]
+                  })().map((card, ci) => (
                     <div key={ci} onClick={card.onClick || undefined}
                       className={`bg-[#18181b] border border-[#27272a] rounded-2xl p-4 flex flex-col justify-between min-h-[120px] transition-all ${card.onClick ? 'cursor-pointer hover:border-[#3f3f46] hover:bg-[#1c1c1f] active:scale-[0.98]' : ''}`}>
                       <div className="flex items-start justify-between">
