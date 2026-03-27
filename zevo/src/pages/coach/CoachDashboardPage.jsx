@@ -113,9 +113,9 @@ export default function CoachDashboardPage() {
   // ══════════════════════════════════════
   // CHARGEMENT DES DONNÉES
   // ══════════════════════════════════════
-  const chargerDonnees = useCallback(async () => {
+  const chargerDonnees = useCallback(async (silent = false) => {
     if (!user) return
-    setLoading(true)
+    if (!silent) setLoading(true)
 
     // ── 1. Coach + Clients + Prospects ──
     const [coachRes, clientsRes, prospectsRes] = await Promise.all([
@@ -294,50 +294,52 @@ export default function CoachDashboardPage() {
   useEffect(() => {
     if (!user) return
 
-    // Channel unique pour le dashboard
+    // Channel unique pour le dashboard — silent refresh (pas de skeleton)
+    const silentRefresh = () => chargerDonnees(true)
+
     const channel = supabase
       .channel('dashboard-realtime')
-      // Séances modifiées aujourd'hui
+      // Séances modifiées
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'seances',
         filter: `coach_id=eq.${user.id}`,
-      }, () => { chargerDonnees() })
+      }, silentRefresh)
       // Events modifiés
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'coach_events',
         filter: `coach_id=eq.${user.id}`,
-      }, () => { chargerDonnees() })
+      }, silentRefresh)
       // Nouveaux clients
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'clients',
         filter: `coach_id=eq.${user.id}`,
-      }, () => { chargerDonnees() })
+      }, silentRefresh)
       // Prospects
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'prospects',
         filter: `coach_id=eq.${user.id}`,
-      }, () => { chargerDonnees() })
+      }, silentRefresh)
       // Paiements
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'paiements_clients',
         filter: `coach_id=eq.${user.id}`,
-      }, () => { chargerDonnees() })
+      }, silentRefresh)
       // Réponses formulaires
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'formulaire_reponses',
-      }, () => { chargerDonnees() })
+      }, silentRefresh)
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }

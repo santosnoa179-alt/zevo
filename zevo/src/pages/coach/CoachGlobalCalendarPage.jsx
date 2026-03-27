@@ -152,19 +152,24 @@ export default function CoachGlobalCalendarPage() {
   }, [view, weekOffset, monthOffset])
 
   // ── Data fetching ──
-  const fetchData = useCallback(async () => {
+  // silent = true → pas de skeleton (pour les refresh realtime)
+  const fetchData = useCallback(async (silent = false) => {
     if (!user?.id) return
-    setLoading(true)
+    if (!silent) setLoading(true)
     const { start, end } = getDateRange()
+
+    const startISO = start.toISOString().slice(0, 10) // YYYY-MM-DD pour date_prevue (type date)
+    const endISO = end.toISOString().slice(0, 10)
 
     const [seancesRes, eventsRes, clientsRes] = await Promise.all([
       supabase
         .from('seances')
-        .select('id, titre, date_prevue, client_id, is_completed, profiles!seances_client_id_fkey(nom)')
+        .select('id, titre, date_prevue, client_id, is_completed, is_template')
         .eq('coach_id', user.id)
         .eq('is_template', false)
-        .gte('date_prevue', start.toISOString())
-        .lte('date_prevue', end.toISOString())
+        .not('client_id', 'is', null)
+        .gte('date_prevue', startISO)
+        .lte('date_prevue', endISO)
         .order('date_prevue', { ascending: true }),
       supabase
         .from('coach_events')
@@ -180,13 +185,60 @@ export default function CoachGlobalCalendarPage() {
         .eq('actif', true),
     ])
 
-    setSeances(seancesRes.data ?? [])
+    if (seancesRes.error) console.error('[Calendar] Erreur fetch séances:', seancesRes.error.message)
+    if (eventsRes.error) console.error('[Calendar] Erreur fetch events:', eventsRes.error.message)
+
+    // Résoudre les noms des clients pour les séances (pas de FK directe vers profiles)
+    const seancesRaw = seancesRes.data ?? []
+    const seanceClientIds = [...new Set(seancesRaw.map(s => s.client_id).filter(Boolean))]
+    let clientNamesMap = {}
+    if (seanceClientIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, nom')
+        .in('id', seanceClientIds)
+      ;(profilesData ?? []).forEach(p => { clientNamesMap[p.id] = p.nom })
+    }
+
+    const enrichedSeances = seancesRaw.map(s => ({
+      ...s,
+      profiles: { nom: clientNamesMap[s.client_id] || null },
+    }))
+
+    setSeances(enrichedSeances)
     setEvents(eventsRes.data ?? [])
     setClients(clientsRes.data ?? [])
     setLoading(false)
   }, [user?.id, getDateRange])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  // ══════════════════════════════════════
+  // TEMPS RÉEL — Supabase Realtime
+  // ══════════════════════════════════════
+  useEffect(() => {
+    if (!user?.id) return
+
+    const silentRefresh = () => fetchData(true)
+
+    const channel = supabase
+      .channel('calendar-realtime')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'seances',
+        filter: `coach_id=eq.${user.id}`,
+      }, silentRefresh)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'coach_events',
+        filter: `coach_id=eq.${user.id}`,
+      }, silentRefresh)
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [user?.id, fetchData])
 
   // Close popover on outside click
   useEffect(() => {
@@ -200,6 +252,10 @@ export default function CoachGlobalCalendarPage() {
   // ── Client name lookup ──
   function getClientName(clientId) {
     if (!clientId) return null
+    // Check enriched séances first
+    const s = seances.find(s => s.client_id === clientId)
+    if (s?.profiles?.nom) return s.profiles.nom
+    // Fallback to clients list
     const c = clients.find(cl => cl.id === clientId)
     return c?.profiles?.nom || null
   }

@@ -224,13 +224,15 @@ function ClientSeancesSection({ clientId, onOpenCalendar }) {
     const today = new Date().toISOString().split('T')[0]
     supabase
       .from('seances')
-      .select('id, titre, date_prevue')
+      .select('id, titre, date_prevue, is_completed')
       .eq('client_id', clientId)
       .eq('is_template', false)
+      .not('client_id', 'is', null)
       .gte('date_prevue', today)
       .order('date_prevue', { ascending: true })
       .limit(5)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) console.error('[Hub/ProchSeances] Erreur fetch séances:', error.message)
         setSeances(data ?? [])
         setLoading(false)
       })
@@ -511,6 +513,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
             titre: seanceNom,
             date_prevue: formatDateISO(new Date()),
             is_template: false,
+            is_completed: false,
           })
           .select()
           .single()
@@ -1106,15 +1109,17 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     if (!clientId || !coachId) return
     const load = async () => {
       setLoadingSeances(true)
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('seances')
         .select('id, titre, date_prevue, notes, is_completed')
         .eq('coach_id', coachId)
         .eq('client_id', clientId)
         .eq('is_template', false)
+        .not('client_id', 'is', null)
         .gte('date_prevue', weekStart)
         .lte('date_prevue', weekEnd)
         .order('date_prevue')
+      if (error) console.error('[Hub/Semaine] Erreur fetch séances:', error.message)
       setSeances(data || [])
       setLoadingSeances(false)
     }
@@ -1154,10 +1159,12 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         date_prevue: modalDate,
         notes: newSeanceNotes.trim() || null,
         is_template: false,
+        is_completed: false,
       })
       .select()
       .single()
     if (error) {
+      console.error('[Hub/creerSeance] Erreur INSERT:', error.message, error.details)
       toast.error('Erreur lors de la création')
     } else {
       setSeances(prev => [...prev, data])
@@ -1185,10 +1192,12 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         titre: newTemplateTitre.trim(),
         notes: newTemplateNotes.trim() || null,
         is_template: true,
+        is_completed: false,
       })
       .select()
       .single()
     if (error) {
+      console.error('[Hub/creerTemplate] Erreur INSERT:', error.message, error.details)
       toast.error('Erreur lors de la création du modèle')
     } else {
       setTemplates(prev => [data, ...prev])
@@ -1203,7 +1212,10 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   // ── Supprimer une séance ──
   const supprimerSeance = async (id) => {
     const { error } = await supabase.from('seances').delete().eq('id', id)
-    if (!error) {
+    if (error) {
+      console.error('[Hub/supprimerSeance] Erreur DELETE:', error.message)
+      toast.error('Erreur lors de la suppression')
+    } else {
       setSeances(prev => prev.filter(s => s.id !== id))
       setDetailSeance(null)
       toast.success('Séance supprimée')
@@ -1213,7 +1225,10 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   // ── Supprimer un modèle ──
   const supprimerTemplate = async (id) => {
     const { error } = await supabase.from('seances').delete().eq('id', id)
-    if (!error) {
+    if (error) {
+      console.error('[Hub/supprimerTemplate] Erreur DELETE:', error.message)
+      toast.error('Erreur lors de la suppression')
+    } else {
       setTemplates(prev => prev.filter(t => t.id !== id))
       toast.success('Modèle supprimé')
     }
@@ -1260,11 +1275,13 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         date_prevue: planifDate,
         notes: modalPlanifier.notes,
         is_template: false,
+        is_completed: false,
       })
       .select()
       .single()
 
     if (errSeance || !newSeance) {
+      console.error('[Hub/planifier] Erreur INSERT:', errSeance?.message, errSeance?.details)
       toast.error('Erreur lors de la planification')
       setPlanifying(false)
       return
@@ -1341,7 +1358,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       .from('seances')
       .insert({ coach_id: coachId, client_id: null, date_prevue: null, titre: 'Nouveau modèle', notes: null, is_template: true })
       .select().single()
-    if (error || !data) { toast.error('Erreur création modèle'); return }
+    if (error || !data) { console.error('[Hub/ouvrirDrawerNouveau] Erreur INSERT template:', error?.message); toast.error('Erreur création modèle'); return }
     setTemplates(prev => [data, ...prev])
     ouvrirDrawer(data)
   }
@@ -2420,11 +2437,18 @@ function SuiviTab({ coachId, clientId }) {
       const [peseesRes, profileRes, seancesRes, habsRes, logsRes, objsRes] = await Promise.all([
         supabase.from('suivi_poids').select('*').eq('client_id', clientId).eq('coach_id', coachId).order('date_pesee', { ascending: true }),
         supabase.from('profiles').select('poids_depart, poids_cible, poids_actuel').eq('id', clientId).single(),
-        supabase.from('seances').select('id, date_prevue, is_completed').eq('client_id', clientId).eq('is_template', false).gte('date_prevue', dateMin28).lte('date_prevue', dateMax28),
+        supabase.from('seances').select('id, date_prevue, is_completed').eq('client_id', clientId).eq('is_template', false).not('client_id', 'is', null).gte('date_prevue', dateMin28).lte('date_prevue', dateMax28),
         supabase.from('habitudes').select('id, nom, couleur, icone').eq('client_id', clientId).eq('actif', true),
         supabase.from('habitudes_log').select('habitude_id, date').eq('client_id', clientId).gte('date', dateMin30),
         supabase.from('objectifs').select('*').eq('client_id', clientId).eq('statut', 'en_cours').order('created_at', { ascending: false }),
       ])
+
+      if (peseesRes.error) console.error('[Hub/Overview] Erreur pesées:', peseesRes.error.message)
+      if (profileRes.error) console.error('[Hub/Overview] Erreur profile:', profileRes.error.message)
+      if (seancesRes.error) console.error('[Hub/Overview] Erreur séances:', seancesRes.error.message)
+      if (habsRes.error) console.error('[Hub/Overview] Erreur habitudes:', habsRes.error.message)
+      if (logsRes.error) console.error('[Hub/Overview] Erreur hab_logs:', logsRes.error.message)
+      if (objsRes.error) console.error('[Hub/Overview] Erreur objectifs:', objsRes.error.message)
 
       setPesees(peseesRes.data || [])
       setProfile(profileRes.data)
@@ -4543,14 +4567,16 @@ export default function CoachClientHub() {
       const mondayStr = monday.toISOString().split('T')[0]
       const sundayStr = sunday.toISOString().split('T')[0]
 
-      const { data: weekData } = await supabase
+      const { data: weekData, error: weekErr } = await supabase
         .from('seances')
         .select('id, date_prevue, is_completed')
         .eq('client_id', selectedId)
         .eq('is_template', false)
+        .not('client_id', 'is', null)
         .gte('date_prevue', mondayStr)
         .lte('date_prevue', sundayStr)
 
+      if (weekErr) console.error('[Hub/Sidebar] Erreur fetch séances semaine:', weekErr.message)
       const seancesWeek = weekData || []
       const doneCount = seancesWeek.filter(s => s.is_completed).length
 
