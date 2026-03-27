@@ -124,6 +124,10 @@ export default function CoachDashboardPage() {
       supabase.from('prospects').select('id, prenom, nom, email, statut, valeur_estimee, created_at').eq('coach_id', user.id).order('created_at', { ascending: false }),
     ])
 
+    if (coachRes.error) console.error('[Dashboard] Erreur fetch coach:', coachRes.error.message)
+    if (clientsRes.error) console.error('[Dashboard] Erreur fetch clients:', clientsRes.error.message)
+    if (prospectsRes.error) console.error('[Dashboard] Erreur fetch prospects:', prospectsRes.error.message)
+
     const coach = coachRes.data
     const clientsData = clientsRes.data ?? []
     const prospectsData = prospectsRes.data ?? []
@@ -133,37 +137,82 @@ export default function CoachDashboardPage() {
     setProspects(prospectsData)
 
     // ── 2. Séances du jour ──
-    const { data: seancesData } = await supabase
+    // Note : la table seances n'a PAS de colonnes is_completed ni is_template
+    const { data: seancesData, error: seancesErr } = await supabase
       .from('seances')
-      .select('id, titre, date_prevue, is_completed, client_id, profiles:client_id(nom)')
+      .select('id, titre, date_prevue, client_id, notes')
       .eq('coach_id', user.id)
       .eq('date_prevue', todayISO)
-      .eq('is_template', false)
       .order('date_prevue', { ascending: true })
 
-    setTodaySeances(seancesData ?? [])
+    if (seancesErr) console.error('[Dashboard] Erreur fetch séances:', seancesErr.message, seancesErr.details)
 
     // ── 3. Events du jour ──
-    const { data: eventsData } = await supabase
+    // Note : coach_events.client_id → auth.users(id), pas de FK vers profiles
+    const { data: eventsData, error: eventsErr } = await supabase
       .from('coach_events')
-      .select('id, title, event_date, event_type, client_id, notes, profiles:client_id(nom)')
+      .select('id, title, event_date, event_type, client_id, notes')
       .eq('coach_id', user.id)
       .gte('event_date', todayStart)
       .lte('event_date', todayEnd)
       .order('event_date', { ascending: true })
 
-    setTodayEvents(eventsData ?? [])
+    if (eventsErr) console.error('[Dashboard] Erreur fetch events:', eventsErr.message, eventsErr.details)
+
+    // ── 2b. Résoudre les noms des clients (séances + events) ──
+    const allClientIds = [
+      ...(seancesData ?? []).map(s => s.client_id),
+      ...(eventsData ?? []).filter(e => e.client_id).map(e => e.client_id),
+    ].filter(Boolean)
+    const uniqueClientIds = [...new Set(allClientIds)]
+
+    let clientNamesMap = {}
+    if (uniqueClientIds.length > 0) {
+      const { data: profilesData, error: profErr } = await supabase
+        .from('profiles')
+        .select('id, nom')
+        .in('id', uniqueClientIds)
+      if (profErr) console.error('[Dashboard] Erreur fetch profiles:', profErr.message)
+      ;(profilesData ?? []).forEach(p => { clientNamesMap[p.id] = p.nom })
+    }
+
+    // Enrichir les séances avec le nom du client
+    const enrichedSeances = (seancesData ?? []).map(s => ({
+      ...s,
+      profiles: { nom: clientNamesMap[s.client_id] || null },
+    }))
+    setTodaySeances(enrichedSeances)
+
+    // Enrichir les events avec le nom du client
+    const enrichedEvents = (eventsData ?? []).map(e => ({
+      ...e,
+      profiles: { nom: e.client_id ? (clientNamesMap[e.client_id] || null) : null },
+    }))
+    setTodayEvents(enrichedEvents)
 
     // ── 4. Formulaires en attente (envoyés mais non complétés) ──
-    const { count: pendingCount } = await supabase
-      .from('formulaire_reponses')
-      .select('id', { count: 'exact', head: true })
-      .eq('complete', false)
-      .in('formulaire_id', (
-        await supabase.from('formulaires').select('id').eq('coach_id', user.id)
-      ).data?.map(f => f.id) ?? [])
+    const { data: coachFormIds, error: formIdsErr } = await supabase
+      .from('formulaires')
+      .select('id')
+      .eq('coach_id', user.id)
 
-    setPendingForms(pendingCount ?? 0)
+    if (formIdsErr) console.error('[Dashboard] Erreur fetch formulaires ids:', formIdsErr.message)
+
+    const formIds = (coachFormIds ?? []).map(f => f.id)
+    let pendingCount = 0
+
+    if (formIds.length > 0) {
+      const { count, error: repErr } = await supabase
+        .from('formulaire_reponses')
+        .select('id', { count: 'exact', head: true })
+        .eq('complete', false)
+        .in('formulaire_id', formIds)
+
+      if (repErr) console.error('[Dashboard] Erreur fetch réponses en attente:', repErr.message)
+      pendingCount = count ?? 0
+    }
+
+    setPendingForms(pendingCount)
 
     // ── 5. Revenus (paiements_clients des 6 derniers mois) ──
     const sixMoisAgo = new Date()
@@ -171,13 +220,15 @@ export default function CoachDashboardPage() {
     sixMoisAgo.setDate(1)
     sixMoisAgo.setHours(0, 0, 0, 0)
 
-    const { data: paiementsData } = await supabase
+    const { data: paiementsData, error: paiementsErr } = await supabase
       .from('paiements_clients')
       .select('montant, date_paiement, statut')
       .eq('coach_id', user.id)
       .eq('statut', 'paye')
       .gte('date_paiement', sixMoisAgo.toISOString())
       .order('date_paiement', { ascending: true })
+
+    if (paiementsErr) console.error('[Dashboard] Erreur fetch paiements:', paiementsErr.message)
 
     // Agréger par mois
     const revenusParMois = {}
@@ -293,7 +344,7 @@ export default function CoachDashboardPage() {
   const todayPlanning = useMemo(() => {
     const items = []
 
-    // Séances
+    // Séances (pas de colonne is_completed dans la table)
     todaySeances.forEach(s => {
       items.push({
         id: s.id,
@@ -301,7 +352,7 @@ export default function CoachDashboardPage() {
         label: s.titre || 'Séance',
         clientName: s.profiles?.nom ?? 'Client',
         time: null, // seances n'ont pas d'heure, juste date
-        isCompleted: s.is_completed,
+        isCompleted: false,
         clientId: s.client_id,
       })
     })
