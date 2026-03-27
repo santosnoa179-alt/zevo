@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import {
   Calendar, ChevronLeft, ChevronRight, Plus, Clock, User,
   Dumbbell, X, CheckSquare, Phone, FileText, Users as UsersIcon,
-  Star, Loader2, Filter
+  Star, Loader2, Filter, Edit3, ExternalLink, AlignLeft, Save
 } from 'lucide-react'
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
@@ -124,6 +124,16 @@ export default function CoachGlobalCalendarPage() {
   const [evtClient, setEvtClient] = useState('')
   const [evtNotes, setEvtNotes] = useState('')
   const [saving, setSaving] = useState(false)
+
+  // Detail modals
+  const [dayDetailDate, setDayDetailDate] = useState(null)     // Modal "tous les events d'un jour"
+  const [detailSeance, setDetailSeance] = useState(null)       // Modal détail séance
+  const [detailEvent, setDetailEvent] = useState(null)         // Modal détail event
+  const [detailExos, setDetailExos] = useState([])             // Exercices de la séance
+  const [loadingExos, setLoadingExos] = useState(false)
+  const [editingNotes, setEditingNotes] = useState(false)      // Mode édition notes event
+  const [editNotesValue, setEditNotesValue] = useState('')
+  const [savingNotes, setSavingNotes] = useState(false)
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -301,10 +311,12 @@ export default function CoachGlobalCalendarPage() {
   const isAtToday = view === 'week' ? weekOffset === 0 : monthOffset === 0
   const navLabel = view === 'week' ? formatWeekRange(weekDates) : monthGrid.monthLabel.charAt(0).toUpperCase() + monthGrid.monthLabel.slice(1)
 
-  // ── Modal ──
-  const openNewModal = () => {
+  // ── Modal création ──
+  const openNewModal = (prefilledDate = null) => {
     setModalType(null)
-    setEvtTitle(''); setEvtDate(new Date().toISOString().split('T')[0]); setEvtTime('09:00')
+    setEvtTitle('')
+    setEvtDate(prefilledDate || new Date().toISOString().split('T')[0])
+    setEvtTime('09:00')
     setEvtType('bilan'); setEvtClient(''); setEvtNotes('')
     setModalOpen(true)
   }
@@ -319,6 +331,57 @@ export default function CoachGlobalCalendarPage() {
       event_type: evtType, notes: evtNotes.trim() || null,
     })
     setSaving(false); setModalOpen(false); fetchData()
+  }
+
+  // ── Clic sur une case de jour (click-to-add) ──
+  const handleDayClick = (date) => {
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    openNewModal(dateStr)
+  }
+
+  // ── Ouvrir le détail d'un jour (tous les items) ──
+  const openDayDetail = (date, e) => {
+    e.stopPropagation()
+    setDayDetailDate(date)
+  }
+
+  // ── Ouvrir le détail d'une séance ──
+  const openSeanceDetail = async (seance, e) => {
+    e.stopPropagation()
+    setDetailSeance(seance)
+    setDetailExos([])
+    setLoadingExos(true)
+    const { data } = await supabase
+      .from('seance_exercices')
+      .select('id, series, reps, poids, repos, ordre, exercices(nom, muscle_group, equipment)')
+      .eq('seance_id', seance.id)
+      .order('ordre')
+    setDetailExos(data || [])
+    setLoadingExos(false)
+  }
+
+  // ── Ouvrir le détail d'un event ──
+  const openEventDetail = (evt, e) => {
+    e.stopPropagation()
+    setDetailEvent(evt)
+    setEditingNotes(false)
+    setEditNotesValue(evt.notes || '')
+  }
+
+  // ── Sauvegarder les notes éditées d'un event ──
+  const saveEventNotes = async () => {
+    if (!detailEvent) return
+    setSavingNotes(true)
+    const { error } = await supabase
+      .from('coach_events')
+      .update({ notes: editNotesValue.trim() || null })
+      .eq('id', detailEvent.id)
+    if (!error) {
+      setDetailEvent(prev => ({ ...prev, notes: editNotesValue.trim() || null }))
+      setEditingNotes(false)
+      fetchData(true)
+    }
+    setSavingNotes(false)
   }
 
   // ══════════════════════════════════════
@@ -463,21 +526,24 @@ export default function CoachGlobalCalendarPage() {
               const dayItems = itemsForDay(cell.date)
               const maxShow = 2
               const overflow = dayItems.length - maxShow
-              const showPopover = popoverDay && isSameDay(popoverDay, cell.date)
 
               return (
                 <div
                   key={idx}
-                  className={`relative border-b border-r border-[#27272a] min-h-[90px] md:min-h-[100px] p-1.5 flex flex-col ${
-                    cell.inMonth ? '' : 'bg-[#0a0a0a]'
-                  } ${isTo ? 'bg-[#FF6B2B]/[0.04]' : ''}`}
+                  onClick={() => handleDayClick(cell.date)}
+                  className={`relative border-b border-r border-[#27272a] min-h-[90px] md:min-h-[100px] p-1.5 flex flex-col cursor-pointer transition-colors hover:bg-white/[0.02] ${
+                    cell.inMonth ? '' : 'bg-[#0a0a0a] hover:bg-[#0e0e0e]'
+                  } ${isTo ? 'bg-[#FF6B2B]/[0.04] hover:bg-[#FF6B2B]/[0.07]' : ''}`}
                 >
-                  {/* Date number */}
+                  {/* Date number — clic ouvre le détail jour si items */}
                   <div className="flex items-center justify-between mb-1">
-                    <span className={`text-xs font-medium leading-none ${
-                      isTo ? 'w-6 h-6 flex items-center justify-center rounded-full bg-[#FF6B2B] text-white text-[11px] font-bold'
-                        : cell.inMonth ? 'text-white/60' : 'text-white/20'
-                    }`}>
+                    <span
+                      onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
+                      className={`text-xs font-medium leading-none ${
+                        isTo ? 'w-6 h-6 flex items-center justify-center rounded-full bg-[#FF6B2B] text-white text-[11px] font-bold'
+                          : cell.inMonth ? 'text-white/60' : 'text-white/20'
+                      } ${dayItems.length > 0 ? 'hover:underline' : ''}`}
+                    >
                       {cell.date.getDate()}
                     </span>
                     {dayItems.length > 0 && (
@@ -485,12 +551,16 @@ export default function CoachGlobalCalendarPage() {
                     )}
                   </div>
 
-                  {/* Compact events */}
+                  {/* Compact events — stopPropagation pour ne pas trigger le click-to-add */}
                   <div className="flex flex-col gap-0.5 flex-1 overflow-hidden">
                     {dayItems.slice(0, maxShow).map((item) => {
                       if (item._type === 'seance') {
                         return (
-                          <div key={`s-${item.id}`} className="flex items-center gap-1 px-1 py-0.5 rounded bg-[#FF6B2B]/10 truncate">
+                          <div
+                            key={`s-${item.id}`}
+                            onClick={(e) => openSeanceDetail(item, e)}
+                            className="flex items-center gap-1 px-1 py-0.5 rounded bg-[#FF6B2B]/10 truncate cursor-pointer hover:bg-[#FF6B2B]/20 transition-colors"
+                          >
                             <Dumbbell className="w-2.5 h-2.5 text-[#FF6B2B] flex-shrink-0" />
                             <span className="text-[10px] text-[#F5F5F3] truncate">{item.profiles?.nom || item.titre}</span>
                           </div>
@@ -499,7 +569,12 @@ export default function CoachGlobalCalendarPage() {
                         const ti = getEventTypeInfo(item.event_type)
                         const TI = ti.icon
                         return (
-                          <div key={`e-${item.id}`} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: `${ti.color}15` }}>
+                          <div
+                            key={`e-${item.id}`}
+                            onClick={(e) => openEventDetail(item, e)}
+                            className="flex items-center gap-1 px-1 py-0.5 rounded truncate cursor-pointer hover:brightness-125 transition-all"
+                            style={{ backgroundColor: `${ti.color}15` }}
+                          >
                             <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
                             <span className="text-[10px] text-[#F5F5F3] truncate">{getClientName(item.client_id) || item.title}</span>
                           </div>
@@ -507,74 +582,16 @@ export default function CoachGlobalCalendarPage() {
                       }
                     })}
 
-                    {/* "+X autres" button */}
+                    {/* "+X autres" → ouvre la modale détail jour */}
                     {overflow > 0 && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); setPopoverDay(showPopover ? null : cell.date) }}
+                        onClick={(e) => openDayDetail(cell.date, e)}
                         className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] px-1 py-0.5 text-left transition-colors"
                       >
                         +{overflow} autre{overflow > 1 ? 's' : ''}
                       </button>
                     )}
                   </div>
-
-                  {/* Popover */}
-                  {showPopover && (
-                    <div
-                      ref={popoverRef}
-                      className="absolute z-30 top-full left-0 mt-1 w-56 bg-[#18181b] border border-[#27272a] rounded-xl shadow-2xl p-3 space-y-1.5"
-                      style={{ maxHeight: 240, overflowY: 'auto' }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-semibold text-[#F5F5F3]">
-                          {cell.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })}
-                        </p>
-                        <button onClick={() => setPopoverDay(null)} className="text-white/30 hover:text-white"><X size={14} /></button>
-                      </div>
-                      {dayItems.map(item => {
-                        if (item._type === 'seance') {
-                          return (
-                            <div key={`ps-${item.id}`} className="flex items-center gap-2 p-1.5 rounded-lg bg-[#FF6B2B]/10">
-                              <Dumbbell className="w-3 h-3 text-[#FF6B2B] flex-shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-[11px] font-medium text-[#F5F5F3] truncate">{item.titre}</p>
-                                <p className="text-[10px] text-white/35">{formatHHmm(item.date_prevue)} {item.profiles?.nom ? `- ${item.profiles.nom}` : ''}</p>
-                              </div>
-                            </div>
-                          )
-                        } else {
-                          const ti = getEventTypeInfo(item.event_type)
-                          const TI = ti.icon
-                          return (
-                            <div key={`pe-${item.id}`} className="flex items-center gap-2 p-1.5 rounded-lg" style={{ backgroundColor: `${ti.color}15` }}>
-                              <TI className="w-3 h-3 flex-shrink-0" style={{ color: ti.color }} />
-                              <div className="min-w-0">
-                                <p className="text-[11px] font-medium text-[#F5F5F3] truncate">{item.title}</p>
-                                <p className="text-[10px] text-white/35">{formatHHmm(item.event_date)} {getClientName(item.client_id) ? `- ${getClientName(item.client_id)}` : ''}</p>
-                              </div>
-                            </div>
-                          )
-                        }
-                      })}
-                      {/* Link to switch to week view */}
-                      <button
-                        onClick={() => {
-                          setPopoverDay(null)
-                          // Calculate week offset to contain this date
-                          const d = cell.date
-                          const diffMs = d.getTime() - today.getTime()
-                          const diffDays = Math.floor(diffMs / 86400000)
-                          const todayDay = today.getDay() === 0 ? 6 : today.getDay() - 1
-                          const targetDay = d.getDay() === 0 ? 6 : d.getDay() - 1
-                          setWeekOffset(Math.floor((diffDays + todayDay - targetDay) / 7))
-                          setView('week')
-                        }}
-                        className="w-full text-center text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] py-1 mt-1 border-t border-[#27272a] transition-colors"
-                      >
-                        Voir la semaine
-                      </button>
-                    </div>
-                  )}
                 </div>
               )
             })}
@@ -603,7 +620,11 @@ export default function CoachGlobalCalendarPage() {
                       <div key={idx} className={`p-1.5 border-r border-[#27272a] last:border-r-0 min-h-[40px] ${isSameDay(date, today) ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
                         <div className="flex flex-col gap-1">
                           {daySeances.map(s => (
-                            <div key={`ad-${s.id}`} className="flex items-center gap-1 px-1.5 py-1 rounded-md bg-[#FF6B2B]/10 border border-[#FF6B2B]/20">
+                            <div
+                              key={`ad-${s.id}`}
+                              onClick={(e) => openSeanceDetail(s, e)}
+                              className="flex items-center gap-1 px-1.5 py-1 rounded-md bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 cursor-pointer hover:bg-[#FF6B2B]/20 transition-colors"
+                            >
                               <Dumbbell className="w-2.5 h-2.5 text-[#FF6B2B] flex-shrink-0" />
                               <span className="text-[10px] font-medium text-[#F5F5F3] truncate">{s.titre}</span>
                             </div>
@@ -649,14 +670,19 @@ export default function CoachGlobalCalendarPage() {
                     return eH === h
                   })
                   return (
-                    <div key={dIdx} className={`h-[40px] border-r border-b border-[#27272a] last:border-r-0 relative ${isTo ? 'bg-[#FF6B2B]/[0.02]' : ''}`}>
+                    <div
+                      key={dIdx}
+                      onClick={() => handleDayClick(date)}
+                      className={`h-[40px] border-r border-b border-[#27272a] last:border-r-0 relative cursor-pointer hover:bg-white/[0.02] transition-colors ${isTo ? 'bg-[#FF6B2B]/[0.02]' : ''}`}
+                    >
                       {hourEvts.map(evt => {
                         const ti = getEventTypeInfo(evt.event_type)
                         const TI = ti.icon
                         return (
                           <div
                             key={`we-${evt.id}`}
-                            className="absolute inset-x-0.5 top-0.5 rounded-md px-1.5 py-1 z-10 border"
+                            onClick={(e) => openEventDetail(evt, e)}
+                            className="absolute inset-x-0.5 top-0.5 rounded-md px-1.5 py-1 z-10 border cursor-pointer hover:brightness-125 transition-all"
                             style={{ backgroundColor: `${ti.color}20`, borderColor: `${ti.color}40` }}
                           >
                             <div className="flex items-center gap-1">
@@ -787,6 +813,282 @@ export default function CoachGlobalCalendarPage() {
           </div>
         </>
       )}
+      {/* ═══════ MODAL DÉTAIL JOUR ═══════ */}
+      {dayDetailDate && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setDayDetailDate(null)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+                <h2 className="text-[#F5F5F3] font-semibold text-base">
+                  {dayDetailDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </h2>
+                <button onClick={() => setDayDetailDate(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-4 space-y-2 max-h-[400px] overflow-y-auto">
+                {itemsForDay(dayDetailDate).length === 0 ? (
+                  <p className="text-center text-white/25 text-sm py-8">Aucun événement ce jour</p>
+                ) : itemsForDay(dayDetailDate).map(item => {
+                  if (item._type === 'seance') {
+                    return (
+                      <button
+                        key={`dd-s-${item.id}`}
+                        onClick={(e) => { setDayDetailDate(null); openSeanceDetail(item, e) }}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 hover:bg-[#FF6B2B]/15 transition-colors text-left"
+                      >
+                        <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/20 flex items-center justify-center flex-shrink-0">
+                          <Dumbbell size={16} className="text-[#FF6B2B]" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-[#F5F5F3] truncate">{item.titre}</p>
+                          <p className="text-[11px] text-white/35 mt-0.5">{item.profiles?.nom || 'Client'}</p>
+                        </div>
+                        {item.is_completed && <CheckSquare size={14} className="text-green-400 flex-shrink-0" />}
+                      </button>
+                    )
+                  } else {
+                    const ti = getEventTypeInfo(item.event_type)
+                    const TI = ti.icon
+                    return (
+                      <button
+                        key={`dd-e-${item.id}`}
+                        onClick={(e) => { setDayDetailDate(null); openEventDetail(item, e) }}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border hover:brightness-110 transition-all text-left"
+                        style={{ backgroundColor: `${ti.color}10`, borderColor: `${ti.color}25` }}
+                      >
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${ti.color}20` }}>
+                          <TI size={16} style={{ color: ti.color }} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-[#F5F5F3] truncate">{item.title}</p>
+                          <p className="text-[11px] text-white/35 mt-0.5">
+                            {formatHHmm(item.event_date)}{getClientName(item.client_id) ? ` — ${getClientName(item.client_id)}` : ''}
+                          </p>
+                        </div>
+                      </button>
+                    )
+                  }
+                })}
+              </div>
+              <div className="px-4 pb-4">
+                <button
+                  onClick={() => { setDayDetailDate(null); handleDayClick(dayDetailDate) }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-xs font-medium hover:text-white/60 hover:border-[#3f3f46] transition-colors"
+                >
+                  <Plus size={14} /> Ajouter un événement
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ═══════ MODAL DÉTAIL SÉANCE ═══════ */}
+      {detailSeance && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setDetailSeance(null)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+              {/* Header */}
+              <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                    <Dumbbell size={18} className="text-[#FF6B2B]" />
+                  </div>
+                  <div>
+                    <h2 className="text-[#F5F5F3] font-semibold text-base">{detailSeance.titre}</h2>
+                    <p className="text-white/35 text-xs mt-0.5">{detailSeance.profiles?.nom || 'Client'}</p>
+                  </div>
+                </div>
+                <button onClick={() => setDetailSeance(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Infos */}
+              <div className="px-6 py-4 border-b border-[#27272a] flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <Calendar size={14} className="text-white/30" />
+                  <span className="text-sm text-[#F5F5F3]">
+                    {new Date(detailSeance.date_prevue).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                  </span>
+                </div>
+                {detailSeance.is_completed && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10">
+                    <CheckSquare size={12} className="text-green-400" />
+                    <span className="text-[11px] text-green-400 font-medium">Complétée</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Exercices */}
+              <div className="px-6 py-4 max-h-[300px] overflow-y-auto">
+                <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-3">
+                  Exercices ({detailExos.length})
+                </p>
+                {loadingExos ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 size={20} className="animate-spin text-[#FF6B2B]" />
+                  </div>
+                ) : detailExos.length === 0 ? (
+                  <p className="text-center text-white/20 text-sm py-6">Aucun exercice ajouté</p>
+                ) : (
+                  <div className="space-y-2">
+                    {detailExos.map((ex, i) => (
+                      <div key={ex.id} className="flex items-center gap-3 p-3 rounded-xl bg-[#18181b] border border-[#27272a]">
+                        <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-[11px] font-bold text-[#FF6B2B]">{i + 1}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-[#F5F5F3] truncate">{ex.exercices?.nom || 'Exercice'}</p>
+                          <p className="text-[11px] text-white/30 mt-0.5">
+                            {ex.exercices?.muscle_group || ''}{ex.exercices?.equipment ? ` — ${ex.exercices.equipment}` : ''}
+                          </p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-xs text-[#F5F5F3] font-medium">{ex.series}×{ex.reps}</p>
+                          <p className="text-[10px] text-white/25">{ex.poids ? `${ex.poids}kg` : ''}{ex.repos ? ` ${ex.repos}s` : ''}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-[#27272a]">
+                <button
+                  onClick={() => { setDetailSeance(null); navigate(`/coach/clients/${detailSeance.client_id}`) }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors"
+                >
+                  <ExternalLink size={14} /> Ouvrir la fiche client
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ═══════ MODAL DÉTAIL ÉVÉNEMENT ═══════ */}
+      {detailEvent && (() => {
+        const ti = getEventTypeInfo(detailEvent.event_type)
+        const TI = ti.icon
+        return (
+          <>
+            <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setDetailEvent(null)} />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${ti.color}20` }}>
+                      <TI size={18} style={{ color: ti.color }} />
+                    </div>
+                    <div>
+                      <h2 className="text-[#F5F5F3] font-semibold text-base">{detailEvent.title}</h2>
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${ti.color}15`, color: ti.color }}>
+                        {ti.label}
+                      </span>
+                    </div>
+                  </div>
+                  <button onClick={() => setDetailEvent(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Infos */}
+                <div className="px-6 py-4 border-b border-[#27272a] flex flex-wrap items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar size={14} className="text-white/30" />
+                    <span className="text-sm text-[#F5F5F3]">
+                      {new Date(detailEvent.event_date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-white/30" />
+                    <span className="text-sm text-[#F5F5F3]">{formatHHmm(detailEvent.event_date)}</span>
+                  </div>
+                  {getClientName(detailEvent.client_id) && (
+                    <div className="flex items-center gap-2">
+                      <User size={14} className="text-white/30" />
+                      <span className="text-sm text-[#F5F5F3]">{getClientName(detailEvent.client_id)}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes */}
+                <div className="px-6 py-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <AlignLeft size={14} className="text-white/30" />
+                      <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold">Notes</p>
+                    </div>
+                    {!editingNotes && (
+                      <button
+                        onClick={() => { setEditingNotes(true); setEditNotesValue(detailEvent.notes || '') }}
+                        className="flex items-center gap-1 text-[10px] text-[#FF6B2B] font-medium hover:text-[#FF9A6C] transition-colors"
+                      >
+                        <Edit3 size={11} /> Modifier
+                      </button>
+                    )}
+                  </div>
+
+                  {editingNotes ? (
+                    <div className="space-y-3">
+                      <textarea
+                        value={editNotesValue}
+                        onChange={(e) => setEditNotesValue(e.target.value)}
+                        rows={4}
+                        autoFocus
+                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-3 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none"
+                        placeholder="Ajouter des notes..."
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditingNotes(false)}
+                          className="flex-1 py-2 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          onClick={saveEventNotes}
+                          disabled={savingNotes}
+                          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40"
+                        >
+                          {savingNotes ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                          Enregistrer
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 min-h-[60px]">
+                      {detailEvent.notes ? (
+                        <p className="text-sm text-[#F5F5F3] leading-relaxed whitespace-pre-wrap">{detailEvent.notes}</p>
+                      ) : (
+                        <p className="text-sm text-white/20 italic">Aucune note pour cet événement</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer — lien vers la fiche client */}
+                {detailEvent.client_id && (
+                  <div className="px-6 pb-4">
+                    <button
+                      onClick={() => { setDetailEvent(null); navigate(`/coach/clients/${detailEvent.client_id}`) }}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-sm font-medium hover:text-white/60 hover:border-[#3f3f46] transition-colors"
+                    >
+                      <ExternalLink size={14} /> Voir la fiche client
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )
+      })()}
     </div>
   )
 }
