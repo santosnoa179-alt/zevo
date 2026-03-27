@@ -1406,6 +1406,20 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     setSavingNotes(false)
   }
 
+  // ── Supprimer un événement ──
+  const handleDeleteEvent = async (id) => {
+    if (!window.confirm('Voulez-vous vraiment supprimer cet événement ?')) return
+    const { error } = await supabase.from('coach_events').delete().eq('id', id)
+    if (error) {
+      console.error('[Hub/Calendar] Erreur DELETE event:', error.message)
+      toast.error('Erreur lors de la suppression')
+    } else {
+      toast.success('Événement supprimé')
+      setDetailEvent(null)
+      fetchCalData(true)
+    }
+  }
+
   // ── Séance creation (from modal) ──
   const openSeanceCreationModal = (prefilledDate) => {
     setModalDate(prefilledDate)
@@ -2321,6 +2335,16 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                       )}
                     </div>
                   )}
+                </div>
+
+                {/* Footer — Supprimer */}
+                <div className="px-6 pb-4">
+                  <button
+                    onClick={() => handleDeleteEvent(detailEvent.id)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm text-red-400 bg-red-500/10 hover:bg-red-500/15 transition-colors"
+                  >
+                    <Trash2 size={14} /> Supprimer cet événement
+                  </button>
                 </div>
               </div>
             </div>

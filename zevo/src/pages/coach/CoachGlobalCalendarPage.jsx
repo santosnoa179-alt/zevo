@@ -5,8 +5,9 @@ import { supabase } from '../../lib/supabase'
 import {
   Calendar, ChevronLeft, ChevronRight, Plus, Clock, User,
   Dumbbell, X, CheckSquare, Phone, FileText, Users as UsersIcon,
-  Star, Loader2, Filter, Edit3, ExternalLink, AlignLeft, Save
+  Star, Loader2, Filter, Edit3, ExternalLink, AlignLeft, Save, Trash2
 } from 'lucide-react'
+import { useToast } from '../../components/ui/Toast'
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const JOURS_FULL = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
@@ -94,6 +95,7 @@ const HOURS = Array.from({ length: 14 }, (_, i) => i + 7) // 7h → 20h
 export default function CoachGlobalCalendarPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const toast = useToast()
 
   // View state
   const [view, setView] = useState('month')
@@ -382,6 +384,34 @@ export default function CoachGlobalCalendarPage() {
       fetchData(true)
     }
     setSavingNotes(false)
+  }
+
+  // ── Supprimer une séance ──
+  const handleDeleteSeance = async (id) => {
+    if (!window.confirm('Voulez-vous vraiment supprimer cette séance ?')) return
+    const { error } = await supabase.from('seances').delete().eq('id', id)
+    if (error) {
+      console.error('[Calendar] Erreur DELETE séance:', error.message)
+      toast.error('Erreur lors de la suppression')
+    } else {
+      toast.success('Séance supprimée')
+      setDetailSeance(null)
+      fetchData(true)
+    }
+  }
+
+  // ── Supprimer un événement ──
+  const handleDeleteEvent = async (id) => {
+    if (!window.confirm('Voulez-vous vraiment supprimer cet événement ?')) return
+    const { error } = await supabase.from('coach_events').delete().eq('id', id)
+    if (error) {
+      console.error('[Calendar] Erreur DELETE event:', error.message)
+      toast.error('Erreur lors de la suppression')
+    } else {
+      toast.success('Événement supprimé')
+      setDetailEvent(null)
+      fetchData(true)
+    }
   }
 
   // ══════════════════════════════════════
@@ -958,10 +988,16 @@ export default function CoachGlobalCalendarPage() {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-[#27272a]">
+              <div className="px-6 py-4 border-t border-[#27272a] flex gap-2">
+                <button
+                  onClick={() => handleDeleteSeance(detailSeance.id)}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-400 bg-red-500/10 hover:bg-red-500/15 transition-colors"
+                >
+                  <Trash2 size={14} /> Supprimer
+                </button>
                 <button
                   onClick={() => { setDetailSeance(null); navigate(`/coach/clients/${detailSeance.client_id}`) }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors"
                 >
                   <ExternalLink size={14} /> Ouvrir la fiche client
                 </button>
@@ -1073,17 +1109,23 @@ export default function CoachGlobalCalendarPage() {
                   )}
                 </div>
 
-                {/* Footer — lien vers la fiche client */}
-                {detailEvent.client_id && (
-                  <div className="px-6 pb-4">
+                {/* Footer */}
+                <div className="px-6 pb-4 flex gap-2">
+                  <button
+                    onClick={() => handleDeleteEvent(detailEvent.id)}
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-400 bg-red-500/10 hover:bg-red-500/15 transition-colors"
+                  >
+                    <Trash2 size={14} /> Supprimer
+                  </button>
+                  {detailEvent.client_id && (
                     <button
                       onClick={() => { setDetailEvent(null); navigate(`/coach/clients/${detailEvent.client_id}`) }}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-sm font-medium hover:text-white/60 hover:border-[#3f3f46] transition-colors"
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-sm font-medium hover:text-white/60 hover:border-[#3f3f46] transition-colors"
                     >
                       <ExternalLink size={14} /> Voir la fiche client
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </>
