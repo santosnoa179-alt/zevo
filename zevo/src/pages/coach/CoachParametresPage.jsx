@@ -2,12 +2,9 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
-import { Save, Upload, ExternalLink, Loader2, Check, Link2, CheckCircle } from 'lucide-react'
+import { Save, Loader2, Check, Link2, CheckCircle, ExternalLink, User, Shield, CreditCard, Bell } from 'lucide-react'
 
-// Couleurs prédéfinies proposées au coach
-const PRESETS = ['#FF6B2B', '#3B82F6', '#10B981', '#8B5CF6', '#EC4899', '#F59E0B', '#EF4444', '#06B6D4']
-
-// Modules activables par le coach (budget supprimé)
+// Modules activables par le coach
 const MODULES_CONFIG = [
   { key: 'sport',    label: 'Sport',    desc: 'Suivi activité physique' },
   { key: 'sommeil',  label: 'Sommeil',  desc: 'Heures & qualité de sommeil' },
@@ -19,13 +16,13 @@ export default function CoachParametresPage() {
   const { user } = useAuth()
   const toast = useToast()
 
-  // État du formulaire
-  const [nomApp, setNomApp] = useState('Zevo')
-  const [logoUrl, setLogoUrl] = useState('')
-  const [couleur, setCouleur] = useState('#FF6B2B')
+  // État du formulaire — plus de nomApp, logoUrl, couleur ici
   const [messageBienvenue, setMessageBienvenue] = useState('')
   const [modules, setModules] = useState({ sport: true, sommeil: true, humeur: true, routines: true })
   const [plan, setPlan] = useState('starter')
+  const [coachPrenom, setCoachPrenom] = useState('')
+  const [coachNom, setCoachNom] = useState('')
+  const [coachEmail, setCoachEmail] = useState('')
 
   const [stripeCustomerId, setStripeCustomerId] = useState(null)
   const [stripeAccountId, setStripeAccountId] = useState(null)
@@ -35,7 +32,6 @@ export default function CoachParametresPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [uploading, setUploading] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
 
   // Charge les paramètres actuels du coach
@@ -44,73 +40,41 @@ export default function CoachParametresPage() {
     const load = async () => {
       const { data } = await supabase
         .from('coaches')
-        .select('nom_app, logo_url, couleur_primaire, message_bienvenue, modules, plan, stripe_customer_id, stripe_account_id, stripe_onboarding_complete')
+        .select('prenom, nom, message_bienvenue, modules, plan, stripe_customer_id, stripe_account_id, stripe_onboarding_complete')
         .eq('id', user.id)
         .single()
 
       if (data) {
-        setNomApp(data.nom_app || 'Zevo')
-        setLogoUrl(data.logo_url || '')
-        setCouleur(data.couleur_primaire || '#FF6B2B')
+        setCoachPrenom(data.prenom || '')
+        setCoachNom(data.nom || '')
         setMessageBienvenue(data.message_bienvenue || '')
         setPlan(data.plan || 'starter')
         setStripeCustomerId(data.stripe_customer_id || null)
         setStripeAccountId(data.stripe_account_id || null)
         setStripeOnboardingComplete(data.stripe_onboarding_complete || false)
         if (data.modules) {
-          // Fusion pour garantir toutes les clés
           setModules(prev => ({ ...prev, ...data.modules }))
         }
       }
+      setCoachEmail(user.email || '')
       setLoading(false)
     }
     load()
   }, [user])
-
-  // Upload du logo vers Supabase Storage
-  const handleLogoUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setUploading(true)
-    const ext = file.name.split('.').pop()
-    const path = `logos/${user.id}.${ext}`
-
-    // Upload dans le bucket "logos"
-    const { error: uploadError } = await supabase.storage
-      .from('logos')
-      .upload(path, file, { upsert: true })
-
-    if (uploadError) {
-      console.error('Erreur upload logo:', uploadError)
-      setUploading(false)
-      return
-    }
-
-    // Récupère l'URL publique
-    const { data: urlData } = supabase.storage
-      .from('logos')
-      .getPublicUrl(path)
-
-    setLogoUrl(urlData.publicUrl)
-    setUploading(false)
-  }
 
   // Toggle un module
   const toggleModule = (key) => {
     setModules(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
-  // Sauvegarde dans Supabase
+  // Sauvegarde dans Supabase — uniquement les champs compte/modules
   const handleSave = async () => {
     const data = {
-      nom_app: nomApp,
-      logo_url: logoUrl,
-      couleur_primaire: couleur,
+      prenom: coachPrenom,
+      nom: coachNom,
       message_bienvenue: messageBienvenue,
       modules,
     }
-    console.log('Début sauvegarde', data)
 
     setSaving(true)
     setSaved(false)
@@ -125,7 +89,6 @@ export default function CoachParametresPage() {
         console.error('Erreur sauvegarde:', error)
         toast.error(`Erreur : ${error.message}`)
       } else {
-        console.log('Sauvegarde réussie')
         toast.success('Paramètres mis à jour avec succès !')
         setSaved(true)
         setTimeout(() => setSaved(false), 2500)
@@ -162,7 +125,6 @@ export default function CoachParametresPage() {
     const params = new URLSearchParams(window.location.search)
     if (params.get('stripe_connect') === 'success') {
       setStripeOnboardingComplete(true)
-      // Nettoyer l'URL
       window.history.replaceState({}, '', '/coach/parametres')
     }
   }, [])
@@ -198,99 +160,66 @@ export default function CoachParametresPage() {
       {/* Titre */}
       <div>
         <h1 className="text-[#F5F5F3] text-2xl font-bold mb-1">Paramètres</h1>
-        <p className="text-white/40 text-sm">Personnalise ton app et gère ton abonnement</p>
+        <p className="text-white/40 text-sm">Gérez votre compte, modules et abonnement</p>
       </div>
 
-      {/* ── Section Identité ── */}
-      <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-6">
-        <h2 className="text-[#F5F5F3] font-semibold text-lg">Identité de l'app</h2>
-
-        {/* Nom de l'app */}
-        <div>
-          <label className="block text-sm text-white/60 mb-1.5">Nom de l'app</label>
-          <input
-            type="text"
-            value={nomApp}
-            onChange={(e) => setNomApp(e.target.value)}
-            placeholder="Ex : FitCoach, WellnessApp"
-            className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
-          />
-          <p className="text-white/30 text-xs mt-1">Vos clients verront ce nom au lieu de "Zevo"</p>
+      {/* ── Section Profil Coach ── */}
+      <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-5">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="p-2 rounded-lg bg-[#FF6B2B]/10">
+            <User size={18} className="text-[#FF6B2B]" />
+          </div>
+          <h2 className="text-[#F5F5F3] font-semibold text-lg">Profil</h2>
         </div>
 
-        {/* Logo */}
-        <div>
-          <label className="block text-sm text-white/60 mb-1.5">Logo</label>
-          <div className="flex items-center gap-4">
-            {/* Aperçu du logo */}
-            <div className="w-16 h-16 rounded-xl bg-[#2A2A2A] border border-white/[0.08] flex items-center justify-center overflow-hidden shrink-0">
-              {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-white/20 text-xs text-center">Aucun logo</span>
-              )}
-            </div>
-
-            {/* Bouton upload */}
-            <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2A2A2A] border border-white/[0.08] text-sm text-white/60 hover:text-white hover:border-white/20 transition-colors">
-              {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-              {uploading ? 'Upload...' : 'Changer le logo'}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleLogoUpload}
-                className="hidden"
-              />
-            </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-white/60 mb-1.5">Prénom</label>
+            <input
+              type="text"
+              value={coachPrenom}
+              onChange={(e) => setCoachPrenom(e.target.value)}
+              placeholder="Votre prénom"
+              className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-white/60 mb-1.5">Nom</label>
+            <input
+              type="text"
+              value={coachNom}
+              onChange={(e) => setCoachNom(e.target.value)}
+              placeholder="Votre nom"
+              className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+            />
           </div>
         </div>
 
-        {/* Couleur primaire */}
         <div>
-          <label className="block text-sm text-white/60 mb-1.5">Couleur primaire</label>
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Presets */}
-            {PRESETS.map((c) => (
-              <button
-                key={c}
-                onClick={() => setCouleur(c)}
-                className={`w-8 h-8 rounded-full border-2 transition-all ${
-                  couleur === c ? 'border-white scale-110' : 'border-transparent hover:scale-105'
-                }`}
-                style={{ backgroundColor: c }}
-                aria-label={`Couleur ${c}`}
-              />
-            ))}
-
-            {/* Color picker natif */}
-            <label className="relative cursor-pointer">
-              <div
-                className="w-8 h-8 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center text-white/30 text-xs hover:border-white/40 transition-colors"
-                title="Choisir une couleur personnalisée"
-              >
-                +
-              </div>
-              <input
-                type="color"
-                value={couleur}
-                onChange={(e) => setCouleur(e.target.value)}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-              />
-            </label>
-          </div>
-
-          {/* Aperçu couleur sélectionnée */}
-          <div className="flex items-center gap-2 mt-3">
-            <div className="w-5 h-5 rounded" style={{ backgroundColor: couleur }} />
-            <span className="text-white/40 text-xs font-mono">{couleur}</span>
+          <label className="block text-sm text-white/60 mb-1.5">Email</label>
+          <div className="flex items-center gap-3">
+            <input
+              type="email"
+              value={coachEmail}
+              disabled
+              className="w-full bg-[#2A2A2A]/50 border border-white/[0.05] rounded-lg px-4 py-2.5 text-white/40 text-sm cursor-not-allowed"
+            />
+            <span className="text-white/20 text-xs whitespace-nowrap">via Supabase Auth</span>
           </div>
         </div>
       </section>
 
       {/* ── Section Message de bienvenue ── */}
       <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-4">
-        <h2 className="text-[#F5F5F3] font-semibold text-lg">Message de bienvenue</h2>
-        <p className="text-white/40 text-sm -mt-2">Affiché au 1er login de chaque nouveau client</p>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="p-2 rounded-lg bg-blue-500/10">
+            <Bell size={18} className="text-blue-400" />
+          </div>
+          <div>
+            <h2 className="text-[#F5F5F3] font-semibold text-lg">Message de bienvenue</h2>
+            <p className="text-white/40 text-xs">Affiché au 1er login de chaque nouveau client</p>
+          </div>
+        </div>
         <textarea
           value={messageBienvenue}
           onChange={(e) => setMessageBienvenue(e.target.value)}
@@ -302,8 +231,15 @@ export default function CoachParametresPage() {
 
       {/* ── Section Modules ── */}
       <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-4">
-        <h2 className="text-[#F5F5F3] font-semibold text-lg">Modules activés</h2>
-        <p className="text-white/40 text-sm -mt-2">Active ou désactive les modules visibles par tes clients</p>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="p-2 rounded-lg bg-purple-500/10">
+            <Shield size={18} className="text-purple-400" />
+          </div>
+          <div>
+            <h2 className="text-[#F5F5F3] font-semibold text-lg">Modules activés</h2>
+            <p className="text-white/40 text-xs">Active ou désactive les modules visibles par tes clients</p>
+          </div>
+        </div>
 
         <div className="space-y-3">
           {MODULES_CONFIG.map(({ key, label, desc }) => (
@@ -315,7 +251,6 @@ export default function CoachParametresPage() {
                 <p className="text-[#F5F5F3] text-sm font-medium">{label}</p>
                 <p className="text-white/30 text-xs">{desc}</p>
               </div>
-              {/* Toggle switch */}
               <button
                 onClick={() => toggleModule(key)}
                 className={`relative w-11 h-6 rounded-full transition-colors ${
@@ -337,8 +272,15 @@ export default function CoachParametresPage() {
 
       {/* ── Section Paiements en ligne (Stripe Connect) ── */}
       <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-4">
-        <h2 className="text-[#F5F5F3] font-semibold text-lg">Paiements en ligne</h2>
-        <p className="text-white/40 text-sm -mt-2">Connectez votre compte Stripe pour recevoir les paiements de vos clients</p>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="p-2 rounded-lg bg-[#635BFF]/10">
+            <CreditCard size={18} className="text-[#635BFF]" />
+          </div>
+          <div>
+            <h2 className="text-[#F5F5F3] font-semibold text-lg">Paiements en ligne</h2>
+            <p className="text-white/40 text-xs">Connectez votre compte Stripe pour recevoir les paiements</p>
+          </div>
+        </div>
 
         {stripeOnboardingComplete ? (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/20">
@@ -366,8 +308,14 @@ export default function CoachParametresPage() {
 
       {/* ── Section Abonnement ── */}
       <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-4">
-        <h2 className="text-[#F5F5F3] font-semibold text-lg">Abonnement</h2>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="p-2 rounded-lg bg-amber-500/10">
+            <CreditCard size={18} className="text-amber-400" />
+          </div>
+          <h2 className="text-[#F5F5F3] font-semibold text-lg">Abonnement</h2>
+        </div>
+
+        <div className="flex items-center justify-between p-4 rounded-xl bg-[#2A2A2A]/50">
           <div>
             <p className="text-[#F5F5F3] text-sm font-medium capitalize">Plan {plan}</p>
             <p className="text-white/30 text-xs">
@@ -392,12 +340,11 @@ export default function CoachParametresPage() {
       </section>
 
       {/* ── Bouton Sauvegarder ── */}
-      <div className="flex justify-end">
+      <div className="flex justify-end pb-6">
         <button
           onClick={handleSave}
           disabled={saving}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
-          style={{ backgroundColor: couleur }}
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FF6B2B] text-sm font-semibold text-white transition-all hover:bg-[#e55e24] disabled:opacity-50"
         >
           {saving ? (
             <Loader2 size={16} className="animate-spin" />

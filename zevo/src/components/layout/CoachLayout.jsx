@@ -42,7 +42,7 @@ const NAV_SECTIONS = [
     title: 'GESTION',
     items: [
       { to: '/coach/abonnements', icon: CreditCard, label: 'Abonnements' },
-      { to: '/coach/app-builder', icon: Paintbrush, label: 'App Builder' },
+      { to: '/coach/app-builder', icon: Paintbrush, label: 'App Builder', badge: 'PRO' },
       { to: '/coach/parametres', icon: Settings, label: 'Paramètres' },
     ],
   },
