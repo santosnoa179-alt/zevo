@@ -137,12 +137,19 @@ export default function CoachDashboardPage() {
     setProspects(prospectsData)
 
     // ── 2. Séances du jour ──
-    // Note : la table seances n'a PAS de colonnes is_completed ni is_template
+    // is_template et is_completed existent (ALTER TABLE via schema-seances-templates + schema-seances-completed)
+    // Filtres robustes :
+    //   - gte/lte sur date_prevue (type date) pour couvrir toute la journée
+    //   - is_template = false → exclure les modèles
+    //   - client_id NOT NULL → exclure les templates orphelins
     const { data: seancesData, error: seancesErr } = await supabase
       .from('seances')
-      .select('id, titre, date_prevue, client_id, notes')
+      .select('id, titre, date_prevue, client_id, notes, is_completed, is_template')
       .eq('coach_id', user.id)
-      .eq('date_prevue', todayISO)
+      .gte('date_prevue', todayISO)
+      .lte('date_prevue', todayISO)
+      .eq('is_template', false)
+      .not('client_id', 'is', null)
       .order('date_prevue', { ascending: true })
 
     if (seancesErr) console.error('[Dashboard] Erreur fetch séances:', seancesErr.message, seancesErr.details)
@@ -344,7 +351,7 @@ export default function CoachDashboardPage() {
   const todayPlanning = useMemo(() => {
     const items = []
 
-    // Séances (pas de colonne is_completed dans la table)
+    // Séances (is_completed existe via ALTER TABLE)
     todaySeances.forEach(s => {
       items.push({
         id: s.id,
@@ -352,7 +359,7 @@ export default function CoachDashboardPage() {
         label: s.titre || 'Séance',
         clientName: s.profiles?.nom ?? 'Client',
         time: null, // seances n'ont pas d'heure, juste date
-        isCompleted: false,
+        isCompleted: !!s.is_completed,
         clientId: s.client_id,
       })
     })
