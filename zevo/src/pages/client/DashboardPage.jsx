@@ -402,7 +402,7 @@ export default function DashboardPage() {
 
             {/* CTA Button */}
             <button
-              onClick={() => navigate('/app/seances')}
+              onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
               className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-bold text-sm tracking-wide text-white active:scale-95 transition-all duration-200"
               style={{
                 background: 'linear-gradient(135deg, var(--color-primary, #FF6B2B), #FF9A6C)',
