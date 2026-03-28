@@ -17,7 +17,7 @@ import {
   Wheat, Beef, Fish, Egg, Carrot, Grape, Droplets, TrendingUp, TrendingDown,
   Ruler, Weight, ChevronUp, ChevronDown as ChevronDownIcon,
   FolderOpen, Paperclip, FileText,
-  CheckCircle2, Circle, Footprints, BookOpen, Smile
+  CheckCircle2, Circle, Footprints, BookOpen, Smile, Upload
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -864,27 +864,92 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                       </button>
                     </div>
 
-                    {/* Media URL input (toggle) */}
+                    {/* Media URL input + Upload (toggle) */}
                     {ex._showMediaInput && (
-                      <div className="mb-4 flex items-center gap-2">
-                        <div className="flex-1 relative">
-                          <Video size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
-                          <input
-                            type="url"
-                            value={ex.media_url || ''}
-                            onChange={(e) => modifierExercice(ex.id, 'media_url', e.target.value)}
-                            placeholder="Lien vidéo ou image (YouTube, mp4, jpg...)"
-                            className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-8 pr-3 py-2 text-[#F5F5F3] text-xs placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
-                          />
-                        </div>
-                        {hasMedia && (
-                          <button
-                            onClick={() => modifierExercice(ex.id, 'media_url', '')}
-                            className="p-1.5 rounded-lg text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors flex-shrink-0"
-                            title="Supprimer le média"
+                      <div className="mb-4 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 relative">
+                            <Video size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                            <input
+                              type="url"
+                              value={ex.media_url || ''}
+                              onChange={(e) => modifierExercice(ex.id, 'media_url', e.target.value)}
+                              placeholder="Lien vidéo ou image (YouTube, mp4, jpg...)"
+                              className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-8 pr-3 py-2 text-[#F5F5F3] text-xs placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+                            />
+                          </div>
+                          {/* Upload file button */}
+                          <label
+                            className={`p-2 rounded-lg transition-colors flex-shrink-0 cursor-pointer ${
+                              ex._uploading
+                                ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] cursor-wait'
+                                : 'bg-[#18181b] border border-[#27272a] text-white/30 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30'
+                            }`}
+                            title="Uploader un fichier vidéo ou image"
                           >
-                            <X size={14} />
-                          </button>
+                            {ex._uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                            <input
+                              type="file"
+                              accept="video/*,image/*"
+                              className="hidden"
+                              disabled={!!ex._uploading}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0]
+                                if (!file) return
+                                e.target.value = ''
+
+                                // Max 50MB
+                                if (file.size > 50 * 1024 * 1024) {
+                                  toast.error('Fichier trop volumineux (max 50 Mo)')
+                                  return
+                                }
+
+                                modifierExercice(ex.id, '_uploading', true)
+                                try {
+                                  const ext = file.name.split('.').pop()?.toLowerCase() || 'bin'
+                                  const path = `exercices/${coachId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+
+                                  const { error: uploadErr } = await supabase.storage
+                                    .from('medias')
+                                    .upload(path, file, { cacheControl: '3600', upsert: false })
+
+                                  if (uploadErr) throw uploadErr
+
+                                  const { data: urlData } = supabase.storage
+                                    .from('medias')
+                                    .getPublicUrl(path)
+
+                                  modifierExercice(ex.id, 'media_url', urlData.publicUrl)
+                                  toast.success(`"${file.name}" uploadé !`)
+                                } catch (err) {
+                                  console.error('[Upload] Erreur:', err.message || err)
+                                  toast.error(`Erreur upload : ${err.message || 'Erreur inconnue'}`)
+                                } finally {
+                                  modifierExercice(ex.id, '_uploading', false)
+                                }
+                              }}
+                            />
+                          </label>
+                          {hasMedia && (
+                            <button
+                              onClick={() => modifierExercice(ex.id, 'media_url', '')}
+                              className="p-1.5 rounded-lg text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors flex-shrink-0"
+                              title="Supprimer le média"
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
+                        </div>
+                        {/* Preview thumbnail si média attaché */}
+                        {hasMedia && /\.(jpg|jpeg|png|gif|webp|svg|avif)(\?.*)?$/i.test(ex.media_url) && (
+                          <div className="rounded-lg overflow-hidden border border-[#27272a] h-20">
+                            <img src={ex.media_url} alt="" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        {hasMedia && /\.(mp4|webm|mov)(\?.*)?$/i.test(ex.media_url) && (
+                          <div className="rounded-lg overflow-hidden border border-[#27272a] h-20 bg-black">
+                            <video src={ex.media_url} className="w-full h-full object-contain" muted />
+                          </div>
                         )}
                       </div>
                     )}
