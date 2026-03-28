@@ -7,7 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import {
   CheckCircle2, Circle, AlertTriangle, Flame, Layers, Dumbbell,
   ClipboardList, ChevronRight, Moon, Smile, Zap, User, TrendingUp,
-  Play, Sparkles
+  Play, Sparkles, Minus, Plus, Check
 } from 'lucide-react'
 import { Confetti, StreakMilestone } from '../../components/ui/Confetti'
 
@@ -81,6 +81,14 @@ export default function DashboardPage() {
   const [programmePhases, setProgrammePhases] = useState([])
   const [progSeances, setProgSeances] = useState({ total: 0, done: 0 })
 
+  // Check-in widgets state
+  const [sommeilInput, setSommeilInput] = useState(7)
+  const [sommeilSaved, setSommeilSaved] = useState(false)
+  const [sommeilSaving, setSommeilSaving] = useState(false)
+  const [humeurInput, setHumeurInput] = useState(null)
+  const [humeurSaved, setHumeurSaved] = useState(false)
+  const [humeurSaving, setHumeurSaving] = useState(false)
+
   const today = new Date().toISOString().split('T')[0]
 
   // ── Charge les scores des 7 derniers jours ──
@@ -133,9 +141,15 @@ export default function DashboardPage() {
       setProfil(profilRes.data)
       setHabitudes(habs)
       setLogAujourdhui((logRes.data ?? []).map(l => l.habitude_id))
-      setSommeil(sommeilRes.data ?? null)
-      setHumeur(humeurRes.data ?? null)
+      const sommeilData = sommeilRes.data ?? null
+      const humeurData = humeurRes.data ?? null
+      setSommeil(sommeilData)
+      setHumeur(humeurData)
       setSport(sportRes.data ?? null)
+
+      // Init check-in widgets
+      if (sommeilData) { setSommeilInput(sommeilData.heures || 7); setSommeilSaved(true) }
+      if (humeurData) { setHumeurInput(humeurData.score || null); setHumeurSaved(true) }
 
       // ── Séance du jour ──
       const { data: seancesAuj, error: seancesErr } = await supabase
@@ -265,6 +279,43 @@ export default function DashboardPage() {
     setToggling(null)
   }
 
+  // ── Save sommeil check-in ──
+  const saveSommeil = async () => {
+    if (!user || sommeilSaving) return
+    setSommeilSaving(true)
+    try {
+      if (sommeil) {
+        await supabase.from('sommeil_log').update({ heures: sommeilInput, qualite: Math.min(5, Math.max(1, Math.round(sommeilInput / 2))) }).eq('id', sommeil.id)
+      } else {
+        await supabase.from('sommeil_log').insert({ client_id: user.id, date: today, heures: sommeilInput, qualite: Math.min(5, Math.max(1, Math.round(sommeilInput / 2))) })
+      }
+      setSommeil({ ...(sommeil || {}), heures: sommeilInput })
+      setSommeilSaved(true)
+    } catch (err) {
+      console.error('[Dashboard] Erreur save sommeil:', err)
+    }
+    setSommeilSaving(false)
+  }
+
+  // ── Save humeur check-in ──
+  const saveHumeur = async (score) => {
+    if (!user || humeurSaving) return
+    setHumeurInput(score)
+    setHumeurSaving(true)
+    try {
+      if (humeur) {
+        await supabase.from('humeur_log').update({ score }).eq('id', humeur.id)
+      } else {
+        await supabase.from('humeur_log').insert({ client_id: user.id, date: today, score })
+      }
+      setHumeur({ ...(humeur || {}), score })
+      setHumeurSaved(true)
+    } catch (err) {
+      console.error('[Dashboard] Erreur save humeur:', err)
+    }
+    setHumeurSaving(false)
+  }
+
   const cochees = logAujourdhui.length
   const totalHab = habitudes.length
   const score = calculerScoreBienEtre({ habitudes: { cochees, total: totalHab }, sommeil, humeur, sport })
@@ -327,6 +378,113 @@ export default function DashboardPage() {
           <Flame size={18} className="text-[#FF6B2B]" />
           <span className="text-[#FF6B2B] font-bold text-sm">{streak} jours</span>
           <span className="text-white/40 text-xs">de suite — Continue comme ça !</span>
+        </div>
+      )}
+
+      {/* ═══════════════ CHECK-IN QUOTIDIEN ═══════════════ */}
+      {(!sommeilSaved || !humeurSaved) && (
+        <div className="space-y-3">
+          <p className="text-white/30 text-[10px] uppercase tracking-widest font-bold px-1">Check-in du jour</p>
+
+          <div className="grid grid-cols-2 gap-3">
+            {/* ── Widget Sommeil ── */}
+            <div className={`rounded-2xl border p-4 transition-all duration-500 ${
+              sommeilSaved
+                ? 'bg-indigo-500/5 border-indigo-500/20'
+                : 'bg-[#1E1E1E] border-white/[0.06]'
+            }`}>
+              {sommeilSaved ? (
+                <div className="text-center py-2">
+                  <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto mb-2">
+                    <Check size={20} className="text-indigo-400" />
+                  </div>
+                  <p className="text-indigo-300 text-sm font-bold">{sommeilInput}h</p>
+                  <p className="text-indigo-300/50 text-[10px] mt-0.5">Sommeil enregistré</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Moon size={14} className="text-indigo-400" />
+                    <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Sommeil</p>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 mb-3">
+                    <button
+                      onClick={() => setSommeilInput(v => Math.max(0, +(v - 0.5).toFixed(1)))}
+                      className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.1] transition-all active:scale-90"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <div className="text-center min-w-[50px]">
+                      <p className="text-[#F5F5F3] text-2xl font-black leading-none">{sommeilInput}</p>
+                      <p className="text-white/25 text-[9px] mt-0.5">heures</p>
+                    </div>
+                    <button
+                      onClick={() => setSommeilInput(v => Math.min(14, +(v + 0.5).toFixed(1)))}
+                      className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.1] transition-all active:scale-90"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  <button
+                    onClick={saveSommeil}
+                    disabled={sommeilSaving}
+                    className="w-full py-2 rounded-xl bg-indigo-500/20 text-indigo-300 text-xs font-bold hover:bg-indigo-500/30 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    {sommeilSaving ? '...' : 'Valider'}
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* ── Widget Humeur ── */}
+            <div className={`rounded-2xl border p-4 transition-all duration-500 ${
+              humeurSaved
+                ? 'bg-yellow-500/5 border-yellow-500/20'
+                : 'bg-[#1E1E1E] border-white/[0.06]'
+            }`}>
+              {humeurSaved ? (
+                <div className="text-center py-2">
+                  <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-2">
+                    <Check size={20} className="text-yellow-400" />
+                  </div>
+                  <p className="text-yellow-300 text-sm font-bold">
+                    {['😞', '😕', '😐', '🙂', '😄'][Math.min(4, Math.max(0, Math.round((humeurInput || 5) / 2) - 1))]}
+                  </p>
+                  <p className="text-yellow-300/50 text-[10px] mt-0.5">Humeur enregistrée</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Smile size={14} className="text-yellow-400" />
+                    <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Humeur</p>
+                  </div>
+                  <div className="flex items-center justify-center gap-1.5 mb-3">
+                    {[
+                      { emoji: '😞', score: 2, label: 'Mal' },
+                      { emoji: '😕', score: 4, label: 'Bof' },
+                      { emoji: '😐', score: 6, label: 'Ok' },
+                      { emoji: '🙂', score: 8, label: 'Bien' },
+                      { emoji: '😄', score: 10, label: 'Top' },
+                    ].map(({ emoji, score, label }) => (
+                      <button
+                        key={score}
+                        onClick={() => saveHumeur(score)}
+                        disabled={humeurSaving}
+                        className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all active:scale-90 ${
+                          humeurInput === score
+                            ? 'bg-yellow-500/20 scale-110'
+                            : 'hover:bg-white/[0.06]'
+                        }`}
+                      >
+                        <span className="text-xl leading-none">{emoji}</span>
+                        <span className="text-[8px] text-white/25 font-medium">{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

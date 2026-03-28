@@ -1,34 +1,45 @@
 import { useState, useEffect } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Target, CheckSquare, MessageSquare, User, LogOut, BookOpen, ClipboardList, CreditCard, Layers, Dumbbell } from 'lucide-react'
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { LayoutDashboard, Target, MessageSquare, User, LogOut, BookOpen, ClipboardList, CreditCard, Layers, Dumbbell, Calendar } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useCoachTheme } from '../../hooks/useCoachTheme'
 import { ZevoLogo } from '../ui/ZevoLogo'
 import OnboardingFlow from '../OnboardingFlow'
 
-// Tous les onglets possibles — filtrés selon les modules activés par le coach
-const ALL_NAV_ITEMS = [
-  { to: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard', alwaysVisible: true },
-  { to: '/app/habitudes', icon: CheckSquare, label: 'Habitudes', alwaysVisible: true },
-  { to: '/app/objectifs', icon: Target, label: 'Objectifs', alwaysVisible: true },
-  { to: '/app/programme', icon: Layers, label: 'Programme', alwaysVisible: true },
-  { to: '/app/seances', icon: Dumbbell, label: 'Séances', alwaysVisible: true },
-  { to: '/app/messages', icon: MessageSquare, label: 'Messages', alwaysVisible: true },
-  { to: '/app/ressources', icon: BookOpen, label: 'Ressources', alwaysVisible: true },
-  { to: '/app/formulaires', icon: ClipboardList, label: 'Formulaires', alwaysVisible: true },
-  { to: '/app/abonnement', icon: CreditCard, label: 'Abonnement', alwaysVisible: true },
-  { to: '/app/profil', icon: User, label: 'Profil', alwaysVisible: true },
+// ── 5 onglets principaux (bottom nav flottante) ──
+const MAIN_NAV = [
+  { to: '/app/dashboard', icon: LayoutDashboard, label: 'Accueil' },
+  { to: '/app/seances', icon: Calendar, label: 'Calendrier' },
+  { to: '/app/programme', icon: Layers, label: 'Programme' },
+  { to: '/app/objectifs', icon: Target, label: 'Objectifs' },
+  { to: '/app/messages', icon: MessageSquare, label: 'Messages' },
 ]
+
+// ── Sidebar desktop : tous les onglets ──
+const ALL_NAV_ITEMS = [
+  { to: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/app/seances', icon: Calendar, label: 'Calendrier' },
+  { to: '/app/programme', icon: Layers, label: 'Programme' },
+  { to: '/app/objectifs', icon: Target, label: 'Objectifs' },
+  { to: '/app/messages', icon: MessageSquare, label: 'Messages' },
+  { to: '/app/habitudes', icon: Dumbbell, label: 'Habitudes' },
+  { to: '/app/ressources', icon: BookOpen, label: 'Ressources' },
+  { to: '/app/formulaires', icon: ClipboardList, label: 'Formulaires' },
+  { to: '/app/abonnement', icon: CreditCard, label: 'Abonnement' },
+  { to: '/app/profil', icon: User, label: 'Profil' },
+]
+
+// Routes où la bottom nav est masquée (mode immersif)
+const HIDDEN_NAV_ROUTES = ['/app/workout']
 
 export function ClientLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
-  // Charge le thème du coach — retourne nom, logo, couleur, modules
-  const { nomApp, logoUrl, couleur, modules, loading } = useCoachTheme()
+  const { nomApp, logoUrl } = useCoachTheme()
 
-  // Vérifie si l'onboarding a été complété
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingChecked, setOnboardingChecked] = useState(false)
 
@@ -54,18 +65,17 @@ export function ClientLayout() {
     navigate('/login')
   }
 
-  // Filtre les items de navigation visibles
-  const navItems = ALL_NAV_ITEMS.filter(item => item.alwaysVisible)
+  // Masquer la nav sur certaines routes (workout tracker)
+  const hideBottomNav = HIDDEN_NAV_ROUTES.some(r => location.pathname.startsWith(r))
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] flex flex-col">
-      {/* Overlay d'onboarding au premier login */}
       {showOnboarding && onboardingChecked && (
         <OnboardingFlow onComplete={() => setShowOnboarding(false)} />
       )}
 
-      {/* Header — affiche le logo/nom du coach au lieu de Zevo par défaut */}
-      <header className="sticky top-0 z-40 bg-[#0D0D0D] border-b border-white/[0.08] px-4 py-3 flex items-center justify-between">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-[#0D0D0D]/90 backdrop-blur-lg border-b border-white/[0.06] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           {logoUrl ? (
             <img src={logoUrl} alt={nomApp} className="w-7 h-7 rounded-lg object-cover" />
@@ -85,44 +95,66 @@ export function ClientLayout() {
         </button>
       </header>
 
-      {/* Contenu principal — md:ml-56 compense la sidebar fixe desktop */}
-      <main className="flex-1 overflow-auto pb-20 md:pb-0 md:ml-56">
+      {/* Main content — pb-28 pour laisser place à la floating nav */}
+      <main className={`flex-1 overflow-auto ${hideBottomNav ? '' : 'pb-28'} md:pb-0 md:ml-56`}>
         <Outlet />
       </main>
 
-      {/* Barre de navigation mobile (bottom nav) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#1E1E1E] border-t border-white/[0.08] md:hidden">
-        <ul className="flex items-center justify-around h-16">
-          {navItems.map(({ to, icon: Icon, label }) => (
-            <li key={to}>
-              <NavLink
-                to={to}
-                className={({ isActive }) =>
-                  `flex flex-col items-center gap-1 px-3 py-2 transition-colors ${
-                    isActive ? 'text-[var(--color-primary,#FF6B2B)]' : 'text-white/40 hover:text-white/70'
-                  }`
-                }
-              >
-                <Icon size={20} />
-                <span className="text-[10px] font-medium">{label}</span>
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      {/* ═══════ FLOATING BOTTOM NAV — iOS/Apple Fitness Style ═══════ */}
+      {!hideBottomNav && (
+        <nav className="fixed bottom-5 left-4 right-4 z-50 md:hidden">
+          <div className="bg-black/80 backdrop-blur-xl border border-white/[0.10] rounded-3xl shadow-2xl shadow-black/50 px-2 py-2">
+            <ul className="flex items-center justify-around">
+              {MAIN_NAV.map(({ to, icon: Icon, label }) => (
+                <li key={to}>
+                  <NavLink
+                    to={to}
+                    className={({ isActive }) => 'relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-300 ' + (
+                      isActive
+                        ? 'bg-[#FF6B2B]/10'
+                        : 'hover:bg-white/[0.04]'
+                    )}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <Icon
+                          size={21}
+                          className={`transition-colors duration-300 ${
+                            isActive ? 'text-[#FF6B2B]' : 'text-white/35'
+                          }`}
+                          strokeWidth={isActive ? 2.3 : 1.8}
+                        />
+                        <span className={`text-[9px] font-semibold transition-colors duration-300 ${
+                          isActive ? 'text-[#FF6B2B]' : 'text-white/30'
+                        }`}>
+                          {label}
+                        </span>
+                        {/* Active indicator dot */}
+                        {isActive && (
+                          <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#FF6B2B]" />
+                        )}
+                      </>
+                    )}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+      )}
 
       {/* Sidebar desktop */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-56 bg-[#1E1E1E] border-r border-white/[0.08] flex-col pt-16">
         <nav className="flex-1 px-3 py-4">
           <ul className="space-y-1">
-            {navItems.map(({ to, icon: Icon, label }) => (
+            {ALL_NAV_ITEMS.map(({ to, icon: Icon, label }) => (
               <li key={to}>
                 <NavLink
                   to={to}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-[var(--color-primary,#FF6B2B)]/10 text-[var(--color-primary,#FF6B2B)]'
+                        ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
                         : 'text-white/50 hover:text-white hover:bg-white/[0.04]'
                     }`
                   }

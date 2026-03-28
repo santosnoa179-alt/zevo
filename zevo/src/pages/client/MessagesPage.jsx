@@ -4,9 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { Send, Mic } from 'lucide-react'
 import { AudioBubble, VoiceRecorder } from '../../components/chat/VoiceMessage'
 
-// Bulle de message individuelle
+// Bulle de message individuelle — style iMessage
 function Bulle({ message, estMoi }) {
-  // Message vocal → AudioBubble
   if (message.audio_url) {
     return (
       <AudioBubble
@@ -21,14 +20,14 @@ function Bulle({ message, estMoi }) {
   return (
     <div className={`flex ${estMoi ? 'justify-end' : 'justify-start'} mb-2`}>
       <div
-        className={`max-w-[78%] px-4 py-2.5 rounded-2xl text-sm ${
+        className={`max-w-[78%] px-4 py-2.5 text-sm ${
           estMoi
-            ? 'bg-[#FF6B2B] text-white rounded-br-sm'
-            : 'bg-[#2A2A2A] text-[#F5F5F3] rounded-bl-sm'
+            ? 'bg-[#FF6B2B] text-white rounded-2xl rounded-br-md'
+            : 'bg-[#2A2A2A] text-[#F5F5F3] rounded-2xl rounded-bl-md'
         }`}
       >
-        <p>{message.contenu}</p>
-        <p className={`text-[10px] mt-1 ${estMoi ? 'text-white/60' : 'text-white/30'}`}>
+        <p className="leading-relaxed">{message.contenu}</p>
+        <p className={`text-[10px] mt-1 ${estMoi ? 'text-white/50' : 'text-white/25'}`}>
           {new Date(message.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
@@ -47,11 +46,9 @@ export default function MessagesClientPage() {
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
-  // Charge le coach_id du client + l'historique de messages
   const chargerMessages = useCallback(async () => {
     if (!user) return
 
-    // Récupère le coach_id du client connecté
     const { data: clientData } = await supabase
       .from('clients')
       .select('coach_id')
@@ -61,7 +58,6 @@ export default function MessagesClientPage() {
     if (!clientData?.coach_id) { setLoading(false); return }
     setCoachId(clientData.coach_id)
 
-    // Charge les messages de la conversation
     const { data: msgs } = await supabase
       .from('messages')
       .select('*')
@@ -71,7 +67,6 @@ export default function MessagesClientPage() {
 
     setMessages(msgs ?? [])
 
-    // Marque les messages non lus du coach comme lus
     await supabase
       .from('messages')
       .update({ lu: true })
@@ -83,7 +78,6 @@ export default function MessagesClientPage() {
     setLoading(false)
   }, [user])
 
-  // Abonnement Supabase Realtime — nouveaux messages en direct
   useEffect(() => {
     if (!user || !coachId) return
 
@@ -99,7 +93,6 @@ export default function MessagesClientPage() {
         },
         (payload) => {
           setMessages(prev => {
-            // Évite les doublons (optimistic update)
             if (prev.find(m => m.id === payload.new.id)) return prev
             return [...prev, payload.new]
           })
@@ -112,7 +105,6 @@ export default function MessagesClientPage() {
 
   useEffect(() => { chargerMessages() }, [chargerMessages])
 
-  // Scroll automatique vers le bas à chaque nouveau message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -129,18 +121,15 @@ export default function MessagesClientPage() {
       contenu: texte.trim(),
     }
 
-    // Optimistic update — affiche le message immédiatement
     const tempId = `temp-${Date.now()}`
     setMessages(prev => [...prev, { ...msg, id: tempId, created_at: new Date().toISOString(), lu: false }])
     setTexte('')
 
     const { data, error } = await supabase.from('messages').insert(msg).select().single()
 
-    // Remplace le message temporaire par le vrai
     if (!error && data) {
       setMessages(prev => prev.map(m => m.id === tempId ? data : m))
     } else {
-      // Annule l'optimistic update en cas d'erreur
       setMessages(prev => prev.filter(m => m.id !== tempId))
       setTexte(msg.contenu)
     }
@@ -149,7 +138,6 @@ export default function MessagesClientPage() {
     inputRef.current?.focus()
   }
 
-  // Envoie un message vocal
   const envoyerVocal = async (audioUrl, audioDuration) => {
     if (!coachId) return
     const msg = {
@@ -189,14 +177,14 @@ export default function MessagesClientPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] md:h-screen">
 
-      {/* ── Header ── */}
-      <div className="px-4 py-3 border-b border-white/[0.06] bg-[#0D0D0D] flex-shrink-0">
+      {/* ── Header iMessage ── */}
+      <div className="px-4 py-3 border-b border-white/[0.06] bg-[#0D0D0D]/90 backdrop-blur-lg flex-shrink-0">
         <h1 className="text-[#F5F5F3] font-semibold text-sm">Mon coach</h1>
         <p className="text-white/30 text-xs mt-0.5">Conversation privée</p>
       </div>
 
-      {/* ── Zone des messages ── */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      {/* ── Zone des messages — scrollable, laisse place à l'input + floating nav ── */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-2">
         {messages.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-4xl mb-3">👋</p>
@@ -216,10 +204,10 @@ export default function MessagesClientPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Zone de saisie ── */}
+      {/* ── Zone de saisie — fixée au-dessus de la floating nav ── */}
       <form
         onSubmit={envoyerMessage}
-        className="flex items-center gap-2 px-4 py-3 border-t border-white/[0.06] bg-[#0D0D0D] flex-shrink-0"
+        className="flex items-center gap-2 px-4 py-3 bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-white/[0.06] flex-shrink-0 mb-20 md:mb-0"
       >
         {isRecording ? (
           <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />
@@ -229,18 +217,17 @@ export default function MessagesClientPage() {
               ref={inputRef}
               value={texte}
               onChange={(e) => setTexte(e.target.value)}
-              placeholder="Écris un message…"
-              className="flex-1 bg-[#2A2A2A] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
+              placeholder="Message..."
+              className="flex-1 bg-[#1E1E1E] border border-white/[0.08] rounded-2xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/40 transition-all"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e)
               }}
             />
-            {/* Micro quand input vide, Send quand texte présent */}
             {!texte.trim() ? (
               <button
                 type="button"
                 onClick={() => setIsRecording(true)}
-                className="w-10 h-10 rounded-xl bg-[#2A2A2A] border border-white/[0.08] flex items-center justify-center flex-shrink-0 text-white/40 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all"
+                className="w-10 h-10 rounded-2xl bg-[#1E1E1E] border border-white/[0.08] flex items-center justify-center flex-shrink-0 text-white/35 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all active:scale-90"
                 title="Note vocale"
               >
                 <Mic size={16} />
@@ -249,7 +236,7 @@ export default function MessagesClientPage() {
               <button
                 type="submit"
                 disabled={!texte.trim() || envoi}
-                className="w-10 h-10 rounded-xl bg-[#FF6B2B] flex items-center justify-center flex-shrink-0 hover:bg-[#FF9A6C] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-10 h-10 rounded-2xl bg-[#FF6B2B] flex items-center justify-center flex-shrink-0 hover:bg-[#FF9A6C] transition-all active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-[#FF6B2B]/20"
               >
                 <Send size={16} className="text-white" />
               </button>
