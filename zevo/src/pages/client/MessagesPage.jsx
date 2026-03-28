@@ -45,8 +45,8 @@ export default function MessagesClientPage() {
   const [isRecording, setIsRecording] = useState(false)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
-  const scrollAreaRef = useRef(null)
 
+  // ── Chargement initial des messages ──
   const chargerMessages = useCallback(async () => {
     if (!user) return
 
@@ -88,6 +88,7 @@ export default function MessagesClientPage() {
     setLoading(false)
   }, [user])
 
+  // ── Realtime — écoute les INSERT sur client_id ──
   useEffect(() => {
     if (!user || !coachId) return
 
@@ -102,6 +103,7 @@ export default function MessagesClientPage() {
           filter: `client_id=eq.${user.id}`,
         },
         (payload) => {
+          console.log('[MessagesClient] Nouveau message reçu:', payload.new?.id)
           setMessages(prev => {
             if (prev.find(m => m.id === payload.new.id)) return prev
             return [...prev, payload.new]
@@ -115,28 +117,21 @@ export default function MessagesClientPage() {
 
   useEffect(() => { chargerMessages() }, [chargerMessages])
 
+  // ── Auto-scroll vers le bas à chaque nouveau message ──
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // ── Fix mobile keyboard: scroll to bottom when input is focused ──
-  useEffect(() => {
-    const handleResize = () => {
-      setTimeout(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-      }, 150)
-    }
+  // ── PAS de visualViewport listener (cause écran noir sur iOS) ──
 
-    const vv = window.visualViewport
-    if (vv) {
-      vv.addEventListener('resize', handleResize)
-      return () => vv.removeEventListener('resize', handleResize)
-    }
-  }, [])
-
+  // ── Envoi message texte ──
   const envoyerMessage = async (e) => {
     e.preventDefault()
-    if (!texte.trim() || !coachId || envoi) return
+    const messageToSend = texte.trim()
+    if (!messageToSend || !coachId || envoi) return
+
+    // Vider l'input IMMÉDIATEMENT (sensation instantanée)
+    setTexte('')
     setEnvoi(true)
 
     const msg = {
@@ -145,30 +140,28 @@ export default function MessagesClientPage() {
       sender_id: user.id,
       receiver_id: coachId,
       expediteur: 'client',
-      contenu: texte.trim(),
+      contenu: messageToSend,
     }
 
     const tempId = `temp-${Date.now()}`
     setMessages(prev => [...prev, { ...msg, id: tempId, created_at: new Date().toISOString(), lu: false }])
-    setTexte('')
 
     const { data, error } = await supabase.from('messages').insert(msg).select().single()
 
     if (error) {
       console.error('[MessagesClient] Erreur envoi message:', error)
-    }
-
-    if (!error && data) {
-      setMessages(prev => prev.map(m => m.id === tempId ? data : m))
-    } else {
+      // Restaurer le texte seulement en cas d'erreur
       setMessages(prev => prev.filter(m => m.id !== tempId))
-      setTexte(msg.contenu)
+      setTexte(messageToSend)
+    } else if (data) {
+      setMessages(prev => prev.map(m => m.id === tempId ? data : m))
     }
 
     setEnvoi(false)
     inputRef.current?.focus()
   }
 
+  // ── Envoi message vocal ──
   const envoyerVocal = async (audioUrl, audioDuration) => {
     if (!coachId) return
     const msg = {
@@ -193,9 +186,11 @@ export default function MessagesClientPage() {
     setIsRecording(false)
   }
 
+  // ══════════ RENDER ══════════
+
   if (loading) {
     return (
-      <div className="flex flex-col h-[100dvh] md:h-screen items-center justify-center">
+      <div className="flex flex-col h-[100dvh] w-full items-center justify-center">
         <div className="w-7 h-7 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -203,7 +198,7 @@ export default function MessagesClientPage() {
 
   if (!coachId) {
     return (
-      <div className="flex flex-col h-[100dvh] md:h-screen items-center justify-center p-4 text-center">
+      <div className="flex flex-col h-[100dvh] w-full items-center justify-center p-4 text-center">
         <p className="text-4xl mb-3">💬</p>
         <p className="text-white/40 text-sm">Aucun coach associé à votre compte.</p>
       </div>
@@ -211,16 +206,16 @@ export default function MessagesClientPage() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] md:h-screen">
+    <div className="flex flex-col h-[100dvh] w-full">
 
       {/* ── Header iMessage ── */}
-      <div className="px-4 py-3 border-b border-white/[0.06] bg-[#0D0D0D]/90 backdrop-blur-lg flex-shrink-0">
+      <div className="shrink-0 px-4 py-3 border-b border-white/[0.06] bg-[#0D0D0D]/90 backdrop-blur-lg">
         <h1 className="text-[#F5F5F3] font-semibold text-sm">Mon coach</h1>
         <p className="text-white/30 text-xs mt-0.5">Conversation privée</p>
       </div>
 
-      {/* ── Zone des messages — scrollable ── */}
-      <div ref={scrollAreaRef} className="flex-1 overflow-y-auto px-4 py-4 pb-2 overscroll-contain">
+      {/* ── Zone des messages — flex-1 overflow-y-auto ── */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-4">
         {messages.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-4xl mb-3">👋</p>
@@ -240,16 +235,16 @@ export default function MessagesClientPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Zone de saisie — fixée, safe-area aware ── */}
+      {/* ── Zone de saisie — shrink-0 + safe-area ── */}
       <form
         onSubmit={envoyerMessage}
-        className="flex items-center gap-2 px-4 py-3 bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-white/[0.06] flex-shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))] mb-20 md:mb-0"
+        className="shrink-0 flex items-center gap-2 px-4 py-3 bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-white/[0.06] mb-[env(safe-area-inset-bottom)]"
       >
         {isRecording ? (
           <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />
         ) : (
           <>
-            {/* text-[16px] obligatoire pour empêcher le zoom automatique iOS sur les inputs < 16px */}
+            {/* text-[16px] empêche le zoom iOS auto sur inputs < 16px */}
             <input
               ref={inputRef}
               value={texte}
@@ -258,11 +253,6 @@ export default function MessagesClientPage() {
               className="flex-1 bg-[#1E1E1E] border border-white/[0.08] rounded-2xl px-4 py-2.5 text-[16px] text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/40 transition-all"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e)
-              }}
-              onFocus={() => {
-                setTimeout(() => {
-                  bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-                }, 300)
               }}
             />
             {!texte.trim() ? (

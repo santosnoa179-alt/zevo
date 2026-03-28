@@ -24,6 +24,7 @@ export default function CoachMessagesPage() {
   const [searchParams] = useSearchParams()
   const [clients, setClients] = useState([])
   const [clientSelectionne, setClientSelectionne] = useState(null)
+  const clientSelectionneRef = useRef(null) // ref pour accéder dans le callback realtime
   const [messages, setMessages] = useState([])
   const [texte, setTexte] = useState('')
   const [envoi, setEnvoi] = useState(false)
@@ -31,6 +32,11 @@ export default function CoachMessagesPage() {
   const [loading, setLoading] = useState(true)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
+
+  // Synchroniser la ref avec le state
+  useEffect(() => {
+    clientSelectionneRef.current = clientSelectionne
+  }, [clientSelectionne])
 
   // ── Charge la liste des clients avec le dernier message ──
   const chargerClients = useCallback(async () => {
@@ -52,7 +58,6 @@ export default function CoachMessagesPage() {
 
     const clientIds = clientsData.map(c => c.id)
 
-    // Dernier message + nb non lus par client
     const { data: derniersMsgs, error: msgsErr } = await supabase
       .from('messages')
       .select('client_id, contenu, created_at, lu, expediteur')
@@ -73,7 +78,6 @@ export default function CoachMessagesPage() {
       return { ...c, dernierMsg, nonLus, couleur: COULEURS[idx % COULEURS.length] }
     })
 
-    // Trie par dernier message le plus récent
     enrichis.sort((a, b) => {
       if (!a.dernierMsg && !b.dernierMsg) return 0
       if (!a.dernierMsg) return 1
@@ -83,7 +87,6 @@ export default function CoachMessagesPage() {
 
     setClients(enrichis)
 
-    // Sélectionne le client depuis l'URL param ?client=xxx
     const clientParam = searchParams.get('client')
     if (clientParam) {
       const trouve = enrichis.find(c => c.id === clientParam)
@@ -96,6 +99,7 @@ export default function CoachMessagesPage() {
   useEffect(() => { chargerClients() }, [chargerClients])
 
   // ── Charge et ouvre la conversation d'un client ──
+  // Historique complet : tous les messages coach_id + client_id (coach est sender OU receiver)
   const ouvrirConversation = async (client) => {
     setClientSelectionne(client)
 
@@ -120,19 +124,18 @@ export default function CoachMessagesPage() {
       .eq('expediteur', 'client')
       .eq('lu', false)
 
-    // Met à jour le badge non lus localement
     setClients(prev => prev.map(c => c.id === client.id ? { ...c, nonLus: 0 } : c))
 
     inputRef.current?.focus()
   }
 
-  // ── Abonnement Realtime GLOBAL — écoute TOUS les messages adressés au coach ──
-  // Met à jour la liste de clients (badges non-lus, dernier message) en temps réel
+  // ── Abonnement Realtime UNIQUE — écoute TOUS les messages adressés au coach ──
+  // Gère à la fois : mise à jour du chat actif ET mise à jour de la sidebar
   useEffect(() => {
     if (!user) return
 
-    const globalChannel = supabase
-      .channel(`coach-msgs-global-${user.id}`)
+    const channel = supabase
+      .channel(`coach-msgs-all-${user.id}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -140,20 +143,54 @@ export default function CoachMessagesPage() {
         filter: `coach_id=eq.${user.id}`,
       }, (payload) => {
         const newMsg = payload.new
+        console.log('[CoachMessages] Nouveau message reçu depuis Supabase:', newMsg)
 
-        // Si le message vient d'un client, mettre à jour la sidebar
-        if (newMsg.expediteur === 'client') {
+        const currentClient = clientSelectionneRef.current
+
+        // ── CAS 1 : Le message est dans la conversation actuellement ouverte ──
+        if (currentClient && newMsg.client_id === currentClient.id) {
+          // Ajouter au chat (dédoublonné)
+          setMessages(prev => {
+            if (prev.find(m => m.id === newMsg.id)) return prev
+            return [...prev, newMsg]
+          })
+
+          // Si message du client → marquer lu immédiatement
+          if (newMsg.expediteur === 'client') {
+            supabase.from('messages').update({ lu: true }).eq('id', newMsg.id)
+          }
+
+          // Mettre à jour le dernier msg dans la sidebar (badge = 0 car conversation ouverte)
           setClients(prev => {
             const updated = prev.map(c => {
               if (c.id !== newMsg.client_id) return c
               return {
                 ...c,
-                dernierMsg: { contenu: newMsg.contenu, created_at: newMsg.created_at, expediteur: newMsg.expediteur, lu: newMsg.lu },
-                // Incrémenter le badge seulement si ce n'est pas le client actuellement ouvert
+                dernierMsg: { contenu: newMsg.contenu, created_at: newMsg.created_at, expediteur: newMsg.expediteur, lu: true },
+                nonLus: 0,
+              }
+            })
+            updated.sort((a, b) => {
+              if (!a.dernierMsg && !b.dernierMsg) return 0
+              if (!a.dernierMsg) return 1
+              if (!b.dernierMsg) return -1
+              return b.dernierMsg.created_at.localeCompare(a.dernierMsg.created_at)
+            })
+            return updated
+          })
+        }
+
+        // ── CAS 2 : Le message vient d'un AUTRE client (pas la conversation ouverte) ──
+        else if (newMsg.expediteur === 'client') {
+          setClients(prev => {
+            const updated = prev.map(c => {
+              if (c.id !== newMsg.client_id) return c
+              return {
+                ...c,
+                dernierMsg: { contenu: newMsg.contenu, created_at: newMsg.created_at, expediteur: newMsg.expediteur, lu: false },
                 nonLus: c.nonLus + 1,
               }
             })
-            // Re-trier par dernier message
             updated.sort((a, b) => {
               if (!a.dernierMsg && !b.dernierMsg) return 0
               if (!a.dernierMsg) return 1
@@ -166,35 +203,8 @@ export default function CoachMessagesPage() {
       })
       .subscribe()
 
-    return () => supabase.removeChannel(globalChannel)
-  }, [user])
-
-  // ── Abonnement Realtime pour la conversation active (messages dans le chat) ──
-  useEffect(() => {
-    if (!user || !clientSelectionne) return
-    const channel = supabase
-      .channel(`coach-msgs-${clientSelectionne.id}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `client_id=eq.${clientSelectionne.id}`,
-      }, (payload) => {
-        setMessages(prev => {
-          if (prev.find(m => m.id === payload.new.id)) return prev
-          return [...prev, payload.new]
-        })
-        // Si message du client, le marquer lu immédiatement + reset badge sidebar
-        if (payload.new.expediteur === 'client') {
-          supabase.from('messages').update({ lu: true }).eq('id', payload.new.id)
-          setClients(prev => prev.map(c =>
-            c.id === clientSelectionne.id ? { ...c, nonLus: 0 } : c
-          ))
-        }
-      })
-      .subscribe()
     return () => supabase.removeChannel(channel)
-  }, [user, clientSelectionne])
+  }, [user])
 
   // Scroll vers le bas à chaque nouveau message
   useEffect(() => {
@@ -204,7 +214,11 @@ export default function CoachMessagesPage() {
   // ── Envoie un message texte ──
   const envoyerMessage = async (e) => {
     e.preventDefault()
-    if (!texte.trim() || !clientSelectionne || envoi) return
+    const messageToSend = texte.trim()
+    if (!messageToSend || !clientSelectionne || envoi) return
+
+    // Vider l'input IMMÉDIATEMENT
+    setTexte('')
     setEnvoi(true)
 
     const msg = {
@@ -213,20 +227,23 @@ export default function CoachMessagesPage() {
       sender_id: user.id,
       receiver_id: clientSelectionne.id,
       expediteur: 'coach',
-      contenu: texte.trim(),
+      contenu: messageToSend,
     }
 
     const tempId = `temp-${Date.now()}`
     setMessages(prev => [...prev, { ...msg, id: tempId, created_at: new Date().toISOString(), lu: false }])
-    setTexte('')
 
     const { data, error } = await supabase.from('messages').insert(msg).select().single()
 
     if (error) {
       console.error('[CoachMessages] Erreur envoi message:', error)
+      // Restaurer le texte seulement en cas d'erreur
+      setMessages(prev => prev.filter(m => m.id !== tempId))
+      setTexte(messageToSend)
+    } else if (data) {
+      setMessages(prev => prev.map(m => m.id === tempId ? data : m))
     }
 
-    if (data) setMessages(prev => prev.map(m => m.id === tempId ? data : m))
     setEnvoi(false)
     inputRef.current?.focus()
   }
@@ -388,7 +405,6 @@ export default function CoachMessagesPage() {
                   className="flex-1 bg-[#2A2A2A] border border-white/[0.08] rounded-xl px-4 py-2.5 text-[16px] text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e) }}
                 />
-                {/* Micro — visible seulement quand l'input est vide */}
                 {!texte.trim() ? (
                   <button
                     type="button"
