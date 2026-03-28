@@ -128,7 +128,7 @@ export default function WorkoutTrackerPage() {
       // Charger les exercices
       const { data: exosData, error: exosErr } = await supabase
         .from('seance_exercices')
-        .select('id, series, reps, poids, repos, ordre, exercices(nom, muscle_group, equipment, image_url, video_url)')
+        .select('id, series, reps, poids, repos, ordre, media_url, exercices(nom, muscle_group, equipment, image_url, video_url)')
         .eq('seance_id', seanceId)
         .order('ordre')
 
@@ -398,35 +398,105 @@ export default function WorkoutTrackerPage() {
         >
           {currentExo && (
             <>
-              {/* Média : vidéo > image > placeholder */}
-              {currentExo.exercices?.video_url ? (
-                <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black">
-                  <video
-                    key={currentExo.id}
-                    src={currentExo.exercices.video_url}
-                    className="w-full h-44 object-contain bg-black"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                  />
-                </div>
-              ) : currentExo.exercices?.image_url ? (
-                <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06]">
-                  <img
-                    src={currentExo.exercices.image_url}
-                    alt={currentExo.exercices.nom}
-                    className="w-full h-44 object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl h-44 flex items-center justify-center mb-5">
-                  <div className="text-center">
-                    <Dumbbell className="w-10 h-10 text-white/[0.08] mx-auto mb-2" />
-                    <p className="text-white/[0.15] text-[10px] font-medium">Vidéo de démonstration</p>
+              {/* Média : media_url (coach) > video_url (exercice) > image_url > placeholder */}
+              {(() => {
+                const mediaUrl = currentExo.media_url?.trim()
+                const videoUrl = currentExo.exercices?.video_url
+                const imageUrl = currentExo.exercices?.image_url
+                const url = mediaUrl || videoUrl || imageUrl || null
+
+                if (!url) {
+                  return (
+                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl h-44 flex items-center justify-center mb-5">
+                      <div className="text-center">
+                        <Dumbbell className="w-10 h-10 text-white/[0.08] mx-auto mb-2" />
+                        <p className="text-white/[0.15] text-[10px] font-medium">Vidéo de démonstration</p>
+                      </div>
+                    </div>
+                  )
+                }
+
+                // YouTube / Vimeo embed detection
+                const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+                const vimeoMatch = url.match(/vimeo\.com\/(\d+)/)
+
+                if (youtubeMatch) {
+                  return (
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black aspect-video">
+                      <iframe
+                        key={currentExo.id}
+                        src={`https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=1&mute=1&loop=1&playlist=${youtubeMatch[1]}`}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={currentExo.exercices?.nom}
+                      />
+                    </div>
+                  )
+                }
+
+                if (vimeoMatch) {
+                  return (
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black aspect-video">
+                      <iframe
+                        key={currentExo.id}
+                        src={`https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1&muted=1&loop=1`}
+                        className="w-full h-full"
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        allowFullScreen
+                        title={currentExo.exercices?.nom}
+                      />
+                    </div>
+                  )
+                }
+
+                // Direct video file (mp4, webm, mov)
+                const isVideo = /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url)
+                if (isVideo || url === videoUrl) {
+                  return (
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black">
+                      <video
+                        key={currentExo.id}
+                        src={url}
+                        className="w-full h-44 object-contain bg-black"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        controls
+                      />
+                    </div>
+                  )
+                }
+
+                // Direct image file or fallback image
+                const isImage = /\.(jpg|jpeg|png|gif|webp|svg|avif)(\?.*)?$/i.test(url)
+                if (isImage || url === imageUrl) {
+                  return (
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06]">
+                      <img
+                        src={url}
+                        alt={currentExo.exercices?.nom}
+                        className="w-full h-44 object-cover"
+                      />
+                    </div>
+                  )
+                }
+
+                // Generic URL — try as iframe (Google Drive, etc.)
+                return (
+                  <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black aspect-video">
+                    <iframe
+                      key={currentExo.id}
+                      src={url}
+                      className="w-full h-full"
+                      allow="autoplay; fullscreen"
+                      allowFullScreen
+                      title={currentExo.exercices?.nom}
+                    />
                   </div>
-                </div>
-              )}
+                )
+              })()}
 
               {/* Exercice name & info */}
               <div className="mb-6">

@@ -421,7 +421,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
         // Charger ses exercices
         const { data: seanceExos } = await supabase
           .from('seance_exercices')
-          .select('id, exercice_id, series, reps, poids, repos, ordre, exercices(*)')
+          .select('id, exercice_id, series, reps, poids, repos, ordre, media_url, exercices(*)')
           .eq('seance_id', seance.id)
           .order('ordre')
 
@@ -434,6 +434,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
             repetitions: se.reps,
             poids: se.poids || '',
             repos: se.repos,
+            media_url: se.media_url || '',
           }))
           setSeanceExercices(mapped)
         } else {
@@ -513,7 +514,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
   // ── Ajout / suppression / modification séance ──
   const ajouterExercice = (ex) => {
     if (seanceExercices.find(s => s.id === ex.id)) return
-    setSeanceExercices(prev => [...prev, { ...ex, series: 3, repetitions: 12, poids: '', repos: 60 }])
+    setSeanceExercices(prev => [...prev, { ...ex, series: 3, repetitions: 12, poids: '', repos: 60, media_url: '' }])
   }
   const supprimerExercice = (exId) => setSeanceExercices(prev => prev.filter(e => e.id !== exId))
   const modifierExercice = (exId, champ, valeur) => setSeanceExercices(prev => prev.map(e => e.id === exId ? { ...e, [champ]: valeur } : e))
@@ -539,6 +540,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
             poids: ex.poids ? parseFloat(ex.poids) : null,
             repos: ex.repos || 60,
             ordre: i,
+            media_url: ex.media_url?.trim() || null,
           }))
           await supabase.from('seance_exercices').insert(rows)
         }
@@ -571,6 +573,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
             poids: ex.poids ? parseFloat(ex.poids) : null,
             repos: ex.repos || 60,
             ordre: i,
+            media_url: ex.media_url?.trim() || null,
           }))
           await supabase.from('seance_exercices').insert(rows)
         }
@@ -825,6 +828,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
             <div className="space-y-3">
               {seanceExercices.map((ex, index) => {
                 const couleur = GROUP_COLORS[ex.muscle_group] || '#6b7280'
+                const hasMedia = !!ex.media_url?.trim()
                 return (
                   <div key={ex.id} className="bg-[#09090b] border border-[#27272a] rounded-xl p-4 group hover:border-[#FF6B2B]/20 transition-colors">
                     <div className="flex items-center gap-3 mb-4">
@@ -843,11 +847,48 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                           <p className="text-white/15 text-[10px]">{ex.equipment || ex.equipement || '—'}</p>
                         </div>
                       </div>
+                      <button
+                        onClick={() => modifierExercice(ex.id, '_showMediaInput', !ex._showMediaInput)}
+                        className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
+                          hasMedia
+                            ? 'text-[#FF6B2B] bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/20'
+                            : 'text-white/10 hover:text-white/30 hover:bg-white/[0.04] opacity-0 group-hover:opacity-100'
+                        }`}
+                        title={hasMedia ? 'Média attaché — cliquer pour modifier' : 'Ajouter un lien vidéo/image'}
+                      >
+                        <Video size={14} />
+                      </button>
                       <button onClick={() => supprimerExercice(ex.id)}
                         className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
                         <Trash2 size={14} />
                       </button>
                     </div>
+
+                    {/* Media URL input (toggle) */}
+                    {ex._showMediaInput && (
+                      <div className="mb-4 flex items-center gap-2">
+                        <div className="flex-1 relative">
+                          <Video size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                          <input
+                            type="url"
+                            value={ex.media_url || ''}
+                            onChange={(e) => modifierExercice(ex.id, 'media_url', e.target.value)}
+                            placeholder="Lien vidéo ou image (YouTube, mp4, jpg...)"
+                            className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-8 pr-3 py-2 text-[#F5F5F3] text-xs placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+                          />
+                        </div>
+                        {hasMedia && (
+                          <button
+                            onClick={() => modifierExercice(ex.id, 'media_url', '')}
+                            className="p-1.5 rounded-lg text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors flex-shrink-0"
+                            title="Supprimer le média"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {[
                         { key: 'series', label: 'Séries', val: ex.series },
@@ -1599,7 +1640,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     // Charger les exercices du modèle
     const { data } = await supabase
       .from('seance_exercices')
-      .select('id, exercice_id, series, reps, repos, ordre, exercices(nom, muscle_group, equipment)')
+      .select('id, exercice_id, series, reps, repos, ordre, media_url, exercices(nom, muscle_group, equipment)')
       .eq('seance_id', template.id)
       .order('ordre')
     setDrawerExos((data || []).map(e => ({
@@ -1607,6 +1648,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       nom: e.exercices?.nom || '?', muscle_group: e.exercices?.muscle_group || '',
       equipment: e.exercices?.equipment || '',
       series: e.series || 3, reps: e.reps || 10, repos: e.repos || 90, ordre: e.ordre,
+      media_url: e.media_url || '',
     })))
     setLoadingDrawerExos(false)
 
@@ -1671,6 +1713,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         reps: parseInt(e.reps) || 10,
         repos: parseInt(e.repos) || 60,
         ordre: i,
+        media_url: e.media_url?.trim() || null,
       }))
       await supabase.from('seance_exercices').insert(rows)
     }
