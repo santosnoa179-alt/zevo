@@ -45,6 +45,7 @@ export default function MessagesClientPage() {
   const [isRecording, setIsRecording] = useState(false)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
+  const scrollAreaRef = useRef(null)
 
   const chargerMessages = useCallback(async () => {
     if (!user) return
@@ -109,6 +110,23 @@ export default function MessagesClientPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // ── Fix mobile keyboard: scroll to bottom when input is focused ──
+  useEffect(() => {
+    const handleResize = () => {
+      // When virtual keyboard opens, the visualViewport shrinks
+      // Scroll to bottom to keep messages visible
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+      }, 150)
+    }
+
+    const vv = window.visualViewport
+    if (vv) {
+      vv.addEventListener('resize', handleResize)
+      return () => vv.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
   const envoyerMessage = async (e) => {
     e.preventDefault()
     if (!texte.trim() || !coachId || envoi) return
@@ -159,7 +177,7 @@ export default function MessagesClientPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-[calc(100vh-64px)] md:h-screen items-center justify-center">
+      <div className="flex flex-col h-[100dvh] md:h-screen items-center justify-center">
         <div className="w-7 h-7 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -167,7 +185,7 @@ export default function MessagesClientPage() {
 
   if (!coachId) {
     return (
-      <div className="flex flex-col h-[calc(100vh-64px)] md:h-screen items-center justify-center p-4 text-center">
+      <div className="flex flex-col h-[100dvh] md:h-screen items-center justify-center p-4 text-center">
         <p className="text-4xl mb-3">💬</p>
         <p className="text-white/40 text-sm">Aucun coach associé à votre compte.</p>
       </div>
@@ -175,7 +193,7 @@ export default function MessagesClientPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] md:h-screen">
+    <div className="flex flex-col h-[100dvh] md:h-screen">
 
       {/* ── Header iMessage ── */}
       <div className="px-4 py-3 border-b border-white/[0.06] bg-[#0D0D0D]/90 backdrop-blur-lg flex-shrink-0">
@@ -183,8 +201,8 @@ export default function MessagesClientPage() {
         <p className="text-white/30 text-xs mt-0.5">Conversation privée</p>
       </div>
 
-      {/* ── Zone des messages — scrollable, laisse place à l'input + floating nav ── */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-2">
+      {/* ── Zone des messages — scrollable ── */}
+      <div ref={scrollAreaRef} className="flex-1 overflow-y-auto px-4 py-4 pb-2 overscroll-contain">
         {messages.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-4xl mb-3">👋</p>
@@ -204,10 +222,10 @@ export default function MessagesClientPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Zone de saisie — fixée au-dessus de la floating nav ── */}
+      {/* ── Zone de saisie — fixée, safe-area aware ── */}
       <form
         onSubmit={envoyerMessage}
-        className="flex items-center gap-2 px-4 py-3 bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-white/[0.06] flex-shrink-0 mb-20 md:mb-0"
+        className="flex items-center gap-2 px-4 py-3 bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-white/[0.06] flex-shrink-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))] mb-20 md:mb-0"
       >
         {isRecording ? (
           <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />
@@ -221,6 +239,12 @@ export default function MessagesClientPage() {
               className="flex-1 bg-[#1E1E1E] border border-white/[0.08] rounded-2xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/40 transition-all"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e)
+              }}
+              onFocus={() => {
+                // Scroll to bottom when keyboard opens on mobile
+                setTimeout(() => {
+                  bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+                }, 300)
               }}
             />
             {!texte.trim() ? (

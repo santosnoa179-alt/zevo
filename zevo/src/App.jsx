@@ -40,6 +40,7 @@ const FormulairesPage = lazy(() => import('./pages/client/FormulairesPage'))
 const AbonnementPage = lazy(() => import('./pages/client/AbonnementPage'))
 const ProgrammePage = lazy(() => import('./pages/client/ProgrammePage'))
 const SeancesPage = lazy(() => import('./pages/client/SeancesPage'))
+const ClientCalendarPage = lazy(() => import('./pages/client/ClientCalendarPage'))
 const WorkoutTrackerPage = lazy(() => import('./pages/client/WorkoutTrackerPage'))
 
 // ── Pages coach (lazy) ──
@@ -101,7 +102,7 @@ export default function App() {
               <Route path="formulaires" element={<FormulairesPage />} />
               <Route path="abonnement" element={<AbonnementPage />} />
               <Route path="programme" element={<ProgrammePage />} />
-              <Route path="seances" element={<SeancesPage />} />
+              <Route path="seances" element={<ClientCalendarPage />} />
             </Route>
 
             {/* ── Workout Tracker — hors layout (plein écran immersif) ── */}
