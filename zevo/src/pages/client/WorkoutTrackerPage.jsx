@@ -416,10 +416,28 @@ export default function WorkoutTrackerPage() {
                   )
                 }
 
+                // Détection du type par extension (prioritaire sur l'origine du champ)
+                const isImageFile = /\.(jpg|jpeg|png|gif|webp|svg|avif)(\?.*)?$/i.test(url)
+                const isVideoFile = /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url)
+
                 // YouTube / Vimeo embed detection
                 const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
                 const vimeoMatch = url.match(/vimeo\.com\/(\d+)/)
 
+                // 1. Image statique — PAS d'icône play, PAS de contrôles vidéo
+                if (isImageFile) {
+                  return (
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06]">
+                      <img
+                        src={url}
+                        alt={currentExo.exercices?.nom}
+                        className="w-full h-44 object-cover"
+                      />
+                    </div>
+                  )
+                }
+
+                // 2. YouTube embed
                 if (youtubeMatch) {
                   return (
                     <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black aspect-video">
@@ -435,6 +453,7 @@ export default function WorkoutTrackerPage() {
                   )
                 }
 
+                // 3. Vimeo embed
                 if (vimeoMatch) {
                   return (
                     <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black aspect-video">
@@ -450,9 +469,8 @@ export default function WorkoutTrackerPage() {
                   )
                 }
 
-                // Direct video file (mp4, webm, mov)
-                const isVideo = /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url)
-                if (isVideo || url === videoUrl) {
+                // 4. Fichier vidéo direct (.mp4, .webm, .mov)
+                if (isVideoFile) {
                   return (
                     <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black">
                       <video
@@ -469,9 +487,9 @@ export default function WorkoutTrackerPage() {
                   )
                 }
 
-                // Direct image file or fallback image
-                const isImage = /\.(jpg|jpeg|png|gif|webp|svg|avif)(\?.*)?$/i.test(url)
-                if (isImage || url === imageUrl) {
+                // 5. URL sans extension claire — deviner par origine du champ
+                // Si ça vient de image_url → afficher comme image
+                if (url === imageUrl && url !== videoUrl) {
                   return (
                     <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06]">
                       <img
@@ -483,7 +501,25 @@ export default function WorkoutTrackerPage() {
                   )
                 }
 
-                // Generic URL — try as iframe (Google Drive, etc.)
+                // Si ça vient de video_url → afficher comme vidéo
+                if (url === videoUrl) {
+                  return (
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black">
+                      <video
+                        key={currentExo.id}
+                        src={url}
+                        className="w-full h-44 object-contain bg-black"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        controls
+                      />
+                    </div>
+                  )
+                }
+
+                // 6. URL générique (Google Drive, etc.) — iframe
                 return (
                   <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black aspect-video">
                     <iframe
