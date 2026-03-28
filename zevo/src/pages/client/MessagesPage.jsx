@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
+import { useToast } from '../../components/ui/Toast'
 import { Send, Mic } from 'lucide-react'
 import { AudioBubble, VoiceRecorder } from '../../components/chat/VoiceMessage'
 
@@ -37,6 +38,7 @@ function Bulle({ message, estMoi }) {
 
 export default function MessagesClientPage() {
   const { user } = useAuth()
+  const toast = useToast()
   const [messages, setMessages] = useState([])
   const [coachId, setCoachId] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -150,6 +152,7 @@ export default function MessagesClientPage() {
 
     if (error) {
       console.error('[MessagesClient] Erreur envoi message:', error)
+      toast.error(error.message || 'Erreur lors de l\'envoi du message')
       // Restaurer le texte seulement en cas d'erreur
       setMessages(prev => prev.filter(m => m.id !== tempId))
       setTexte(messageToSend)
@@ -179,6 +182,7 @@ export default function MessagesClientPage() {
     const { data, error } = await supabase.from('messages').insert(msg).select().single()
     if (error) {
       console.error('[MessagesClient] Erreur envoi vocal:', error)
+      toast.error(error.message || 'Erreur lors de l\'envoi du message vocal')
     }
     if (!error && data) {
       setMessages(prev => prev.map(m => m.id === tempId ? data : m))

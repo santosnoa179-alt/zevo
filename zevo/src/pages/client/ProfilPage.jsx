@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
+import { useToast } from '../../components/ui/Toast'
 import { Card, CardBody } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -9,6 +10,7 @@ import { useNavigate } from 'react-router-dom'
 
 export default function ProfilPage() {
   const { user, logout } = useAuth()
+  const toast = useToast()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -50,19 +52,29 @@ export default function ProfilPage() {
     e.preventDefault()
     setSaving(true)
 
-    await Promise.all([
-      supabase.from('profiles').update({ nom: nom.trim() }).eq('id', user.id),
-      supabase.from('clients').update({
-        prenom: prenom.trim() || null,
-        telephone: telephone.trim() || null,
-        objectifs: objectifs.trim() || null,
-        poids: poids ? Number(poids) : null,
-      }).eq('id', user.id),
-    ])
+    try {
+      const [profilRes, clientRes] = await Promise.all([
+        supabase.from('profiles').update({ nom: nom.trim() }).eq('id', user.id),
+        supabase.from('clients').update({
+          prenom: prenom.trim() || null,
+          telephone: telephone.trim() || null,
+          objectifs: objectifs.trim() || null,
+          poids: poids ? Number(poids) : null,
+        }).eq('id', user.id),
+      ])
 
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
+      if (profilRes.error) throw profilRes.error
+      if (clientRes.error) throw clientRes.error
+
+      setSaved(true)
+      toast.success('Profil mis à jour !')
+      setTimeout(() => setSaved(false), 2500)
+    } catch (err) {
+      console.error('[Profil] Erreur sauvegarde:', err)
+      toast.error(err.message || 'Erreur lors de la sauvegarde du profil')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleLogout = async () => {

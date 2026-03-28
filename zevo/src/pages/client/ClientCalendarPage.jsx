@@ -23,6 +23,15 @@ const EVENT_TYPES = {
 
 // ── Date helpers ──
 
+// Convertit une date (ou string ISO) en chaîne YYYY-MM-DD en heure LOCALE (pas UTC)
+function toLocalDateStr(input) {
+  const d = input instanceof Date ? input : new Date(input)
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 function isSameDay(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 }
@@ -91,6 +100,7 @@ export default function ClientCalendarPage() {
   const [loading, setLoading] = useState(true)
   const [selectedSeance, setSelectedSeance] = useState(null)
   const [selectedEvent, setSelectedEvent] = useState(null)
+  const [selectedDay, setSelectedDay] = useState(null) // { date, items } pour DayModal
   const [exercices, setExercices] = useState([])
   const [loadingExos, setLoadingExos] = useState(false)
 
@@ -102,7 +112,7 @@ export default function ClientCalendarPage() {
     const items = []
 
     seances.forEach(s => {
-      const dateStr = s.date_prevue?.slice(0, 10) || ''
+      const dateStr = s.date_prevue ? toLocalDateStr(s.date_prevue) : ''
       items.push({
         id: `s-${s.id}`,
         type: 'seance',
@@ -115,7 +125,7 @@ export default function ClientCalendarPage() {
     })
 
     events.forEach(e => {
-      const dateStr = e.event_date?.slice(0, 10) || ''
+      const dateStr = e.event_date ? toLocalDateStr(e.event_date) : ''
       const evType = EVENT_TYPES[e.event_type] || EVENT_TYPES.autre
       items.push({
         id: `e-${e.id}`,
@@ -209,7 +219,7 @@ export default function ClientCalendarPage() {
 
   // ── Get items for a specific day (uses normalized allItems) ──
   const getItemsForDay = (date) => {
-    const dateStr = date.toISOString().slice(0, 10)
+    const dateStr = toLocalDateStr(date)
     return allItems.filter(item => item.dateStr === dateStr)
   }
 
@@ -266,6 +276,7 @@ export default function ClientCalendarPage() {
                 } ${dayItems.length > 0 ? 'cursor-pointer hover:bg-[#1e1e20]' : ''}`}
                 onClick={() => {
                   if (dayItems.length === 1) handleItemClick(dayItems[0])
+                  else if (dayItems.length > 1) setSelectedDay({ date, items: dayItems })
                 }}
               >
                 <div className="flex items-center justify-between">
@@ -582,6 +593,102 @@ export default function ClientCalendarPage() {
     )
   }
 
+  // ══════════ DAY MODAL — z-[105] pour multi-item days ══════════
+  const renderDayModal = () => {
+    if (!selectedDay) return null
+
+    const dayLabel = selectedDay.date.toLocaleDateString('fr-FR', {
+      weekday: 'long', day: 'numeric', month: 'long'
+    })
+
+    return (
+      <div className="fixed inset-0 z-[105] flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="absolute inset-0 z-[105] bg-black/60 backdrop-blur-sm" onClick={() => setSelectedDay(null)} />
+        <div className="relative z-[106] bg-[#18181b] border border-[#27272a] w-full sm:w-[420px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto">
+          {/* Header */}
+          <div className="sticky top-0 z-10 bg-[#18181b] border-b border-[#27272a] px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar size={16} className="text-[#FF6B2B]" />
+              <h3 className="text-[#F5F5F3] font-semibold text-sm capitalize">{dayLabel}</h3>
+            </div>
+            <button onClick={() => setSelectedDay(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Liste des items du jour */}
+          <div className="p-3 pb-24 space-y-1.5">
+            {selectedDay.items.map(item => {
+              if (item.type === 'seance') {
+                const s = item.original
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { setSelectedDay(null); openSeanceDetail(s) }}
+                    className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3 ${
+                      s.is_completed
+                        ? 'bg-emerald-500/10 hover:bg-emerald-500/15'
+                        : 'bg-[#FF6B2B]/5 hover:bg-[#FF6B2B]/10'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                      s.is_completed ? 'bg-emerald-500/15' : 'bg-[#FF6B2B]/10'
+                    }`}>
+                      {s.is_completed
+                        ? <CheckCircle2 size={16} className="text-emerald-400" />
+                        : <Dumbbell size={16} className="text-[#FF6B2B]" />
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs font-medium truncate ${
+                        s.is_completed ? 'text-emerald-300/80' : 'text-[#F5F5F3]'
+                      }`}>
+                        {s.titre || 'Séance'}
+                      </p>
+                      {s.notes && !s.notes.startsWith('programme:') && (
+                        <p className="text-white/15 text-[10px] truncate mt-0.5">{s.notes}</p>
+                      )}
+                    </div>
+                    {s.is_completed && (
+                      <span className="text-emerald-400 text-[9px] font-bold shrink-0">Terminée</span>
+                    )}
+                  </button>
+                )
+              }
+
+              // Event
+              const e = item.original
+              const evType = EVENT_TYPES[e.event_type] || EVENT_TYPES.autre
+              const EvIcon = evType.icon
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => { setSelectedDay(null); openEventDetail(e) }}
+                  className="w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3 hover:bg-white/[0.03]"
+                  style={{ backgroundColor: `${evType.color}08` }}
+                >
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${evType.color}15` }}>
+                    <EvIcon size={16} style={{ color: evType.color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[#F5F5F3] text-xs font-medium truncate">{e.title}</p>
+                    <p className="text-white/20 text-[10px] mt-0.5">{evType.label}</p>
+                  </div>
+                  {e.event_date && (
+                    <span className="text-white/20 text-[9px] shrink-0">
+                      {new Date(e.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // ══════════ MAIN RENDER ══════════
   if (loading) {
     return (
@@ -637,6 +744,7 @@ export default function ClientCalendarPage() {
       {view === 'month' ? renderMonth() : renderWeek()}
 
       {/* ── Modals ── */}
+      {renderDayModal()}
       {renderSeanceModal()}
       {renderEventModal()}
     </div>
