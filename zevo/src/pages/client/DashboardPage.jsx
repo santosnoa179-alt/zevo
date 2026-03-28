@@ -128,8 +128,9 @@ export default function DashboardPage() {
     setLoading(true)
 
     try {
-      const [profilRes, habsRes, logRes, sommeilRes, humeurRes, sportRes] = await Promise.all([
+      const [profilRes, clientRes, habsRes, logRes, sommeilRes, humeurRes, sportRes] = await Promise.all([
         supabase.from('profiles').select('nom, avatar_url').eq('id', user.id).single(),
+        supabase.from('clients').select('prenom').eq('id', user.id).maybeSingle(),
         supabase.from('habitudes').select('id, nom, couleur, assigned_by').eq('client_id', user.id).eq('actif', true).order('created_at'),
         supabase.from('habitudes_log').select('habitude_id').eq('client_id', user.id).eq('date', today),
         supabase.from('sommeil_log').select('*').eq('client_id', user.id).eq('date', today).maybeSingle(),
@@ -138,7 +139,7 @@ export default function DashboardPage() {
       ])
 
       const habs = habsRes.data ?? []
-      setProfil(profilRes.data)
+      setProfil({ ...profilRes.data, prenom: clientRes.data?.prenom ?? null })
       setHabitudes(habs)
       setLogAujourdhui((logRes.data ?? []).map(l => l.habitude_id))
       const sommeilData = sommeilRes.data ?? null
@@ -321,7 +322,9 @@ export default function DashboardPage() {
   const score = calculerScoreBienEtre({ habitudes: { cochees, total: totalHab }, sommeil, humeur, sport })
   const couleur = couleurScore(score)
   const label = labelScore(score)
-  const prenom = profil?.nom?.split(' ')[0] ?? ''
+  // Prénom en priorité (table clients), sinon premier mot du nom (table profiles), sinon fallback
+  const rawPrenom = profil?.prenom || profil?.nom?.split(' ')[0] || 'Sportif'
+  const prenom = rawPrenom.charAt(0).toUpperCase() + rawPrenom.slice(1).toLowerCase()
 
   // ── Skeleton premium ──
   if (loading) {

@@ -54,13 +54,19 @@ export default function CoachMessagesPage() {
       console.error('[CoachMessages] Erreur chargement clients:', clientsErr)
     }
 
-    if (!clientsData?.length) { setLoading(false); return }
+    if (!clientsData?.length) {
+      console.log('[CoachMessages] Aucun client actif trouvé pour coach_id:', user.id)
+      setLoading(false)
+      return
+    }
+
+    console.log('[CoachMessages] Clients chargés:', clientsData.length, '| coach_id:', user.id)
 
     const clientIds = clientsData.map(c => c.id)
 
     const { data: derniersMsgs, error: msgsErr } = await supabase
       .from('messages')
-      .select('client_id, contenu, created_at, lu, expediteur')
+      .select('client_id, contenu, created_at, lu, expediteur, audio_url')
       .eq('coach_id', user.id)
       .in('client_id', clientIds)
       .order('created_at', { ascending: false })
@@ -102,6 +108,7 @@ export default function CoachMessagesPage() {
   // Historique complet : tous les messages coach_id + client_id (coach est sender OU receiver)
   const ouvrirConversation = async (client) => {
     setClientSelectionne(client)
+    console.log('[CoachMessages] Ouverture conversation client:', client.id, '| coach_id:', user.id)
 
     const { data: msgs, error } = await supabase
       .from('messages')
@@ -114,6 +121,7 @@ export default function CoachMessagesPage() {
       console.error('[CoachMessages] Erreur chargement conversation:', error)
     }
 
+    console.log('[CoachMessages] Messages chargés:', msgs?.length ?? 0)
     setMessages(msgs ?? [])
 
     // Marque les messages du client comme lus

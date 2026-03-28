@@ -48,27 +48,45 @@ export default function MessagesClientPage() {
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
-  // ── Chargement initial des messages ──
-  const chargerMessages = useCallback(async () => {
-    if (!user) return
+  // ── Récupère le coach_id du client depuis la table clients ──
+  const fetchCoachId = useCallback(async () => {
+    if (!user) return null
 
-    const { data: clientData, error: clientErr } = await supabase
+    const { data, error } = await supabase
       .from('clients')
       .select('coach_id')
       .eq('id', user.id)
       .single()
 
-    if (clientErr) {
-      console.error('[MessagesClient] Erreur chargement coach_id:', clientErr)
+    if (error) {
+      console.error('[MessagesClient] Erreur récup coach_id:', error)
+      return null
     }
 
-    if (!clientData?.coach_id) { setLoading(false); return }
-    setCoachId(clientData.coach_id)
+    const id = data?.coach_id ?? null
+    console.log('[MessagesClient] coach_id résolu:', id, '| client_id:', user.id)
+    return id
+  }, [user])
+
+  // ── Chargement initial des messages ──
+  const chargerMessages = useCallback(async () => {
+    if (!user) return
+
+    const resolvedCoachId = await fetchCoachId()
+
+    if (!resolvedCoachId) {
+      console.warn('[MessagesClient] Aucun coach_id trouvé pour ce client.')
+      setCoachId(null)
+      setLoading(false)
+      return
+    }
+
+    setCoachId(resolvedCoachId)
 
     const { data: msgs, error: msgsErr } = await supabase
       .from('messages')
       .select('*')
-      .eq('coach_id', clientData.coach_id)
+      .eq('coach_id', resolvedCoachId)
       .eq('client_id', user.id)
       .order('created_at', { ascending: true })
 
@@ -82,13 +100,13 @@ export default function MessagesClientPage() {
     await supabase
       .from('messages')
       .update({ lu: true })
-      .eq('coach_id', clientData.coach_id)
+      .eq('coach_id', resolvedCoachId)
       .eq('client_id', user.id)
       .eq('expediteur', 'coach')
       .eq('lu', false)
 
     setLoading(false)
-  }, [user])
+  }, [user, fetchCoachId])
 
   // ── Realtime — écoute les INSERT sur client_id ──
   useEffect(() => {
@@ -130,7 +148,17 @@ export default function MessagesClientPage() {
   const envoyerMessage = async (e) => {
     e.preventDefault()
     const messageToSend = texte.trim()
-    if (!messageToSend || !coachId || envoi) return
+    if (!messageToSend || envoi) return
+
+    // ── Guard strict : coachId doit être un UUID valide ──
+    if (!coachId) {
+      console.error('[MessagesClient] Envoi bloqué : coachId est', coachId)
+      toast.error('Impossible d\'envoyer : aucun coach associé.')
+      // Tenter de re-résoudre le coachId au cas où
+      const refreshed = await fetchCoachId()
+      if (refreshed) setCoachId(refreshed)
+      return
+    }
 
     // Vider l'input IMMÉDIATEMENT (sensation instantanée)
     setTexte('')
@@ -145,6 +173,8 @@ export default function MessagesClientPage() {
       contenu: messageToSend,
     }
 
+    console.log('[MessagesClient] Envoi message:', { coach_id: msg.coach_id, client_id: msg.client_id, receiver_id: msg.receiver_id })
+
     const tempId = `temp-${Date.now()}`
     setMessages(prev => [...prev, { ...msg, id: tempId, created_at: new Date().toISOString(), lu: false }])
 
@@ -157,6 +187,7 @@ export default function MessagesClientPage() {
       setMessages(prev => prev.filter(m => m.id !== tempId))
       setTexte(messageToSend)
     } else if (data) {
+      console.log('[MessagesClient] Message inséré en base, id:', data.id)
       setMessages(prev => prev.map(m => m.id === tempId ? data : m))
     }
 
@@ -166,7 +197,12 @@ export default function MessagesClientPage() {
 
   // ── Envoi message vocal ──
   const envoyerVocal = async (audioUrl, audioDuration) => {
-    if (!coachId) return
+    if (!coachId) {
+      console.error('[MessagesClient] Envoi vocal bloqué : coachId est', coachId)
+      toast.error('Impossible d\'envoyer : aucun coach associé.')
+      setIsRecording(false)
+      return
+    }
     const msg = {
       coach_id: coachId,
       client_id: user.id,
