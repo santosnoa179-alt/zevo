@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
-import { Send, MessageSquare, Mic } from 'lucide-react'
+import { useToast } from '../../components/ui/Toast'
+import { Send, MessageSquare, Mic, PenSquare, X, Search, Check, Users, Loader2 } from 'lucide-react'
 import { AudioBubble, VoiceRecorder } from '../../components/chat/VoiceMessage'
 
 // Initiales colorées pour la liste de clients
@@ -21,6 +22,7 @@ function Initiales({ nom, couleur, size = 'md' }) {
 
 export default function CoachMessagesPage() {
   const { user } = useAuth()
+  const toast = useToast()
   const [searchParams] = useSearchParams()
   const [clients, setClients] = useState([])
   const [clientSelectionne, setClientSelectionne] = useState(null)
@@ -32,6 +34,14 @@ export default function CoachMessagesPage() {
   const [loading, setLoading] = useState(true)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
+
+  // ── Modale Nouveau Message ──
+  const [showNewMsg, setShowNewMsg] = useState(false)
+  const [newMsgSearch, setNewMsgSearch] = useState('')
+  const [allClients, setAllClients] = useState([]) // tous les clients du coach (pour la modale)
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const [broadcastText, setBroadcastText] = useState('')
+  const [sending, setSending] = useState(false)
 
   // Synchroniser la ref avec le state
   useEffect(() => {
@@ -45,7 +55,7 @@ export default function CoachMessagesPage() {
 
     const { data: clientsData, error: clientsErr } = await supabase
       .from('clients')
-      .select('id, profiles(nom, email)')
+      .select('id, prenom, profiles(nom, email)')
       .eq('coach_id', user.id)
       .eq('actif', true)
       .order('created_at', { ascending: false })
@@ -105,7 +115,6 @@ export default function CoachMessagesPage() {
   useEffect(() => { chargerClients() }, [chargerClients])
 
   // ── Charge et ouvre la conversation d'un client ──
-  // Historique complet : tous les messages coach_id + client_id (coach est sender OU receiver)
   const ouvrirConversation = async (client) => {
     setClientSelectionne(client)
     console.log('[CoachMessages] Ouverture conversation client:', client.id, '| coach_id:', user.id)
@@ -138,7 +147,6 @@ export default function CoachMessagesPage() {
   }
 
   // ── Abonnement Realtime UNIQUE — écoute TOUS les messages adressés au coach ──
-  // Gère à la fois : mise à jour du chat actif ET mise à jour de la sidebar
   useEffect(() => {
     if (!user) return
 
@@ -157,18 +165,15 @@ export default function CoachMessagesPage() {
 
         // ── CAS 1 : Le message est dans la conversation actuellement ouverte ──
         if (currentClient && newMsg.client_id === currentClient.id) {
-          // Ajouter au chat (dédoublonné)
           setMessages(prev => {
             if (prev.find(m => m.id === newMsg.id)) return prev
             return [...prev, newMsg]
           })
 
-          // Si message du client → marquer lu immédiatement
           if (newMsg.expediteur === 'client') {
             supabase.from('messages').update({ lu: true }).eq('id', newMsg.id)
           }
 
-          // Mettre à jour le dernier msg dans la sidebar (badge = 0 car conversation ouverte)
           setClients(prev => {
             const updated = prev.map(c => {
               if (c.id !== newMsg.client_id) return c
@@ -225,7 +230,6 @@ export default function CoachMessagesPage() {
     const messageToSend = texte.trim()
     if (!messageToSend || !clientSelectionne || envoi) return
 
-    // Vider l'input IMMÉDIATEMENT
     setTexte('')
     setEnvoi(true)
 
@@ -245,7 +249,7 @@ export default function CoachMessagesPage() {
 
     if (error) {
       console.error('[CoachMessages] Erreur envoi message:', error)
-      // Restaurer le texte seulement en cas d'erreur
+      toast.error(error.message || 'Erreur lors de l\'envoi')
       setMessages(prev => prev.filter(m => m.id !== tempId))
       setTexte(messageToSend)
     } else if (data) {
@@ -274,10 +278,135 @@ export default function CoachMessagesPage() {
     const { data, error } = await supabase.from('messages').insert(msg).select().single()
     if (error) {
       console.error('[CoachMessages] Erreur envoi vocal:', error)
+      toast.error(error.message || 'Erreur envoi vocal')
     }
     if (data) setMessages(prev => prev.map(m => m.id === tempId ? data : m))
     setIsRecording(false)
   }
+
+  // ══════════════════════════════════════
+  // MODALE — Nouveau Message / Broadcast
+  // ══════════════════════════════════════
+
+  const ouvrirModaleNouveauMsg = async () => {
+    setShowNewMsg(true)
+    setNewMsgSearch('')
+    setSelectedIds(new Set())
+    setBroadcastText('')
+
+    // Fetch tous les clients du coach (avec prenom pour un meilleur affichage)
+    const { data, error } = await supabase
+      .from('clients')
+      .select('id, prenom, profiles(nom, email)')
+      .eq('coach_id', user.id)
+      .eq('actif', true)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('[CoachMessages] Erreur fetch clients modale:', error)
+    }
+    setAllClients(data ?? [])
+  }
+
+  const toggleClient = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  // Nom d'affichage d'un client
+  const displayName = (c) => {
+    const prenom = c.prenom || ''
+    const nom = c.profiles?.nom || ''
+    if (prenom && nom) return `${prenom} ${nom}`
+    return prenom || nom || c.profiles?.email || '?'
+  }
+
+  // Filtre de recherche
+  const filteredModalClients = newMsgSearch.trim()
+    ? allClients.filter(c => displayName(c).toLowerCase().includes(newMsgSearch.toLowerCase()))
+    : allClients
+
+  // ── Action : 1-à-1 ou Broadcast ──
+  const handleModalAction = async () => {
+    if (selectedIds.size === 0) return
+
+    // ── CAS 1 : Un seul client → ouvrir la conversation ──
+    if (selectedIds.size === 1) {
+      const selectedId = [...selectedIds][0]
+      // Chercher dans la liste enrichie (sidebar) ou dans allClients
+      const clientEnrichi = clients.find(c => c.id === selectedId)
+      if (clientEnrichi) {
+        setShowNewMsg(false)
+        ouvrirConversation(clientEnrichi)
+      } else {
+        // Client sans historique — le construire à la volée
+        const clientData = allClients.find(c => c.id === selectedId)
+        if (clientData) {
+          const fakeEnrichi = {
+            ...clientData,
+            dernierMsg: null,
+            nonLus: 0,
+            couleur: COULEURS[clients.length % COULEURS.length],
+          }
+          // Ajouter à la sidebar s'il n'y est pas
+          setClients(prev => {
+            if (prev.find(c => c.id === selectedId)) return prev
+            return [fakeEnrichi, ...prev]
+          })
+          setShowNewMsg(false)
+          ouvrirConversation(fakeEnrichi)
+        }
+      }
+      return
+    }
+
+    // ── CAS 2 : Plusieurs clients → Mode Broadcast ──
+    const message = broadcastText.trim()
+    if (!message) {
+      toast.error('Écris un message avant d\'envoyer.')
+      return
+    }
+
+    setSending(true)
+
+    const ids = [...selectedIds]
+    const inserts = ids.map(clientId => ({
+      coach_id: user.id,
+      client_id: clientId,
+      sender_id: user.id,
+      receiver_id: clientId,
+      expediteur: 'coach',
+      contenu: message,
+    }))
+
+    try {
+      // INSERT en batch (Supabase supporte l'insert de tableau)
+      const { error } = await supabase.from('messages').insert(inserts)
+
+      if (error) {
+        console.error('[CoachMessages] Erreur broadcast:', error)
+        toast.error(error.message || 'Erreur lors de l\'envoi groupé')
+      } else {
+        toast.success(`Message envoyé à ${ids.length} client${ids.length > 1 ? 's' : ''} !`)
+        setShowNewMsg(false)
+        // Rafraîchir la sidebar pour voir les derniers messages
+        chargerClients()
+      }
+    } catch (err) {
+      console.error('[CoachMessages] Erreur broadcast:', err)
+      toast.error('Erreur inattendue lors de l\'envoi')
+    }
+
+    setSending(false)
+  }
+
+  const isBroadcast = selectedIds.size > 1
+
+  // ══════════ RENDER ══════════
 
   if (loading) {
     return (
@@ -292,9 +421,18 @@ export default function CoachMessagesPage() {
 
       {/* ── Sidebar — liste clients ── */}
       <div className={`flex flex-col w-full md:w-72 border-r border-white/[0.06] flex-shrink-0 ${clientSelectionne ? 'hidden md:flex' : 'flex'}`}>
-        <div className="p-4 border-b border-white/[0.06]">
-          <h1 className="text-[#F5F5F3] font-bold text-lg">Messages</h1>
-          <p className="text-white/30 text-xs mt-0.5">{clients.length} conversation{clients.length !== 1 ? 's' : ''}</p>
+        <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+          <div>
+            <h1 className="text-[#F5F5F3] font-bold text-lg">Messages</h1>
+            <p className="text-white/30 text-xs mt-0.5">{clients.length} conversation{clients.length !== 1 ? 's' : ''}</p>
+          </div>
+          <button
+            onClick={ouvrirModaleNouveauMsg}
+            className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center text-[#FF6B2B] hover:bg-[#FF6B2B]/20 transition-colors"
+            title="Nouveau message"
+          >
+            <PenSquare size={16} />
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -302,6 +440,12 @@ export default function CoachMessagesPage() {
             <div className="p-6 text-center">
               <MessageSquare size={24} className="text-white/15 mx-auto mb-2" />
               <p className="text-white/30 text-sm">Aucun client actif.</p>
+              <button
+                onClick={ouvrirModaleNouveauMsg}
+                className="mt-3 text-[#FF6B2B] text-xs font-semibold hover:underline"
+              >
+                Démarrer une conversation
+              </button>
             </div>
           ) : (
             clients.map((c) => (
@@ -437,6 +581,148 @@ export default function CoachMessagesPage() {
           <div className="text-center">
             <MessageSquare size={40} className="text-white/10 mx-auto mb-3" />
             <p className="text-white/20 text-sm">Sélectionne un client pour démarrer</p>
+            <button
+              onClick={ouvrirModaleNouveauMsg}
+              className="mt-4 px-4 py-2 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55a1b] transition-colors inline-flex items-center gap-2"
+            >
+              <PenSquare size={14} />
+              Nouveau message
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════ */}
+      {/* MODALE — Nouveau message / Broadcast  */}
+      {/* ══════════════════════════════════════ */}
+      {showNewMsg && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowNewMsg(false)} />
+          <div className="relative z-[101] bg-[#18181b] border border-[#27272a] w-full sm:w-[460px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col overflow-hidden">
+
+            {/* Header */}
+            <div className="px-4 py-3 border-b border-[#27272a] flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <PenSquare size={16} className="text-[#FF6B2B]" />
+                <h3 className="text-[#F5F5F3] font-semibold text-sm">
+                  {isBroadcast ? 'Envoi groupé' : 'Nouvelle conversation'}
+                </h3>
+                {selectedIds.size > 0 && (
+                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
+                    {selectedIds.size} sélectionné{selectedIds.size > 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+              <button onClick={() => setShowNewMsg(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Recherche */}
+            <div className="px-4 py-3 border-b border-[#27272a] flex-shrink-0">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                <input
+                  type="text"
+                  value={newMsgSearch}
+                  onChange={(e) => setNewMsgSearch(e.target.value)}
+                  placeholder="Rechercher un client..."
+                  autoFocus
+                  className="w-full bg-[#0f0f10] border border-[#27272a] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/40 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Liste des clients */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              {filteredModalClients.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+                  <Users size={28} className="text-white/10 mb-3" />
+                  <p className="text-white/25 text-xs">
+                    {newMsgSearch ? 'Aucun client trouvé' : 'Aucun client actif'}
+                  </p>
+                </div>
+              ) : (
+                filteredModalClients.map((c, idx) => {
+                  const isSelected = selectedIds.has(c.id)
+                  const name = displayName(c)
+                  const couleur = COULEURS[idx % COULEURS.length]
+
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => toggleClient(c.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/30 ${
+                        isSelected ? 'bg-[#FF6B2B]/[0.06]' : ''
+                      }`}
+                    >
+                      {/* Checkbox */}
+                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                        isSelected ? 'bg-[#FF6B2B] border-[#FF6B2B]' : 'border-[#27272a]'
+                      }`}>
+                        {isSelected && <Check size={12} className="text-white" strokeWidth={3} />}
+                      </div>
+
+                      {/* Avatar */}
+                      <Initiales nom={name} couleur={couleur} size="sm" />
+
+                      {/* Infos */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[#F5F5F3] text-sm font-medium truncate">{name}</p>
+                        <p className="text-white/20 text-[10px] truncate mt-0.5">{c.profiles?.email}</p>
+                      </div>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+
+            {/* ── Zone broadcast (textarea) visible si > 1 sélectionné ── */}
+            {isBroadcast && (
+              <div className="px-4 py-3 border-t border-[#27272a] flex-shrink-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users size={13} className="text-[#FF6B2B]" />
+                  <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold">
+                    Message groupé à {selectedIds.size} clients
+                  </p>
+                </div>
+                <textarea
+                  value={broadcastText}
+                  onChange={(e) => setBroadcastText(e.target.value)}
+                  placeholder="Écris ton message ici..."
+                  rows={3}
+                  className="w-full bg-[#0f0f10] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/40 resize-none transition-all"
+                />
+              </div>
+            )}
+
+            {/* Bouton d'action */}
+            <div className="px-4 py-3 border-t border-[#27272a] flex-shrink-0">
+              <button
+                onClick={handleModalAction}
+                disabled={selectedIds.size === 0 || sending || (isBroadcast && !broadcastText.trim())}
+                className="w-full py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55a1b] transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {sending ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    Envoi en cours...
+                  </>
+                ) : isBroadcast ? (
+                  <>
+                    <Send size={14} />
+                    Envoyer à {selectedIds.size} clients
+                  </>
+                ) : selectedIds.size === 1 ? (
+                  <>
+                    <MessageSquare size={14} />
+                    Démarrer la conversation
+                  </>
+                ) : (
+                  'Sélectionne au moins un client'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
