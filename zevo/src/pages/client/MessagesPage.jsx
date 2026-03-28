@@ -50,24 +50,33 @@ export default function MessagesClientPage() {
   const chargerMessages = useCallback(async () => {
     if (!user) return
 
-    const { data: clientData } = await supabase
+    const { data: clientData, error: clientErr } = await supabase
       .from('clients')
       .select('coach_id')
       .eq('id', user.id)
       .single()
 
+    if (clientErr) {
+      console.error('[MessagesClient] Erreur chargement coach_id:', clientErr)
+    }
+
     if (!clientData?.coach_id) { setLoading(false); return }
     setCoachId(clientData.coach_id)
 
-    const { data: msgs } = await supabase
+    const { data: msgs, error: msgsErr } = await supabase
       .from('messages')
       .select('*')
       .eq('coach_id', clientData.coach_id)
       .eq('client_id', user.id)
       .order('created_at', { ascending: true })
 
+    if (msgsErr) {
+      console.error('[MessagesClient] Erreur chargement messages:', msgsErr)
+    }
+
     setMessages(msgs ?? [])
 
+    // Marquer les messages du coach comme lus
     await supabase
       .from('messages')
       .update({ lu: true })
@@ -113,8 +122,6 @@ export default function MessagesClientPage() {
   // ── Fix mobile keyboard: scroll to bottom when input is focused ──
   useEffect(() => {
     const handleResize = () => {
-      // When virtual keyboard opens, the visualViewport shrinks
-      // Scroll to bottom to keep messages visible
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
       }, 150)
@@ -135,6 +142,8 @@ export default function MessagesClientPage() {
     const msg = {
       coach_id: coachId,
       client_id: user.id,
+      sender_id: user.id,
+      receiver_id: coachId,
       expediteur: 'client',
       contenu: texte.trim(),
     }
@@ -144,6 +153,10 @@ export default function MessagesClientPage() {
     setTexte('')
 
     const { data, error } = await supabase.from('messages').insert(msg).select().single()
+
+    if (error) {
+      console.error('[MessagesClient] Erreur envoi message:', error)
+    }
 
     if (!error && data) {
       setMessages(prev => prev.map(m => m.id === tempId ? data : m))
@@ -161,6 +174,8 @@ export default function MessagesClientPage() {
     const msg = {
       coach_id: coachId,
       client_id: user.id,
+      sender_id: user.id,
+      receiver_id: coachId,
       expediteur: 'client',
       contenu: '🎤 Note vocale',
       audio_url: audioUrl,
@@ -169,6 +184,9 @@ export default function MessagesClientPage() {
     const tempId = `temp-${Date.now()}`
     setMessages(prev => [...prev, { ...msg, id: tempId, created_at: new Date().toISOString(), lu: false }])
     const { data, error } = await supabase.from('messages').insert(msg).select().single()
+    if (error) {
+      console.error('[MessagesClient] Erreur envoi vocal:', error)
+    }
     if (!error && data) {
       setMessages(prev => prev.map(m => m.id === tempId ? data : m))
     }
@@ -231,17 +249,17 @@ export default function MessagesClientPage() {
           <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />
         ) : (
           <>
+            {/* text-[16px] obligatoire pour empêcher le zoom automatique iOS sur les inputs < 16px */}
             <input
               ref={inputRef}
               value={texte}
               onChange={(e) => setTexte(e.target.value)}
               placeholder="Message..."
-              className="flex-1 bg-[#1E1E1E] border border-white/[0.08] rounded-2xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/40 transition-all"
+              className="flex-1 bg-[#1E1E1E] border border-white/[0.08] rounded-2xl px-4 py-2.5 text-[16px] text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/40 transition-all"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e)
               }}
               onFocus={() => {
-                // Scroll to bottom when keyboard opens on mobile
                 setTimeout(() => {
                   bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
                 }, 300)

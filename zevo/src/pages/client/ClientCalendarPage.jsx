@@ -3,11 +3,23 @@ import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import {
   Calendar, ChevronLeft, ChevronRight, Dumbbell, CheckCircle2,
-  Loader2, Clock, X, FileText
+  Loader2, Clock, X, FileText, Phone, CheckSquare, Users as UsersIcon,
+  Star
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+
+// Types d'événements (lecture seule, pour affichage)
+const EVENT_TYPES = {
+  seance:  { label: 'Séance',     icon: Dumbbell,    color: '#FF6B2B' },
+  bilan:   { label: 'Bilan',      icon: CheckSquare,  color: '#22c55e' },
+  appel:   { label: 'Appel',      icon: Phone,        color: '#3b82f6' },
+  reunion: { label: 'Réunion',    icon: UsersIcon,    color: '#a855f7' },
+  note:    { label: 'Note',       icon: FileText,     color: '#f59e0b' },
+  perso:   { label: 'Personnel',  icon: Star,         color: '#ec4899' },
+  autre:   { label: 'Autre',      icon: Calendar,     color: '#64748b' },
+}
 
 // ── Date helpers ──
 
@@ -75,48 +87,46 @@ export default function ClientCalendarPage() {
   const [view, setView] = useState('month') // 'month' | 'week'
   const [offset, setOffset] = useState(0)
   const [seances, setSeances] = useState([])
+  const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedSeance, setSelectedSeance] = useState(null)
+  const [selectedEvent, setSelectedEvent] = useState(null)
   const [exercices, setExercices] = useState([])
   const [loadingExos, setLoadingExos] = useState(false)
 
   const today = new Date()
 
-  // ── Date range for query ──
-  const getDateRange = useCallback(() => {
-    if (view === 'month') {
-      const { first, last } = getMonthGrid(offset)
-      const start = new Date(first)
-      start.setDate(start.getDate() - 7) // buffer
-      const end = new Date(last)
-      end.setDate(end.getDate() + 7)
-      return { start, end }
-    }
-    const dates = getWeekDates(offset)
-    return { start: dates[0], end: dates[6] }
-  }, [view, offset])
-
-  // ── Fetch séances ──
+  // ── Fetch séances + events (pas de filtre par date pour garantir le chargement) ──
   const fetchData = useCallback(async (silent = false) => {
     if (!user) return
     if (!silent) setLoading(true)
 
-    const { start, end } = getDateRange()
-    const startISO = start.toISOString().slice(0, 10)
-    const endISO = end.toISOString().slice(0, 10)
+    const [seancesRes, eventsRes] = await Promise.all([
+      supabase
+        .from('seances')
+        .select('*')
+        .eq('client_id', user.id)
+        .eq('is_template', false)
+        .order('date_prevue', { ascending: true }),
+      supabase
+        .from('coach_events')
+        .select('*')
+        .eq('client_id', user.id)
+        .order('event_date', { ascending: true }),
+    ])
 
-    const { data } = await supabase
-      .from('seances')
-      .select('id, titre, date_prevue, notes, is_completed, completed_at')
-      .eq('client_id', user.id)
-      .eq('is_template', false)
-      .gte('date_prevue', startISO)
-      .lte('date_prevue', endISO)
-      .order('date_prevue', { ascending: true })
+    if (seancesRes.error) {
+      console.error('[ClientCalendar] Erreur chargement séances:', seancesRes.error)
+    }
+    if (eventsRes.error) {
+      console.error('[ClientCalendar] Erreur chargement événements:', eventsRes.error)
+    }
 
-    setSeances(data || [])
+    setSeances(seancesRes.data || [])
+    setEvents(eventsRes.data || [])
+
     if (!silent) setLoading(false)
-  }, [user, getDateRange])
+  }, [user])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -129,29 +139,52 @@ export default function ClientCalendarPage() {
         event: '*', schema: 'public', table: 'seances',
         filter: `client_id=eq.${user.id}`,
       }, () => fetchData(true))
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'coach_events',
+        filter: `client_id=eq.${user.id}`,
+      }, () => fetchData(true))
       .subscribe()
     return () => supabase.removeChannel(channel)
   }, [user, fetchData])
 
   // ── Open séance detail ──
-  const openDetail = async (seance) => {
+  const openSeanceDetail = async (seance) => {
+    setSelectedEvent(null)
     setSelectedSeance(seance)
     setLoadingExos(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('seance_exercices')
       .select('*, exercices(nom, muscle_group)')
       .eq('seance_id', seance.id)
       .order('ordre')
+    if (error) {
+      console.error('[ClientCalendar] Erreur chargement exercices:', error)
+    }
     setExercices(data || [])
     setLoadingExos(false)
   }
 
-  // ── Get séances for a day ──
-  const getSeancesForDay = (date) => {
-    return seances.filter(s => {
-      const d = new Date(s.date_prevue)
-      return isSameDay(d, date)
+  // ── Open event detail ──
+  const openEventDetail = (event) => {
+    setSelectedSeance(null)
+    setSelectedEvent(event)
+  }
+
+  // ── Get items for a day ──
+  const getItemsForDay = (date) => {
+    const dateStr = date.toISOString().slice(0, 10)
+
+    const daySeances = seances.filter(s => {
+      const d = s.date_prevue?.slice(0, 10)
+      return d === dateStr
     })
+
+    const dayEvents = events.filter(e => {
+      const d = e.event_date?.slice(0, 10)
+      return d === dateStr
+    })
+
+    return { daySeances, dayEvents }
   }
 
   // ── Navigation ──
@@ -194,18 +227,18 @@ export default function ClientCalendarPage() {
         <div className="grid grid-cols-7 gap-px bg-[#27272a]/30 rounded-xl overflow-hidden border border-[#27272a]">
           {cells.map(({ date, inMonth }, i) => {
             const isToday = isSameDay(date, today)
-            const daySeances = getSeancesForDay(date)
-            const hasCompleted = daySeances.some(s => s.is_completed)
-            const hasPending = daySeances.some(s => !s.is_completed)
+            const { daySeances, dayEvents } = getItemsForDay(date)
+            const totalItems = daySeances.length + dayEvents.length
 
             return (
               <div
                 key={i}
                 className={`min-h-[52px] sm:min-h-[72px] p-1 sm:p-1.5 transition-colors ${
                   inMonth ? 'bg-[#18181b]' : 'bg-[#0f0f10]'
-                } ${daySeances.length > 0 ? 'cursor-pointer hover:bg-[#1e1e20]' : ''}`}
+                } ${totalItems > 0 ? 'cursor-pointer hover:bg-[#1e1e20]' : ''}`}
                 onClick={() => {
-                  if (daySeances.length === 1) openDetail(daySeances[0])
+                  if (daySeances.length === 1 && dayEvents.length === 0) openSeanceDetail(daySeances[0])
+                  else if (daySeances.length === 0 && dayEvents.length === 1) openEventDetail(dayEvents[0])
                 }}
               >
                 <div className="flex items-center justify-between">
@@ -218,12 +251,12 @@ export default function ClientCalendarPage() {
                   </span>
                 </div>
 
-                {/* Dots / mini badges */}
+                {/* Mini badges */}
                 <div className="mt-1 space-y-0.5">
                   {daySeances.slice(0, 2).map(s => (
                     <button
-                      key={s.id}
-                      onClick={(e) => { e.stopPropagation(); openDetail(s) }}
+                      key={`s-${s.id}`}
+                      onClick={(e) => { e.stopPropagation(); openSeanceDetail(s) }}
                       className={`w-full text-left truncate text-[8px] sm:text-[9px] px-1 py-0.5 rounded leading-tight ${
                         s.is_completed
                           ? 'bg-emerald-500/15 text-emerald-400'
@@ -233,8 +266,21 @@ export default function ClientCalendarPage() {
                       {s.titre}
                     </button>
                   ))}
-                  {daySeances.length > 2 && (
-                    <p className="text-white/20 text-[8px] pl-1">+{daySeances.length - 2}</p>
+                  {dayEvents.slice(0, 2 - Math.min(daySeances.length, 2)).map(e => {
+                    const evType = EVENT_TYPES[e.event_type] || EVENT_TYPES.autre
+                    return (
+                      <button
+                        key={`e-${e.id}`}
+                        onClick={(ev) => { ev.stopPropagation(); openEventDetail(e) }}
+                        className="w-full text-left truncate text-[8px] sm:text-[9px] px-1 py-0.5 rounded leading-tight"
+                        style={{ backgroundColor: `${evType.color}20`, color: evType.color }}
+                      >
+                        {e.title}
+                      </button>
+                    )
+                  })}
+                  {totalItems > 2 && (
+                    <p className="text-white/20 text-[8px] pl-1">+{totalItems - 2}</p>
                   )}
                 </div>
               </div>
@@ -274,8 +320,9 @@ export default function ClientCalendarPage() {
         <div className="space-y-2">
           {dates.map((date, i) => {
             const isToday = isSameDay(date, today)
-            const daySeances = getSeancesForDay(date)
+            const { daySeances, dayEvents } = getItemsForDay(date)
             const dayLabel = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })
+            const totalItems = daySeances.length + dayEvents.length
 
             return (
               <div
@@ -300,17 +347,18 @@ export default function ClientCalendarPage() {
                   )}
                 </div>
 
-                {/* Séances */}
-                {daySeances.length === 0 ? (
+                {/* Items */}
+                {totalItems === 0 ? (
                   <div className="px-3 py-3">
-                    <p className="text-white/10 text-[10px]">Aucune séance</p>
+                    <p className="text-white/10 text-[10px]">Rien de prévu</p>
                   </div>
                 ) : (
                   <div className="px-2 pb-2 space-y-1.5">
+                    {/* Séances */}
                     {daySeances.map(s => (
                       <button
-                        key={s.id}
-                        onClick={() => openDetail(s)}
+                        key={`s-${s.id}`}
+                        onClick={() => openSeanceDetail(s)}
                         className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3 ${
                           s.is_completed
                             ? 'bg-emerald-500/10 hover:bg-emerald-500/15'
@@ -340,6 +388,34 @@ export default function ClientCalendarPage() {
                         )}
                       </button>
                     ))}
+
+                    {/* Events */}
+                    {dayEvents.map(e => {
+                      const evType = EVENT_TYPES[e.event_type] || EVENT_TYPES.autre
+                      const EvIcon = evType.icon
+                      return (
+                        <button
+                          key={`e-${e.id}`}
+                          onClick={() => openEventDetail(e)}
+                          className="w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3 hover:bg-white/[0.03]"
+                          style={{ backgroundColor: `${evType.color}08` }}
+                        >
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: `${evType.color}15` }}>
+                            <EvIcon size={16} style={{ color: evType.color }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[#F5F5F3] text-xs font-medium truncate">{e.title}</p>
+                            <p className="text-white/20 text-[10px] mt-0.5">{evType.label}</p>
+                          </div>
+                          {e.event_date && (
+                            <span className="text-white/20 text-[9px] shrink-0">
+                              {new Date(e.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -351,7 +427,7 @@ export default function ClientCalendarPage() {
   }
 
   // ══════════ SEANCE DETAIL MODAL ══════════
-  const renderDetailModal = () => {
+  const renderSeanceModal = () => {
     if (!selectedSeance) return null
 
     return (
@@ -451,6 +527,56 @@ export default function ClientCalendarPage() {
     )
   }
 
+  // ══════════ EVENT DETAIL MODAL ══════════
+  const renderEventModal = () => {
+    if (!selectedEvent) return null
+
+    const evType = EVENT_TYPES[selectedEvent.event_type] || EVENT_TYPES.autre
+    const EvIcon = evType.icon
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedEvent(null)} />
+        <div className="relative bg-[#18181b] border border-[#27272a] w-full sm:w-[420px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto">
+          {/* Header */}
+          <div className="sticky top-0 z-10 bg-[#18181b] border-b border-[#27272a] px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <EvIcon size={16} style={{ color: evType.color }} />
+              <h3 className="text-[#F5F5F3] font-semibold text-sm">{selectedEvent.title}</h3>
+            </div>
+            <button onClick={() => setSelectedEvent(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 rounded-md text-[10px] font-bold" style={{ backgroundColor: `${evType.color}20`, color: evType.color }}>
+                {evType.label}
+              </span>
+            </div>
+
+            {selectedEvent.event_date && (
+              <div className="flex items-center gap-2 text-white/40 text-xs">
+                <Calendar size={13} />
+                <span>{new Date(selectedEvent.event_date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                <span className="text-white/20">
+                  {new Date(selectedEvent.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            )}
+
+            {selectedEvent.notes && (
+              <div className="bg-[#0f0f10] rounded-xl px-4 py-3">
+                <p className="text-white/50 text-xs leading-relaxed">{selectedEvent.notes}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // ══════════ MAIN RENDER ══════════
   if (loading) {
     return (
@@ -470,7 +596,12 @@ export default function ClientCalendarPage() {
             <Calendar size={20} className="text-[#FF6B2B]" />
             Calendrier
           </h1>
-          <p className="text-white/40 text-sm mt-0.5">Tes séances planifiées</p>
+          <p className="text-white/40 text-sm mt-0.5">
+            {seances.length + events.length === 0
+              ? 'Aucun événement pour le moment'
+              : `${seances.length} séance${seances.length !== 1 ? 's' : ''} · ${events.length} événement${events.length !== 1 ? 's' : ''}`
+            }
+          </p>
         </div>
 
         {/* Toggle Mois / Semaine */}
@@ -501,8 +632,9 @@ export default function ClientCalendarPage() {
       {/* ── Calendar View ── */}
       {view === 'month' ? renderMonth() : renderWeek()}
 
-      {/* ── Séance Detail Modal ── */}
-      {renderDetailModal()}
+      {/* ── Modals ── */}
+      {renderSeanceModal()}
+      {renderEventModal()}
     </div>
   )
 }
