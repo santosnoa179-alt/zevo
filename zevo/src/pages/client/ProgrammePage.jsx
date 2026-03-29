@@ -234,9 +234,9 @@ export default function ProgrammePage() {
     ? Math.round((assignation.phase_actuelle / phases.length) * 100)
     : 0
 
-  // Mode Document : PDF global + pas de phases avec exercices
+  // Mode Document : dès qu'un document_url existe, on affiche la carte PDF
   const hasExercises = phases.some(p => (p.exercices?.length || 0) > 0)
-  const isDocumentMode = !!prog?.document_url && !hasExercises
+  const isDocumentMode = !!prog?.document_url
   const totalWeeks = prog?.duree_semaines || 4
   const isWeekCompleted = (w) => completedWeeks.some(cw => cw.numero_semaine === w)
   const completedCount = completedWeeks.length
@@ -301,7 +301,7 @@ export default function ProgrammePage() {
             </div>
           ) : isDocumentMode ? (
             /* ═══════════════════════════════════════════ */
-            /* MODE DOCUMENT — PDF global, pas d'exercices */
+            /* MODE DOCUMENT — PDF global                  */
             /* ═══════════════════════════════════════════ */
             <>
               {/* Programme Header */}
@@ -311,20 +311,27 @@ export default function ProgrammePage() {
                 {prog?.description && <p className="text-white/40 text-sm mt-1">{prog.description}</p>}
               </div>
 
-              {/* Grande carte PDF centrale */}
-              <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-6 text-center">
-                <div className="w-20 h-20 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-5">
-                  <FileText size={36} className="text-[#FF6B2B]" />
+              {/* Grande carte PDF premium */}
+              <div className="bg-[#1E1E1E] rounded-2xl p-8 text-center shadow-xl border border-[#27272a] my-2">
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 bg-[#FF6B2B]/10 rounded-full">
+                    <svg className="w-12 h-12 text-[#FF6B2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  </div>
                 </div>
-                <h3 className="text-[#F5F5F3] font-bold text-lg mb-1">Ton programme complet</h3>
-                <p className="text-white/40 text-sm mb-1">{prog?.document_nom || 'Document PDF'}</p>
-                <p className="text-white/25 text-xs mb-6">
-                  {totalWeeks} semaines • {prog?.categorie || 'Programme personnalisé'}
-                </p>
-                <a href={prog.document_url} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/25">
-                  <ExternalLink size={16} />
-                  Ouvrir le programme
+                <h2 className="text-xl font-bold text-white mb-2">Ton programme PDF</h2>
+                <p className="text-white/40 mb-6 text-sm">Consulte ton plan d'entraînement complet joint par ton coach.</p>
+                <a
+                  href={prog.document_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#FF6B2B] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20"
+                >
+                  Ouvrir le document
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
                 </a>
               </div>
 
