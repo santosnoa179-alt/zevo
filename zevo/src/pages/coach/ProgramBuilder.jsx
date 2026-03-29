@@ -5,7 +5,8 @@ import { useToast } from '../../components/ui/Toast'
 import SessionEditorModal from './SessionEditorModal'
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Save, Rocket,
-  Plus, Dumbbell, Clock, Trash2, GripVertical, X, Loader2, Paperclip
+  Plus, Dumbbell, Clock, Trash2, GripVertical, X, Loader2, Paperclip,
+  Upload, FileText
 } from 'lucide-react'
 
 const DAYS = ['JOUR 1', 'JOUR 2', 'JOUR 3', 'JOUR 4', 'JOUR 5', 'JOUR 6', 'JOUR 7']
@@ -32,6 +33,11 @@ export default function ProgramBuilder({ programme, onBack }) {
   // Programme ID (set after first save)
   const [programmeId, setProgrammeId] = useState(programme?.id || null)
   const [loadingData, setLoadingData] = useState(false)
+
+  // Global document attachment
+  const [globalDoc, setGlobalDoc] = useState(null)       // { nom, url } — already saved in DB
+  const [pendingFile, setPendingFile] = useState(null)    // File object waiting for save
+  const [uploadingGlobal, setUploadingGlobal] = useState(false)
 
   // ── Load existing seances when opening a saved programme ──
   const loadProgrammeData = useCallback(async () => {
@@ -111,6 +117,84 @@ export default function ProgramBuilder({ programme, onBack }) {
   }, [programmeId, user, programme?.date_debut])
 
   useEffect(() => { loadProgrammeData() }, [loadProgrammeData])
+
+  // Load existing global doc from programme
+  useEffect(() => {
+    if (programme?.document_url) {
+      setGlobalDoc({ nom: programme.document_nom || 'Document', url: programme.document_url })
+    }
+  }, [programme?.document_url, programme?.document_nom])
+
+  // ── Global file picker ──
+  const triggerGlobalFileUpload = () => {
+    if (uploadingGlobal) return
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx'
+    input.onchange = (e) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+      if (programmeId) {
+        uploadGlobalDoc(file)
+      } else {
+        setPendingFile(file)
+        setSaved(false)
+        toast.success('Fichier prêt — sera uploadé à la sauvegarde')
+      }
+    }
+    input.click()
+  }
+
+  // Upload global doc to Supabase Storage + update programmes row
+  const uploadGlobalDoc = async (file, progId) => {
+    const pid = progId || programmeId
+    if (!pid) return null
+    setUploadingGlobal(true)
+    try {
+      const filePath = `programme_docs/${pid}/${Date.now()}_${file.name}`
+      const { error: upErr } = await supabase.storage.from('program-files').upload(filePath, file)
+      if (upErr) throw upErr
+
+      const { data: { publicUrl } } = supabase.storage.from('program-files').getPublicUrl(filePath)
+
+      const { error: dbErr } = await supabase.from('programmes').update({
+        document_url: publicUrl,
+        document_nom: file.name,
+      }).eq('id', pid)
+      if (dbErr) throw dbErr
+
+      setGlobalDoc({ nom: file.name, url: publicUrl })
+      setPendingFile(null)
+      toast.success('Fichier joint au programme !')
+      return publicUrl
+    } catch (err) {
+      console.error('[ProgramBuilder] Erreur upload doc global:', err)
+      toast.error('Erreur upload : ' + (err.message || 'inconnu'))
+      return null
+    } finally {
+      setUploadingGlobal(false)
+    }
+  }
+
+  // Remove global doc
+  const removeGlobalDoc = async () => {
+    if (pendingFile) {
+      setPendingFile(null)
+      toast.success('Fichier en attente retiré')
+      return
+    }
+    if (!programmeId || !globalDoc) return
+    try {
+      await supabase.from('programmes').update({
+        document_url: null,
+        document_nom: null,
+      }).eq('id', programmeId)
+      setGlobalDoc(null)
+      toast.success('Fichier retiré')
+    } catch (err) {
+      toast.error('Erreur suppression')
+    }
+  }
 
   // Get sessions for current week + day
   const getKey = (dayIdx) => `w${currentWeek}_d${dayIdx}`
@@ -205,6 +289,11 @@ export default function ProgramBuilder({ programme, onBack }) {
     const progId = progData.id
     console.log('[ProgramBuilder] Programme upserted OK, id:', progId)
     if (progId !== programmeId) setProgrammeId(progId)
+
+    // Upload pending global doc if any
+    if (pendingFile) {
+      await uploadGlobalDoc(pendingFile, progId)
+    }
 
     // 2. Delete existing seances for this programme (template seances)
     const marker = `programme:${progId}`
@@ -380,8 +469,21 @@ export default function ProgramBuilder({ programme, onBack }) {
             </button>
           </div>
 
-          {/* Right: Save + Publish */}
+          {/* Right: Attach + Save + Publish */}
           <div className="flex items-center gap-2.5 shrink-0">
+            {/* Global doc attach button */}
+            <button onClick={triggerGlobalFileUpload} disabled={uploadingGlobal}
+              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                uploadingGlobal
+                  ? 'bg-[#27272a] text-white/30 cursor-wait'
+                  : globalDoc || pendingFile
+                    ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20'
+                    : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20'
+              }`}
+              title="Joindre un PDF/fichier global au programme">
+              {uploadingGlobal ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+              {uploadingGlobal ? 'Upload...' : 'Joindre PDF'}
+            </button>
             <button onClick={handleSave} disabled={saving || saved}
               className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 saved
@@ -399,6 +501,41 @@ export default function ProgramBuilder({ programme, onBack }) {
           </div>
         </div>
       </div>
+
+      {/* ═══ Global attached file banner ═══ */}
+      {(globalDoc || pendingFile) && (
+        <div className="px-4 md:px-6 py-2.5 border-b border-[#27272a] bg-[#1E1E1E]/50">
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+              pendingFile ? 'bg-[#FF6B2B]/10' : 'bg-emerald-500/10'
+            }`}>
+              <FileText size={16} className={pendingFile ? 'text-[#FF6B2B]' : 'text-emerald-400'} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[#F5F5F3] text-xs font-semibold truncate">
+                {pendingFile ? pendingFile.name : globalDoc?.nom}
+              </p>
+              <p className="text-white/25 text-[10px]">
+                {pendingFile
+                  ? '⏳ En attente — sera uploadé à la sauvegarde'
+                  : '✓ Fichier global joint au programme'}
+              </p>
+            </div>
+            {globalDoc?.url && (
+              <a href={globalDoc.url} target="_blank" rel="noopener noreferrer"
+                className="p-1.5 rounded-lg text-white/30 hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-all shrink-0"
+                title="Voir le fichier">
+                <FileText size={14} />
+              </a>
+            )}
+            <button onClick={removeGlobalDoc}
+              className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0"
+              title="Retirer le fichier">
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Loading overlay */}
       {loadingData && (

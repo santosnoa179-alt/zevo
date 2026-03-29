@@ -58,7 +58,7 @@ export default function ProgrammePage() {
 
     const { data: assign } = await supabase
       .from('programme_assignations')
-      .select('*, programmes(titre, description, duree_semaines, categorie)')
+      .select('*, programmes(titre, description, duree_semaines, categorie, document_url, document_nom)')
       .eq('client_id', user.id)
       .eq('statut', 'en_cours')
       .limit(1)
@@ -277,6 +277,25 @@ export default function ProgrammePage() {
                   </div>
                 </CardBody>
               </Card>
+
+              {/* Global document attached to programme */}
+              {prog?.document_url && (
+                <a href={prog.document_url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-4 p-4 bg-[#1E1E1E] rounded-2xl border border-[#FF6B2B]/20 hover:border-[#FF6B2B]/40 transition-all group">
+                  <div className="w-12 h-12 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B]/20 transition-all">
+                    <FileText size={22} className="text-[#FF6B2B]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[#F5F5F3] text-sm font-semibold truncate">
+                      {prog.document_nom || 'Programme PDF'}
+                    </p>
+                    <p className="text-white/30 text-xs mt-0.5">Fichier joint par ton coach • Appuie pour ouvrir</p>
+                  </div>
+                  <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B] group-hover:text-white transition-all">
+                    <Download size={16} className="text-[#FF6B2B] group-hover:text-white transition-all" />
+                  </div>
+                </a>
+              )}
 
               {/* Phases */}
               <div className="space-y-3">
