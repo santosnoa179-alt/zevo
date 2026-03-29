@@ -8,10 +8,51 @@ import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import {
   Plus, Lock, Archive, Target, Calendar, Scale, TrendingDown,
-  TrendingUp, Minus as MinusIcon, Loader2, X
+  TrendingUp, Minus as MinusIcon, Loader2, X, Ruler
 } from 'lucide-react'
 import { Confetti } from '../../components/ui/Confetti'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+
+// ── Couleurs des courbes ──
+const COLORS = {
+  poids: '#FF6B2B',
+  tour_bras: '#3b82f6',
+  tour_poitrine: '#8b5cf6',
+  tour_taille: '#f59e0b',
+  tour_hanches: '#ec4899',
+  tour_cuisses: '#22c55e',
+}
+
+const LABELS = {
+  poids: 'Poids',
+  tour_bras: 'Tour de bras',
+  tour_poitrine: 'Tour de poitrine',
+  tour_taille: 'Tour de taille',
+  tour_hanches: 'Tour de hanches',
+  tour_cuisses: 'Tour de cuisses',
+}
+
+const UNITS = {
+  poids: 'kg',
+  tour_bras: 'cm',
+  tour_poitrine: 'cm',
+  tour_taille: 'cm',
+  tour_hanches: 'cm',
+  tour_cuisses: 'cm',
+}
+
+// ── Champs selon l'objectif ──
+function getFieldsForObjectif(objectifType) {
+  const t = (objectifType || '').toLowerCase()
+  if (t.includes('masse') || t.includes('muscle') || t.includes('prise')) {
+    return ['poids', 'tour_bras', 'tour_poitrine', 'tour_cuisses']
+  }
+  if (t.includes('perte') || t.includes('sèche') || t.includes('seche') || t.includes('maigrir')) {
+    return ['poids', 'tour_taille', 'tour_hanches']
+  }
+  // Défaut : remise en forme
+  return ['poids', 'tour_taille', 'tour_poitrine']
+}
 
 // ── Barre de progression colorée ──
 function ProgressBar({ score }) {
@@ -26,14 +67,18 @@ function ProgressBar({ score }) {
   )
 }
 
-// ── Tooltip custom pour la courbe de poids ──
-function WeightTooltip({ active, payload }) {
+// ── Tooltip custom pour les courbes ──
+function MensurationTooltip({ active, payload }) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
     <div className="bg-[#1E1E1E] border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm shadow-xl backdrop-blur-sm">
-      <p className="text-white/40 text-[10px] uppercase tracking-wider mb-0.5">{d.label}</p>
-      <p className="text-[#F5F5F3] font-bold text-base">{d.poids}<span className="text-white/30 text-xs font-normal"> kg</span></p>
+      <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">{d.label}</p>
+      {payload.map((p, i) => (
+        <p key={i} className="font-bold text-sm" style={{ color: p.stroke }}>
+          {p.value}<span className="text-white/30 text-xs font-normal"> {UNITS[p.dataKey]}</span>
+        </p>
+      ))}
     </div>
   )
 }
@@ -54,21 +99,25 @@ export default function ObjectifsPage() {
   const [ajout, setAjout] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
 
-  // ── Suivi poids ──
-  const [poidsData, setPoidsData] = useState([])
+  // ── Mensurations ──
+  const [mensData, setMensData] = useState([])
   const [poidsActuel, setPoidsActuel] = useState(null)
   const [poidsCible, setPoidsCible] = useState(null)
   const [coachId, setCoachId] = useState(null)
-  const [showPesee, setShowPesee] = useState(false)
-  const [newPoids, setNewPoids] = useState('')
-  const [savingPoids, setSavingPoids] = useState(false)
+  const [objectifType, setObjectifType] = useState('')
+  const [showSaisie, setShowSaisie] = useState(false)
+  const [savingMens, setSavingMens] = useState(false)
+  const [newValues, setNewValues] = useState({})
+
+  // Champs dynamiques selon l'objectif
+  const fields = useMemo(() => getFieldsForObjectif(objectifType), [objectifType])
 
   // ── Chargement initial ──
   const chargerDonnees = useCallback(async () => {
     if (!user) return
     setLoading(true)
 
-    const [objRes, poidsRes, clientRes] = await Promise.all([
+    const [objRes, mensRes, clientRes] = await Promise.all([
       supabase
         .from('objectifs')
         .select('*')
@@ -76,98 +125,99 @@ export default function ObjectifsPage() {
         .eq('archive', false)
         .order('created_at', { ascending: false }),
       supabase
-        .from('suivi_poids')
-        .select('poids, date_pesee')
+        .from('suivi_mensurations')
+        .select('*')
         .eq('client_id', user.id)
-        .order('date_pesee', { ascending: true }),
+        .order('created_at', { ascending: true }),
       supabase
         .from('clients')
-        .select('coach_id, poids, poids_cible')
+        .select('coach_id, poids, poids_cible, objectif_type')
         .eq('id', user.id)
         .maybeSingle(),
     ])
 
+    if (mensRes.error) {
+      console.warn('[Objectifs] suivi_mensurations error:', mensRes.error.message)
+    }
+
     setObjectifs(objRes.data ?? [])
-    setPoidsData(poidsRes.data ?? [])
+    setMensData(mensRes.data ?? [])
     setCoachId(clientRes.data?.coach_id ?? null)
     setPoidsActuel(clientRes.data?.poids ?? null)
     setPoidsCible(clientRes.data?.poids_cible ?? null)
+    setObjectifType(clientRes.data?.objectif_type ?? '')
     setLoading(false)
   }, [user])
 
   useEffect(() => { chargerDonnees() }, [chargerDonnees])
 
-  // ── Données pour le graphique ──
+  // ── Données pour les graphiques ──
   const chartData = useMemo(() => {
-    return poidsData.map(p => ({
-      date: p.date_pesee,
-      poids: p.poids,
-      label: new Date(p.date_pesee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+    return mensData.map(m => ({
+      ...m,
+      label: new Date(m.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
     }))
-  }, [poidsData])
+  }, [mensData])
 
-  // Stats dérivées
-  const dernierPoids = poidsData.length > 0 ? poidsData[poidsData.length - 1].poids : poidsActuel
-  const premierPoids = poidsData.length > 0 ? poidsData[0].poids : null
+  // Stats dérivées du poids
+  const dernierPoids = mensData.length > 0 ? mensData[mensData.length - 1].poids : poidsActuel
+  const premierPoids = mensData.length > 0 ? mensData[0].poids : null
   const delta = dernierPoids && premierPoids ? +(dernierPoids - premierPoids).toFixed(1) : null
 
-  // ── Enregistrer une pesée ──
-  const enregistrerPesee = async (e) => {
+  // ── Enregistrer des mensurations ──
+  const enregistrerMensurations = async (e) => {
     e.preventDefault()
-    const poids = parseFloat(newPoids)
-    if (!poids || poids < 20 || poids > 300) {
-      toast.error('Saisis un poids valide (entre 20 et 300 kg).')
+
+    // Au moins un champ rempli
+    const hasValue = fields.some(f => newValues[f])
+    if (!hasValue) {
+      toast.error('Remplis au moins un champ.')
       return
     }
 
-    setSavingPoids(true)
-
-    const today = new Date()
-    const datePesee = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-
-    // Upsert : si déjà une pesée aujourd'hui, on la met à jour
-    const { error } = await supabase
-      .from('suivi_poids')
-      .upsert(
-        {
-          client_id: user.id,
-          coach_id: coachId,
-          date_pesee: datePesee,
-          poids,
-        },
-        { onConflict: 'client_id,date_pesee' }
-      )
-
-    if (error) {
-      console.error('[Objectifs] Erreur enregistrement pesée:', error)
-      // Fallback : INSERT simple si upsert échoue (pas de contrainte unique)
-      const { error: insertErr } = await supabase
-        .from('suivi_poids')
-        .insert({ client_id: user.id, coach_id: coachId, date_pesee: datePesee, poids })
-
-      if (insertErr) {
-        toast.error(insertErr.message || 'Erreur lors de l\'enregistrement')
-        setSavingPoids(false)
+    // Valider le poids si renseigné
+    if (newValues.poids) {
+      const p = parseFloat(newValues.poids)
+      if (p < 20 || p > 300) {
+        toast.error('Poids invalide (entre 20 et 300 kg).')
         return
       }
     }
 
-    // Mettre à jour le poids dans la table clients aussi
-    await supabase.from('clients').update({ poids }).eq('id', user.id)
+    setSavingMens(true)
 
-    toast.success(`Pesée enregistrée : ${poids} kg !`)
-    setShowPesee(false)
-    setNewPoids('')
-    setSavingPoids(false)
+    const row = { client_id: user.id }
+    fields.forEach(f => {
+      if (newValues[f]) row[f] = parseFloat(newValues[f])
+    })
+
+    const { error } = await supabase.from('suivi_mensurations').insert(row)
+
+    if (error) {
+      console.error('[Objectifs] Erreur insert mensurations:', error)
+      toast.error(error.message || 'Erreur lors de l\'enregistrement')
+      setSavingMens(false)
+      return
+    }
+
+    // Mettre à jour le poids dans clients si renseigné
+    if (newValues.poids) {
+      await supabase.from('clients').update({ poids: parseFloat(newValues.poids) }).eq('id', user.id)
+      setPoidsActuel(parseFloat(newValues.poids))
+    }
+
+    toast.success('Mensurations enregistrées !')
+    setShowSaisie(false)
+    setNewValues({})
+    setSavingMens(false)
 
     // Refresh data
-    const { data: freshPoids } = await supabase
-      .from('suivi_poids')
-      .select('poids, date_pesee')
+    const { data: fresh } = await supabase
+      .from('suivi_mensurations')
+      .select('*')
       .eq('client_id', user.id)
-      .order('date_pesee', { ascending: true })
-    setPoidsData(freshPoids ?? [])
-    setPoidsActuel(poids)
+      .order('created_at', { ascending: true })
+    setMensData(fresh ?? [])
   }
 
   // ── Objectifs CRUD ──
@@ -182,7 +232,7 @@ export default function ObjectifsPage() {
       if (score === 100) {
         setShowConfetti(false)
         setTimeout(() => setShowConfetti(true), 50)
-        toast.success('Objectif atteint ! 🎉')
+        toast.success('Objectif atteint !')
       }
     }
     setEditScore(prev => ({ ...prev, [objectifId]: undefined }))
@@ -232,121 +282,144 @@ export default function ObjectifsPage() {
 
   const termines = objectifs.filter(o => o.score === 100).length
 
+  // Dernières valeurs pour chaque champ (pour la comparaison dans la modale)
+  const lastEntry = mensData.length > 0 ? mensData[mensData.length - 1] : null
+
   return (
     <div className="p-4 pb-28 space-y-5 max-w-2xl">
       <Confetti active={showConfetti} />
 
-      {/* ═══════════ SECTION POIDS ═══════════ */}
+      {/* ═══════════ HEADER ═══════════ */}
       <div className="pt-2">
         <h1 className="text-[#F5F5F3] text-xl font-bold flex items-center gap-2">
           <Scale size={20} className="text-[#FF6B2B]" />
           Suivi & Objectifs
         </h1>
-        <p className="text-white/40 text-sm mt-0.5">Ton évolution et tes objectifs personnels</p>
+        <p className="text-white/40 text-sm mt-0.5">
+          {objectifType ? objectifType : 'Ton évolution et tes objectifs personnels'}
+        </p>
       </div>
 
-      {/* Carte poids actuel + bouton pesée */}
+      {/* ═══════════ SECTION MENSURATIONS ═══════════ */}
       <Card>
         <CardBody>
           <div className="flex items-center justify-between mb-4">
-            <p className="text-white/40 text-[11px] uppercase tracking-wider font-semibold">Mon poids</p>
+            <p className="text-white/40 text-[11px] uppercase tracking-wider font-semibold">Mes mensurations</p>
             <button
-              onClick={() => setShowPesee(true)}
+              onClick={() => { setNewValues({}); setShowSaisie(true) }}
               className="px-3 py-1.5 rounded-xl bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#e55a1b] transition-colors flex items-center gap-1.5 shadow-lg shadow-[#FF6B2B]/20"
             >
-              <Scale size={13} />
-              Nouvelle pesée
+              <Ruler size={13} />
+              Nouvelle mesure
             </button>
           </div>
 
-          {/* Stats rapides */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
-              <p className="text-[#F5F5F3] text-xl font-bold">
-                {dernierPoids ? `${dernierPoids}` : '—'}
-              </p>
-              <p className="text-white/30 text-[9px] uppercase mt-0.5">Actuel (kg)</p>
+          {/* Stats rapides poids */}
+          {fields.includes('poids') && (
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
+                <p className="text-[#F5F5F3] text-xl font-bold">
+                  {dernierPoids ? `${dernierPoids}` : '—'}
+                </p>
+                <p className="text-white/30 text-[9px] uppercase mt-0.5">Actuel (kg)</p>
+              </div>
+              <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
+                <p className="text-white/50 text-xl font-bold">
+                  {poidsCible ? `${poidsCible}` : '—'}
+                </p>
+                <p className="text-white/30 text-[9px] uppercase mt-0.5">Objectif (kg)</p>
+              </div>
+              <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
+                {delta !== null ? (
+                  <div className="flex items-center justify-center gap-1">
+                    {delta < 0 ? (
+                      <TrendingDown size={14} className="text-emerald-400" />
+                    ) : delta > 0 ? (
+                      <TrendingUp size={14} className="text-red-400" />
+                    ) : (
+                      <MinusIcon size={14} className="text-white/30" />
+                    )}
+                    <p className={`text-xl font-bold ${
+                      delta < 0 ? 'text-emerald-400' : delta > 0 ? 'text-red-400' : 'text-white/50'
+                    }`}>
+                      {delta > 0 ? '+' : ''}{delta}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-white/30 text-xl font-bold">—</p>
+                )}
+                <p className="text-white/30 text-[9px] uppercase mt-0.5">Évolution (kg)</p>
+              </div>
             </div>
-            <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
-              <p className="text-white/50 text-xl font-bold">
-                {poidsCible ? `${poidsCible}` : '—'}
-              </p>
-              <p className="text-white/30 text-[9px] uppercase mt-0.5">Objectif (kg)</p>
-            </div>
-            <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
-              {delta !== null ? (
-                <div className="flex items-center justify-center gap-1">
-                  {delta < 0 ? (
-                    <TrendingDown size={14} className="text-emerald-400" />
-                  ) : delta > 0 ? (
-                    <TrendingUp size={14} className="text-red-400" />
-                  ) : (
-                    <MinusIcon size={14} className="text-white/30" />
-                  )}
-                  <p className={`text-xl font-bold ${
-                    delta < 0 ? 'text-emerald-400' : delta > 0 ? 'text-red-400' : 'text-white/50'
-                  }`}>
-                    {delta > 0 ? '+' : ''}{delta}
-                  </p>
-                </div>
-              ) : (
-                <p className="text-white/30 text-xl font-bold">—</p>
-              )}
-              <p className="text-white/30 text-[9px] uppercase mt-0.5">Évolution (kg)</p>
-            </div>
-          </div>
+          )}
 
-          {/* Graphique poids */}
+          {/* Graphiques par champ */}
           {chartData.length >= 2 ? (
-            <div className="h-44">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <XAxis
-                    dataKey="label"
-                    tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    domain={['dataMin - 1', 'dataMax + 1']}
-                    tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<WeightTooltip />} cursor={false} />
-                  <Line
-                    type="monotone"
-                    dataKey="poids"
-                    stroke="#FF6B2B"
-                    strokeWidth={2.5}
-                    dot={{ fill: '#FF6B2B', r: 4, strokeWidth: 0 }}
-                    activeDot={{ fill: '#FF6B2B', r: 6, stroke: '#FF6B2B', strokeWidth: 2, strokeOpacity: 0.3 }}
-                  />
-                  {/* Ligne objectif si défini */}
-                  {poidsCible && (
-                    <Line
-                      type="monotone"
-                      dataKey={() => poidsCible}
-                      stroke="rgba(255,255,255,0.1)"
-                      strokeWidth={1}
-                      strokeDasharray="6 4"
-                      dot={false}
-                      activeDot={false}
-                    />
-                  )}
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="space-y-4">
+              {fields.map(field => {
+                // Vérifier qu'on a au moins 2 points pour ce champ
+                const fieldData = chartData.filter(d => d[field] != null)
+                if (fieldData.length < 2) return null
+                const color = COLORS[field]
+
+                return (
+                  <div key={field}>
+                    <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-2 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                      {LABELS[field]} ({UNITS[field]})
+                    </p>
+                    <div className="h-36">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={fieldData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                          <XAxis
+                            dataKey="label"
+                            tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10 }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <YAxis
+                            domain={['dataMin - 1', 'dataMax + 1']}
+                            tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10 }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <Tooltip content={<MensurationTooltip />} cursor={false} />
+                          <Line
+                            type="monotone"
+                            dataKey={field}
+                            stroke={color}
+                            strokeWidth={2.5}
+                            dot={{ fill: color, r: 4, strokeWidth: 0 }}
+                            activeDot={{ fill: color, r: 6, stroke: color, strokeWidth: 2, strokeOpacity: 0.3 }}
+                          />
+                          {field === 'poids' && poidsCible && (
+                            <Line
+                              type="monotone"
+                              dataKey={() => poidsCible}
+                              stroke="rgba(255,255,255,0.1)"
+                              strokeWidth={1}
+                              strokeDasharray="6 4"
+                              dot={false}
+                              activeDot={false}
+                            />
+                          )}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           ) : chartData.length === 1 ? (
             <div className="text-center py-6">
-              <p className="text-white/25 text-xs">Enregistre une 2ème pesée pour voir ta courbe d'évolution.</p>
+              <p className="text-white/25 text-xs">Enregistre une 2ème mesure pour voir tes courbes d'évolution.</p>
             </div>
           ) : (
             <div className="text-center py-6">
-              <Scale size={24} className="text-white/10 mx-auto mb-2" />
-              <p className="text-white/25 text-xs">Aucune pesée enregistrée.</p>
-              <button onClick={() => setShowPesee(true)} className="mt-2 text-[#FF6B2B] text-xs font-semibold hover:underline">
-                Enregistrer ma première pesée
+              <Ruler size={24} className="text-white/10 mx-auto mb-2" />
+              <p className="text-white/25 text-xs">Aucune mesure enregistrée.</p>
+              <button onClick={() => setShowSaisie(true)} className="mt-2 text-[#FF6B2B] text-xs font-semibold hover:underline">
+                Enregistrer mes premières mensurations
               </button>
             </div>
           )}
@@ -361,7 +434,7 @@ export default function ObjectifsPage() {
             Objectifs
           </h2>
           <p className="text-white/40 text-xs mt-0.5">
-            {termines > 0 ? `${termines} atteint${termines > 1 ? 's' : ''} 🎉 · ` : ''}
+            {termines > 0 ? `${termines} atteint${termines > 1 ? 's' : ''} · ` : ''}
             {objectifs.length} en cours
           </p>
         </div>
@@ -414,42 +487,29 @@ export default function ObjectifsPage() {
 
                   <ProgressBar score={o.score} />
 
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        step="5"
-                        value={scoreEdit}
-                        onChange={(e) => setEditScore(prev => ({ ...prev, [o.id]: Number(e.target.value) }))}
-                        className="flex-1 accent-[#FF6B2B]"
-                      />
-                      <span className="text-[#F5F5F3] text-sm font-mono w-8 text-right">{scoreEdit}%</span>
-                    </div>
-
-                    <div className="flex gap-2">
-                      {scoreEdit !== o.score && (
-                        <Button
-                          size="sm"
-                          className="flex-1"
-                          loading={saving === o.id}
-                          onClick={() => mettreAJourScore(o.id, scoreEdit)}
-                        >
-                          Mettre à jour
-                        </Button>
-                      )}
-                      {estTermine && (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="flex-1"
-                          onClick={() => archiverObjectif(o.id)}
-                        >
-                          <Archive size={13} /> Archiver 🎉
-                        </Button>
-                      )}
-                    </div>
+                  <div className="mt-4 flex gap-2">
+                    {[25, 50, 75, 100].map(val => (
+                      <button
+                        key={val}
+                        onClick={() => mettreAJourScore(o.id, val)}
+                        disabled={saving === o.id}
+                        className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
+                          o.score >= val
+                            ? 'bg-[#FF6B2B]/20 text-[#FF6B2B]'
+                            : 'bg-[#2A2A2A] text-white/30 hover:text-white/50 hover:bg-[#2A2A2A]/80'
+                        }`}
+                      >
+                        {saving === o.id ? <Loader2 size={12} className="animate-spin mx-auto" /> : `${val}%`}
+                      </button>
+                    ))}
+                    {estTermine && (
+                      <button
+                        onClick={() => archiverObjectif(o.id)}
+                        className="px-3 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-semibold hover:bg-emerald-500/20 transition-all"
+                      >
+                        <Archive size={13} />
+                      </button>
+                    )}
                   </div>
                 </CardBody>
               </Card>
@@ -492,70 +552,77 @@ export default function ObjectifsPage() {
         </form>
       </Modal>
 
-      {/* ═══════════ MODALE NOUVELLE PESÉE ═══════════ */}
-      {showPesee && (
+      {/* ═══════════ MODALE NOUVELLE MESURE ═══════════ */}
+      {showSaisie && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowPesee(false)} />
-          <div className="relative z-[101] bg-[#18181b] border border-[#27272a] w-full sm:w-[400px] sm:rounded-2xl rounded-t-2xl overflow-hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowSaisie(false)} />
+          <div className="relative z-[101] bg-[#18181b] border border-[#27272a] w-full sm:w-[420px] sm:rounded-2xl rounded-t-2xl overflow-hidden">
 
             {/* Header */}
             <div className="px-4 py-3 border-b border-[#27272a] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Scale size={16} className="text-[#FF6B2B]" />
-                <h3 className="text-[#F5F5F3] font-semibold text-sm">Nouvelle pesée</h3>
+                <Ruler size={16} className="text-[#FF6B2B]" />
+                <h3 className="text-[#F5F5F3] font-semibold text-sm">Nouvelle mesure</h3>
               </div>
-              <button onClick={() => setShowPesee(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+              <button onClick={() => setShowSaisie(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
                 <X size={16} />
               </button>
             </div>
 
-            <form onSubmit={enregistrerPesee} className="p-5 space-y-5">
-              {/* Gros input poids */}
-              <div className="text-center">
-                <p className="text-white/40 text-xs mb-3">
-                  {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
-                </p>
-                <div className="flex items-end justify-center gap-2">
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="20"
-                    max="300"
-                    value={newPoids}
-                    onChange={(e) => setNewPoids(e.target.value)}
-                    placeholder={dernierPoids ? String(dernierPoids) : '75.0'}
-                    autoFocus
-                    className="w-32 bg-transparent text-center text-[#F5F5F3] text-4xl font-extrabold placeholder:text-white/15 focus:outline-none border-b-2 border-[#FF6B2B]/30 focus:border-[#FF6B2B] transition-colors pb-1"
-                  />
-                  <span className="text-white/30 text-lg font-semibold pb-2">kg</span>
-                </div>
+            <form onSubmit={enregistrerMensurations} className="p-5 space-y-4">
+              <p className="text-white/40 text-xs text-center">
+                {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </p>
 
-                {/* Comparaison rapide */}
-                {dernierPoids && newPoids && (
-                  <div className="mt-3">
-                    {(() => {
-                      const diff = +(parseFloat(newPoids) - dernierPoids).toFixed(1)
-                      if (isNaN(diff)) return null
-                      return (
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                          diff < 0 ? 'bg-emerald-500/10 text-emerald-400' :
-                          diff > 0 ? 'bg-red-500/10 text-red-400' :
-                          'bg-white/[0.06] text-white/40'
-                        }`}>
-                          {diff > 0 ? '+' : ''}{diff} kg vs dernière pesée
-                        </span>
-                      )
-                    })()}
-                  </div>
-                )}
+              {/* Champs dynamiques */}
+              <div className="space-y-3">
+                {fields.map(field => {
+                  const color = COLORS[field]
+                  const lastVal = lastEntry?.[field]
+                  const currentVal = newValues[field]
+                  const diff = currentVal && lastVal ? +(parseFloat(currentVal) - lastVal).toFixed(1) : null
+
+                  return (
+                    <div key={field} className="bg-[#0D0D0D] rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
+                          <span className="text-white/50 text-xs font-medium">{LABELS[field]}</span>
+                        </div>
+                        {diff !== null && !isNaN(diff) && (
+                          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                            diff < 0 ? 'bg-emerald-500/10 text-emerald-400' :
+                            diff > 0 ? 'bg-red-500/10 text-red-400' :
+                            'bg-white/[0.06] text-white/40'
+                          }`}>
+                            {diff > 0 ? '+' : ''}{diff} {UNITS[field]}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-end gap-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max={field === 'poids' ? '300' : '200'}
+                          value={newValues[field] || ''}
+                          onChange={(e) => setNewValues(prev => ({ ...prev, [field]: e.target.value }))}
+                          placeholder={lastVal ? String(lastVal) : '—'}
+                          className="flex-1 bg-transparent text-[#F5F5F3] text-2xl font-bold placeholder:text-white/15 focus:outline-none border-b border-white/[0.06] focus:border-white/20 transition-colors pb-0.5"
+                        />
+                        <span className="text-white/30 text-sm font-medium pb-1">{UNITS[field]}</span>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
 
               <button
                 type="submit"
-                disabled={savingPoids || !newPoids}
+                disabled={savingMens || !fields.some(f => newValues[f])}
                 className="w-full py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#e55a1b] transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20"
               >
-                {savingPoids ? (
+                {savingMens ? (
                   <>
                     <Loader2 size={15} className="animate-spin" />
                     Enregistrement...
