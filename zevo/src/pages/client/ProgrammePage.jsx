@@ -60,16 +60,37 @@ export default function ProgrammePage() {
   const loadSport = useCallback(async () => {
     if (!user) return
 
+    // 1. Récupère l'assignation avec le programme nested
     const { data: assign } = await supabase
       .from('programme_assignations')
-      .select('*, programmes(titre, description, duree_semaines, categorie, document_url, document_nom)')
+      .select('*, programmes(*)')
       .eq('client_id', user.id)
       .eq('statut', 'en_cours')
       .limit(1)
       .maybeSingle()
 
     if (assign) {
+      console.log('[ProgrammePage] Assignation brute :', assign)
+      console.log('[ProgrammePage] Programme nested :', assign.programmes)
+      console.log('[ProgrammePage] document_url (nested) =', assign.programmes?.document_url)
+
+      // Fallback : si le nested select ne ramène pas document_url (RLS),
+      // tente un fetch direct
+      if (assign.programmes && !assign.programmes.document_url) {
+        const { data: progDirect } = await supabase
+          .from('programmes')
+          .select('*')
+          .eq('id', assign.programme_id)
+          .single()
+        if (progDirect?.document_url) {
+          console.log('[ProgrammePage] Fallback direct OK, document_url =', progDirect.document_url)
+          assign.programmes = { ...assign.programmes, ...progDirect }
+        }
+      }
+
       setAssignation(assign)
+
+      // 2. Phases
       const { data: phasesData } = await supabase
         .from('programme_phases')
         .select('*')
@@ -291,6 +312,9 @@ export default function ProgrammePage() {
       {/* ══════════ ONGLET SPORT ══════════ */}
       {tab === 'sport' && (
         <>
+          {/* DEBUG : log prog dans la console */}
+          {(() => { console.log('[RENDER] prog =', prog, '| document_url =', prog?.document_url, '| isDocumentMode =', isDocumentMode); return null })()}
+
           {!assignation ? (
             <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-12 text-center">
               <div className="w-14 h-14 bg-[#FF6B2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
