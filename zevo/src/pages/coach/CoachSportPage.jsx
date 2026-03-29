@@ -341,7 +341,7 @@ export default function CoachSportPage() {
       </div>
 
       {/* ═══ Table ═══ */}
-      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-visible">
         {/* Table header */}
         <div className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-[#27272a] text-[10px] text-white/25 font-semibold uppercase tracking-wider">
           <div className="col-span-1">Publié</div>
@@ -460,7 +460,7 @@ export default function CoachSportPage() {
                   {actionMenuId === prog.id && (
                     <>
                       <div className="fixed inset-0 z-30" onClick={e => { e.stopPropagation(); setActionMenuId(null) }} />
-                      <div className="absolute right-0 top-full mt-1 z-40 w-48 bg-[#1E1E1E] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
+                      <div className="absolute right-0 top-full mt-1 z-[100] w-48 bg-[#1E1E1E] border border-[#27272a] rounded-xl shadow-2xl">
                         <button onClick={e => { e.stopPropagation(); setActionMenuId(null); setBuilderProgramme({ ...prog, mode: assign ? 'programme' : 'modele' }); setCurrentView('builder') }}
                           className="w-full px-4 py-2.5 text-left text-xs font-medium text-white/50 hover:bg-white/[0.04] hover:text-white transition-all flex items-center gap-2">
                           <Eye size={12} /> Ouvrir dans le builder
