@@ -5,7 +5,7 @@ import { useToast } from '../../components/ui/Toast'
 import { Card, CardBody } from '../../components/ui/Card'
 import {
   Target, Calendar, Scale, TrendingDown,
-  TrendingUp, Minus as MinusIcon, Loader2, X, Ruler
+  TrendingUp, Minus as MinusIcon, Loader2, X, Ruler, Pencil
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
@@ -28,7 +28,7 @@ const LABELS = {
   tour_cuisses: 'Tour de cuisses',
 }
 
-const UNITS = {
+const MENSURATION_UNITS = {
   poids: 'kg',
   tour_bras: 'cm',
   tour_poitrine: 'cm',
@@ -47,6 +47,17 @@ function getFieldsForObjectif(objectifType) {
     return ['poids', 'tour_taille', 'tour_hanches']
   }
   return ['poids', 'tour_taille', 'tour_poitrine']
+}
+
+// ── Calcul de progression (fonctionne pour gain ET perte) ──
+function calcProgress(depart, actuelle, cible) {
+  if (depart == null || cible == null) return 0
+  const current = actuelle ?? depart
+  const totalDelta = cible - depart
+  if (totalDelta === 0) return current === cible ? 100 : 0
+  const currentDelta = current - depart
+  const pct = (currentDelta / totalDelta) * 100
+  return Math.max(0, Math.min(100, Math.round(pct)))
 }
 
 // ── Barre de progression colorée ──
@@ -71,11 +82,18 @@ function MensurationTooltip({ active, payload }) {
       <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">{d.label}</p>
       {payload.map((p, i) => (
         <p key={i} className="font-bold text-sm" style={{ color: p.stroke }}>
-          {p.value}<span className="text-white/30 text-xs font-normal"> {UNITS[p.dataKey]}</span>
+          {p.value}<span className="text-white/30 text-xs font-normal"> {MENSURATION_UNITS[p.dataKey]}</span>
         </p>
       ))}
     </div>
   )
+}
+
+// ── Détecte si un objectif est lié au poids ──
+function isPoidsObjectif(obj) {
+  const t = (obj.titre || '').toLowerCase()
+  const u = (obj.unite || '').toLowerCase()
+  return u === 'kg' || t.includes('poids') || t.includes('perte') || t.includes('maigrir') || t.includes('masse')
 }
 
 export default function ObjectifsPage() {
@@ -83,8 +101,13 @@ export default function ObjectifsPage() {
   const toast = useToast()
   const [loading, setLoading] = useState(true)
 
-  // ── Objectifs (lecture seule) ──
+  // ── Objectifs ──
   const [objectifs, setObjectifs] = useState([])
+
+  // ── Modale mise à jour objectif ──
+  const [editObj, setEditObj] = useState(null) // objectif en cours d'édition
+  const [editValue, setEditValue] = useState('')
+  const [savingObj, setSavingObj] = useState(false)
 
   // ── Mensurations ──
   const [mensData, setMensData] = useState([])
@@ -95,7 +118,6 @@ export default function ObjectifsPage() {
   const [savingMens, setSavingMens] = useState(false)
   const [newValues, setNewValues] = useState({})
 
-  // Champs dynamiques selon l'objectif
   const fields = useMemo(() => getFieldsForObjectif(objectifType), [objectifType])
 
   // ── Chargement initial ──
@@ -149,6 +171,22 @@ export default function ObjectifsPage() {
   const premierPoids = mensData.length > 0 ? mensData[0].poids : null
   const delta = dernierPoids && premierPoids ? +(dernierPoids - premierPoids).toFixed(1) : null
 
+  // ── Synchro auto poids : après enregistrement mensurations, met à jour les objectifs poids ──
+  const syncPoidsObjectifs = async (nouveauPoids) => {
+    const poidsObjs = objectifs.filter(isPoidsObjectif)
+    for (const obj of poidsObjs) {
+      const { error } = await supabase
+        .from('objectifs')
+        .update({ valeur_actuelle: nouveauPoids })
+        .eq('id', obj.id)
+      if (!error) {
+        setObjectifs(prev => prev.map(o =>
+          o.id === obj.id ? { ...o, valeur_actuelle: nouveauPoids } : o
+        ))
+      }
+    }
+  }
+
   // ── Enregistrer des mensurations ──
   const enregistrerMensurations = async (e) => {
     e.preventDefault()
@@ -169,13 +207,10 @@ export default function ObjectifsPage() {
 
     setSavingMens(true)
 
-    // CRUCIAL : client_id = user.id pour satisfaire le RLS
     const row = { client_id: user.id }
     fields.forEach(f => {
       if (newValues[f]) row[f] = parseFloat(newValues[f])
     })
-
-    console.log('[Objectifs] INSERT suivi_mensurations:', row)
 
     const { error } = await supabase.from('suivi_mensurations').insert(row)
 
@@ -186,10 +221,12 @@ export default function ObjectifsPage() {
       return
     }
 
-    // Mettre à jour le poids dans clients si renseigné
+    // Mettre à jour le poids dans clients + synchro objectifs poids
     if (newValues.poids) {
-      await supabase.from('clients').update({ poids: parseFloat(newValues.poids) }).eq('id', user.id)
-      setPoidsActuel(parseFloat(newValues.poids))
+      const p = parseFloat(newValues.poids)
+      await supabase.from('clients').update({ poids: p }).eq('id', user.id)
+      setPoidsActuel(p)
+      await syncPoidsObjectifs(p)
     }
 
     toast.success('Mensurations enregistrées !')
@@ -197,13 +234,48 @@ export default function ObjectifsPage() {
     setNewValues({})
     setSavingMens(false)
 
-    // Refresh data
     const { data: fresh } = await supabase
       .from('suivi_mensurations')
       .select('*')
       .eq('client_id', user.id)
       .order('created_at', { ascending: true })
     setMensData(fresh ?? [])
+  }
+
+  // ── Mettre à jour la valeur d'un objectif ──
+  const mettreAJourObjectif = async (e) => {
+    e.preventDefault()
+    if (!editObj || !editValue) return
+
+    const newVal = parseFloat(editValue)
+    if (isNaN(newVal)) {
+      toast.error('Saisis une valeur numérique valide.')
+      return
+    }
+
+    setSavingObj(true)
+
+    const isAtteint = editObj.valeur_cible > editObj.valeur_depart
+      ? newVal >= editObj.valeur_cible
+      : newVal <= editObj.valeur_cible
+
+    const { error } = await supabase.from('objectifs').update({
+      valeur_actuelle: newVal,
+      statut: isAtteint ? 'atteint' : 'en_cours',
+    }).eq('id', editObj.id)
+
+    if (error) {
+      toast.error(error.message || 'Erreur mise à jour')
+    } else {
+      setObjectifs(prev => prev.map(o =>
+        o.id === editObj.id ? { ...o, valeur_actuelle: newVal, statut: isAtteint ? 'atteint' : o.statut } : o
+      ))
+      toast.success(isAtteint ? 'Objectif atteint !' : 'Valeur mise à jour !')
+    }
+
+    setSavingObj(false)
+    setEditObj(null)
+    setEditValue('')
   }
 
   // ── Loading ──
@@ -254,30 +326,20 @@ export default function ObjectifsPage() {
           {fields.includes('poids') && (
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
-                <p className="text-[#F5F5F3] text-xl font-bold">
-                  {dernierPoids ? `${dernierPoids}` : '—'}
-                </p>
+                <p className="text-[#F5F5F3] text-xl font-bold">{dernierPoids ?? '—'}</p>
                 <p className="text-white/30 text-[9px] uppercase mt-0.5">Actuel (kg)</p>
               </div>
               <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
-                <p className="text-white/50 text-xl font-bold">
-                  {poidsCible ? `${poidsCible}` : '—'}
-                </p>
+                <p className="text-white/50 text-xl font-bold">{poidsCible ?? '—'}</p>
                 <p className="text-white/30 text-[9px] uppercase mt-0.5">Objectif (kg)</p>
               </div>
               <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
                 {delta !== null ? (
                   <div className="flex items-center justify-center gap-1">
-                    {delta < 0 ? (
-                      <TrendingDown size={14} className="text-emerald-400" />
-                    ) : delta > 0 ? (
-                      <TrendingUp size={14} className="text-red-400" />
-                    ) : (
-                      <MinusIcon size={14} className="text-white/30" />
-                    )}
-                    <p className={`text-xl font-bold ${
-                      delta < 0 ? 'text-emerald-400' : delta > 0 ? 'text-red-400' : 'text-white/50'
-                    }`}>
+                    {delta < 0 ? <TrendingDown size={14} className="text-emerald-400" />
+                      : delta > 0 ? <TrendingUp size={14} className="text-red-400" />
+                      : <MinusIcon size={14} className="text-white/30" />}
+                    <p className={`text-xl font-bold ${delta < 0 ? 'text-emerald-400' : delta > 0 ? 'text-red-400' : 'text-white/50'}`}>
                       {delta > 0 ? '+' : ''}{delta}
                     </p>
                   </div>
@@ -296,47 +358,23 @@ export default function ObjectifsPage() {
                 const fieldData = chartData.filter(d => d[field] != null)
                 if (fieldData.length < 2) return null
                 const color = COLORS[field]
-
                 return (
                   <div key={field}>
                     <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-2 flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-                      {LABELS[field]} ({UNITS[field]})
+                      {LABELS[field]} ({MENSURATION_UNITS[field]})
                     </p>
                     <div className="h-36">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={fieldData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                          <XAxis
-                            dataKey="label"
-                            tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10 }}
-                            axisLine={false}
-                            tickLine={false}
-                          />
-                          <YAxis
-                            domain={['dataMin - 1', 'dataMax + 1']}
-                            tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10 }}
-                            axisLine={false}
-                            tickLine={false}
-                          />
+                          <XAxis dataKey="label" tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <YAxis domain={['dataMin - 1', 'dataMax + 1']} tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10 }} axisLine={false} tickLine={false} />
                           <Tooltip content={<MensurationTooltip />} cursor={false} />
-                          <Line
-                            type="monotone"
-                            dataKey={field}
-                            stroke={color}
-                            strokeWidth={2.5}
+                          <Line type="monotone" dataKey={field} stroke={color} strokeWidth={2.5}
                             dot={{ fill: color, r: 4, strokeWidth: 0 }}
-                            activeDot={{ fill: color, r: 6, stroke: color, strokeWidth: 2, strokeOpacity: 0.3 }}
-                          />
+                            activeDot={{ fill: color, r: 6, stroke: color, strokeWidth: 2, strokeOpacity: 0.3 }} />
                           {field === 'poids' && poidsCible && (
-                            <Line
-                              type="monotone"
-                              dataKey={() => poidsCible}
-                              stroke="rgba(255,255,255,0.1)"
-                              strokeWidth={1}
-                              strokeDasharray="6 4"
-                              dot={false}
-                              activeDot={false}
-                            />
+                            <Line type="monotone" dataKey={() => poidsCible} stroke="rgba(255,255,255,0.1)" strokeWidth={1} strokeDasharray="6 4" dot={false} activeDot={false} />
                           )}
                         </LineChart>
                       </ResponsiveContainer>
@@ -361,53 +399,151 @@ export default function ObjectifsPage() {
         </CardBody>
       </Card>
 
-      {/* ═══════════ OBJECTIFS (LECTURE SEULE) ═══════════ */}
+      {/* ═══════════ OBJECTIFS ═══════════ */}
       {objectifs.length > 0 && (
         <>
           <div>
             <h2 className="text-[#F5F5F3] text-lg font-bold flex items-center gap-2">
               <Target size={18} className="text-[#FF6B2B]" />
-              Objectifs fixés par ton coach
+              Mes objectifs
             </h2>
             <p className="text-white/40 text-xs mt-0.5">
-              {objectifs.filter(o => o.score === 100).length > 0
-                ? `${objectifs.filter(o => o.score === 100).length} atteint${objectifs.filter(o => o.score === 100).length > 1 ? 's' : ''} · `
-                : ''}
               {objectifs.length} objectif{objectifs.length > 1 ? 's' : ''}
             </p>
           </div>
 
           <div className="space-y-3">
-            {objectifs.map((o) => (
-              <Card key={o.id}>
-                <CardBody>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[#F5F5F3] text-sm font-medium truncate">{o.titre}</p>
-                      {o.description && (
-                        <p className="text-white/35 text-xs mt-1 line-clamp-2">{o.description}</p>
-                      )}
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className={`text-lg font-bold ${
-                        o.score === 100 ? 'text-emerald-400' : 'text-[#F5F5F3]'
-                      }`}>
-                        {o.score}%
-                      </p>
-                      {o.date_cible && (
-                        <div className="flex items-center gap-1 justify-end text-white/30 text-xs mt-0.5">
-                          <Calendar size={10} />
-                          {new Date(o.date_cible).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+            {objectifs.map((o) => {
+              const pct = calcProgress(o.valeur_depart, o.valeur_actuelle, o.valeur_cible)
+              const actuel = o.valeur_actuelle ?? o.valeur_depart
+              const unite = o.unite || ''
+              const isPoids = isPoidsObjectif(o)
+
+              return (
+                <Card key={o.id}>
+                  <CardBody>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[#F5F5F3] text-sm font-medium truncate">{o.titre}</p>
+                        {o.description && (
+                          <p className="text-white/35 text-xs mt-1 line-clamp-2">{o.description}</p>
+                        )}
+                        {/* Valeurs actuelles / cibles */}
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-white/50 text-xs">
+                            Actuel : <span className="text-[#F5F5F3] font-semibold">{actuel != null ? actuel : '—'}</span>
+                          </span>
+                          <span className="text-white/20">/</span>
+                          <span className="text-white/50 text-xs">
+                            Cible : <span className="text-[#F5F5F3] font-semibold">{o.valeur_cible != null ? o.valeur_cible : '—'}</span>
+                          </span>
+                          {unite && <span className="text-white/30 text-[10px]">{unite}</span>}
                         </div>
-                      )}
+                      </div>
+                      <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
+                        <p className={`text-lg font-bold ${pct >= 100 ? 'text-emerald-400' : 'text-[#F5F5F3]'}`}>
+                          {pct}%
+                        </p>
+                        {o.date_cible && (
+                          <div className="flex items-center gap-1 text-white/30 text-xs">
+                            <Calendar size={10} />
+                            {new Date(o.date_cible).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <ProgressBar score={o.score} />
-                </CardBody>
-              </Card>
-            ))}
+
+                    <ProgressBar score={pct} />
+
+                    {/* Bouton mise à jour — seulement pour les objectifs non-poids (le poids se synchro auto) */}
+                    {!isPoids && pct < 100 && (
+                      <button
+                        onClick={() => { setEditObj(o); setEditValue(actuel != null ? String(actuel) : '') }}
+                        className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#2A2A2A] text-white/50 text-xs font-medium hover:bg-[#333] hover:text-white/70 transition-all"
+                      >
+                        <Pencil size={12} />
+                        Mettre à jour ma donnée
+                      </button>
+                    )}
+                    {isPoids && (
+                      <p className="mt-2 text-white/25 text-[10px] text-center italic">
+                        Se met à jour automatiquement avec tes pesées
+                      </p>
+                    )}
+                    {pct >= 100 && (
+                      <p className="mt-2 text-emerald-400 text-xs text-center font-semibold">Objectif atteint !</p>
+                    )}
+                  </CardBody>
+                </Card>
+              )
+            })}
           </div>
         </>
+      )}
+
+      {/* ═══════════ MODALE MISE À JOUR OBJECTIF ═══════════ */}
+      {editObj && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditObj(null)} />
+          <div className="relative z-[101] bg-[#18181b] border border-[#27272a] w-full sm:w-[400px] sm:rounded-2xl rounded-t-2xl overflow-hidden">
+
+            <div className="px-4 py-3 border-b border-[#27272a] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Target size={16} className="text-[#FF6B2B]" />
+                <h3 className="text-[#F5F5F3] font-semibold text-sm truncate">{editObj.titre}</h3>
+              </div>
+              <button onClick={() => setEditObj(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={mettreAJourObjectif} className="p-5 space-y-5">
+              <div className="text-center">
+                <p className="text-white/40 text-xs mb-1">
+                  Cible : <span className="text-[#F5F5F3] font-semibold">{editObj.valeur_cible} {editObj.unite || ''}</span>
+                </p>
+                <div className="flex items-end justify-center gap-2 mt-3">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    placeholder={editObj.valeur_actuelle != null ? String(editObj.valeur_actuelle) : '0'}
+                    autoFocus
+                    className="w-32 bg-transparent text-center text-[#F5F5F3] text-4xl font-extrabold placeholder:text-white/15 focus:outline-none border-b-2 border-[#FF6B2B]/30 focus:border-[#FF6B2B] transition-colors pb-1"
+                  />
+                  {editObj.unite && <span className="text-white/30 text-lg font-semibold pb-2">{editObj.unite}</span>}
+                </div>
+
+                {/* Comparaison */}
+                {editValue && editObj.valeur_actuelle != null && (
+                  <div className="mt-3">
+                    {(() => {
+                      const diff = +(parseFloat(editValue) - editObj.valeur_actuelle).toFixed(1)
+                      if (isNaN(diff) || diff === 0) return null
+                      const isGood = editObj.valeur_cible > editObj.valeur_depart ? diff > 0 : diff < 0
+                      return (
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                          isGood ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                        }`}>
+                          {diff > 0 ? '+' : ''}{diff} {editObj.unite || ''} vs précédent
+                        </span>
+                      )
+                    })()}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={savingObj || !editValue}
+                className="w-full py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#e55a1b] transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20"
+              >
+                {savingObj ? <><Loader2 size={15} className="animate-spin" /> Enregistrement...</> : <><Target size={15} /> Enregistrer</>}
+              </button>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* ═══════════ MODALE NOUVELLE MESURE ═══════════ */}
@@ -416,7 +552,6 @@ export default function ObjectifsPage() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowSaisie(false)} />
           <div className="relative z-[101] bg-[#18181b] border border-[#27272a] w-full sm:w-[420px] sm:rounded-2xl rounded-t-2xl overflow-hidden">
 
-            {/* Header */}
             <div className="px-4 py-3 border-b border-[#27272a] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Ruler size={16} className="text-[#FF6B2B]" />
@@ -432,7 +567,6 @@ export default function ObjectifsPage() {
                 {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
 
-              {/* Champs dynamiques */}
               <div className="space-y-3">
                 {fields.map(field => {
                   const color = COLORS[field]
@@ -453,7 +587,7 @@ export default function ObjectifsPage() {
                             diff > 0 ? 'bg-red-500/10 text-red-400' :
                             'bg-white/[0.06] text-white/40'
                           }`}>
-                            {diff > 0 ? '+' : ''}{diff} {UNITS[field]}
+                            {diff > 0 ? '+' : ''}{diff} {MENSURATION_UNITS[field]}
                           </span>
                         )}
                       </div>
@@ -468,7 +602,7 @@ export default function ObjectifsPage() {
                           placeholder={lastVal ? String(lastVal) : '—'}
                           className="flex-1 bg-transparent text-[#F5F5F3] text-2xl font-bold placeholder:text-white/15 focus:outline-none border-b border-white/[0.06] focus:border-white/20 transition-colors pb-0.5"
                         />
-                        <span className="text-white/30 text-sm font-medium pb-1">{UNITS[field]}</span>
+                        <span className="text-white/30 text-sm font-medium pb-1">{MENSURATION_UNITS[field]}</span>
                       </div>
                     </div>
                   )
@@ -480,17 +614,7 @@ export default function ObjectifsPage() {
                 disabled={savingMens || !fields.some(f => newValues[f])}
                 className="w-full py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#e55a1b] transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20"
               >
-                {savingMens ? (
-                  <>
-                    <Loader2 size={15} className="animate-spin" />
-                    Enregistrement...
-                  </>
-                ) : (
-                  <>
-                    <Scale size={15} />
-                    Enregistrer
-                  </>
-                )}
+                {savingMens ? <><Loader2 size={15} className="animate-spin" /> Enregistrement...</> : <><Scale size={15} /> Enregistrer</>}
               </button>
             </form>
           </div>
