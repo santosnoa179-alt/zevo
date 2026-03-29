@@ -864,14 +864,27 @@ export default function NutritionBuilder() {
               <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{documents.length}</span>
             )}
           </h3>
-          <label className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-            uploadingDoc ? 'bg-[#27272a] text-white/30' : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20'
-          }`}>
+          <button
+            type="button"
+            onClick={() => {
+              if (uploadingDoc || !existingPlanId) {
+                if (!existingPlanId) toast.error('Sauvegardez le plan avant d\'ajouter des documents')
+                return
+              }
+              const input = document.createElement('input')
+              input.type = 'file'
+              input.accept = '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx'
+              input.onchange = handleDocUpload
+              input.click()
+            }}
+            disabled={uploadingDoc}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+              uploadingDoc ? 'bg-[#27272a] text-white/30 cursor-wait' : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20'
+            }`}
+          >
             {uploadingDoc ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
             {uploadingDoc ? 'Upload...' : 'Ajouter un fichier'}
-            <input type="file" className="hidden" onChange={handleDocUpload} disabled={uploadingDoc || !existingPlanId}
-              accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx" />
-          </label>
+          </button>
         </div>
 
         <div className="p-4">

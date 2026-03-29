@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { supabase } from '../../lib/supabase'
@@ -51,7 +51,6 @@ export default function ProgrammePage() {
   // Documents nutrition
   const [documents, setDocuments] = useState([])
   const [uploadingDoc, setUploadingDoc] = useState(false)
-  const fileInputRef = useRef(null)
 
   // ── Charge le programme sport ──
   const loadSport = useCallback(async () => {
@@ -119,11 +118,22 @@ export default function ProgrammePage() {
     setLoadingNutrition(false)
   }, [user])
 
-  // ── Upload fichier nutrition ──
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file || !nutritionPlan) return
+  // ── Ouvre le sélecteur de fichier natif (pas de ref, pas de hidden input) ──
+  const triggerFileUpload = () => {
+    if (uploadingDoc || !nutritionPlan) return
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx'
+    input.onchange = (e) => {
+      const file = e.target.files?.[0]
+      if (file) uploadFile(file)
+    }
+    input.click()
+  }
 
+  // ── Upload effectif vers Supabase Storage ──
+  const uploadFile = async (file) => {
+    if (!nutritionPlan) return
     setUploadingDoc(true)
     try {
       const filePath = `${nutritionPlan.id}/${Date.now()}_${file.name}`
@@ -148,7 +158,6 @@ export default function ProgrammePage() {
       toast.error('Erreur upload : ' + (err.message || 'Inconnu'))
     }
     setUploadingDoc(false)
-    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   useEffect(() => {
@@ -601,22 +610,19 @@ export default function ProgrammePage() {
                       </span>
                     )}
                   </h3>
-                  <label className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  <button
+                    type="button"
+                    onClick={triggerFileUpload}
+                    disabled={uploadingDoc}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                       uploadingDoc
-                        ? 'bg-[#2A2A2A] text-white/30 cursor-wait pointer-events-none'
-                        : 'bg-[#22c55e]/10 text-[#22c55e] hover:bg-[#22c55e]/20 active:scale-95 cursor-pointer'
-                    }`}>
+                        ? 'bg-[#2A2A2A] text-white/30 cursor-wait'
+                        : 'bg-[#22c55e]/10 text-[#22c55e] hover:bg-[#22c55e]/20 active:scale-95'
+                    }`}
+                  >
                     {uploadingDoc ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
                     {uploadingDoc ? 'Upload...' : 'Ajouter un fichier'}
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="sr-only"
-                      onChange={handleFileUpload}
-                      disabled={uploadingDoc}
-                      accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx"
-                    />
-                  </label>
+                  </button>
                 </div>
 
                 <div className="p-4">
