@@ -601,25 +601,22 @@ export default function ProgrammePage() {
                       </span>
                     )}
                   </h3>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingDoc}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  <label className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                       uploadingDoc
-                        ? 'bg-[#2A2A2A] text-white/30 cursor-wait'
-                        : 'bg-[#22c55e]/10 text-[#22c55e] hover:bg-[#22c55e]/20 active:scale-95'
-                    }`}
-                  >
+                        ? 'bg-[#2A2A2A] text-white/30 cursor-wait pointer-events-none'
+                        : 'bg-[#22c55e]/10 text-[#22c55e] hover:bg-[#22c55e]/20 active:scale-95 cursor-pointer'
+                    }`}>
                     {uploadingDoc ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
                     {uploadingDoc ? 'Upload...' : 'Ajouter un fichier'}
-                  </button>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={handleFileUpload}
-                    accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx"
-                  />
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="sr-only"
+                      onChange={handleFileUpload}
+                      disabled={uploadingDoc}
+                      accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx"
+                    />
+                  </label>
                 </div>
 
                 <div className="p-4">
