@@ -8,7 +8,7 @@ import {
   Loader2, CheckCircle2, Image as ImageIcon,
   BookOpen, FileText, Video, Link as LinkIcon, ExternalLink, Download,
   UtensilsCrossed, Flame, Droplets, Wheat, Trophy,
-  Upload, Paperclip, Eye
+  Upload, Paperclip, Eye, Calendar, Check, Lock
 } from 'lucide-react'
 
 const RESSOURCE_ICONS = {
@@ -51,6 +51,10 @@ export default function ProgrammePage() {
   // Documents nutrition
   const [documents, setDocuments] = useState([])
   const [uploadingDoc, setUploadingDoc] = useState(false)
+
+  // Suivi semaines
+  const [completedWeeks, setCompletedWeeks] = useState([]) // [{ numero_semaine, completed_at }]
+  const [validatingWeek, setValidatingWeek] = useState(null)
 
   // ── Charge le programme sport ──
   const loadSport = useCallback(async () => {
@@ -160,6 +164,47 @@ export default function ProgrammePage() {
     setUploadingDoc(false)
   }
 
+  // ── Charge le suivi des semaines ──
+  const loadWeekProgress = useCallback(async (programmeId) => {
+    if (!user || !programmeId) return
+    const { data } = await supabase
+      .from('suivi_programmes')
+      .select('numero_semaine, completed_at')
+      .eq('client_id', user.id)
+      .eq('programme_id', programmeId)
+      .order('numero_semaine')
+    setCompletedWeeks(data || [])
+  }, [user])
+
+  // ── Valider une semaine ──
+  const validateWeek = async (weekNum) => {
+    if (!user || !assignation) return
+    const programmeId = assignation.programme_id
+    setValidatingWeek(weekNum)
+    try {
+      const { error } = await supabase.from('suivi_programmes').insert({
+        client_id: user.id,
+        programme_id: programmeId,
+        numero_semaine: weekNum,
+      })
+      if (error) {
+        if (error.code === '23505') {
+          toast.error('Cette semaine est déjà validée !')
+        } else {
+          throw error
+        }
+      } else {
+        setCompletedWeeks(prev => [...prev, { numero_semaine: weekNum, completed_at: new Date().toISOString() }])
+        toast.success('Super ! Semaine validée, ton coach est prévenu.')
+      }
+    } catch (err) {
+      console.error('[ProgrammePage] Erreur validation semaine:', err)
+      toast.error('Erreur : ' + (err.message || 'Inconnu'))
+    } finally {
+      setValidatingWeek(null)
+    }
+  }
+
   useEffect(() => {
     if (!user) return
     const init = async () => {
@@ -169,6 +214,11 @@ export default function ProgrammePage() {
     }
     init()
   }, [user, loadSport, loadNutrition])
+
+  // Load week progress once assignation is set
+  useEffect(() => {
+    if (assignation?.programme_id) loadWeekProgress(assignation.programme_id)
+  }, [assignation?.programme_id, loadWeekProgress])
 
   // ── Loading ──
   if (loading) {
@@ -183,6 +233,14 @@ export default function ProgrammePage() {
   const progressPercent = phases.length > 0 && assignation
     ? Math.round((assignation.phase_actuelle / phases.length) * 100)
     : 0
+
+  // Mode Document : PDF global + pas de phases avec exercices
+  const hasExercises = phases.some(p => (p.exercices?.length || 0) > 0)
+  const isDocumentMode = !!prog?.document_url && !hasExercises
+  const totalWeeks = prog?.duree_semaines || 4
+  const isWeekCompleted = (w) => completedWeeks.some(cw => cw.numero_semaine === w)
+  const completedCount = completedWeeks.length
+  const weekProgress = Math.round((completedCount / totalWeeks) * 100)
 
   // Grouper les repas par jour
   const repasParJour = repas.reduce((acc, r) => {
@@ -241,7 +299,124 @@ export default function ProgrammePage() {
               <h2 className="text-[#F5F5F3] font-semibold text-lg mb-2">Aucun programme sportif</h2>
               <p className="text-white/40 text-sm">Ton coach n'a pas encore assigné de programme sportif.</p>
             </div>
+          ) : isDocumentMode ? (
+            /* ═══════════════════════════════════════════ */
+            /* MODE DOCUMENT — PDF global, pas d'exercices */
+            /* ═══════════════════════════════════════════ */
+            <>
+              {/* Programme Header */}
+              <div>
+                <p className="text-white/40 text-[11px] uppercase tracking-wider mb-1">Programme actif</p>
+                <h2 className="text-[#F5F5F3] text-lg font-bold">{prog?.titre}</h2>
+                {prog?.description && <p className="text-white/40 text-sm mt-1">{prog.description}</p>}
+              </div>
+
+              {/* Grande carte PDF centrale */}
+              <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-6 text-center">
+                <div className="w-20 h-20 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-5">
+                  <FileText size={36} className="text-[#FF6B2B]" />
+                </div>
+                <h3 className="text-[#F5F5F3] font-bold text-lg mb-1">Ton programme complet</h3>
+                <p className="text-white/40 text-sm mb-1">{prog?.document_nom || 'Document PDF'}</p>
+                <p className="text-white/25 text-xs mb-6">
+                  {totalWeeks} semaines • {prog?.categorie || 'Programme personnalisé'}
+                </p>
+                <a href={prog.document_url} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/25">
+                  <ExternalLink size={16} />
+                  Ouvrir le programme
+                </a>
+              </div>
+
+              {/* ── Suivi de progression — Semaines ── */}
+              <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden">
+                {/* Header */}
+                <div className="px-5 py-4 border-b border-white/[0.04]">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={15} className="text-[#FF6B2B]" />
+                      <h3 className="text-[#F5F5F3] font-semibold text-sm">Suivi de progression</h3>
+                    </div>
+                    <span className="text-[#FF6B2B] text-xs font-bold">{weekProgress}%</span>
+                  </div>
+                  {/* Progress bar global */}
+                  <div className="h-2 bg-[#27272a] rounded-full overflow-hidden">
+                    <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-500"
+                      style={{ width: `${weekProgress}%` }} />
+                  </div>
+                  <p className="text-white/25 text-[10px] mt-2">
+                    {completedCount} / {totalWeeks} semaine{totalWeeks > 1 ? 's' : ''} validée{completedCount > 1 ? 's' : ''}
+                  </p>
+                </div>
+
+                {/* Weeks list */}
+                <div className="divide-y divide-white/[0.04]">
+                  {Array.from({ length: totalWeeks }, (_, i) => i + 1).map(weekNum => {
+                    const done = isWeekCompleted(weekNum)
+                    const isValidating = validatingWeek === weekNum
+                    // Semaine déverrouillée si : semaine 1, ou semaine précédente complétée
+                    const unlocked = weekNum === 1 || isWeekCompleted(weekNum - 1)
+
+                    return (
+                      <div key={weekNum} className={`flex items-center gap-3 px-5 py-3.5 transition-all ${
+                        done ? 'bg-emerald-500/[0.03]' : ''
+                      }`}>
+                        {/* Status icon */}
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          done
+                            ? 'bg-emerald-500/15'
+                            : unlocked
+                              ? 'bg-[#FF6B2B]/10'
+                              : 'bg-[#27272a]'
+                        }`}>
+                          {done ? (
+                            <CheckCircle2 size={16} className="text-emerald-400" />
+                          ) : unlocked ? (
+                            <span className="text-[#FF6B2B] text-xs font-bold">{weekNum}</span>
+                          ) : (
+                            <Lock size={13} className="text-white/15" />
+                          )}
+                        </div>
+
+                        {/* Week label */}
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[#F5F5F3]' : 'text-white/25'}`}>
+                            Semaine {weekNum}
+                          </p>
+                          {done && (
+                            <p className="text-white/20 text-[10px]">
+                              Validée le {new Date(completedWeeks.find(cw => cw.numero_semaine === weekNum)?.completed_at).toLocaleDateString('fr-FR')}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Action button */}
+                        {done ? (
+                          <span className="text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">Terminée</span>
+                        ) : unlocked ? (
+                          <button onClick={() => validateWeek(weekNum)}
+                            disabled={isValidating}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold hover:bg-[#FF6B2B]/20 transition-all disabled:opacity-50">
+                            {isValidating ? (
+                              <Loader2 size={12} className="animate-spin" />
+                            ) : (
+                              <Check size={12} />
+                            )}
+                            {isValidating ? 'Validation...' : 'Valider'}
+                          </button>
+                        ) : (
+                          <span className="text-white/10 text-[10px]">Verrouillée</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </>
           ) : (
+            /* ═══════════════════════════════════════════ */
+            /* MODE CLASSIQUE — Phases + Exercices         */
+            /* ═══════════════════════════════════════════ */
             <>
               {/* Programme Header */}
               <div>
@@ -485,6 +660,54 @@ export default function ProgrammePage() {
                   )
                 })}
               </div>
+
+              {/* ── Suivi semaines (mode classique aussi) ── */}
+              {totalWeeks > 0 && (
+                <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden">
+                  <div className="px-5 py-4 border-b border-white/[0.04]">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={15} className="text-[#FF6B2B]" />
+                        <h3 className="text-[#F5F5F3] font-semibold text-sm">Suivi hebdomadaire</h3>
+                      </div>
+                      <span className="text-[#FF6B2B] text-xs font-bold">{completedCount}/{totalWeeks}</span>
+                    </div>
+                    <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-500"
+                        style={{ width: `${weekProgress}%` }} />
+                    </div>
+                  </div>
+                  <div className="divide-y divide-white/[0.04]">
+                    {Array.from({ length: totalWeeks }, (_, i) => i + 1).map(weekNum => {
+                      const done = isWeekCompleted(weekNum)
+                      const isValidating = validatingWeek === weekNum
+                      const unlocked = weekNum === 1 || isWeekCompleted(weekNum - 1)
+                      return (
+                        <div key={weekNum} className={`flex items-center gap-3 px-5 py-3 ${done ? 'bg-emerald-500/[0.03]' : ''}`}>
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            done ? 'bg-emerald-500/15' : unlocked ? 'bg-[#FF6B2B]/10' : 'bg-[#27272a]'
+                          }`}>
+                            {done ? <CheckCircle2 size={14} className="text-emerald-400" /> :
+                             unlocked ? <span className="text-[#FF6B2B] text-[10px] font-bold">{weekNum}</span> :
+                             <Lock size={11} className="text-white/15" />}
+                          </div>
+                          <span className={`flex-1 text-xs font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[#F5F5F3]' : 'text-white/25'}`}>
+                            Sem. {weekNum}
+                          </span>
+                          {done ? (
+                            <span className="text-emerald-400/60 text-[9px]">OK</span>
+                          ) : unlocked ? (
+                            <button onClick={() => validateWeek(weekNum)} disabled={isValidating}
+                              className="px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold hover:bg-[#FF6B2B]/20 transition-all disabled:opacity-50">
+                              {isValidating ? '...' : 'Valider'}
+                            </button>
+                          ) : null}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </>
