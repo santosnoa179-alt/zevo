@@ -71,6 +71,7 @@ export default function NutritionBuilder() {
   // Documents
   const [documents, setDocuments] = useState([])
   const [uploadingDoc, setUploadingDoc] = useState(false)
+  const [pendingFiles, setPendingFiles] = useState([]) // fichiers en attente avant sauvegarde
 
   // Load aliments library
   useEffect(() => {
@@ -457,6 +458,11 @@ export default function NutritionBuilder() {
       }
       console.log(`[NutritionBuilder] ${totalInserted} repas sauvegardés pour plan ${savedPlanId}`)
 
+      // Upload les fichiers en attente maintenant que le plan existe
+      if (pendingFiles.length > 0) {
+        await uploadPendingFiles(savedPlanId)
+      }
+
       const cl = clientId ? coachClients.find(c => c.id === clientId) : null
       const clientName = cl ? ((cl.prenom && cl.nom) ? `${cl.prenom} ${cl.nom}` : (cl.prenom || cl.nom || cl.email || 'ce client')) : null
       toast.success(clientName ? `Plan assigné à ${clientName} !` : (existingPlanId ? 'Plan mis à jour !' : 'Modèle créé !'))
@@ -473,10 +479,19 @@ export default function NutritionBuilder() {
     const file = e.target.files?.[0]
     if (!file) return
     const pid = existingPlanId
+
     if (!pid) {
-      toast.error('Sauvegardez le plan avant d\'ajouter des documents')
+      // Pas encore sauvegardé → stocker le fichier en attente
+      setPendingFiles(prev => [...prev, file])
+      toast.success(`${file.name} ajouté (sera uploadé à la sauvegarde)`)
       return
     }
+
+    // Plan déjà sauvegardé → upload immédiat
+    await uploadDocToStorage(file, pid)
+  }
+
+  const uploadDocToStorage = async (file, pid) => {
     setUploadingDoc(true)
     try {
       const filePath = `${pid}/${Date.now()}_${file.name}`
@@ -501,7 +516,15 @@ export default function NutritionBuilder() {
       toast.error('Erreur upload : ' + (err.message || 'Inconnu'))
     }
     setUploadingDoc(false)
-    e.target.value = '' // reset input
+  }
+
+  // Upload tous les fichiers en attente après sauvegarde
+  const uploadPendingFiles = async (pid) => {
+    if (pendingFiles.length === 0) return
+    for (const file of pendingFiles) {
+      await uploadDocToStorage(file, pid)
+    }
+    setPendingFiles([])
   }
 
   const handleDocDelete = async (doc) => {
@@ -860,17 +883,14 @@ export default function NutritionBuilder() {
           <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
             <Paperclip size={14} className="text-[#FF6B2B]" />
             Documents & Pièces jointes
-            {documents.length > 0 && (
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{documents.length}</span>
+            {(documents.length + pendingFiles.length) > 0 && (
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{documents.length + pendingFiles.length}</span>
             )}
           </h3>
           <button
             type="button"
             onClick={() => {
-              if (uploadingDoc || !existingPlanId) {
-                if (!existingPlanId) toast.error('Sauvegardez le plan avant d\'ajouter des documents')
-                return
-              }
+              if (uploadingDoc) return
               const input = document.createElement('input')
               input.type = 'file'
               input.accept = '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx'
@@ -888,17 +908,34 @@ export default function NutritionBuilder() {
         </div>
 
         <div className="p-4">
-          {!existingPlanId ? (
-            <p className="text-white/20 text-xs text-center py-6 italic">
-              Sauvegardez le plan pour pouvoir ajouter des documents
-            </p>
-          ) : documents.length === 0 ? (
+          {/* Fichiers en attente (avant sauvegarde) */}
+          {pendingFiles.length > 0 && (
+            <div className="space-y-2 mb-3">
+              {pendingFiles.map((file, i) => (
+                <div key={i}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D0D0D] border border-[#FF6B2B]/20 transition-all group">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#FF6B2B]/10">
+                    <FileText size={16} className="text-[#FF6B2B]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[#F5F5F3] text-sm font-medium truncate">{file.name}</p>
+                    <p className="text-[#FF6B2B]/50 text-[10px] mt-0.5">En attente • sera uploadé à la sauvegarde</p>
+                  </div>
+                  <button onClick={() => setPendingFiles(prev => prev.filter((_, j) => j !== i))}
+                    className="p-2 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Retirer">
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {documents.length === 0 && pendingFiles.length === 0 ? (
             <div className="text-center py-8">
               <FileText size={28} className="text-white/10 mx-auto mb-2" />
               <p className="text-white/20 text-xs">Aucun document joint</p>
               <p className="text-white/10 text-[10px] mt-1">PDF, images, documents Word/Excel acceptés</p>
             </div>
-          ) : (
+          ) : documents.length > 0 ? (
             <div className="space-y-2">
               {documents.map(doc => (
                 <div key={doc.id}
@@ -929,7 +966,7 @@ export default function NutritionBuilder() {
                 </div>
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
