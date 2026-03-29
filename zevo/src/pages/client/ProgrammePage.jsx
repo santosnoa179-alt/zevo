@@ -1,12 +1,14 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../components/ui/Toast'
 import { supabase } from '../../lib/supabase'
 import { Card, CardBody } from '../../components/ui/Card'
 import {
   Layers, ChevronRight, ChevronDown, Dumbbell, Apple,
   Loader2, CheckCircle2, Image as ImageIcon,
   BookOpen, FileText, Video, Link as LinkIcon, ExternalLink, Download,
-  UtensilsCrossed, Flame, Droplets, Wheat, Trophy
+  UtensilsCrossed, Flame, Droplets, Wheat, Trophy,
+  Upload, Paperclip, Eye
 } from 'lucide-react'
 
 const RESSOURCE_ICONS = {
@@ -32,6 +34,7 @@ const REPAS_ICONS = {
 
 export default function ProgrammePage() {
   const { user } = useAuth()
+  const toast = useToast()
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('sport')
 
@@ -44,6 +47,11 @@ export default function ProgrammePage() {
   const [nutritionPlan, setNutritionPlan] = useState(null)
   const [repas, setRepas] = useState([])
   const [loadingNutrition, setLoadingNutrition] = useState(false)
+
+  // Documents nutrition
+  const [documents, setDocuments] = useState([])
+  const [uploadingDoc, setUploadingDoc] = useState(false)
+  const fileInputRef = useRef(null)
 
   // ── Charge le programme sport ──
   const loadSport = useCallback(async () => {
@@ -90,18 +98,58 @@ export default function ProgrammePage() {
     if (plan) {
       setNutritionPlan(plan)
 
-      // Charger les repas associés
-      const { data: repasData } = await supabase
-        .from('plan_repas')
-        .select('*, repas_aliments(*, aliments(nom, kcal_100g, proteines, glucides, lipides))')
-        .eq('plan_nutrition_id', plan.id)
-        .order('jour')
+      // Charger les repas et documents en parallèle
+      const [repasRes, docsRes] = await Promise.all([
+        supabase
+          .from('plan_repas')
+          .select('*, repas_aliments(*, aliments(nom, kcal_100g, proteines, glucides, lipides))')
+          .eq('plan_nutrition_id', plan.id)
+          .order('jour'),
+        supabase
+          .from('plan_documents')
+          .select('*')
+          .eq('plan_id', plan.id)
+          .order('created_at', { ascending: false }),
+      ])
 
-      setRepas(repasData || [])
+      setRepas(repasRes.data || [])
+      setDocuments(docsRes.data || [])
     }
 
     setLoadingNutrition(false)
   }, [user])
+
+  // ── Upload fichier nutrition ──
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !nutritionPlan) return
+
+    setUploadingDoc(true)
+    try {
+      const filePath = `${nutritionPlan.id}/${Date.now()}_${file.name}`
+      const { error: upErr } = await supabase.storage.from('plan-documents').upload(filePath, file)
+      if (upErr) throw upErr
+
+      const { data: { publicUrl } } = supabase.storage.from('plan-documents').getPublicUrl(filePath)
+
+      const docRow = {
+        plan_id: nutritionPlan.id,
+        nom: file.name,
+        url: publicUrl,
+        type: file.type?.includes('pdf') ? 'pdf' : file.type?.includes('image') ? 'image' : 'autre',
+      }
+      const { data: newDoc, error: dbErr } = await supabase.from('plan_documents').insert(docRow).select().single()
+      if (dbErr) throw dbErr
+
+      setDocuments(prev => [newDoc, ...prev])
+      toast.success(`Fichier "${file.name}" ajouté avec succès`)
+    } catch (err) {
+      console.error('[ProgrammePage] Erreur upload doc:', err)
+      toast.error('Erreur upload : ' + (err.message || 'Inconnu'))
+    }
+    setUploadingDoc(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   useEffect(() => {
     if (!user) return
@@ -540,6 +588,79 @@ export default function ProgrammePage() {
                   </CardBody>
                 </Card>
               )}
+
+              {/* ── Documents & Fichiers ── */}
+              <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/[0.04] flex items-center justify-between">
+                  <h3 className="text-[#F5F5F3] text-sm font-semibold flex items-center gap-2">
+                    <Paperclip size={14} className="text-[#22c55e]" />
+                    Documents
+                    {documents.length > 0 && (
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#22c55e]/10 text-[#22c55e] font-bold">
+                        {documents.length}
+                      </span>
+                    )}
+                  </h3>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingDoc}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                      uploadingDoc
+                        ? 'bg-[#2A2A2A] text-white/30 cursor-wait'
+                        : 'bg-[#22c55e]/10 text-[#22c55e] hover:bg-[#22c55e]/20 active:scale-95'
+                    }`}
+                  >
+                    {uploadingDoc ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                    {uploadingDoc ? 'Upload...' : 'Ajouter un fichier'}
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx"
+                  />
+                </div>
+
+                <div className="p-4">
+                  {documents.length === 0 ? (
+                    <div className="text-center py-6">
+                      <FileText size={24} className="text-white/10 mx-auto mb-2" />
+                      <p className="text-white/25 text-xs">Aucun document joint à ce plan</p>
+                      <p className="text-white/15 text-[10px] mt-1">PDF, images, documents Word/Excel acceptés</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {documents.map(doc => (
+                        <a
+                          key={doc.id}
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D0D0D] border border-white/[0.04] hover:border-white/[0.12] transition-all group"
+                        >
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                            doc.type === 'pdf' ? 'bg-red-500/10' : doc.type === 'image' ? 'bg-blue-500/10' : 'bg-[#22c55e]/10'
+                          }`}>
+                            <FileText size={16} className={
+                              doc.type === 'pdf' ? 'text-red-400' : doc.type === 'image' ? 'text-blue-400' : 'text-[#22c55e]'
+                            } />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[#F5F5F3] text-sm font-medium truncate group-hover:text-[#22c55e] transition-colors">
+                              {doc.nom}
+                            </p>
+                            <p className="text-white/20 text-[10px] mt-0.5">
+                              {doc.type?.toUpperCase()} {doc.created_at && `• ${new Date(doc.created_at).toLocaleDateString('fr-FR')}`}
+                            </p>
+                          </div>
+                          <Eye size={14} className="text-white/20 group-hover:text-[#22c55e] transition-colors shrink-0" />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </>
           )}
         </>
