@@ -46,6 +46,9 @@ export function ClientLayout() {
   const [notifOpen, setNotifOpen] = useState(false)
 
   const unreadCount = notifications.filter(n => !n.is_read).length
+  const unreadMsgCount = notifications.filter(n => !n.is_read && n.type === 'message').length
+
+  const [coachName, setCoachName] = useState('')
 
   // ── Charge les notifications client ──
   useEffect(() => {
@@ -59,11 +62,18 @@ export function ClientLayout() {
         .order('created_at', { ascending: false })
         .limit(20)
       setNotifications(data || [])
+
+      // Résoudre le nom du coach
+      const coachId = data?.[0]?.coach_id
+      if (coachId) {
+        const { data: coach } = await supabase.from('coaches').select('prenom, nom').eq('id', coachId).maybeSingle()
+        if (coach) setCoachName(coach.prenom || coach.nom || 'Coach')
+      }
     }
     loadNotifs()
 
     const channel = supabase
-      .channel('client-notifications')
+      .channel(`client-notifs-${user.id}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -216,6 +226,9 @@ export function ClientLayout() {
                                 <p className="text-[#F5F5F3] text-xs font-semibold">{n.titre}</p>
                                 {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] flex-shrink-0" />}
                               </div>
+                              {coachName && (
+                                <p className="text-[#FF6B2B] text-[10px] font-semibold mt-0.5">{coachName}</p>
+                              )}
                               <p className="text-white/40 text-[11px] mt-0.5 leading-relaxed truncate">{n.message}</p>
                               <p className="text-white/20 text-[10px] mt-0.5 font-medium">{timeLabel}</p>
                             </div>
@@ -249,39 +262,49 @@ export function ClientLayout() {
         <nav className="fixed bottom-5 left-4 right-4 z-50 md:hidden">
           <div className="bg-black/80 backdrop-blur-xl border border-white/[0.10] rounded-3xl shadow-2xl shadow-black/50 px-2 py-2">
             <ul className="flex items-center justify-around">
-              {MAIN_NAV.map(({ to, icon: Icon, label }) => (
-                <li key={to}>
-                  <NavLink
-                    to={to}
-                    className={({ isActive }) => 'relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-300 ' + (
-                      isActive
-                        ? 'bg-[#FF6B2B]/10'
-                        : 'hover:bg-white/[0.04]'
-                    )}
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <Icon
-                          size={21}
-                          className={`transition-colors duration-300 ${
-                            isActive ? 'text-[#FF6B2B]' : 'text-white/35'
-                          }`}
-                          strokeWidth={isActive ? 2.3 : 1.8}
-                        />
-                        <span className={`text-[9px] font-semibold transition-colors duration-300 ${
-                          isActive ? 'text-[#FF6B2B]' : 'text-white/30'
-                        }`}>
-                          {label}
-                        </span>
-                        {/* Active indicator dot */}
-                        {isActive && (
-                          <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#FF6B2B]" />
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                </li>
-              ))}
+              {MAIN_NAV.map(({ to, icon: Icon, label }) => {
+                const isMsgTab = to === '/app/messages'
+                const badgeCount = isMsgTab ? unreadMsgCount : 0
+                return (
+                  <li key={to}>
+                    <NavLink
+                      to={to}
+                      className={({ isActive }) => 'relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-300 ' + (
+                        isActive
+                          ? 'bg-[#FF6B2B]/10'
+                          : 'hover:bg-white/[0.04]'
+                      )}
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <div className="relative">
+                            <Icon
+                              size={21}
+                              className={`transition-colors duration-300 ${
+                                isActive ? 'text-[#FF6B2B]' : 'text-white/35'
+                              }`}
+                              strokeWidth={isActive ? 2.3 : 1.8}
+                            />
+                            {badgeCount > 0 && (
+                              <span className="absolute -top-1.5 -right-2.5 min-w-[14px] h-3.5 px-1 rounded-full bg-[#FF6B2B] text-white text-[8px] font-bold flex items-center justify-center">
+                                {badgeCount > 9 ? '9+' : badgeCount}
+                              </span>
+                            )}
+                          </div>
+                          <span className={`text-[9px] font-semibold transition-colors duration-300 ${
+                            isActive ? 'text-[#FF6B2B]' : 'text-white/30'
+                          }`}>
+                            {label}
+                          </span>
+                          {isActive && (
+                            <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#FF6B2B]" />
+                          )}
+                        </>
+                      )}
+                    </NavLink>
+                  </li>
+                )
+              })}
             </ul>
           </div>
         </nav>
@@ -291,23 +314,32 @@ export function ClientLayout() {
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-56 bg-[#1E1E1E] border-r border-white/[0.08] flex-col pt-16">
         <nav className="flex-1 px-3 py-4">
           <ul className="space-y-1">
-            {ALL_NAV_ITEMS.map(({ to, icon: Icon, label }) => (
-              <li key={to}>
-                <NavLink
-                  to={to}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
-                        : 'text-white/50 hover:text-white hover:bg-white/[0.04]'
-                    }`
-                  }
-                >
-                  <Icon size={18} />
-                  {label}
-                </NavLink>
-              </li>
-            ))}
+            {ALL_NAV_ITEMS.map(({ to, icon: Icon, label }) => {
+              const isMsgTab = to === '/app/messages'
+              const badgeCount = isMsgTab ? unreadMsgCount : 0
+              return (
+                <li key={to}>
+                  <NavLink
+                    to={to}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
+                          : 'text-white/50 hover:text-white hover:bg-white/[0.04]'
+                      }`
+                    }
+                  >
+                    <Icon size={18} />
+                    <span className="flex-1">{label}</span>
+                    {badgeCount > 0 && (
+                      <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                        {badgeCount > 9 ? '9+' : badgeCount}
+                      </span>
+                    )}
+                  </NavLink>
+                </li>
+              )
+            })}
           </ul>
         </nav>
       </aside>

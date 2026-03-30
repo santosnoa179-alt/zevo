@@ -23,6 +23,7 @@ const NAV_SECTIONS = [
       { to: '/coach/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
       { to: '/coach/client-hub', icon: Users, label: 'Clients' },
       { to: '/coach/calendar', icon: CalendarDays, label: 'Calendrier' },
+      { to: '/coach/messages', icon: MessageCircle, label: 'Messages', msgBadge: true },
       { to: '/coach/prospects', icon: UserPlus, label: 'Prospects', badge: 'Nouveau' },
     ],
   },
@@ -90,6 +91,7 @@ export function CoachLayout() {
   const [loadingNotifs, setLoadingNotifs] = useState(false)
 
   const unreadCount = notifications.filter(n => !n.is_read).length
+  const unreadMsgCount = notifications.filter(n => !n.is_read && n.type === 'message').length
 
   // Charge le profil coach pour afficher nom + avatar
   useEffect(() => {
@@ -105,6 +107,9 @@ export function CoachLayout() {
     load()
   }, [user])
 
+  // Cache des noms clients { id: 'Prénom' }
+  const [clientNames, setClientNames] = useState({})
+
   // ── Charge les notifications ──
   useEffect(() => {
     if (!user) return
@@ -119,19 +124,41 @@ export function CoachLayout() {
         .limit(20)
       setNotifications(data || [])
       setLoadingNotifs(false)
+
+      // Résoudre les prénoms des clients
+      const clientIds = [...new Set((data || []).map(n => n.client_id).filter(Boolean))]
+      if (clientIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('clients')
+          .select('id, prenom, nom')
+          .in('id', clientIds)
+        if (profiles) {
+          const map = {}
+          profiles.forEach(p => { map[p.id] = p.prenom || p.nom || 'Client' })
+          setClientNames(prev => ({ ...prev, ...map }))
+        }
+      }
     }
     loadNotifs()
 
     // Realtime : écouter les nouvelles notifications
     const channel = supabase
-      .channel('coach-notifications')
+      .channel(`coach-notifs-${user.id}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'notifications',
         filter: `coach_id=eq.${user.id}`,
-      }, (payload) => {
-        setNotifications(prev => [payload.new, ...prev])
+      }, async (payload) => {
+        if (payload.new.destinataire === 'coach') {
+          setNotifications(prev => [payload.new, ...prev])
+          // Résoudre le prénom si pas en cache
+          const cid = payload.new.client_id
+          if (cid && !clientNames[cid]) {
+            const { data: p } = await supabase.from('clients').select('prenom, nom').eq('id', cid).maybeSingle()
+            if (p) setClientNames(prev => ({ ...prev, [cid]: p.prenom || p.nom || 'Client' }))
+          }
+        }
       })
       .subscribe()
 
@@ -185,9 +212,14 @@ export function CoachLayout() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/coach/messages')}
-            className="p-2 text-white/40 hover:text-white transition-colors"
+            className="p-2 text-white/40 hover:text-white transition-colors relative"
           >
             <MessageCircle size={18} />
+            {unreadMsgCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 px-1 rounded-full bg-[#FF6B2B] text-white text-[8px] font-bold flex items-center justify-center">
+                {unreadMsgCount > 9 ? '9+' : unreadMsgCount}
+              </span>
+            )}
           </button>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -274,7 +306,7 @@ export function CoachLayout() {
                 </p>
               )}
               <ul className="space-y-0.5">
-                {section.items.map(({ to, icon: Icon, label, badge }) => (
+                {section.items.map(({ to, icon: Icon, label, badge, msgBadge }) => (
                   <li key={to}>
                     <NavLink
                       to={to}
@@ -290,6 +322,11 @@ export function CoachLayout() {
                         <>
                           <Icon size={17} className={`flex-shrink-0 transition-colors ${isActive ? 'text-[#FF6B2B]' : 'text-white/30 group-hover:text-white/50'}`} />
                           <span className="flex-1">{label}</span>
+                          {msgBadge && unreadMsgCount > 0 && (
+                            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                              {unreadMsgCount > 9 ? '9+' : unreadMsgCount}
+                            </span>
+                          )}
                           {badge && (
                             <span className="text-[9px] bg-[#FF6B2B] text-white px-1.5 py-0.5 rounded-full font-bold">
                               {badge}
@@ -420,6 +457,7 @@ export function CoachLayout() {
                           }
                           const cfg = typeConfig[n.type] || { icon: Bell, iconColor: 'text-white/40', iconBg: 'bg-white/5' }
                           const IconComp = cfg.icon
+                          const senderName = n.client_id ? clientNames[n.client_id] : null
 
                           // Formatage du temps relatif
                           const diff = Date.now() - new Date(n.created_at).getTime()
@@ -446,6 +484,9 @@ export function CoachLayout() {
                                   <p className="text-[#F5F5F3] text-xs font-semibold">{n.titre}</p>
                                   {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] flex-shrink-0" />}
                                 </div>
+                                {senderName && (
+                                  <p className="text-[#FF6B2B] text-[10px] font-semibold mt-0.5">{senderName}</p>
+                                )}
                                 <p className="text-white/40 text-[11px] mt-0.5 leading-relaxed">{n.message}</p>
                                 <p className="text-white/20 text-[10px] mt-1 font-medium">{timeLabel}</p>
                               </div>
@@ -474,6 +515,11 @@ export function CoachLayout() {
               className="p-2 rounded-lg text-white/30 hover:text-white/60 hover:bg-[#27272a]/50 transition-colors relative"
             >
               <MessageCircle size={17} />
+              {unreadMsgCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                  {unreadMsgCount > 9 ? '9+' : unreadMsgCount}
+                </span>
+              )}
             </button>
           </div>
         </header>
@@ -489,21 +535,32 @@ export function CoachLayout() {
       {/* ══════════════════════════════════════ */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b] border-t border-[#27272a]">
         <ul className="flex items-center justify-around h-14">
-          {MOBILE_NAV.map(({ to, icon: Icon, label }) => (
-            <li key={to}>
-              <NavLink
-                to={to}
-                className={({ isActive }) =>
-                  `flex flex-col items-center gap-0.5 px-2 py-1.5 transition-colors ${
-                    isActive ? 'text-[#FF6B2B]' : 'text-white/30'
-                  }`
-                }
-              >
-                <Icon size={18} />
-                <span className="text-[9px] font-medium">{label}</span>
-              </NavLink>
-            </li>
-          ))}
+          {MOBILE_NAV.map(({ to, icon: Icon, label }) => {
+            const isMsgTab = to === '/coach/messages'
+            const badgeCount = isMsgTab ? unreadMsgCount : 0
+            return (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  className={({ isActive }) =>
+                    `flex flex-col items-center gap-0.5 px-2 py-1.5 transition-colors relative ${
+                      isActive ? 'text-[#FF6B2B]' : 'text-white/30'
+                    }`
+                  }
+                >
+                  <div className="relative">
+                    <Icon size={18} />
+                    {badgeCount > 0 && (
+                      <span className="absolute -top-1.5 -right-2 min-w-[14px] h-3.5 px-1 rounded-full bg-[#FF6B2B] text-white text-[8px] font-bold flex items-center justify-center">
+                        {badgeCount > 9 ? '9+' : badgeCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[9px] font-medium">{label}</span>
+                </NavLink>
+              </li>
+            )
+          })}
         </ul>
       </nav>
     </div>
