@@ -116,6 +116,7 @@ export default function ObjectifsPage() {
   const [objectifType, setObjectifType] = useState('')
   const [showSaisie, setShowSaisie] = useState(false)
   const [savingMens, setSavingMens] = useState(false)
+  const [coachId, setCoachId] = useState(null)
   const [newValues, setNewValues] = useState({})
 
   const fields = useMemo(() => getFieldsForObjectif(objectifType), [objectifType])
@@ -153,6 +154,7 @@ export default function ObjectifsPage() {
     setPoidsActuel(clientRes.data?.poids ?? null)
     setPoidsCible(clientRes.data?.poids_cible ?? null)
     setObjectifType(clientRes.data?.objectif_type ?? '')
+    if (clientRes.data?.coach_id) setCoachId(clientRes.data.coach_id)
     setLoading(false)
   }, [user])
 
@@ -233,6 +235,18 @@ export default function ObjectifsPage() {
     setShowSaisie(false)
     setNewValues({})
     setSavingMens(false)
+
+    // Notification au coach
+    if (coachId) {
+      const detail = newValues.poids ? ` (${newValues.poids} kg)` : ''
+      await supabase.from('notifications').insert({
+        coach_id: coachId,
+        client_id: user.id,
+        titre: 'Nouvelle pesée ⚖️',
+        message: `Ton client a mis à jour ses mensurations${detail}.`,
+        type: 'mensuration',
+      }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
+    }
 
     const { data: fresh } = await supabase
       .from('suivi_mensurations')

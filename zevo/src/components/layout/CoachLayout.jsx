@@ -86,6 +86,10 @@ export function CoachLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [coachProfile, setCoachProfile] = useState(null)
+  const [notifications, setNotifications] = useState([])
+  const [loadingNotifs, setLoadingNotifs] = useState(false)
+
+  const unreadCount = notifications.filter(n => !n.is_read).length
 
   // Charge le profil coach pour afficher nom + avatar
   useEffect(() => {
@@ -100,6 +104,52 @@ export function CoachLayout() {
     }
     load()
   }, [user])
+
+  // ── Charge les notifications ──
+  useEffect(() => {
+    if (!user) return
+    const loadNotifs = async () => {
+      setLoadingNotifs(true)
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('coach_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      setNotifications(data || [])
+      setLoadingNotifs(false)
+    }
+    loadNotifs()
+
+    // Realtime : écouter les nouvelles notifications
+    const channel = supabase
+      .channel('coach-notifications')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `coach_id=eq.${user.id}`,
+      }, (payload) => {
+        setNotifications(prev => [payload.new, ...prev])
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [user])
+
+  // ── Marquer une notification comme lue ──
+  const markAsRead = async (id) => {
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id)
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
+  }
+
+  // ── Tout marquer comme lu ──
+  const markAllAsRead = async () => {
+    const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id)
+    if (unreadIds.length === 0) return
+    await supabase.from('notifications').update({ is_read: true }).in('id', unreadIds)
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+  }
 
   const handleLogout = async () => {
     await logout()
@@ -320,7 +370,11 @@ export function CoachLayout() {
                 }`}
               >
                 <Bell size={17} />
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </button>
 
               {/* Dropdown notifications */}
@@ -332,66 +386,82 @@ export function CoachLayout() {
                     <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
                         <h3 className="text-[#F5F5F3] text-sm font-bold">Notifications</h3>
-                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">3 nouvelles</span>
+                        {unreadCount > 0 && (
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
+                            {unreadCount} nouvelle{unreadCount > 1 ? 's' : ''}
+                          </span>
+                        )}
                       </div>
-                      <button
-                        className="text-xs text-zinc-400 hover:text-white transition-colors"
-                        onClick={() => setNotifOpen(false)}
-                      >
-                        Tout marquer comme lu
-                      </button>
+                      {unreadCount > 0 && (
+                        <button
+                          className="text-xs text-zinc-400 hover:text-white transition-colors"
+                          onClick={markAllAsRead}
+                        >
+                          Tout marquer comme lu
+                        </button>
+                      )}
                     </div>
 
                     {/* Liste */}
                     <div className="max-h-96 overflow-y-auto">
-                      {[
-                        {
-                          icon: CheckCircle, iconColor: 'text-emerald-400', iconBg: 'bg-emerald-500/10',
-                          title: 'Séance terminée',
-                          text: 'Noa SANTOS a terminé sa séance "Haut du corps"',
-                          time: 'Il y a 10 min', unread: true,
-                        },
-                        {
-                          icon: MessageCircle, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/10',
-                          title: 'Nouveau message',
-                          text: 'Marie LEFORT vous a envoyé un message',
-                          time: 'Il y a 1 heure', unread: true,
-                        },
-                        {
-                          icon: Flame, iconColor: 'text-[#FF6B2B]', iconBg: 'bg-[#FF6B2B]/10',
-                          title: 'Objectif atteint 🎉',
-                          text: 'Thomas DUBOIS a perdu 2kg — objectif atteint !',
-                          time: 'Il y a 3 heures', unread: true,
-                        },
-                        {
-                          icon: TrendingDown, iconColor: 'text-amber-400', iconBg: 'bg-amber-500/10',
-                          title: 'Rapport hebdomadaire',
-                          text: 'Votre rapport de la semaine est prêt à consulter',
-                          time: 'Hier', unread: false,
-                        },
-                      ].map((n, i) => (
-                        <button key={i} className={`w-full flex items-start gap-3 px-5 py-4 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/30 ${n.unread ? 'bg-white/[0.01]' : ''}`}>
-                          <div className={`w-9 h-9 rounded-xl ${n.iconBg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                            <n.icon size={16} className={n.iconColor} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="text-[#F5F5F3] text-xs font-semibold">{n.title}</p>
-                              {n.unread && <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] flex-shrink-0" />}
-                            </div>
-                            <p className="text-white/40 text-[11px] mt-0.5 leading-relaxed">{n.text}</p>
-                            <p className="text-white/20 text-[10px] mt-1 font-medium">{n.time}</p>
-                          </div>
-                        </button>
-                      ))}
+                      {notifications.length === 0 ? (
+                        <div className="px-5 py-10 text-center">
+                          <Bell size={20} className="text-white/10 mx-auto mb-2" />
+                          <p className="text-white/20 text-xs">Aucune notification pour le moment</p>
+                        </div>
+                      ) : (
+                        notifications.map((n) => {
+                          const typeConfig = {
+                            validation_semaine: { icon: CheckCircle, iconColor: 'text-emerald-400', iconBg: 'bg-emerald-500/10' },
+                            mensuration: { icon: TrendingDown, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/10' },
+                            message: { icon: MessageCircle, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/10' },
+                            objectif: { icon: Flame, iconColor: 'text-[#FF6B2B]', iconBg: 'bg-[#FF6B2B]/10' },
+                          }
+                          const cfg = typeConfig[n.type] || { icon: Bell, iconColor: 'text-white/40', iconBg: 'bg-white/5' }
+                          const IconComp = cfg.icon
+
+                          // Formatage du temps relatif
+                          const diff = Date.now() - new Date(n.created_at).getTime()
+                          const mins = Math.floor(diff / 60000)
+                          const hours = Math.floor(mins / 60)
+                          const days = Math.floor(hours / 24)
+                          const timeLabel = mins < 1 ? 'À l\'instant'
+                            : mins < 60 ? `Il y a ${mins} min`
+                            : hours < 24 ? `Il y a ${hours}h`
+                            : days < 7 ? `Il y a ${days}j`
+                            : new Date(n.created_at).toLocaleDateString('fr-FR')
+
+                          return (
+                            <button
+                              key={n.id}
+                              onClick={() => { if (!n.is_read) markAsRead(n.id) }}
+                              className={`w-full flex items-start gap-3 px-5 py-4 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/30 ${!n.is_read ? 'bg-white/[0.01]' : ''}`}
+                            >
+                              <div className={`w-9 h-9 rounded-xl ${cfg.iconBg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                                <IconComp size={16} className={cfg.iconColor} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-[#F5F5F3] text-xs font-semibold">{n.titre}</p>
+                                  {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] flex-shrink-0" />}
+                                </div>
+                                <p className="text-white/40 text-[11px] mt-0.5 leading-relaxed">{n.message}</p>
+                                <p className="text-white/20 text-[10px] mt-1 font-medium">{timeLabel}</p>
+                              </div>
+                            </button>
+                          )
+                        })
+                      )}
                     </div>
 
                     {/* Footer */}
-                    <div className="px-5 py-3 border-t border-[#27272a]">
-                      <button className="text-[#FF6B2B] text-xs font-semibold hover:text-[#FF9A6C] transition-colors w-full text-center">
-                        Voir toutes les notifications
-                      </button>
-                    </div>
+                    {notifications.length > 0 && (
+                      <div className="px-5 py-3 border-t border-[#27272a]">
+                        <p className="text-white/15 text-[10px] text-center">
+                          {notifications.length} notification{notifications.length > 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </>
               )}

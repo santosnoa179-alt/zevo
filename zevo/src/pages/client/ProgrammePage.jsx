@@ -56,6 +56,9 @@ export default function ProgrammePage() {
   const [completedNutriWeeks, setCompletedNutriWeeks] = useState([])
   const [validatingNutriWeek, setValidatingNutriWeek] = useState(null)
 
+  // Coach ID (pour notifications)
+  const [coachId, setCoachId] = useState(null)
+
   // ── Charge le programme sport ──
   const loadSport = useCallback(async () => {
     if (!user) return
@@ -172,6 +175,16 @@ export default function ProgrammePage() {
       } else {
         setCompletedWeeks(prev => [...prev, { numero_semaine: weekNum, completed_at: new Date().toISOString() }])
         toast.success('Super ! Semaine validée, ton coach est prévenu.')
+        // Notification au coach
+        if (coachId) {
+          await supabase.from('notifications').insert({
+            coach_id: coachId,
+            client_id: user.id,
+            titre: 'Semaine validée ! 🎉',
+            message: `Ton client a validé la semaine ${weekNum} de son programme sport.`,
+            type: 'validation_semaine',
+          }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
+        }
       }
     } catch (err) {
       console.error('[ProgrammePage] Erreur validation semaine:', err)
@@ -200,6 +213,16 @@ export default function ProgrammePage() {
       } else {
         setCompletedNutriWeeks(prev => [...prev, { numero_semaine: weekNum, completed_at: new Date().toISOString() }])
         toast.success('Super ! Semaine nutritionnelle validée.')
+        // Notification au coach
+        if (coachId) {
+          await supabase.from('notifications').insert({
+            coach_id: coachId,
+            client_id: user.id,
+            titre: 'Semaine validée ! 🎉',
+            message: `Ton client a validé la semaine ${weekNum} de son plan nutrition.`,
+            type: 'validation_semaine',
+          }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
+        }
       }
     } catch (err) {
       console.error('[ProgrammePage] Erreur validation semaine nutri:', err)
@@ -213,6 +236,14 @@ export default function ProgrammePage() {
     if (!user) return
     const init = async () => {
       setLoading(true)
+      // Récupère le coach_id pour les notifications
+      const { data: clientData } = await supabase
+        .from('clients')
+        .select('coach_id')
+        .eq('id', user.id)
+        .maybeSingle()
+      if (clientData?.coach_id) setCoachId(clientData.coach_id)
+
       await Promise.all([loadSport(), loadNutrition()])
       setLoading(false)
     }
