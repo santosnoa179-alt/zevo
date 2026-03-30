@@ -8,7 +8,7 @@ import {
   LayoutDashboard, CheckSquare, Target, MessageSquare, User,
   Moon, Heart, Dumbbell, RotateCcw, Crown, ArrowRight,
   Palette, Type, Image, ToggleLeft, Zap, Star, Quote,
-  CheckCircle, X
+  CheckCircle, X, Trash2
 } from 'lucide-react'
 
 // ── Couleurs prédéfinies ──
@@ -104,6 +104,29 @@ export default function CoachAppBuilderPage() {
     setLogoUrl(urlData.publicUrl)
     setUploading(false)
     toast.success('Logo mis à jour')
+  }
+
+  // Suppression du logo
+  const handleDeleteLogo = async () => {
+    if (!logoUrl || !user) return
+    setUploading(true)
+    try {
+      // Extraire le path du fichier depuis l'URL publique
+      const urlParts = logoUrl.split('/logos/')
+      if (urlParts.length > 1) {
+        const filePath = `logos/${urlParts[urlParts.length - 1].split('?')[0]}`
+        await supabase.storage.from('logos').remove([filePath])
+      }
+      // Mettre à null en base
+      const { error } = await supabase.from('coaches').update({ logo_url: null }).eq('id', user.id)
+      if (error) throw error
+      setLogoUrl('')
+      toast.success('Logo supprimé avec succès.')
+    } catch (err) {
+      console.error('[AppBuilder] Erreur suppression logo:', err)
+      toast.error('Erreur lors de la suppression du logo')
+    }
+    setUploading(false)
   }
 
   // Toggle module
@@ -450,11 +473,23 @@ export default function CoachAppBuilderPage() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#09090b] border border-[#27272a] text-sm text-white/50 hover:text-white hover:border-[#3f3f46] transition-colors">
-                    {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                    {uploading ? 'Upload...' : 'Changer le logo'}
-                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#09090b] border border-[#27272a] text-sm text-white/50 hover:text-white hover:border-[#3f3f46] transition-colors">
+                      {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                      {uploading ? 'Upload...' : 'Changer le logo'}
+                      <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                    </label>
+                    {logoUrl && (
+                      <button
+                        onClick={handleDeleteLogo}
+                        disabled={uploading}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                      >
+                        <Trash2 size={14} />
+                        Supprimer
+                      </button>
+                    )}
+                  </div>
                   <p className="text-white/15 text-[10px]">PNG, SVG ou JPG · 512×512px recommandé</p>
                 </div>
               </div>
