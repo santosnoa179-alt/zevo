@@ -7,7 +7,7 @@ import {
   ArrowLeft, Save, Loader2, Plus, Trash2, X,
   Coffee, UtensilsCrossed, Moon, Cookie,
   ChevronDown, Target, Flame, Layers, UserPlus, Check, Search,
-  Minus, FileText, Paperclip, Upload, ExternalLink
+  Minus, FileText, Upload, ExternalLink
 } from 'lucide-react'
 
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
@@ -68,10 +68,6 @@ export default function NutritionBuilder() {
   const [alimentSearch, setAlimentSearch] = useState('')
   const [loadingAliments, setLoadingAliments] = useState(false)
 
-  // Documents
-  const [documents, setDocuments] = useState([])
-  const [uploadingDoc, setUploadingDoc] = useState(false)
-  const [pendingFiles, setPendingFiles] = useState([]) // fichiers en attente avant sauvegarde
 
   // Global document (PDF joint au plan)
   const [globalDoc, setGlobalDoc] = useState(null) // { nom, url }
@@ -278,14 +274,6 @@ export default function NutritionBuilder() {
           setJours(newJours)
         }
       }
-      // Fetch documents
-      const { data: docsData } = await supabase
-        .from('plan_documents')
-        .select('*')
-        .eq('plan_id', plan.id)
-        .order('created_at', { ascending: false })
-      setDocuments(docsData || [])
-
       setLoadingPlan(false)
     }
     load()
@@ -472,10 +460,6 @@ export default function NutritionBuilder() {
         await uploadGlobalPdf(pendingGlobalFile, savedPlanId)
       }
 
-      // Upload les fichiers en attente maintenant que le plan existe
-      if (pendingFiles.length > 0) {
-        await uploadPendingFiles(savedPlanId)
-      }
 
       const cl = clientId ? coachClients.find(c => c.id === clientId) : null
       const clientName = cl ? ((cl.prenom && cl.nom) ? `${cl.prenom} ${cl.nom}` : (cl.prenom || cl.nom || cl.email || 'ce client')) : null
@@ -539,76 +523,6 @@ export default function NutritionBuilder() {
     toast.success('PDF retiré')
   }
 
-  // ── Document management ──
-  const handleDocUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const pid = existingPlanId
-
-    if (!pid) {
-      // Pas encore sauvegardé → stocker le fichier en attente
-      setPendingFiles(prev => [...prev, file])
-      toast.success(`${file.name} ajouté (sera uploadé à la sauvegarde)`)
-      return
-    }
-
-    // Plan déjà sauvegardé → upload immédiat
-    await uploadDocToStorage(file, pid)
-  }
-
-  const uploadDocToStorage = async (file, pid) => {
-    setUploadingDoc(true)
-    try {
-      const filePath = `${pid}/${Date.now()}_${file.name}`
-      const { error: upErr } = await supabase.storage.from('plan-documents').upload(filePath, file)
-      if (upErr) throw upErr
-
-      const { data: { publicUrl } } = supabase.storage.from('plan-documents').getPublicUrl(filePath)
-
-      const docRow = {
-        plan_id: pid,
-        nom: file.name,
-        url: publicUrl,
-        type: file.type?.includes('pdf') ? 'pdf' : file.type?.includes('image') ? 'image' : 'autre',
-      }
-      const { data: newDoc, error: dbErr } = await supabase.from('plan_documents').insert(docRow).select().single()
-      if (dbErr) throw dbErr
-
-      setDocuments(prev => [newDoc, ...prev])
-      toast.success(`${file.name} uploadé !`)
-    } catch (err) {
-      console.error('[NutritionBuilder] Erreur upload doc:', err)
-      toast.error('Erreur upload : ' + (err.message || 'Inconnu'))
-    }
-    setUploadingDoc(false)
-  }
-
-  // Upload tous les fichiers en attente après sauvegarde
-  const uploadPendingFiles = async (pid) => {
-    if (pendingFiles.length === 0) return
-    for (const file of pendingFiles) {
-      await uploadDocToStorage(file, pid)
-    }
-    setPendingFiles([])
-  }
-
-  const handleDocDelete = async (doc) => {
-    if (!window.confirm(`Supprimer "${doc.nom}" ?`)) return
-    try {
-      // Extract path from URL for storage deletion
-      const urlParts = doc.url?.split('/plan-documents/')
-      const storagePath = urlParts?.[1]
-      if (storagePath) {
-        await supabase.storage.from('plan-documents').remove([decodeURIComponent(storagePath)])
-      }
-      await supabase.from('plan_documents').delete().eq('id', doc.id)
-      setDocuments(prev => prev.filter(d => d.id !== doc.id))
-      toast.success('Document supprimé')
-    } catch (err) {
-      console.error('[NutritionBuilder] Erreur suppression doc:', err)
-      toast.error('Erreur suppression')
-    }
-  }
 
   if (loadingPlan) {
     return (
@@ -985,98 +899,6 @@ export default function NutritionBuilder() {
         </>
       )}
 
-      {/* ═══ Documents & Pièces jointes ═══ */}
-      <div className="mt-6 bg-[#1E1E1E] rounded-2xl border border-[#27272a] overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
-          <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
-            <Paperclip size={14} className="text-[#FF6B2B]" />
-            Documents & Pièces jointes
-            {(documents.length + pendingFiles.length) > 0 && (
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{documents.length + pendingFiles.length}</span>
-            )}
-          </h3>
-          <button
-            type="button"
-            onClick={() => {
-              if (uploadingDoc) return
-              const input = document.createElement('input')
-              input.type = 'file'
-              input.accept = '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx'
-              input.onchange = handleDocUpload
-              input.click()
-            }}
-            disabled={uploadingDoc}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-              uploadingDoc ? 'bg-[#27272a] text-white/30 cursor-wait' : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20'
-            }`}
-          >
-            {uploadingDoc ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-            {uploadingDoc ? 'Upload...' : 'Ajouter un fichier'}
-          </button>
-        </div>
-
-        <div className="p-4">
-          {/* Fichiers en attente (avant sauvegarde) */}
-          {pendingFiles.length > 0 && (
-            <div className="space-y-2 mb-3">
-              {pendingFiles.map((file, i) => (
-                <div key={i}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D0D0D] border border-[#FF6B2B]/20 transition-all group">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#FF6B2B]/10">
-                    <FileText size={16} className="text-[#FF6B2B]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[#F5F5F3] text-sm font-medium truncate">{file.name}</p>
-                    <p className="text-[#FF6B2B]/50 text-[10px] mt-0.5">En attente • sera uploadé à la sauvegarde</p>
-                  </div>
-                  <button onClick={() => setPendingFiles(prev => prev.filter((_, j) => j !== i))}
-                    className="p-2 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Retirer">
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          {documents.length === 0 && pendingFiles.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText size={28} className="text-white/10 mx-auto mb-2" />
-              <p className="text-white/20 text-xs">Aucun document joint</p>
-              <p className="text-white/10 text-[10px] mt-1">PDF, images, documents Word/Excel acceptés</p>
-            </div>
-          ) : documents.length > 0 ? (
-            <div className="space-y-2">
-              {documents.map(doc => (
-                <div key={doc.id}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D0D0D] border border-[#27272a]/50 hover:border-[#27272a] transition-all group cursor-pointer"
-                  onClick={() => doc.url && window.open(doc.url, '_blank')}>
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                    doc.type === 'pdf' ? 'bg-red-500/10' : doc.type === 'image' ? 'bg-blue-500/10' : 'bg-[#FF6B2B]/10'
-                  }`}>
-                    <FileText size={16} className={
-                      doc.type === 'pdf' ? 'text-red-400' : doc.type === 'image' ? 'text-blue-400' : 'text-[#FF6B2B]'
-                    } />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[#F5F5F3] text-sm font-medium truncate">{doc.nom}</p>
-                    <p className="text-white/20 text-[10px] mt-0.5">
-                      {doc.type?.toUpperCase()} • {new Date(doc.created_at).toLocaleDateString('fr-FR')}
-                    </p>
-                  </div>
-                  <a href={doc.url} target="_blank" rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="p-2 rounded-lg text-white/20 hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-all" title="Ouvrir">
-                    <ExternalLink size={14} />
-                  </a>
-                  <button onClick={(e) => { e.stopPropagation(); handleDocDelete(doc) }}
-                    className="p-2 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100" title="Supprimer">
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </div>
 
       {/* ═══ Save Modal ═══ */}
       {showSaveModal && (
