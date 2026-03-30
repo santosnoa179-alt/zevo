@@ -73,6 +73,11 @@ export default function NutritionBuilder() {
   const [uploadingDoc, setUploadingDoc] = useState(false)
   const [pendingFiles, setPendingFiles] = useState([]) // fichiers en attente avant sauvegarde
 
+  // Global document (PDF joint au plan)
+  const [globalDoc, setGlobalDoc] = useState(null) // { nom, url }
+  const [pendingGlobalFile, setPendingGlobalFile] = useState(null)
+  const [uploadingGlobal, setUploadingGlobal] = useState(false)
+
   // Load aliments library
   useEffect(() => {
     if (!user) return
@@ -209,6 +214,10 @@ export default function NutritionBuilder() {
         setTitre(plan.nom || '')
         setExistingPlanId(plan.id)
         setIsActive(plan.is_active || false)
+        // Charger le document global s'il existe
+        if (plan.document_url) {
+          setGlobalDoc({ nom: plan.document_nom || 'Document', url: plan.document_url })
+        }
 
         // Fetch repas + aliments
         const { data: repasData } = await supabase
@@ -458,6 +467,11 @@ export default function NutritionBuilder() {
       }
       console.log(`[NutritionBuilder] ${totalInserted} repas sauvegardés pour plan ${savedPlanId}`)
 
+      // Upload le PDF global en attente
+      if (pendingGlobalFile) {
+        await uploadGlobalPdf(pendingGlobalFile, savedPlanId)
+      }
+
       // Upload les fichiers en attente maintenant que le plan existe
       if (pendingFiles.length > 0) {
         await uploadPendingFiles(savedPlanId)
@@ -472,6 +486,57 @@ export default function NutritionBuilder() {
       toast.error('Erreur : ' + (err.message || 'Sauvegarde échouée'))
     }
     setSaving(false)
+  }
+
+  // ── Global PDF (document joint au plan entier) ──
+  const triggerGlobalPdfUpload = () => {
+    if (uploadingGlobal) return
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx'
+    input.onchange = (e) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+      if (existingPlanId) {
+        uploadGlobalPdf(file, existingPlanId)
+      } else {
+        setPendingGlobalFile(file)
+        toast.success('Fichier prêt — sera uploadé à la sauvegarde')
+      }
+    }
+    input.click()
+  }
+
+  const uploadGlobalPdf = async (file, pid) => {
+    if (!pid) return
+    setUploadingGlobal(true)
+    try {
+      const filePath = `plan_global_docs/${pid}/${Date.now()}_${file.name}`
+      const { error: upErr } = await supabase.storage.from('plan-documents').upload(filePath, file)
+      if (upErr) throw upErr
+      const { data: { publicUrl } } = supabase.storage.from('plan-documents').getPublicUrl(filePath)
+      const { error: dbErr } = await supabase.from('client_nutrition_plans').update({
+        document_url: publicUrl,
+        document_nom: file.name,
+      }).eq('id', pid)
+      if (dbErr) throw dbErr
+      setGlobalDoc({ nom: file.name, url: publicUrl })
+      setPendingGlobalFile(null)
+      toast.success('PDF joint au plan !')
+    } catch (err) {
+      console.error('[NutritionBuilder] Erreur upload global doc:', err)
+      toast.error('Erreur upload : ' + (err.message || 'inconnu'))
+    } finally {
+      setUploadingGlobal(false)
+    }
+  }
+
+  const removeGlobalPdf = async () => {
+    if (pendingGlobalFile) { setPendingGlobalFile(null); return }
+    if (!existingPlanId || !globalDoc) return
+    await supabase.from('client_nutrition_plans').update({ document_url: null, document_nom: null }).eq('id', existingPlanId)
+    setGlobalDoc(null)
+    toast.success('PDF retiré')
   }
 
   // ── Document management ──
@@ -593,6 +658,18 @@ export default function NutritionBuilder() {
             {isActive ? 'Plan actif' : 'Inactif'}
           </button>
 
+          {/* Joindre PDF */}
+          <button onClick={triggerGlobalPdfUpload} disabled={uploadingGlobal}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+              uploadingGlobal ? 'bg-[#27272a] text-white/30 cursor-wait'
+              : globalDoc || pendingGlobalFile ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20'
+              : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20'
+            }`}
+            title="Joindre un PDF/fichier global au plan">
+            {uploadingGlobal ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+            {uploadingGlobal ? 'Upload...' : 'Joindre PDF'}
+          </button>
+
           {/* Save */}
           <button onClick={handleSaveClick} disabled={saving}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-50 shadow-lg shadow-[#FF6B2B]/20 shrink-0">
@@ -613,6 +690,37 @@ export default function NutritionBuilder() {
           <span className="text-rose-400 text-[10px] font-semibold">L {weeklyAvg.l}g</span>
         </div>
       </div>
+
+      {/* ═══ Global PDF banner ═══ */}
+      {(globalDoc || pendingGlobalFile) && (
+        <div className="px-4 md:px-6 py-2.5 border-b border-[#27272a] bg-[#1E1E1E]/50">
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+              pendingGlobalFile ? 'bg-[#FF6B2B]/10' : 'bg-emerald-500/10'
+            }`}>
+              <FileText size={16} className={pendingGlobalFile ? 'text-[#FF6B2B]' : 'text-emerald-400'} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[#F5F5F3] text-xs font-semibold truncate">
+                {pendingGlobalFile ? pendingGlobalFile.name : globalDoc?.nom}
+              </p>
+              <p className="text-white/25 text-[10px]">
+                {pendingGlobalFile ? '⏳ En attente — sera uploadé à la sauvegarde' : '✓ PDF global joint au plan'}
+              </p>
+            </div>
+            {globalDoc?.url && (
+              <a href={globalDoc.url} target="_blank" rel="noopener noreferrer"
+                className="p-1.5 rounded-lg text-white/30 hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-all shrink-0">
+                <ExternalLink size={14} />
+              </a>
+            )}
+            <button onClick={removeGlobalPdf}
+              className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0">
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ═══ Main — 2 columns ═══ */}
       <div className="flex-1 flex overflow-hidden">

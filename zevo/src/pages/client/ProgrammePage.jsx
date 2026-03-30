@@ -52,9 +52,13 @@ export default function ProgrammePage() {
   const [documents, setDocuments] = useState([])
   const [uploadingDoc, setUploadingDoc] = useState(false)
 
-  // Suivi semaines
-  const [completedWeeks, setCompletedWeeks] = useState([]) // [{ numero_semaine, completed_at }]
+  // Suivi semaines (sport)
+  const [completedWeeks, setCompletedWeeks] = useState([])
   const [validatingWeek, setValidatingWeek] = useState(null)
+
+  // Suivi semaines (nutrition)
+  const [completedNutriWeeks, setCompletedNutriWeeks] = useState([])
+  const [validatingNutriWeek, setValidatingNutriWeek] = useState(null)
 
   // ── Charge le programme sport ──
   const loadSport = useCallback(async () => {
@@ -120,10 +124,12 @@ export default function ProgrammePage() {
       .maybeSingle()
 
     if (plan) {
+      console.log('[ProgrammePage] Plan nutrition récupéré :', plan)
+      console.log('[ProgrammePage] nutri document_url =', plan.document_url)
       setNutritionPlan(plan)
 
-      // Charger les repas et documents en parallèle
-      const [repasRes, docsRes] = await Promise.all([
+      // Charger les repas, documents et suivi semaines en parallèle
+      const [repasRes, docsRes, suiviRes] = await Promise.all([
         supabase
           .from('plan_repas')
           .select('*, repas_aliments(*, aliments(nom, kcal_100g, proteines, glucides, lipides))')
@@ -134,10 +140,17 @@ export default function ProgrammePage() {
           .select('*')
           .eq('plan_id', plan.id)
           .order('created_at', { ascending: false }),
+        supabase
+          .from('suivi_programmes')
+          .select('numero_semaine, completed_at')
+          .eq('client_id', user.id)
+          .eq('programme_id', plan.id)
+          .order('numero_semaine'),
       ])
 
       setRepas(repasRes.data || [])
       setDocuments(docsRes.data || [])
+      setCompletedNutriWeeks(suiviRes.data || [])
     }
 
     setLoadingNutrition(false)
@@ -197,7 +210,7 @@ export default function ProgrammePage() {
     setCompletedWeeks(data || [])
   }, [user])
 
-  // ── Valider une semaine ──
+  // ── Valider une semaine (sport) ──
   const validateWeek = async (weekNum) => {
     if (!user || !assignation) return
     const programmeId = assignation.programme_id
@@ -223,6 +236,34 @@ export default function ProgrammePage() {
       toast.error('Erreur : ' + (err.message || 'Inconnu'))
     } finally {
       setValidatingWeek(null)
+    }
+  }
+
+  // ── Valider une semaine (nutrition) ──
+  const validateNutriWeek = async (weekNum) => {
+    if (!user || !nutritionPlan) return
+    setValidatingNutriWeek(weekNum)
+    try {
+      const { error } = await supabase.from('suivi_programmes').insert({
+        client_id: user.id,
+        programme_id: nutritionPlan.id,
+        numero_semaine: weekNum,
+      })
+      if (error) {
+        if (error.code === '23505') {
+          toast.error('Cette semaine est déjà validée !')
+        } else {
+          throw error
+        }
+      } else {
+        setCompletedNutriWeeks(prev => [...prev, { numero_semaine: weekNum, completed_at: new Date().toISOString() }])
+        toast.success('Super ! Semaine nutritionnelle validée.')
+      }
+    } catch (err) {
+      console.error('[ProgrammePage] Erreur validation semaine nutri:', err)
+      toast.error('Erreur : ' + (err.message || 'Inconnu'))
+    } finally {
+      setValidatingNutriWeek(null)
     }
   }
 
@@ -262,6 +303,13 @@ export default function ProgrammePage() {
   const isWeekCompleted = (w) => completedWeeks.some(cw => cw.numero_semaine === w)
   const completedCount = completedWeeks.length
   const weekProgress = Math.round((completedCount / totalWeeks) * 100)
+
+  // Mode Document Nutrition : dès qu'un document_url existe sur le plan
+  const isNutriDocMode = !!nutritionPlan?.document_url
+  const nutriTotalWeeks = nutritionPlan?.duree_semaines || prog?.duree_semaines || 4
+  const isNutriWeekCompleted = (w) => completedNutriWeeks.some(cw => cw.numero_semaine === w)
+  const completedNutriCount = completedNutriWeeks.length
+  const nutriWeekProgress = Math.round((completedNutriCount / nutriTotalWeeks) * 100)
 
   // Grouper les repas par jour
   const repasParJour = repas.reduce((acc, r) => {
@@ -759,12 +807,119 @@ export default function ProgrammePage() {
               <h2 className="text-[#F5F5F3] font-semibold text-lg mb-2">Aucun plan nutritionnel</h2>
               <p className="text-white/40 text-sm">Ton coach n'a pas encore assigné de plan nutrition.</p>
             </div>
+          ) : isNutriDocMode ? (
+            /* ═══════════════════════════════════════════ */
+            /* MODE DOCUMENT — PDF nutrition               */
+            /* ═══════════════════════════════════════════ */
+            <>
+              {/* Header */}
+              <div>
+                <p className="text-white/40 text-[11px] uppercase tracking-wider mb-1">Plan nutritionnel</p>
+                <h2 className="text-[#F5F5F3] text-lg font-bold">{nutritionPlan.titre || nutritionPlan.nom || 'Mon plan nutrition'}</h2>
+                {nutritionPlan.objectif && <p className="text-white/40 text-sm mt-1">{nutritionPlan.objectif}</p>}
+              </div>
+
+              {/* Grande carte PDF premium */}
+              <div className="bg-[#1E1E1E] rounded-2xl p-8 text-center shadow-xl border border-[#27272a] my-2">
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 bg-[#FF6B2B]/10 rounded-full">
+                    <svg className="w-12 h-12 text-[#FF6B2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </div>
+                <h2 className="text-xl font-bold text-white mb-2">Ton plan nutritionnel PDF</h2>
+                <p className="text-white/40 mb-6 text-sm">Consulte ton plan alimentaire complet joint par ton coach.</p>
+                <a
+                  href={nutritionPlan.document_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#FF6B2B] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20"
+                >
+                  Ouvrir le plan nutritionnel
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+
+              {/* ── Suivi de progression — Semaines nutrition ── */}
+              <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden">
+                <div className="px-5 py-4 border-b border-white/[0.04]">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={15} className="text-[#FF6B2B]" />
+                      <h3 className="text-[#F5F5F3] font-semibold text-sm">Suivi de progression</h3>
+                    </div>
+                    <span className="text-[#FF6B2B] text-xs font-bold">{nutriWeekProgress}%</span>
+                  </div>
+                  <div className="h-2 bg-[#27272a] rounded-full overflow-hidden">
+                    <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-500"
+                      style={{ width: `${nutriWeekProgress}%` }} />
+                  </div>
+                  <p className="text-white/25 text-[10px] mt-2">
+                    {completedNutriCount} / {nutriTotalWeeks} semaine{nutriTotalWeeks > 1 ? 's' : ''} validée{completedNutriCount > 1 ? 's' : ''}
+                  </p>
+                </div>
+
+                <div className="divide-y divide-white/[0.04]">
+                  {Array.from({ length: nutriTotalWeeks }, (_, i) => i + 1).map(weekNum => {
+                    const done = isNutriWeekCompleted(weekNum)
+                    const isValidating = validatingNutriWeek === weekNum
+                    const unlocked = weekNum === 1 || isNutriWeekCompleted(weekNum - 1)
+
+                    return (
+                      <div key={weekNum} className={`flex items-center gap-3 px-5 py-3.5 transition-all ${
+                        done ? 'bg-emerald-500/[0.03]' : ''
+                      }`}>
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          done ? 'bg-emerald-500/15' : unlocked ? 'bg-[#FF6B2B]/10' : 'bg-[#27272a]'
+                        }`}>
+                          {done ? (
+                            <CheckCircle2 size={16} className="text-emerald-400" />
+                          ) : unlocked ? (
+                            <span className="text-[#FF6B2B] text-xs font-bold">{weekNum}</span>
+                          ) : (
+                            <Lock size={13} className="text-white/15" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[#F5F5F3]' : 'text-white/25'}`}>
+                            Semaine {weekNum}
+                          </p>
+                          {done && (
+                            <p className="text-white/20 text-[10px]">
+                              Validée le {new Date(completedNutriWeeks.find(cw => cw.numero_semaine === weekNum)?.completed_at).toLocaleDateString('fr-FR')}
+                            </p>
+                          )}
+                        </div>
+                        {done ? (
+                          <span className="text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">Terminée</span>
+                        ) : unlocked ? (
+                          <button onClick={() => validateNutriWeek(weekNum)}
+                            disabled={isValidating}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold hover:bg-[#FF6B2B]/20 transition-all disabled:opacity-50">
+                            {isValidating ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                            {isValidating ? 'Validation...' : 'Valider'}
+                          </button>
+                        ) : (
+                          <span className="text-white/10 text-[10px]">Verrouillée</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </>
           ) : (
+            /* ═══════════════════════════════════════════ */
+            /* MODE CLASSIQUE — Repas détaillés             */
+            /* ═══════════════════════════════════════════ */
             <>
               {/* Nutrition Header */}
               <div>
                 <p className="text-white/40 text-[11px] uppercase tracking-wider mb-1">Plan nutritionnel</p>
-                <h2 className="text-[#F5F5F3] text-lg font-bold">{nutritionPlan.titre || 'Mon plan nutrition'}</h2>
+                <h2 className="text-[#F5F5F3] text-lg font-bold">{nutritionPlan.titre || nutritionPlan.nom || 'Mon plan nutrition'}</h2>
                 {nutritionPlan.objectif && <p className="text-white/40 text-sm mt-1">{nutritionPlan.objectif}</p>}
               </div>
 
@@ -937,6 +1092,54 @@ export default function ProgrammePage() {
                   )}
                 </div>
               </div>
+
+              {/* ── Suivi semaines (mode classique nutrition) ── */}
+              {nutriTotalWeeks > 0 && (
+                <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden">
+                  <div className="px-5 py-4 border-b border-white/[0.04]">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={15} className="text-[#FF6B2B]" />
+                        <h3 className="text-[#F5F5F3] font-semibold text-sm">Suivi hebdomadaire</h3>
+                      </div>
+                      <span className="text-[#FF6B2B] text-xs font-bold">{completedNutriCount}/{nutriTotalWeeks}</span>
+                    </div>
+                    <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-500"
+                        style={{ width: `${nutriWeekProgress}%` }} />
+                    </div>
+                  </div>
+                  <div className="divide-y divide-white/[0.04]">
+                    {Array.from({ length: nutriTotalWeeks }, (_, i) => i + 1).map(weekNum => {
+                      const done = isNutriWeekCompleted(weekNum)
+                      const isValidating = validatingNutriWeek === weekNum
+                      const unlocked = weekNum === 1 || isNutriWeekCompleted(weekNum - 1)
+                      return (
+                        <div key={weekNum} className={`flex items-center gap-3 px-5 py-3 ${done ? 'bg-emerald-500/[0.03]' : ''}`}>
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            done ? 'bg-emerald-500/15' : unlocked ? 'bg-[#FF6B2B]/10' : 'bg-[#27272a]'
+                          }`}>
+                            {done ? <CheckCircle2 size={14} className="text-emerald-400" /> :
+                             unlocked ? <span className="text-[#FF6B2B] text-[10px] font-bold">{weekNum}</span> :
+                             <Lock size={11} className="text-white/15" />}
+                          </div>
+                          <span className={`flex-1 text-xs font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[#F5F5F3]' : 'text-white/25'}`}>
+                            Sem. {weekNum}
+                          </span>
+                          {done ? (
+                            <span className="text-emerald-400/60 text-[9px]">OK</span>
+                          ) : unlocked ? (
+                            <button onClick={() => validateNutriWeek(weekNum)} disabled={isValidating}
+                              className="px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold hover:bg-[#FF6B2B]/20 transition-all disabled:opacity-50">
+                              {isValidating ? '...' : 'Valider'}
+                            </button>
+                          ) : null}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </>
