@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Target, MessageSquare, User, LogOut, BookOpen, ClipboardList, CreditCard, Layers, Dumbbell, Calendar } from 'lucide-react'
+import { LayoutDashboard, Target, MessageSquare, User, LogOut, BookOpen, ClipboardList, CreditCard, Layers, Dumbbell, Calendar, Bell, CheckCircle, TrendingDown } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useCoachTheme } from '../../hooks/useCoachTheme'
@@ -42,6 +42,54 @@ export function ClientLayout() {
 
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingChecked, setOnboardingChecked] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [notifOpen, setNotifOpen] = useState(false)
+
+  const unreadCount = notifications.filter(n => !n.is_read).length
+
+  // ── Charge les notifications client ──
+  useEffect(() => {
+    if (!user) return
+    const loadNotifs = async () => {
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('client_id', user.id)
+        .eq('destinataire', 'client')
+        .order('created_at', { ascending: false })
+        .limit(20)
+      setNotifications(data || [])
+    }
+    loadNotifs()
+
+    const channel = supabase
+      .channel('client-notifications')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `client_id=eq.${user.id}`,
+      }, (payload) => {
+        if (payload.new.destinataire === 'client') {
+          setNotifications(prev => [payload.new, ...prev])
+        }
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [user])
+
+  const markAsRead = async (id) => {
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id)
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
+  }
+
+  const markAllAsRead = async () => {
+    const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id)
+    if (unreadIds.length === 0) return
+    await supabase.from('notifications').update({ is_read: true }).in('id', unreadIds)
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+  }
 
   useEffect(() => {
     if (!user) return
@@ -86,13 +134,109 @@ export function ClientLayout() {
             {nomApp}
           </span>
         </div>
-        <button
-          onClick={handleLogout}
-          className="text-white/40 hover:text-white/70 transition-colors p-1.5"
-          aria-label="Se déconnecter"
-        >
-          <LogOut size={18} />
-        </button>
+        <div className="flex items-center gap-1">
+          {/* Notifications */}
+          <div className="relative">
+            <button
+              onClick={() => setNotifOpen(!notifOpen)}
+              className={`p-2 rounded-lg transition-colors relative ${
+                notifOpen ? 'text-[#FF6B2B] bg-white/5' : 'text-white/40 hover:text-white/70'
+              }`}
+            >
+              <Bell size={17} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {notifOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 z-50 w-80 sm:w-96 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
+                  {/* Header */}
+                  <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <h3 className="text-[#F5F5F3] text-sm font-bold">Notifications</h3>
+                      {unreadCount > 0 && (
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
+                          {unreadCount} nouvelle{unreadCount > 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button className="text-xs text-zinc-400 hover:text-white transition-colors" onClick={markAllAsRead}>
+                        Tout lire
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Liste */}
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="px-5 py-10 text-center">
+                        <Bell size={20} className="text-white/10 mx-auto mb-2" />
+                        <p className="text-white/20 text-xs">Aucune notification</p>
+                      </div>
+                    ) : (
+                      notifications.map((n) => {
+                        const typeConfig = {
+                          message: { icon: MessageSquare, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/10' },
+                          validation_semaine: { icon: CheckCircle, iconColor: 'text-emerald-400', iconBg: 'bg-emerald-500/10' },
+                          mensuration: { icon: TrendingDown, iconColor: 'text-purple-400', iconBg: 'bg-purple-500/10' },
+                        }
+                        const cfg = typeConfig[n.type] || { icon: Bell, iconColor: 'text-white/40', iconBg: 'bg-white/5' }
+                        const IconComp = cfg.icon
+
+                        const diff = Date.now() - new Date(n.created_at).getTime()
+                        const mins = Math.floor(diff / 60000)
+                        const hours = Math.floor(mins / 60)
+                        const days = Math.floor(hours / 24)
+                        const timeLabel = mins < 1 ? 'À l\'instant'
+                          : mins < 60 ? `Il y a ${mins} min`
+                          : hours < 24 ? `Il y a ${hours}h`
+                          : days < 7 ? `Il y a ${days}j`
+                          : new Date(n.created_at).toLocaleDateString('fr-FR')
+
+                        return (
+                          <button
+                            key={n.id}
+                            onClick={() => {
+                              if (!n.is_read) markAsRead(n.id)
+                              if (n.type === 'message') { navigate('/app/messages'); setNotifOpen(false) }
+                            }}
+                            className={`w-full flex items-start gap-3 px-5 py-3.5 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/30 ${!n.is_read ? 'bg-white/[0.01]' : ''}`}
+                          >
+                            <div className={`w-8 h-8 rounded-xl ${cfg.iconBg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                              <IconComp size={14} className={cfg.iconColor} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="text-[#F5F5F3] text-xs font-semibold">{n.titre}</p>
+                                {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] flex-shrink-0" />}
+                              </div>
+                              <p className="text-white/40 text-[11px] mt-0.5 leading-relaxed truncate">{n.message}</p>
+                              <p className="text-white/20 text-[10px] mt-0.5 font-medium">{timeLabel}</p>
+                            </div>
+                          </button>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="text-white/40 hover:text-white/70 transition-colors p-1.5"
+            aria-label="Se déconnecter"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
       </header>
 
       {/* Main content — pb-28 pour laisser place à la floating nav */}

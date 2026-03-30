@@ -189,6 +189,17 @@ export default function MessagesClientPage() {
     } else if (data) {
       console.log('[MessagesClient] Message inséré en base, id:', data.id)
       setMessages(prev => prev.map(m => m.id === tempId ? data : m))
+      // Notification au coach
+      if (coachId) {
+        supabase.from('notifications').insert({
+          coach_id: coachId,
+          client_id: user.id,
+          titre: 'Nouveau message 💬',
+          message: messageToSend.length > 80 ? messageToSend.slice(0, 80) + '…' : messageToSend,
+          type: 'message',
+          destinataire: 'coach',
+        }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
+      }
     }
 
     setEnvoi(false)
@@ -222,6 +233,17 @@ export default function MessagesClientPage() {
     }
     if (!error && data) {
       setMessages(prev => prev.map(m => m.id === tempId ? data : m))
+      // Notification au coach
+      if (coachId) {
+        supabase.from('notifications').insert({
+          coach_id: coachId,
+          client_id: user.id,
+          titre: 'Nouveau message 💬',
+          message: '🎤 Note vocale reçue',
+          type: 'message',
+          destinataire: 'coach',
+        }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
+      }
     }
     setIsRecording(false)
   }

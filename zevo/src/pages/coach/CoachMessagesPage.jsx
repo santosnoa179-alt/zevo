@@ -254,6 +254,15 @@ export default function CoachMessagesPage() {
       setTexte(messageToSend)
     } else if (data) {
       setMessages(prev => prev.map(m => m.id === tempId ? data : m))
+      // Notification au client
+      supabase.from('notifications').insert({
+        coach_id: user.id,
+        client_id: clientSelectionne.id,
+        titre: 'Nouveau message 💬',
+        message: messageToSend.length > 80 ? messageToSend.slice(0, 80) + '…' : messageToSend,
+        type: 'message',
+        destinataire: 'client',
+      }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
     }
 
     setEnvoi(false)
@@ -280,7 +289,18 @@ export default function CoachMessagesPage() {
       console.error('[CoachMessages] Erreur envoi vocal:', error)
       toast.error(error.message || 'Erreur envoi vocal')
     }
-    if (data) setMessages(prev => prev.map(m => m.id === tempId ? data : m))
+    if (data) {
+      setMessages(prev => prev.map(m => m.id === tempId ? data : m))
+      // Notification au client
+      supabase.from('notifications').insert({
+        coach_id: user.id,
+        client_id: clientSelectionne.id,
+        titre: 'Nouveau message 💬',
+        message: '🎤 Note vocale reçue',
+        type: 'message',
+        destinataire: 'client',
+      }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
+    }
     setIsRecording(false)
   }
 
@@ -392,6 +412,17 @@ export default function CoachMessagesPage() {
         toast.error(error.message || 'Erreur lors de l\'envoi groupé')
       } else {
         toast.success(`Message envoyé à ${ids.length} client${ids.length > 1 ? 's' : ''} !`)
+        // Notifications aux clients
+        const notifInserts = ids.map(clientId => ({
+          coach_id: user.id,
+          client_id: clientId,
+          titre: 'Nouveau message 💬',
+          message: message.length > 80 ? message.slice(0, 80) + '…' : message,
+          type: 'message',
+          destinataire: 'client',
+        }))
+        supabase.from('notifications').insert(notifInserts)
+          .then(({ error: nErr }) => { if (nErr) console.warn('[Notif broadcast]', nErr.message) })
         setShowNewMsg(false)
         // Rafraîchir la sidebar pour voir les derniers messages
         chargerClients()

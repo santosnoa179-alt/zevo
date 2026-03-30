@@ -245,6 +245,7 @@ export default function ObjectifsPage() {
         titre: 'Nouvelle pesée ⚖️',
         message: `Ton client a mis à jour ses mensurations${detail}.`,
         type: 'mensuration',
+        destinataire: 'coach',
       }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
     }
 

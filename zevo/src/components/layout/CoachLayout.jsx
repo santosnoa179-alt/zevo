@@ -114,6 +114,7 @@ export function CoachLayout() {
         .from('notifications')
         .select('*')
         .eq('coach_id', user.id)
+        .eq('destinataire', 'coach')
         .order('created_at', { ascending: false })
         .limit(20)
       setNotifications(data || [])

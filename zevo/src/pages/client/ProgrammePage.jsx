@@ -183,6 +183,7 @@ export default function ProgrammePage() {
             titre: 'Semaine validée ! 🎉',
             message: `Ton client a validé la semaine ${weekNum} de son programme sport.`,
             type: 'validation_semaine',
+            destinataire: 'coach',
           }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
         }
       }
@@ -221,6 +222,7 @@ export default function ProgrammePage() {
             titre: 'Semaine validée ! 🎉',
             message: `Ton client a validé la semaine ${weekNum} de son plan nutrition.`,
             type: 'validation_semaine',
+            destinataire: 'coach',
           }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
         }
       }
