@@ -4,7 +4,6 @@ import { LayoutDashboard, Target, MessageSquare, User, LogOut, BookOpen, Clipboa
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useCoachTheme } from '../../hooks/useCoachTheme'
-import { ZevoLogo } from '../ui/ZevoLogo'
 import OnboardingFlow from '../OnboardingFlow'
 
 // ── 5 onglets principaux (bottom nav flottante) ──
@@ -144,13 +143,15 @@ export function ClientLayout() {
       <header className="sticky top-0 z-40 bg-[#0D0D0D]/90 backdrop-blur-lg border-b border-white/[0.06] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           {logoUrl ? (
-            <img src={logoUrl} alt={nomApp} className="w-7 h-7 rounded-lg object-cover" />
+            <>
+              <img src={logoUrl} alt={nomApp} className="w-7 h-7 rounded-lg object-cover" />
+              <span className="font-bold tracking-tight text-[#F5F5F3] text-base">
+                {nomApp}
+              </span>
+            </>
           ) : (
-            <ZevoLogo size="sm" variant="icon" />
+            <img src="/icons/zevo-logo.svg" alt="Zevo" className="h-9 object-contain flex-shrink-0" />
           )}
-          <span className="font-bold tracking-tight text-[#F5F5F3] text-base">
-            {nomApp}
-          </span>
         </div>
         <div className="flex items-center gap-1">
           {/* Notifications */}
