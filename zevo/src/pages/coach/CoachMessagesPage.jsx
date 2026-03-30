@@ -35,6 +35,19 @@ export default function CoachMessagesPage() {
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
+  // ── Marquer les notifications "message" comme lues à l'arrivée sur la page ──
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('coach_id', user.id)
+      .eq('destinataire', 'coach')
+      .eq('type', 'message')
+      .eq('is_read', false)
+      .then(({ error }) => { if (error) console.warn('[CoachMessages] markRead:', error.message) })
+  }, [user])
+
   // ── Modale Nouveau Message ──
   const [showNewMsg, setShowNewMsg] = useState(false)
   const [newMsgSearch, setNewMsgSearch] = useState('')

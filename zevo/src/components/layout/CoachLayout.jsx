@@ -160,6 +160,15 @@ export function CoachLayout() {
           }
         }
       })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications',
+        filter: `coach_id=eq.${user.id}`,
+      }, (payload) => {
+        // Mettre à jour le is_read dans le state local
+        setNotifications(prev => prev.map(n => n.id === payload.new.id ? { ...n, ...payload.new } : n))
+      })
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
@@ -201,26 +210,12 @@ export function CoachLayout() {
       {/* HEADER MOBILE                         */}
       {/* ══════════════════════════════════════ */}
       <header className="md:hidden sticky top-0 z-50 bg-[#09090b] border-b border-[#27272a] px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <img
-            src="/icons/Gemini_Generated_Image_vsyssevsyssevsys-Photoroom.png"
-            alt="Zevo"
-            className="h-10 w-10 rounded-xl object-contain flex-shrink-0"
-          />
-          <span className="font-extrabold tracking-tight text-[#F5F5F3] text-xl">Zevo</span>
-        </div>
+        <img
+          src="/icons/zevo-logo.svg"
+          alt="Zevo"
+          className="h-9 object-contain flex-shrink-0"
+        />
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate('/coach/messages')}
-            className="p-2 text-white/40 hover:text-white transition-colors relative"
-          >
-            <MessageCircle size={18} />
-            {unreadMsgCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 px-1 rounded-full bg-[#FF6B2B] text-white text-[8px] font-bold flex items-center justify-center">
-                {unreadMsgCount > 9 ? '9+' : unreadMsgCount}
-              </span>
-            )}
-          </button>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="text-white/50 hover:text-white p-1.5 transition-colors"
@@ -282,18 +277,13 @@ export function CoachLayout() {
       <aside className="hidden md:flex w-64 flex-shrink-0 bg-[#09090b] border-r border-[#27272a] flex-col sticky top-0 h-screen">
 
         {/* Logo */}
-        <div className="px-5 py-6 border-b border-[#27272a]">
-          <div className="flex items-center gap-4">
-            <img
-              src="/icons/Gemini_Generated_Image_vsyssevsyssevsys-Photoroom.png"
-              alt="Zevo"
-              className="h-12 w-12 rounded-xl object-contain flex-shrink-0"
-            />
-            <div className="flex flex-col">
-              <p className="text-[#F5F5F3] font-extrabold text-2xl tracking-tight leading-none">Zevo</p>
-              <p className="text-zinc-500 text-xs font-medium mt-1.5 tracking-wide">Espace coach</p>
-            </div>
-          </div>
+        <div className="px-5 py-5 border-b border-[#27272a]">
+          <img
+            src="/icons/zevo-logo.svg"
+            alt="Zevo"
+            className="h-10 object-contain"
+          />
+          <p className="text-zinc-500 text-[10px] font-medium mt-1.5 tracking-wide">Espace coach</p>
         </div>
 
         {/* Navigation par sections */}
@@ -509,18 +499,6 @@ export function CoachLayout() {
               )}
             </div>
 
-            {/* Messagerie — redirige vers la vraie page */}
-            <button
-              onClick={() => { navigate('/coach/messages'); setNotifOpen(false) }}
-              className="p-2 rounded-lg text-white/30 hover:text-white/60 hover:bg-[#27272a]/50 transition-colors relative"
-            >
-              <MessageCircle size={17} />
-              {unreadMsgCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
-                  {unreadMsgCount > 9 ? '9+' : unreadMsgCount}
-                </span>
-              )}
-            </button>
           </div>
         </header>
 

@@ -48,6 +48,19 @@ export default function MessagesClientPage() {
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
+  // ── Marquer les notifications "message" comme lues à l'arrivée sur la page ──
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('client_id', user.id)
+      .eq('destinataire', 'client')
+      .eq('type', 'message')
+      .eq('is_read', false)
+      .then(({ error }) => { if (error) console.warn('[MessagesClient] markRead:', error.message) })
+  }, [user])
+
   // ── Récupère le coach_id du client depuis la table clients ──
   const fetchCoachId = useCallback(async () => {
     if (!user) return null

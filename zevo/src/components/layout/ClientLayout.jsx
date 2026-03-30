@@ -84,6 +84,14 @@ export function ClientLayout() {
           setNotifications(prev => [payload.new, ...prev])
         }
       })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications',
+        filter: `client_id=eq.${user.id}`,
+      }, (payload) => {
+        setNotifications(prev => prev.map(n => n.id === payload.new.id ? { ...n, ...payload.new } : n))
+      })
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
