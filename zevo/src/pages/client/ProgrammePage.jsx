@@ -8,7 +8,7 @@ import {
   Loader2, CheckCircle2, Image as ImageIcon,
   BookOpen, FileText, Video, Link as LinkIcon, ExternalLink, Download,
   UtensilsCrossed, Flame, Droplets, Wheat, Trophy,
-  Upload, Paperclip, Eye, Calendar, Check, Lock
+  Calendar, Check, Lock
 } from 'lucide-react'
 
 const RESSOURCE_ICONS = {
@@ -48,10 +48,6 @@ export default function ProgrammePage() {
   const [repas, setRepas] = useState([])
   const [loadingNutrition, setLoadingNutrition] = useState(false)
 
-  // Documents nutrition
-  const [documents, setDocuments] = useState([])
-  const [uploadingDoc, setUploadingDoc] = useState(false)
-
   // Suivi semaines (sport)
   const [completedWeeks, setCompletedWeeks] = useState([])
   const [validatingWeek, setValidatingWeek] = useState(null)
@@ -74,9 +70,6 @@ export default function ProgrammePage() {
       .maybeSingle()
 
     if (assign) {
-      console.log('[ProgrammePage] Assignation brute :', assign)
-      console.log('[ProgrammePage] Programme nested :', assign.programmes)
-      console.log('[ProgrammePage] document_url (nested) =', assign.programmes?.document_url)
 
       // Fallback : si le nested select ne ramène pas document_url (RLS),
       // tente un fetch direct
@@ -87,7 +80,6 @@ export default function ProgrammePage() {
           .eq('id', assign.programme_id)
           .single()
         if (progDirect?.document_url) {
-          console.log('[ProgrammePage] Fallback direct OK, document_url =', progDirect.document_url)
           assign.programmes = { ...assign.programmes, ...progDirect }
         }
       }
@@ -124,22 +116,15 @@ export default function ProgrammePage() {
       .maybeSingle()
 
     if (plan) {
-      console.log('[ProgrammePage] Plan nutrition récupéré :', plan)
-      console.log('[ProgrammePage] nutri document_url =', plan.document_url)
       setNutritionPlan(plan)
 
-      // Charger les repas, documents et suivi semaines en parallèle
-      const [repasRes, docsRes, suiviRes] = await Promise.all([
+      // Charger les repas et suivi semaines en parallèle
+      const [repasRes, suiviRes] = await Promise.all([
         supabase
           .from('plan_repas')
           .select('*, repas_aliments(*, aliments(nom, kcal_100g, proteines, glucides, lipides))')
-          .eq('plan_nutrition_id', plan.id)
-          .order('jour'),
-        supabase
-          .from('plan_documents')
-          .select('*')
           .eq('plan_id', plan.id)
-          .order('created_at', { ascending: false }),
+          .order('ordre'),
         supabase
           .from('suivi_programmes')
           .select('numero_semaine, completed_at')
@@ -149,54 +134,11 @@ export default function ProgrammePage() {
       ])
 
       setRepas(repasRes.data || [])
-      setDocuments(docsRes.data || [])
       setCompletedNutriWeeks(suiviRes.data || [])
     }
 
     setLoadingNutrition(false)
   }, [user])
-
-  // ── Ouvre le sélecteur de fichier natif (pas de ref, pas de hidden input) ──
-  const triggerFileUpload = () => {
-    if (uploadingDoc || !nutritionPlan) return
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx'
-    input.onchange = (e) => {
-      const file = e.target.files?.[0]
-      if (file) uploadFile(file)
-    }
-    input.click()
-  }
-
-  // ── Upload effectif vers Supabase Storage ──
-  const uploadFile = async (file) => {
-    if (!nutritionPlan) return
-    setUploadingDoc(true)
-    try {
-      const filePath = `${nutritionPlan.id}/${Date.now()}_${file.name}`
-      const { error: upErr } = await supabase.storage.from('plan-documents').upload(filePath, file)
-      if (upErr) throw upErr
-
-      const { data: { publicUrl } } = supabase.storage.from('plan-documents').getPublicUrl(filePath)
-
-      const docRow = {
-        plan_id: nutritionPlan.id,
-        nom: file.name,
-        url: publicUrl,
-        type: file.type?.includes('pdf') ? 'pdf' : file.type?.includes('image') ? 'image' : 'autre',
-      }
-      const { data: newDoc, error: dbErr } = await supabase.from('plan_documents').insert(docRow).select().single()
-      if (dbErr) throw dbErr
-
-      setDocuments(prev => [newDoc, ...prev])
-      toast.success(`Fichier "${file.name}" ajouté avec succès`)
-    } catch (err) {
-      console.error('[ProgrammePage] Erreur upload doc:', err)
-      toast.error('Erreur upload : ' + (err.message || 'Inconnu'))
-    }
-    setUploadingDoc(false)
-  }
 
   // ── Charge le suivi des semaines ──
   const loadWeekProgress = useCallback(async (programmeId) => {
@@ -304,16 +246,14 @@ export default function ProgrammePage() {
   const completedCount = completedWeeks.length
   const weekProgress = Math.round((completedCount / totalWeeks) * 100)
 
-  // Mode Document Nutrition : dès qu'un document_url existe sur le plan
-  const isNutriDocMode = !!nutritionPlan?.document_url
   const nutriTotalWeeks = nutritionPlan?.duree_semaines || prog?.duree_semaines || 4
   const isNutriWeekCompleted = (w) => completedNutriWeeks.some(cw => cw.numero_semaine === w)
   const completedNutriCount = completedNutriWeeks.length
   const nutriWeekProgress = Math.round((completedNutriCount / nutriTotalWeeks) * 100)
 
-  // Grouper les repas par jour
+  // Grouper les repas par jour (le jour est stocké dans metadata.day)
   const repasParJour = repas.reduce((acc, r) => {
-    const jour = r.jour ?? 1
+    const jour = r.metadata?.day ?? 0
     if (!acc[jour]) acc[jour] = []
     acc[jour].push(r)
     return acc
@@ -361,7 +301,6 @@ export default function ProgrammePage() {
       {tab === 'sport' && (
         <>
           {/* DEBUG : log prog dans la console */}
-          {(() => { console.log('[RENDER] prog =', prog, '| document_url =', prog?.document_url, '| isDocumentMode =', isDocumentMode); return null })()}
 
           {!assignation ? (
             <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-12 text-center">
@@ -807,114 +746,7 @@ export default function ProgrammePage() {
               <h2 className="text-[#F5F5F3] font-semibold text-lg mb-2">Aucun plan nutritionnel</h2>
               <p className="text-white/40 text-sm">Ton coach n'a pas encore assigné de plan nutrition.</p>
             </div>
-          ) : isNutriDocMode ? (
-            /* ═══════════════════════════════════════════ */
-            /* MODE DOCUMENT — PDF nutrition               */
-            /* ═══════════════════════════════════════════ */
-            <>
-              {/* Header */}
-              <div>
-                <p className="text-white/40 text-[11px] uppercase tracking-wider mb-1">Plan nutritionnel</p>
-                <h2 className="text-[#F5F5F3] text-lg font-bold">{nutritionPlan.titre || nutritionPlan.nom || 'Mon plan nutrition'}</h2>
-                {nutritionPlan.objectif && <p className="text-white/40 text-sm mt-1">{nutritionPlan.objectif}</p>}
-              </div>
-
-              {/* Grande carte PDF premium */}
-              <div className="bg-[#1E1E1E] rounded-2xl p-8 text-center shadow-xl border border-[#27272a] my-2">
-                <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-[#FF6B2B]/10 rounded-full">
-                    <svg className="w-12 h-12 text-[#FF6B2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                </div>
-                <h2 className="text-xl font-bold text-white mb-2">Ton plan nutritionnel PDF</h2>
-                <p className="text-white/40 mb-6 text-sm">Consulte ton plan alimentaire complet joint par ton coach.</p>
-                <a
-                  href={nutritionPlan.document_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-[#FF6B2B] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20"
-                >
-                  Ouvrir le plan nutritionnel
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-
-              {/* ── Suivi de progression — Semaines nutrition ── */}
-              <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden">
-                <div className="px-5 py-4 border-b border-white/[0.04]">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Calendar size={15} className="text-[#FF6B2B]" />
-                      <h3 className="text-[#F5F5F3] font-semibold text-sm">Suivi de progression</h3>
-                    </div>
-                    <span className="text-[#FF6B2B] text-xs font-bold">{nutriWeekProgress}%</span>
-                  </div>
-                  <div className="h-2 bg-[#27272a] rounded-full overflow-hidden">
-                    <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-500"
-                      style={{ width: `${nutriWeekProgress}%` }} />
-                  </div>
-                  <p className="text-white/25 text-[10px] mt-2">
-                    {completedNutriCount} / {nutriTotalWeeks} semaine{nutriTotalWeeks > 1 ? 's' : ''} validée{completedNutriCount > 1 ? 's' : ''}
-                  </p>
-                </div>
-
-                <div className="divide-y divide-white/[0.04]">
-                  {Array.from({ length: nutriTotalWeeks }, (_, i) => i + 1).map(weekNum => {
-                    const done = isNutriWeekCompleted(weekNum)
-                    const isValidating = validatingNutriWeek === weekNum
-                    const unlocked = weekNum === 1 || isNutriWeekCompleted(weekNum - 1)
-
-                    return (
-                      <div key={weekNum} className={`flex items-center gap-3 px-5 py-3.5 transition-all ${
-                        done ? 'bg-emerald-500/[0.03]' : ''
-                      }`}>
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                          done ? 'bg-emerald-500/15' : unlocked ? 'bg-[#FF6B2B]/10' : 'bg-[#27272a]'
-                        }`}>
-                          {done ? (
-                            <CheckCircle2 size={16} className="text-emerald-400" />
-                          ) : unlocked ? (
-                            <span className="text-[#FF6B2B] text-xs font-bold">{weekNum}</span>
-                          ) : (
-                            <Lock size={13} className="text-white/15" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[#F5F5F3]' : 'text-white/25'}`}>
-                            Semaine {weekNum}
-                          </p>
-                          {done && (
-                            <p className="text-white/20 text-[10px]">
-                              Validée le {new Date(completedNutriWeeks.find(cw => cw.numero_semaine === weekNum)?.completed_at).toLocaleDateString('fr-FR')}
-                            </p>
-                          )}
-                        </div>
-                        {done ? (
-                          <span className="text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">Terminée</span>
-                        ) : unlocked ? (
-                          <button onClick={() => validateNutriWeek(weekNum)}
-                            disabled={isValidating}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold hover:bg-[#FF6B2B]/20 transition-all disabled:opacity-50">
-                            {isValidating ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
-                            {isValidating ? 'Validation...' : 'Valider'}
-                          </button>
-                        ) : (
-                          <span className="text-white/10 text-[10px]">Verrouillée</span>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </>
           ) : (
-            /* ═══════════════════════════════════════════ */
-            /* MODE CLASSIQUE — Repas détaillés             */
-            /* ═══════════════════════════════════════════ */
             <>
               {/* Nutrition Header */}
               <div>
@@ -922,6 +754,27 @@ export default function ProgrammePage() {
                 <h2 className="text-[#F5F5F3] text-lg font-bold">{nutritionPlan.titre || nutritionPlan.nom || 'Mon plan nutrition'}</h2>
                 {nutritionPlan.objectif && <p className="text-white/40 text-sm mt-1">{nutritionPlan.objectif}</p>}
               </div>
+
+              {/* Carte PDF compacte (si document_url existe) */}
+              {nutritionPlan.document_url && (
+                <a href={nutritionPlan.document_url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-4 p-4 bg-[#1E1E1E] rounded-2xl border border-[#FF6B2B]/20 hover:border-[#FF6B2B]/40 transition-all group">
+                  <div className="w-12 h-12 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B]/20 transition-all">
+                    <svg className="w-6 h-6 text-[#FF6B2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[#F5F5F3] text-sm font-semibold truncate">
+                      {nutritionPlan.document_nom || 'Plan nutritionnel PDF'}
+                    </p>
+                    <p className="text-white/30 text-xs mt-0.5">Fichier joint par ton coach • Appuie pour ouvrir</p>
+                  </div>
+                  <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B] transition-all">
+                    <Download size={16} className="text-[#FF6B2B] group-hover:text-white transition-all" />
+                  </div>
+                </a>
+              )}
 
               {/* Macros globaux si disponibles */}
               {(nutritionPlan.calories_cible || nutritionPlan.proteines_cible) && (
@@ -963,39 +816,59 @@ export default function ProgrammePage() {
               )}
 
               {/* Repas par jour */}
-              {Object.keys(repasParJour).length > 0 ? (
+              {Object.keys(repasParJour).length > 0 && (
                 <div className="space-y-4">
                   {Object.entries(repasParJour).sort(([a], [b]) => Number(a) - Number(b)).map(([jour, jourRepas]) => (
                     <div key={jour}>
                       <p className="text-white/50 text-[11px] uppercase tracking-wider font-semibold mb-2">
-                        Jour {jour}
+                        Jour {Number(jour) + 1 > 1 ? `Jour ${Number(jour) + 1}` : 'Repas du jour'}
                       </p>
                       <div className="space-y-2">
                         {jourRepas.map((r) => {
-                          const label = REPAS_LABELS[r.type_repas] || r.type_repas
-                          const emoji = REPAS_ICONS[r.type_repas] || '🍽️'
+                          const titre = r.metadata?.titre || REPAS_LABELS[r.type] || r.type
+                          const emoji = REPAS_ICONS[r.type] || '🍽️'
                           const aliments = r.repas_aliments || []
-                          const totalKcal = aliments.reduce((sum, a) => sum + (a.kcal || 0), 0)
+                          const totalKcal = Math.round(aliments.reduce((sum, a) => {
+                            const kcal100 = a.aliments?.kcal_100g || 0
+                            const qty = a.quantite_g || 100
+                            return sum + (kcal100 * qty / 100)
+                          }, 0))
+                          const macros = r.metadata?.macros
 
                           return (
                             <div key={r.id} className="bg-[#1E1E1E] rounded-xl border border-white/[0.06] overflow-hidden">
                               <div className="px-4 py-3 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <span className="text-base">{emoji}</span>
-                                  <p className="text-[#F5F5F3] text-sm font-medium">{label}</p>
+                                  <div>
+                                    <p className="text-[#F5F5F3] text-sm font-medium">{titre}</p>
+                                    {r.metadata?.description && (
+                                      <p className="text-white/30 text-[10px] mt-0.5">{r.metadata.description}</p>
+                                    )}
+                                  </div>
                                 </div>
-                                {totalKcal > 0 && (
-                                  <span className="text-[#FF6B2B] text-xs font-bold">{totalKcal} kcal</span>
-                                )}
+                                <div className="flex items-center gap-2">
+                                  {totalKcal > 0 && (
+                                    <span className="text-[#FF6B2B] text-xs font-bold">{totalKcal} kcal</span>
+                                  )}
+                                  {macros && (
+                                    <span className="text-white/20 text-[9px]">
+                                      P{macros.p} G{macros.g} L{macros.l}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                               {aliments.length > 0 && (
                                 <div className="px-4 pb-3 space-y-1.5">
-                                  {aliments.map((a, ai) => (
-                                    <div key={ai} className="flex items-center justify-between text-xs">
-                                      <span className="text-white/50">{a.aliments?.nom || 'Aliment'}</span>
-                                      <span className="text-white/25">{a.quantite_g}g</span>
-                                    </div>
-                                  ))}
+                                  {aliments.map((a, ai) => {
+                                    const kcal = Math.round((a.aliments?.kcal_100g || 0) * (a.quantite_g || 100) / 100)
+                                    return (
+                                      <div key={ai} className="flex items-center justify-between text-xs">
+                                        <span className="text-white/50">{a.aliments?.nom || 'Aliment'}</span>
+                                        <span className="text-white/25">{a.quantite_g}g {kcal > 0 && `• ${kcal} kcal`}</span>
+                                      </div>
+                                    )
+                                  })}
                                 </div>
                               )}
                             </div>
@@ -1005,7 +878,10 @@ export default function ProgrammePage() {
                     </div>
                   ))}
                 </div>
-              ) : (
+              )}
+
+              {/* Message si pas de repas ET pas de PDF */}
+              {Object.keys(repasParJour).length === 0 && !nutritionPlan.document_url && (
                 <div className="bg-[#1E1E1E] rounded-xl border border-white/[0.06] p-6 text-center">
                   <p className="text-white/30 text-sm">Pas de détail de repas pour ce plan.</p>
                   {nutritionPlan.notes && (
@@ -1026,74 +902,7 @@ export default function ProgrammePage() {
                 </Card>
               )}
 
-              {/* ── Documents & Fichiers ── */}
-              <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden">
-                <div className="px-4 py-3 border-b border-white/[0.04] flex items-center justify-between">
-                  <h3 className="text-[#F5F5F3] text-sm font-semibold flex items-center gap-2">
-                    <Paperclip size={14} className="text-[#22c55e]" />
-                    Documents
-                    {documents.length > 0 && (
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#22c55e]/10 text-[#22c55e] font-bold">
-                        {documents.length}
-                      </span>
-                    )}
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={triggerFileUpload}
-                    disabled={uploadingDoc}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                      uploadingDoc
-                        ? 'bg-[#2A2A2A] text-white/30 cursor-wait'
-                        : 'bg-[#22c55e]/10 text-[#22c55e] hover:bg-[#22c55e]/20 active:scale-95'
-                    }`}
-                  >
-                    {uploadingDoc ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-                    {uploadingDoc ? 'Upload...' : 'Ajouter un fichier'}
-                  </button>
-                </div>
-
-                <div className="p-4">
-                  {documents.length === 0 ? (
-                    <div className="text-center py-6">
-                      <FileText size={24} className="text-white/10 mx-auto mb-2" />
-                      <p className="text-white/25 text-xs">Aucun document joint à ce plan</p>
-                      <p className="text-white/15 text-[10px] mt-1">PDF, images, documents Word/Excel acceptés</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {documents.map(doc => (
-                        <a
-                          key={doc.id}
-                          href={doc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D0D0D] border border-white/[0.04] hover:border-white/[0.12] transition-all group"
-                        >
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                            doc.type === 'pdf' ? 'bg-red-500/10' : doc.type === 'image' ? 'bg-blue-500/10' : 'bg-[#22c55e]/10'
-                          }`}>
-                            <FileText size={16} className={
-                              doc.type === 'pdf' ? 'text-red-400' : doc.type === 'image' ? 'text-blue-400' : 'text-[#22c55e]'
-                            } />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[#F5F5F3] text-sm font-medium truncate group-hover:text-[#22c55e] transition-colors">
-                              {doc.nom}
-                            </p>
-                            <p className="text-white/20 text-[10px] mt-0.5">
-                              {doc.type?.toUpperCase()} {doc.created_at && `• ${new Date(doc.created_at).toLocaleDateString('fr-FR')}`}
-                            </p>
-                          </div>
-                          <Eye size={14} className="text-white/20 group-hover:text-[#22c55e] transition-colors shrink-0" />
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* ── Suivi semaines (mode classique nutrition) ── */}
+              {/* ── Suivi semaines ── */}
               {nutriTotalWeeks > 0 && (
                 <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden">
                   <div className="px-5 py-4 border-b border-white/[0.04]">
