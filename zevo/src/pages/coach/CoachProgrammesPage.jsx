@@ -42,7 +42,8 @@ export default function CoachProgrammesPage() {
   // Onglets & assignations détaillées
   const [tab, setTab] = useState('assigned') // 'assigned' | 'templates'
   const [assignations, setAssignations] = useState([]) // assignations avec client + suivi
-  const [suiviData, setSuiviData] = useState({}) // { assignation_id: [{ numero_semaine, completed_at }] }
+  const [suiviData, setSuiviData] = useState({}) // { programme_id_client_id: [{ numero_semaine, completed_at }] }
+  const [searchTerm, setSearchTerm] = useState('')
 
   // Assignation
   const [assignModal, setAssignModal] = useState(null) // programme object or null
@@ -117,15 +118,6 @@ export default function CoachProgrammesPage() {
         console.warn('[Programmes] suivi RPC error:', suiviErr.message)
       }
 
-      console.log('[DEBUG] RPC suivis brut:', suivis)
-      console.log('[DEBUG] Assignations brut:', assigns)
-      if (assigns?.length) {
-        console.log('[DEBUG] Première assignation — programme_id:', assigns[0].programme_id, 'client_id:', assigns[0].client_id)
-      }
-      if (suivis?.length) {
-        console.log('[DEBUG] Premier suivi — programme_id:', suivis[0].programme_id, 'client_id:', suivis[0].client_id)
-      }
-
       // Grouper par programme_id + client_id
       const suiviMap = {}
       ;(suivis || []).forEach(s => {
@@ -133,8 +125,6 @@ export default function CoachProgrammesPage() {
         if (!suiviMap[key]) suiviMap[key] = []
         suiviMap[key].push(s)
       })
-      console.log('[DEBUG] suiviMap keys:', Object.keys(suiviMap))
-      console.log('[DEBUG] assignation keys attendues:', (assigns || []).map(a => `${a.programme_id}_${a.client_id}`))
       setSuiviData(suiviMap)
     }
     setLoading(false)
@@ -243,11 +233,31 @@ export default function CoachProgrammesPage() {
     toast.success('Programme supprimé.')
   }
 
-  // ── Déployer un programme chez un client ──
+  // ── Déployer un programme chez un client (DEEP COPY du template) ──
   const handleDeploy = async (programmeId, clientProfileId, dateDebut) => {
     setDeploying(true)
     try {
-      // 1. Récupérer les phases du programme (ordonnées)
+      const originalProg = programmes.find(p => p.id === programmeId)
+      if (!originalProg) throw new Error('Programme introuvable')
+
+      // 1. Deep copy : créer une COPIE du programme (le template reste intact)
+      const { data: copiedProg, error: copyErr } = await supabase
+        .from('programmes')
+        .insert({
+          coach_id: user.id,
+          titre: originalProg.titre,
+          description: originalProg.description,
+          duree_semaines: originalProg.duree_semaines,
+          categorie: originalProg.categorie,
+          actif: true,
+        })
+        .select()
+        .single()
+
+      if (copyErr) throw copyErr
+      const newProgId = copiedProg.id
+
+      // 2. Récupérer les phases du template original
       const { data: phasesData, error: phErr } = await supabase
         .from('programme_phases')
         .select('*')
@@ -256,23 +266,42 @@ export default function CoachProgrammesPage() {
 
       if (phErr) throw phErr
 
-      // 2. Pour chaque phase, créer des séances à partir des exercices
+      // 3. Dupliquer les phases vers la copie
+      if (phasesData?.length > 0) {
+        const phasesToInsert = phasesData.map(p => ({
+          programme_id: newProgId,
+          titre: p.titre,
+          description: p.description,
+          ordre: p.ordre,
+          duree_semaines: p.duree_semaines,
+          habitudes: p.habitudes || [],
+          objectifs: p.objectifs || [],
+          exercices: p.exercices || [],
+          ressources_attachees: p.ressources_attachees || [],
+          calories_objectif: p.calories_objectif,
+          proteines_g: p.proteines_g,
+          glucides_g: p.glucides_g,
+          lipides_g: p.lipides_g,
+          consignes_nutrition: p.consignes_nutrition,
+        }))
+        await supabase.from('programme_phases').insert(phasesToInsert)
+      }
+
+      // 4. Créer des séances dans le calendrier du client
       const startDate = new Date(dateDebut)
       let dayOffset = 0
 
       for (const phase of (phasesData || [])) {
-        const exercicesInPhase = phase.exercices || [] // JSON array [{exercice_id, series, reps, ...}]
+        const exercicesInPhase = phase.exercices || []
         const phaseDurationDays = (phase.duree_semaines || 1) * 7
 
         if (exercicesInPhase.length > 0) {
-          // Créer une séance par semaine de la phase, répartissant les exercices
           const weeksInPhase = phase.duree_semaines || 1
           for (let w = 0; w < weeksInPhase; w++) {
             const seanceDate = new Date(startDate)
             seanceDate.setDate(seanceDate.getDate() + dayOffset + (w * 7))
             const dateStr = seanceDate.toISOString().split('T')[0]
 
-            // Créer la séance
             const { data: newSeance, error: sErr } = await supabase
               .from('seances')
               .insert({
@@ -288,7 +317,6 @@ export default function CoachProgrammesPage() {
 
             if (sErr) throw sErr
 
-            // Copier les exercices dans seance_exercices
             if (newSeance && exercicesInPhase.length > 0) {
               const exRows = exercicesInPhase.map((ex, idx) => ({
                 seance_id: newSeance.id,
@@ -307,12 +335,11 @@ export default function CoachProgrammesPage() {
         dayOffset += phaseDurationDays
       }
 
-      // 3. Créer l'assignation
-      // Trouver le client_id (table clients) à partir du profile_id
+      // 5. Créer l'assignation vers la COPIE (pas le template original)
       const clientRow = clients.find(c => c.profiles?.id === clientProfileId)
       if (clientRow) {
         await supabase.from('programme_assignations').insert({
-          programme_id: programmeId,
+          programme_id: newProgId,
           client_id: clientRow.id,
           coach_id: user.id,
           date_debut: dateDebut,
@@ -321,15 +348,10 @@ export default function CoachProgrammesPage() {
         })
       }
 
-      // 4. Mise à jour des counts
-      setAssignationCounts(prev => ({
-        ...prev,
-        [programmeId]: (prev[programmeId] || 0) + 1,
-      }))
-
       const clientName = clients.find(c => c.profiles?.id === clientProfileId)?.profiles?.nom || 'ce client'
-      toast.success(`Programme déployé dans le calendrier de ${clientName} !`)
+      toast.success(`Programme déployé chez ${clientName} !`)
       setAssignModal(null)
+      await loadProgrammes()
     } catch (err) {
       console.error('Erreur déploiement programme:', err)
       toast.error('Erreur lors du déploiement. Réessayez.')
@@ -486,76 +508,103 @@ export default function CoachProgrammesPage() {
   }
 
   // ═══════════════════════════════════════
-  // VUE LISTE
+  // VUE LISTE — Premium
   // ═══════════════════════════════════════
 
-  // Filtrer les programmes assignés vs modèles
   const assignedProgIds = new Set(assignations.map(a => a.programme_id))
+  const templateProgs = programmes.filter(p => !assignedProgIds.has(p.id))
   const STATUS_LABELS = { en_cours: 'En cours', pause: 'Pause', termine: 'Terminé' }
-  const STATUS_COLORS = { en_cours: 'text-emerald-400 bg-emerald-500/10', pause: 'text-amber-400 bg-amber-500/10', termine: 'text-white/40 bg-white/5' }
+  const STATUS_COLORS = {
+    en_cours: 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20',
+    pause: 'text-amber-400 bg-amber-500/10 border border-amber-500/20',
+    termine: 'text-white/40 bg-white/5 border border-white/10',
+  }
+
+  // Search filter
+  const term = searchTerm.toLowerCase()
+  const filteredAssignations = assignations.filter(a => {
+    if (!term) return true
+    const prog = programmes.find(p => p.id === a.programme_id)
+    const clientNom = a.clients?.profiles?.nom || ''
+    return clientNom.toLowerCase().includes(term) || (prog?.titre || '').toLowerCase().includes(term)
+  })
+  const filteredTemplates = templateProgs.filter(p => {
+    if (!term) return true
+    return (p.titre || '').toLowerCase().includes(term) || (p.categorie || '').toLowerCase().includes(term)
+  })
 
   return (
     <div className="p-4 md:p-8 w-full max-w-5xl mx-auto space-y-8">
 
-      {/* Header */}
-      <div className="flex items-end justify-between">
+      {/* ═══ Header ═══ */}
+      <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-[#F5F5F3] text-3xl font-bold tracking-tight">Programmes</h1>
-          <p className="text-white/25 text-sm mt-1">Parcours multi-semaines pour tes clients</p>
+          <h1 className="text-[#F5F5F3] text-3xl font-bold tracking-tight">Programmes Sport</h1>
+          <p className="text-white/25 text-sm mt-1.5">Parcours multi-semaines pour tes clients</p>
         </div>
         <button onClick={handleNew}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25">
-          <Plus size={16} /> Nouveau programme
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25 shrink-0">
+          <Plus size={16} /> Créer un programme
         </button>
       </div>
 
-      {/* ── Onglets ── */}
-      <div className="flex items-center gap-1 bg-[#1E1E1E] rounded-2xl p-1 border border-white/[0.06]">
-        {[
-          { key: 'assigned', label: 'Programmes assignés', count: assignations.length },
-          { key: 'templates', label: 'Modèles', count: programmes.length },
-        ].map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${
-              tab === t.key
-                ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
-                : 'text-white/40 hover:text-white/60'
-            }`}>
-            {t.label}
-            <span className={`ml-1.5 text-xs ${tab === t.key ? 'text-white/70' : 'text-white/20'}`}>
-              {t.count}
-            </span>
-          </button>
-        ))}
+      {/* ═══ Tabs + Search ═══ */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-1 bg-[#1E1E1E] rounded-2xl p-1 border border-white/[0.06]">
+          {[
+            { key: 'assigned', label: 'Assignés', count: assignations.length },
+            { key: 'templates', label: 'Modèles', count: templateProgs.length },
+          ].map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`py-2.5 px-5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                tab === t.key
+                  ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
+                  : 'text-white/40 hover:text-white/60'
+              }`}>
+              {t.label}
+              <span className={`ml-1.5 text-xs ${tab === t.key ? 'text-white/70' : 'text-white/20'}`}>
+                {t.count}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="relative">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+          <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+            placeholder="Rechercher..."
+            className="w-56 bg-[#1E1E1E] border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all" />
+        </div>
       </div>
 
       {/* ═══════ ONGLET : PROGRAMMES ASSIGNÉS ═══════ */}
       {tab === 'assigned' && (
         <>
-          {assignations.length === 0 ? (
+          {filteredAssignations.length === 0 ? (
             <div className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] p-16 text-center">
               <div className="w-16 h-16 bg-[#FF6B2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
                 <Send size={28} className="text-[#FF6B2B]" />
               </div>
-              <h3 className="text-[#F5F5F3] font-bold text-lg mb-2">Aucun programme assigné</h3>
+              <h3 className="text-[#F5F5F3] font-bold text-lg mb-2">
+                {searchTerm ? 'Aucun résultat' : 'Aucun programme assigné'}
+              </h3>
               <p className="text-white/25 text-sm mb-6 max-w-sm mx-auto">
-                Crée un modèle dans l'onglet "Modèles" puis assigne-le à un client.
+                {searchTerm ? `Aucun résultat pour "${searchTerm}"` : 'Crée un modèle puis assigne-le à un client.'}
               </p>
-              <button onClick={() => setTab('templates')}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/[0.06] text-white/60 text-sm font-medium hover:bg-white/[0.1] transition-all">
-                <Layers size={14} /> Voir les modèles
-              </button>
+              {!searchTerm && (
+                <button onClick={() => setTab('templates')}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/[0.06] text-white/60 text-sm font-medium hover:bg-white/[0.1] transition-all">
+                  <Layers size={14} /> Voir les modèles
+                </button>
+              )}
             </div>
           ) : (
-            <div className="space-y-4">
-              {assignations.map((assign) => {
+            <div className="space-y-3">
+              {filteredAssignations.map((assign) => {
                 const prog = programmes.find(p => p.id === assign.programme_id)
                 if (!prog) return null
                 const clientNom = assign.clients?.profiles?.nom || 'Client'
-                const clientEmail = assign.clients?.profiles?.email || ''
                 const initials = clientNom.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
 
-                // Calculer la progression
                 const suiviKey = `${assign.programme_id}_${assign.client_id}`
                 const weeksDone = (suiviData[suiviKey] || []).length
                 const totalWeeks = prog.duree_semaines || 4
@@ -564,12 +613,11 @@ export default function CoachProgrammesPage() {
 
                 return (
                   <div key={assign.id}
-                    className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-5 md:p-6 hover:border-white/[0.10] transition-all">
+                    className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-5 md:p-6 hover:border-white/[0.12] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 transition-all duration-300">
 
                     <div className="flex items-start gap-4">
-                      {/* Avatar client */}
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                        isComplete ? 'bg-emerald-500/20 text-emerald-400' : 'bg-[#FF6B2B]/15 text-[#FF6B2B]'
+                      <div className={`w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                        isComplete ? 'bg-emerald-500/15 text-emerald-400 ring-2 ring-emerald-500/20' : 'bg-[#FF6B2B]/15 text-[#FF6B2B] ring-2 ring-[#FF6B2B]/10'
                       }`}>
                         {assign.clients?.profiles?.avatar_url ? (
                           <img src={assign.clients.profiles.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
@@ -577,16 +625,14 @@ export default function CoachProgrammesPage() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        {/* Client + Programme */}
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
                           <h3 className="text-[#F5F5F3] font-bold text-sm">{clientNom}</h3>
-                          <span className="text-white/15">·</span>
+                          <span className="w-1 h-1 rounded-full bg-white/15" />
                           <span className="text-white/40 text-sm truncate">{prog.titre}</span>
                         </div>
 
-                        {/* Badges statut + catégorie */}
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${STATUS_COLORS[assign.statut] || STATUS_COLORS.en_cours}`}>
+                        <div className="flex items-center gap-2 mb-3.5">
+                          <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${STATUS_COLORS[assign.statut] || STATUS_COLORS.en_cours}`}>
                             {STATUS_LABELS[assign.statut] || assign.statut}
                           </span>
                           {prog.categorie && (
@@ -599,7 +645,6 @@ export default function CoachProgrammesPage() {
                           )}
                         </div>
 
-                        {/* ── Barre de progression ── */}
                         <div className="flex items-center gap-3">
                           <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
                             <div
@@ -611,7 +656,7 @@ export default function CoachProgrammesPage() {
                               style={{ width: `${progressPct}%` }}
                             />
                           </div>
-                          <span className={`text-xs font-bold shrink-0 ${isComplete ? 'text-emerald-400' : 'text-[#FF6B2B]'}`}>
+                          <span className={`text-xs font-bold shrink-0 tabular-nums ${isComplete ? 'text-emerald-400' : 'text-[#FF6B2B]'}`}>
                             {weeksDone}/{totalWeeks} sem.
                           </span>
                         </div>
@@ -628,67 +673,65 @@ export default function CoachProgrammesPage() {
       {/* ═══════ ONGLET : MODÈLES ═══════ */}
       {tab === 'templates' && (
         <>
-          {programmes.length === 0 ? (
+          {filteredTemplates.length === 0 ? (
             <div className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] p-20 text-center">
               <div className="w-20 h-20 bg-[#FF6B2B]/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <FolderOpen size={32} className="text-[#FF6B2B]" />
               </div>
-              <h3 className="text-[#F5F5F3] font-bold text-xl mb-2">Aucun programme</h3>
+              <h3 className="text-[#F5F5F3] font-bold text-xl mb-2">
+                {searchTerm ? 'Aucun résultat' : 'Aucun programme'}
+              </h3>
               <p className="text-white/25 text-sm mb-8 max-w-md mx-auto">
-                Crée ton premier programme de coaching structuré avec habitudes, objectifs et phases personnalisées.
+                {searchTerm ? `Aucun modèle pour "${searchTerm}"` : 'Crée ton premier programme de coaching structuré.'}
               </p>
-              <button onClick={handleNew}
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25">
-                <Plus size={16} /> Créer un programme
-              </button>
+              {!searchTerm && (
+                <button onClick={handleNew}
+                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25">
+                  <Plus size={16} /> Créer un programme
+                </button>
+              )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {programmes.map((prog) => (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {filteredTemplates.map((prog) => (
                 <div key={prog.id}
-                  className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] overflow-hidden hover:border-white/[0.10] transition-all group">
+                  className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/[0.12] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 group">
 
-                  <div className="p-6 md:p-7">
-                    {/* Icon + Title */}
+                  <div className="p-6">
                     <div className="flex items-start gap-4 mb-5">
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C] flex items-center justify-center shrink-0 shadow-lg shadow-[#FF6B2B]/20">
-                        <FolderOpen size={22} className="text-white" />
+                        <Dumbbell size={20} className="text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[#F5F5F3] font-bold text-lg leading-tight truncate">{prog.titre}</h3>
+                        <h3 className="text-[#F5F5F3] font-bold text-base leading-tight truncate">{prog.titre}</h3>
                         {prog.description && (
                           <p className="text-white/25 text-sm mt-1 line-clamp-2">{prog.description}</p>
                         )}
                       </div>
                       <button onClick={() => handleDelete(prog.id)}
-                        className="p-2 rounded-xl text-white/15 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+                        className="p-2 rounded-xl text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
                         <Trash2 size={15} />
                       </button>
                     </div>
 
-                    {/* Badges */}
-                    <div className="flex items-center gap-2.5 mb-6">
-                      <span className="inline-flex items-center gap-1.5 bg-[#0D0D0D] px-3 py-1.5 rounded-xl text-xs text-white/40 font-medium">
-                        <Calendar size={12} /> {prog.duree_semaines} semaines
+                    <div className="flex items-center gap-2 flex-wrap mb-6">
+                      <span className="inline-flex items-center gap-1.5 bg-[#0D0D0D] px-3 py-1.5 rounded-xl text-xs text-white/40 font-medium border border-white/[0.04]">
+                        <Calendar size={12} /> {prog.duree_semaines} sem.
                       </span>
                       {prog.categorie && (
-                        <span className="px-3 py-1.5 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold">
+                        <span className="px-3 py-1.5 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold border border-[#FF6B2B]/15">
                           {prog.categorie}
                         </span>
                       )}
-                      <span className="inline-flex items-center gap-1.5 bg-[#0D0D0D] px-3 py-1.5 rounded-xl text-xs text-white/40 font-medium">
-                        <Users size={12} /> {assignationCounts[prog.id] || 0} client{(assignationCounts[prog.id] || 0) > 1 ? 's' : ''}
-                      </span>
                     </div>
 
-                    {/* Action buttons */}
                     <div className="grid grid-cols-2 gap-3">
                       <button onClick={() => handleEdit(prog)}
-                        className="py-3 rounded-2xl bg-[#0D0D0D] text-white/50 text-sm font-medium hover:bg-[#2A2A2A] hover:text-white transition-all flex items-center justify-center gap-2">
+                        className="py-2.5 rounded-xl bg-white/[0.04] text-white/50 text-sm font-medium hover:bg-white/[0.08] hover:text-white transition-all flex items-center justify-center gap-2 border border-white/[0.04]">
                         <Edit3 size={14} /> Modifier
                       </button>
                       <button onClick={() => setAssignModal(prog)}
-                        className="py-3 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                        className="py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
                         <UserPlus size={14} /> Assigner
                       </button>
                     </div>

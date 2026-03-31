@@ -282,234 +282,235 @@ export default function CoachSportPage() {
 
   // ── Dashboard view ──
   return (
-    <div className="p-4 md:p-6 w-full space-y-6">
+    <div className="p-4 md:p-8 w-full max-w-5xl mx-auto space-y-8">
 
       {/* ═══ Header ═══ */}
-      <div>
-        <h1 className="text-[#F5F5F3] text-2xl md:text-3xl font-bold tracking-tight">Vos programmes sport</h1>
-        <p className="text-white/25 text-sm mt-1">Visualisez tous vos programmes : modèles, assignés, en cours.</p>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-[#F5F5F3] text-3xl font-bold tracking-tight">Programmes Sport</h1>
+          <p className="text-white/25 text-sm mt-1.5">Parcours multi-semaines pour tes clients</p>
+        </div>
+        <button onClick={openCreate}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25 shrink-0">
+          <Plus size={16} /> Créer un programme
+        </button>
       </div>
 
-      {/* ═══ Tabs ═══ */}
+      {/* ═══ Tabs + Search ═══ */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="bg-[#18181b] p-1 flex rounded-xl w-fit">
-          {TABS.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === tab.id
-                  ? 'bg-[#27272a] text-[#F5F5F3] shadow-sm'
-                  : 'text-white/35 hover:text-white/60'
+        <div className="flex items-center gap-1 bg-[#1E1E1E] rounded-2xl p-1 border border-white/[0.06]">
+          {[
+            { key: 'assigned', label: 'Assignés', count: assignedCount },
+            { key: 'templates', label: 'Modèles', count: templatesCount },
+          ].map(t => (
+            <button key={t.key} onClick={() => setActiveTab(t.key)}
+              className={`py-2.5 px-5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                activeTab === t.key
+                  ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
+                  : 'text-white/40 hover:text-white/60'
               }`}>
-              {tab.label}
-              {!isLoading && (
-                <span className={`ml-1.5 text-[10px] ${activeTab === tab.id ? 'text-white/40' : 'text-white/20'}`}>
-                  {tab.id === 'assigned' ? assignedCount : templatesCount}
-                </span>
-              )}
+              {t.label}
+              <span className={`ml-1.5 text-xs ${activeTab === t.key ? 'text-white/70' : 'text-white/20'}`}>
+                {t.count}
+              </span>
             </button>
           ))}
         </div>
-      </div>
-
-      {/* ═══ Toolbar ═══ */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <div className="relative">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher un programme..."
-            className="w-full bg-[#18181b] border border-[#27272a] rounded-xl pl-10 pr-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/40 transition-all" />
+            placeholder="Rechercher..."
+            className="w-56 bg-[#1E1E1E] border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all" />
         </div>
-        <div className="relative">
-          <button onClick={() => setShowFilterMenu(!showFilterMenu)}
-            className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-              filterStatus !== 'tous'
-                ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/30 text-[#FF6B2B]'
-                : 'bg-[#18181b] border-[#27272a] text-white/40 hover:text-white/60 hover:bg-[#27272a]'
-            }`}>
-            <Filter size={14} /> {filterStatus === 'tous' ? 'Filtrer' : filterStatus === 'actif' ? 'Publiés' : 'Brouillons'}
-          </button>
-          {showFilterMenu && (
-            <>
-              <div className="fixed inset-0 z-30" onClick={() => setShowFilterMenu(false)} />
-              <div className="absolute top-full mt-1 left-0 z-40 w-40 bg-[#1E1E1E] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
-                {[
-                  { id: 'tous', label: 'Tous' },
-                  { id: 'actif', label: 'Publiés' },
-                  { id: 'brouillon', label: 'Brouillons' },
-                ].map(f => (
-                  <button key={f.id} onClick={() => { setFilterStatus(f.id); setShowFilterMenu(false) }}
-                    className={`w-full px-4 py-2.5 text-left text-xs font-medium transition-all ${
-                      filterStatus === f.id ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]' : 'text-white/50 hover:bg-white/[0.04] hover:text-white'
-                    }`}>
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-        <div className="flex-1" />
-        <button onClick={() => { setShowAssignModal(true); setAssignModelId(''); setAssignClientId('') }}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-sm font-medium hover:text-white/60 hover:bg-[#18181b] transition-all">
-          <Plus size={14} /> Assigner un modèle
-        </button>
-        <button onClick={openCreate}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
-          <Plus size={15} /> Créer un programme
-        </button>
       </div>
 
-      {/* ═══ Table ═══ */}
-      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-visible">
-        {/* Table header */}
-        <div className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-[#27272a] text-[10px] text-white/25 font-semibold uppercase tracking-wider">
-          <div className="col-span-1">Publié</div>
-          <div className="col-span-2">Créé le</div>
-          <div className="col-span-3">Nom du programme</div>
-          <div className="col-span-1">Type</div>
-          <div className="col-span-2">Progrès</div>
-          <div className="col-span-2">Assigné à</div>
-          <div className="col-span-1 text-right">Actions</div>
+      {/* Loading */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-20 gap-3">
+          <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
+          <span className="text-white/25 text-sm">Chargement des programmes...</span>
         </div>
+      )}
 
-        {/* Table body */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20 gap-3">
-            <Loader2 className="animate-spin text-[#FF6B2B]" size={20} />
-            <span className="text-white/25 text-sm">Chargement de vos programmes...</span>
-          </div>
-        ) : filteredProgrammes.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
-              <Layers size={28} className="text-[#FF6B2B]" />
+      {/* ═══════ ONGLET : PROGRAMMES ASSIGNÉS ═══════ */}
+      {!isLoading && activeTab === 'assigned' && (
+        <>
+          {filteredProgrammes.length === 0 ? (
+            <div className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] p-16 text-center">
+              <div className="w-16 h-16 bg-[#FF6B2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                <Dumbbell size={28} className="text-[#FF6B2B]" />
+              </div>
+              <h3 className="text-[#F5F5F3] font-bold text-lg mb-2">
+                {search ? 'Aucun résultat' : 'Aucun programme assigné'}
+              </h3>
+              <p className="text-white/25 text-sm mb-6 max-w-sm mx-auto">
+                {search ? `Aucun résultat pour "${search}"` : 'Crée un modèle puis assigne-le à un client.'}
+              </p>
+              {!search && (
+                <button onClick={() => setActiveTab('templates')}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/[0.06] text-white/60 text-sm font-medium hover:bg-white/[0.1] transition-all">
+                  <Layers size={14} /> Voir les modèles
+                </button>
+              )}
             </div>
-            <p className="text-[#F5F5F3] font-semibold text-base mb-1">
-              {search ? 'Aucun résultat' : activeTab === 'assigned' ? 'Aucun programme assigné' : 'Aucun modèle'}
-            </p>
-            <p className="text-white/25 text-sm mb-6 max-w-xs mx-auto">
-              {search ? `Aucun programme ne correspond à "${search}"` : 'Créez votre premier programme pour commencer.'}
-            </p>
-            {!search && (
-              <button onClick={openCreate}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
-                <Plus size={15} /> Créer un programme
-              </button>
-            )}
-          </div>
-        ) : (
-          filteredProgrammes.map(prog => {
-            const assign = assignations[prog.id]
-            const isActive = prog.actif
-            const dureeText = prog.duree_semaines ? `${prog.duree_semaines} sem.` : '—'
-            const categorie = prog.categorie || null
+          ) : (
+            <div className="space-y-3">
+              {filteredProgrammes.map(prog => {
+                const assign = assignations[prog.id]
+                if (!assign) return null
 
-            return (
-              <div key={prog.id}
-                onClick={() => {
-                  setBuilderProgramme({
-                    ...prog,
-                    mode: assign ? 'programme' : 'modele',
-                    client_id: assign ? undefined : null,
-                  })
-                  setCurrentView('builder')
-                }}
-                className="grid grid-cols-12 gap-3 px-5 py-4 border-b border-[#27272a]/30 hover:bg-white/[0.02] transition-colors items-center cursor-pointer group">
-                {/* Publié */}
-                <div className="col-span-1">
-                  <div className={`w-3 h-3 rounded-full ${isActive ? 'bg-[#FF6B2B]' : 'bg-[#27272a]'}`} />
-                </div>
-                {/* Créé le */}
-                <div className="col-span-2 text-white/30 text-xs">
-                  {new Date(prog.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                </div>
-                {/* Nom */}
-                <div className="col-span-3">
-                  <p className="text-[#F5F5F3] text-sm font-semibold truncate group-hover:text-[#FF6B2B] transition-colors">{prog.titre}</p>
-                </div>
-                {/* Type / Catégorie */}
-                <div className="col-span-1">
-                  {categorie ? (
-                    <span className="text-[9px] px-2 py-0.5 rounded-full font-semibold bg-[#FF6B2B]/10 text-[#FF6B2B] truncate">
-                      {categorie.length > 12 ? categorie.slice(0, 12) + '…' : categorie}
-                    </span>
-                  ) : (
-                    <span className="text-[9px] px-2 py-0.5 rounded-full font-semibold bg-[#27272a] text-white/25">—</span>
-                  )}
-                </div>
-                {/* Progrès */}
-                <div className="col-span-2">
-                  {(() => {
-                    const totalWeeks = prog.duree_semaines || 4
-                    const suiviKey = assign?.client_id ? `${prog.id}_${assign.client_id}` : null
-                    const weeksDone = suiviKey ? (suiviData[suiviKey] || []).length : 0
-                    const progressPct = assign ? Math.min(100, Math.round((weeksDone / totalWeeks) * 100)) : 0
-                    const isComplete = progressPct >= 100
-                    return (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1">
-                            <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
-                              <div className={`h-full rounded-full transition-all duration-700 ${
-                                isComplete ? 'bg-emerald-400' : 'bg-[#FF6B2B]'
-                              }`} style={{ width: `${progressPct}%` }} />
-                            </div>
-                          </div>
-                          <span className={`text-[10px] font-semibold shrink-0 ${
-                            isComplete ? 'text-emerald-400' : assign ? 'text-[#FF6B2B]' : isActive ? 'text-white/30' : 'text-white/15'
+                const totalWeeks = prog.duree_semaines || 4
+                const suiviKey = assign.client_id ? `${prog.id}_${assign.client_id}` : null
+                const weeksDone = suiviKey ? (suiviData[suiviKey] || []).length : 0
+                const progressPct = Math.min(100, Math.round((weeksDone / totalWeeks) * 100))
+                const isComplete = progressPct >= 100
+
+                return (
+                  <div key={prog.id}
+                    onClick={() => {
+                      setBuilderProgramme({ ...prog, mode: 'programme' })
+                      setCurrentView('builder')
+                    }}
+                    className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-5 md:p-6 hover:border-white/[0.12] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 transition-all duration-300 cursor-pointer">
+
+                    <div className="flex items-start gap-4">
+                      <div className={`w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold shrink-0 uppercase ${
+                        isComplete ? 'bg-emerald-500/15 text-emerald-400 ring-2 ring-emerald-500/20' : 'bg-[#FF6B2B]/15 text-[#FF6B2B] ring-2 ring-[#FF6B2B]/10'
+                      }`}>
+                        {assign.client_initials}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
+                          <h3 className="text-[#F5F5F3] font-bold text-sm">{assign.client_nom}</h3>
+                          <span className="w-1 h-1 rounded-full bg-white/15" />
+                          <span className="text-white/40 text-sm truncate">{prog.titre}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2 mb-3.5">
+                          <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                            assign.statut === 'termine'
+                              ? 'text-white/40 bg-white/5 border-white/10'
+                              : assign.statut === 'pause'
+                                ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                                : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
                           }`}>
-                            {assign ? `${weeksDone}/${totalWeeks} sem.` : isActive ? 'Publié' : 'Brouillon'}
+                            {assign.statut === 'termine' ? 'Terminé' : assign.statut === 'pause' ? 'Pause' : 'En cours'}
+                          </span>
+                          {prog.categorie && (
+                            <span className="text-white/20 text-xs">{prog.categorie}</span>
+                          )}
+                          {assign.date_debut && (
+                            <span className="text-white/20 text-xs">
+                              Depuis le {new Date(assign.date_debut).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-700 ease-out ${
+                                isComplete
+                                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+                                  : 'bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]'
+                              }`}
+                              style={{ width: `${progressPct}%` }}
+                            />
+                          </div>
+                          <span className={`text-xs font-bold shrink-0 tabular-nums ${isComplete ? 'text-emerald-400' : 'text-[#FF6B2B]'}`}>
+                            {weeksDone}/{totalWeeks} sem.
                           </span>
                         </div>
-                        <p className="text-white/15 text-[10px] mt-0.5">{dureeText}</p>
-                      </>
-                    )
-                  })()}
-                </div>
-                {/* Assigné à */}
-                <div className="col-span-2">
-                  {assign ? (
-                    <div className="flex items-center gap-2.5" title={assign.client_nom}>
-                      <div className="w-8 h-8 rounded-full bg-[#FF6B2B]/15 flex items-center justify-center shrink-0">
-                        <span className="text-[#FF6B2B] text-xs font-bold">{assign.client_initials}</span>
                       </div>
-                      <span className="text-white/50 text-xs font-medium truncate">{assign.client_nom}</span>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-2.5" title="Non assigné">
-                      <div className="w-8 h-8 rounded-full bg-[#27272a] flex items-center justify-center shrink-0">
-                        <Plus size={12} className="text-white/15" />
-                      </div>
-                      <span className="text-white/15 text-xs">Modèle</span>
-                    </div>
-                  )}
-                </div>
-                {/* Actions */}
-                <div className="col-span-1 flex justify-end relative">
-                  <button onClick={e => { e.stopPropagation(); setActionMenuId(actionMenuId === prog.id ? null : prog.id) }}
-                    className="p-1.5 rounded-lg text-white/15 hover:text-white/50 hover:bg-white/[0.06] transition-all">
-                    <MoreVertical size={14} />
-                  </button>
-                  {actionMenuId === prog.id && (
-                    <>
-                      <div className="fixed inset-0 z-30" onClick={e => { e.stopPropagation(); setActionMenuId(null) }} />
-                      <div className="absolute right-0 top-full mt-1 z-[100] w-48 bg-[#1E1E1E] border border-[#27272a] rounded-xl shadow-2xl">
-                        <button onClick={e => { e.stopPropagation(); setActionMenuId(null); setBuilderProgramme({ ...prog, mode: assign ? 'programme' : 'modele' }); setCurrentView('builder') }}
-                          className="w-full px-4 py-2.5 text-left text-xs font-medium text-white/50 hover:bg-white/[0.04] hover:text-white transition-all flex items-center gap-2">
-                          <Eye size={12} /> Ouvrir dans le builder
-                        </button>
-                        <button onClick={e => { e.stopPropagation(); handleDeleteProgramme(prog.id) }}
-                          className="w-full px-4 py-2.5 text-left text-xs font-medium text-red-400 hover:bg-red-500/10 transition-all flex items-center gap-2">
-                          <Trash2 size={12} /> Supprimer le programme
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ═══════ ONGLET : MODÈLES ═══════ */}
+      {!isLoading && activeTab === 'templates' && (
+        <>
+          {filteredProgrammes.length === 0 ? (
+            <div className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] p-20 text-center">
+              <div className="w-20 h-20 bg-[#FF6B2B]/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <Dumbbell size={32} className="text-[#FF6B2B]" />
               </div>
-            )
-          })
-        )}
-      </div>
+              <h3 className="text-[#F5F5F3] font-bold text-xl mb-2">
+                {search ? 'Aucun résultat' : 'Aucun programme'}
+              </h3>
+              <p className="text-white/25 text-sm mb-8 max-w-md mx-auto">
+                {search ? `Aucun modèle pour "${search}"` : 'Crée ton premier programme de coaching structuré.'}
+              </p>
+              {!search && (
+                <button onClick={openCreate}
+                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25">
+                  <Plus size={16} /> Créer un programme
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {filteredProgrammes.map(prog => (
+                <div key={prog.id}
+                  className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/[0.12] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 group">
+
+                  <div className="p-6">
+                    <div className="flex items-start gap-4 mb-5">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C] flex items-center justify-center shrink-0 shadow-lg shadow-[#FF6B2B]/20">
+                        <Dumbbell size={20} className="text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[#F5F5F3] font-bold text-base leading-tight truncate">{prog.titre}</h3>
+                        {prog.description && (
+                          <p className="text-white/25 text-sm mt-1 line-clamp-2">{prog.description}</p>
+                        )}
+                      </div>
+                      <button onClick={e => { e.stopPropagation(); handleDeleteProgramme(prog.id) }}
+                        className="p-2 rounded-xl text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap mb-6">
+                      <span className="inline-flex items-center gap-1.5 bg-[#0D0D0D] px-3 py-1.5 rounded-xl text-xs text-white/40 font-medium border border-white/[0.04]">
+                        <Calendar size={12} /> {prog.duree_semaines || 4} sem.
+                      </span>
+                      {prog.categorie && (
+                        <span className="px-3 py-1.5 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold border border-[#FF6B2B]/15">
+                          {prog.categorie}
+                        </span>
+                      )}
+                      <span className={`px-3 py-1.5 rounded-xl text-xs font-semibold border ${
+                        prog.actif
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/15'
+                          : 'bg-white/5 text-white/30 border-white/[0.04]'
+                      }`}>
+                        {prog.actif ? 'Publié' : 'Brouillon'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <button onClick={() => { setBuilderProgramme({ ...prog, mode: 'modele', client_id: null }); setCurrentView('builder') }}
+                        className="py-2.5 rounded-xl bg-white/[0.04] text-white/50 text-sm font-medium hover:bg-white/[0.08] hover:text-white transition-all flex items-center justify-center gap-2 border border-white/[0.04]">
+                        <Eye size={14} /> Modifier
+                      </button>
+                      <button onClick={() => { setShowAssignModal(true); setAssignModelId(prog.id); setAssignClientId('') }}
+                        className="py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                        <Users size={14} /> Assigner
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
       {/* ═══════════════════════════════════════ */}
       {/* MODALE — Créer un nouveau programme    */}
