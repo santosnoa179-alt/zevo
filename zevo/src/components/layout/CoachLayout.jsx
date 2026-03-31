@@ -340,16 +340,14 @@ export function CoachLayout() {
 
         {/* Bas de sidebar */}
         <div className="px-3 pb-4 space-y-2 border-t border-[#27272a] pt-3">
-          {/* Bouton Démarrage — visible uniquement si tutoriel pas encore fait */}
-          {coachProfile && !coachProfile.tutorial_coach_done && (
-            <button
-              onClick={() => setShowTutorial(true)}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-sm font-semibold hover:bg-[#FF6B2B]/15 transition-colors"
-            >
-              <Rocket size={15} />
-              Démarrage
-            </button>
-          )}
+          {/* Bouton Démarrage — TODO: remettre la condition après tests */}
+          <button
+            onClick={() => setShowTutorial(true)}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-sm font-semibold hover:bg-[#FF6B2B]/15 transition-colors"
+          >
+            <Rocket size={15} />
+            Démarrage
+          </button>
 
           {/* Profil coach */}
           <button
