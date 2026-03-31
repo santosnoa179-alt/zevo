@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
+import CoachTutorial from '../CoachTutorial'
 
 // ══════════════════════════════════════
 // SIDEBAR NAV — Structure par sections
@@ -89,6 +90,7 @@ export function CoachLayout() {
   const [coachProfile, setCoachProfile] = useState(null)
   const [notifications, setNotifications] = useState([])
   const [loadingNotifs, setLoadingNotifs] = useState(false)
+  const [showTutorial, setShowTutorial] = useState(false)
 
   const unreadCount = notifications.filter(n => !n.is_read).length
   const unreadMsgCount = notifications.filter(n => !n.is_read && n.type === 'message').length
@@ -99,10 +101,14 @@ export function CoachLayout() {
     const load = async () => {
       const { data } = await supabase
         .from('coaches')
-        .select('prenom, nom, nom_app, logo_url')
+        .select('prenom, nom, nom_app, logo_url, tutorial_coach_done')
         .eq('id', user.id)
         .maybeSingle()
-      if (data) setCoachProfile(data)
+      if (data) {
+        setCoachProfile(data)
+        // Afficher le tutoriel si pas encore fait
+        if (!data.tutorial_coach_done) setShowTutorial(true)
+      }
     }
     load()
   }, [user])
@@ -334,14 +340,16 @@ export function CoachLayout() {
 
         {/* Bas de sidebar */}
         <div className="px-3 pb-4 space-y-2 border-t border-[#27272a] pt-3">
-          {/* Bouton Démarrage */}
-          <button
-            onClick={() => navigate('/coach/onboarding')}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-sm font-semibold hover:bg-[#FF6B2B]/15 transition-colors"
-          >
-            <Rocket size={15} />
-            Démarrage 🚀
-          </button>
+          {/* Bouton Démarrage — visible uniquement si tutoriel pas encore fait */}
+          {coachProfile && !coachProfile.tutorial_coach_done && (
+            <button
+              onClick={() => setShowTutorial(true)}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-sm font-semibold hover:bg-[#FF6B2B]/15 transition-colors"
+            >
+              <Rocket size={15} />
+              Démarrage
+            </button>
+          )}
 
           {/* Profil coach */}
           <button
@@ -507,6 +515,19 @@ export function CoachLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* ══════════════════════════════════════ */}
+      {/* COACH TUTORIAL OVERLAY                */}
+      {/* ══════════════════════════════════════ */}
+      {showTutorial && (
+        <CoachTutorial
+          coachName={coachProfile?.prenom || coachName}
+          onComplete={() => {
+            setShowTutorial(false)
+            setCoachProfile(prev => prev ? { ...prev, tutorial_coach_done: true } : prev)
+          }}
+        />
+      )}
 
       {/* ══════════════════════════════════════ */}
       {/* BOTTOM NAV MOBILE                     */}
