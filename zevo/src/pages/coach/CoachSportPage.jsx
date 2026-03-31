@@ -23,7 +23,8 @@ export default function CoachSportPage() {
 
   // Real data
   const [programmes, setProgrammes] = useState([])
-  const [assignations, setAssignations] = useState({}) // { programme_id: { client_nom, client_initials, statut } }
+  const [assignations, setAssignations] = useState({}) // { programme_id: { client_nom, client_initials, statut, client_id } }
+  const [suiviData, setSuiviData] = useState({}) // { programme_id_client_id: [{ numero_semaine }] }
   const [isLoading, setIsLoading] = useState(true)
 
   const [activeTab, setActiveTab] = useState('assigned')
@@ -81,7 +82,7 @@ export default function CoachSportPage() {
       try {
         const { data: assigns, error: assignErr } = await supabase
           .from('programme_assignations')
-          .select('programme_id, statut, date_debut, clients(id, profiles(nom, prenom))')
+          .select('programme_id, client_id, statut, date_debut, clients(id, profiles(nom, prenom))')
           .eq('coach_id', user.id)
 
         console.log('[CoachSportPage] Assignations récupérées:', assigns)
@@ -99,9 +100,27 @@ export default function CoachSportPage() {
             client_initials: initials,
             statut: a.statut || 'en_cours',
             date_debut: a.date_debut,
+            client_id: a.clients?.id || null,
           }
         })
         setAssignations(assignMap)
+
+        // Récupérer le suivi de progression via SECURITY DEFINER (bypass RLS)
+        const { data: suivis, error: suiviErr } = await supabase
+          .rpc('get_coach_suivi_programmes', { coach_uid: user.id })
+
+        if (suiviErr) {
+          console.warn('[CoachSportPage] suivi RPC error:', suiviErr.message)
+        }
+
+        const suiviMap = {}
+        ;(suivis || []).forEach(s => {
+          const key = `${s.programme_id}_${s.client_id}`
+          if (!suiviMap[key]) suiviMap[key] = []
+          suiviMap[key].push(s)
+        })
+        console.log('[CoachSportPage] suiviMap:', suiviMap)
+        setSuiviData(suiviMap)
       } catch (assignCatchErr) {
         console.error('[CoachSportPage] Assignations fetch crashed:', assignCatchErr)
         // Non-blocking — continue without assignations
@@ -419,19 +438,32 @@ export default function CoachSportPage() {
                 </div>
                 {/* Progrès */}
                 <div className="col-span-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-[#FF6B2B] transition-all" style={{ width: '0%' }} />
-                      </div>
-                    </div>
-                    <span className={`text-[10px] font-semibold shrink-0 ${
-                      assign?.statut === 'en_cours' ? 'text-emerald-400' : isActive ? 'text-white/30' : 'text-white/15'
-                    }`}>
-                      {assign?.statut === 'en_cours' ? 'En cours' : isActive ? 'Publié' : 'Brouillon'}
-                    </span>
-                  </div>
-                  <p className="text-white/15 text-[10px] mt-0.5">{dureeText}</p>
+                  {(() => {
+                    const totalWeeks = prog.duree_semaines || 4
+                    const suiviKey = assign?.client_id ? `${prog.id}_${assign.client_id}` : null
+                    const weeksDone = suiviKey ? (suiviData[suiviKey] || []).length : 0
+                    const progressPct = assign ? Math.min(100, Math.round((weeksDone / totalWeeks) * 100)) : 0
+                    const isComplete = progressPct >= 100
+                    return (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1">
+                            <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
+                              <div className={`h-full rounded-full transition-all duration-700 ${
+                                isComplete ? 'bg-emerald-400' : 'bg-[#FF6B2B]'
+                              }`} style={{ width: `${progressPct}%` }} />
+                            </div>
+                          </div>
+                          <span className={`text-[10px] font-semibold shrink-0 ${
+                            isComplete ? 'text-emerald-400' : assign ? 'text-[#FF6B2B]' : isActive ? 'text-white/30' : 'text-white/15'
+                          }`}>
+                            {assign ? `${weeksDone}/${totalWeeks} sem.` : isActive ? 'Publié' : 'Brouillon'}
+                          </span>
+                        </div>
+                        <p className="text-white/15 text-[10px] mt-0.5">{dureeText}</p>
+                      </>
+                    )
+                  })()}
                 </div>
                 {/* Assigné à */}
                 <div className="col-span-2">

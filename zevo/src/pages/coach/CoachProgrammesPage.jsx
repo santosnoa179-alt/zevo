@@ -109,23 +109,33 @@ export default function CoachProgrammesPage() {
       })
       setAssignationCounts(counts)
 
-      // Récupérer le suivi de progression pour tous les clients du coach
-      const clientIds = [...new Set((assigns || []).map(a => a.client_id).filter(Boolean))]
-      if (clientIds.length > 0) {
-        const { data: suivis } = await supabase
-          .from('suivi_programmes')
-          .select('client_id, programme_id, numero_semaine, completed_at')
-          .in('client_id', clientIds)
+      // Récupérer le suivi de progression via fonction SECURITY DEFINER (bypass RLS)
+      const { data: suivis, error: suiviErr } = await supabase
+        .rpc('get_coach_suivi_programmes', { coach_uid: user.id })
 
-        // Grouper par programme_id + client_id
-        const suiviMap = {}
-        ;(suivis || []).forEach(s => {
-          const key = `${s.programme_id}_${s.client_id}`
-          if (!suiviMap[key]) suiviMap[key] = []
-          suiviMap[key].push(s)
-        })
-        setSuiviData(suiviMap)
+      if (suiviErr) {
+        console.warn('[Programmes] suivi RPC error:', suiviErr.message)
       }
+
+      console.log('[DEBUG] RPC suivis brut:', suivis)
+      console.log('[DEBUG] Assignations brut:', assigns)
+      if (assigns?.length) {
+        console.log('[DEBUG] Première assignation — programme_id:', assigns[0].programme_id, 'client_id:', assigns[0].client_id)
+      }
+      if (suivis?.length) {
+        console.log('[DEBUG] Premier suivi — programme_id:', suivis[0].programme_id, 'client_id:', suivis[0].client_id)
+      }
+
+      // Grouper par programme_id + client_id
+      const suiviMap = {}
+      ;(suivis || []).forEach(s => {
+        const key = `${s.programme_id}_${s.client_id}`
+        if (!suiviMap[key]) suiviMap[key] = []
+        suiviMap[key].push(s)
+      })
+      console.log('[DEBUG] suiviMap keys:', Object.keys(suiviMap))
+      console.log('[DEBUG] assignation keys attendues:', (assigns || []).map(a => `${a.programme_id}_${a.client_id}`))
+      setSuiviData(suiviMap)
     }
     setLoading(false)
   }
