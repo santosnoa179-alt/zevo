@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { calculerScoreBienEtre, couleurScore, labelScore } from '../../utils/wellbeing'
@@ -56,6 +56,7 @@ const JOURS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
 export default function DashboardPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [loading, setLoading] = useState(true)
   const [profil, setProfil] = useState(null)
   const [habitudes, setHabitudes] = useState([])
@@ -252,7 +253,8 @@ export default function DashboardPage() {
     setLoading(false)
   }, [user, today, chargerComparatif])
 
-  useEffect(() => { chargerDonnees() }, [chargerDonnees])
+  // Recharge à chaque navigation vers le dashboard (ex: retour après workout)
+  useEffect(() => { chargerDonnees() }, [chargerDonnees, location.key])
 
   // ── Toggle habitude ──
   const toggleHabitude = async (habitudeId) => {

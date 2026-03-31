@@ -241,7 +241,7 @@ export default function WorkoutTrackerPage() {
     if (seanceId && seanceId !== 'demo' && seance?.id) {
       const { error } = await supabase
         .from('seances')
-        .update({ is_completed: true, completed_at: new Date().toISOString() })
+        .update({ is_completed: true })
         .eq('id', seance.id)
       if (error) console.error('[Workout] Erreur update is_completed:', error.message)
     }

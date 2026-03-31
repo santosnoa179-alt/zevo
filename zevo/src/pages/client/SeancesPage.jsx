@@ -51,7 +51,7 @@ export default function SeancesPage() {
 
     const { data } = await supabase
       .from('seances')
-      .select('id, titre, date_prevue, notes, is_completed, completed_at, metadata')
+      .select('id, titre, date_prevue, notes, is_completed, metadata')
       .eq('client_id', user.id)
       .eq('is_template', false)
       .gte('date_prevue', mondayStr)
@@ -82,16 +82,13 @@ export default function SeancesPage() {
 
     const { error } = await supabase
       .from('seances')
-      .update({
-        is_completed: newVal,
-        completed_at: newVal ? new Date().toISOString() : null,
-      })
+      .update({ is_completed: newVal })
       .eq('id', seance.id)
 
     if (!error) {
       setSeances(prev => prev.map(s =>
         s.id === seance.id
-          ? { ...s, is_completed: newVal, completed_at: newVal ? new Date().toISOString() : null }
+          ? { ...s, is_completed: newVal }
           : s
       ))
 
@@ -271,11 +268,6 @@ export default function SeancesPage() {
                         <div className="bg-emerald-500/10 px-4 py-1.5 flex items-center gap-1.5">
                           <CheckCircle2 size={11} className="text-emerald-400" />
                           <span className="text-emerald-400 text-[10px] font-bold">Terminée</span>
-                          {seance.completed_at && (
-                            <span className="text-emerald-400/40 text-[9px] ml-auto">
-                              {new Date(seance.completed_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          )}
                         </div>
                       )}
 

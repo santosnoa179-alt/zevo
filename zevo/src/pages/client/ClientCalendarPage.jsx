@@ -476,9 +476,6 @@ export default function ClientCalendarPage() {
                   <CheckCircle2 size={13} className="text-emerald-400" />
                   <span className="text-emerald-400 text-xs font-medium">
                     Séance terminée
-                    {selectedSeance.completed_at && (
-                      <> le {new Date(selectedSeance.completed_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</>
-                    )}
                   </span>
                 </div>
               )}
