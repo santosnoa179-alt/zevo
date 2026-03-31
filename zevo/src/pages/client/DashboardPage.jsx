@@ -152,14 +152,14 @@ export default function DashboardPage() {
       if (sommeilData) { setSommeilInput(sommeilData.heures || 7); setSommeilSaved(true) }
       if (humeurData) { setHumeurInput(humeurData.score || null); setHumeurSaved(true) }
 
-      // ── Séance du jour ──
+      // ── Séance du jour (toutes, pas filtrées par is_completed) ──
       const { data: seancesAuj, error: seancesErr } = await supabase
         .from('seances')
-        .select('id, titre, date_prevue, notes, is_completed, is_template')
+        .select('id, titre, date_prevue, notes, is_completed, completed_at, is_template')
         .eq('client_id', user.id)
         .eq('date_prevue', today)
         .eq('is_template', false)
-        .eq('is_completed', false)
+        .order('is_completed', { ascending: true }) // non-terminées d'abord
         .order('created_at', { ascending: true })
         .limit(1)
 
@@ -516,16 +516,32 @@ export default function DashboardPage() {
 
       {/* ═══════════════ SÉANCE DU JOUR ═══════════════ */}
       {seanceDuJour ? (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-primary,#FF6B2B)]/15 via-[#1E1E1E] to-[#1E1E1E] border border-[var(--color-primary,#FF6B2B)]/20">
+        <div className={`relative overflow-hidden rounded-2xl border ${
+          seanceDuJour.is_completed
+            ? 'bg-gradient-to-br from-emerald-500/10 via-[#1E1E1E] to-[#1E1E1E] border-emerald-500/15'
+            : 'bg-gradient-to-br from-[var(--color-primary,#FF6B2B)]/15 via-[#1E1E1E] to-[#1E1E1E] border-[var(--color-primary,#FF6B2B)]/20'
+        }`}>
           {/* Background decoration */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary,#FF6B2B)]/5 rounded-full -translate-y-8 translate-x-8 blur-2xl" />
+          <div className={`absolute top-0 right-0 w-32 h-32 rounded-full -translate-y-8 translate-x-8 blur-2xl ${
+            seanceDuJour.is_completed ? 'bg-emerald-500/5' : 'bg-[var(--color-primary,#FF6B2B)]/5'
+          }`} />
 
           <div className="relative p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <Dumbbell size={14} className="text-[var(--color-primary,#FF6B2B)]" />
-              <p className="text-[var(--color-primary,#FF6B2B)] text-[11px] uppercase tracking-widest font-bold">
-                Séance du jour
-              </p>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Dumbbell size={14} className={seanceDuJour.is_completed ? 'text-emerald-400' : 'text-[var(--color-primary,#FF6B2B)]'} />
+                <p className={`text-[11px] uppercase tracking-widest font-bold ${
+                  seanceDuJour.is_completed ? 'text-emerald-400' : 'text-[var(--color-primary,#FF6B2B)]'
+                }`}>
+                  Séance du jour
+                </p>
+              </div>
+              {seanceDuJour.is_completed && (
+                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
+                  <Check size={10} strokeWidth={3} />
+                  Terminée
+                </span>
+              )}
             </div>
 
             <h2 className="text-[#F5F5F3] text-xl font-bold mb-1">{seanceDuJour.titre}</h2>
@@ -533,11 +549,16 @@ export default function DashboardPage() {
             {seanceExos.length > 0 && (
               <p className="text-white/30 text-xs mb-4">
                 {seanceExos.length} exercice{seanceExos.length > 1 ? 's' : ''}
+                {seanceDuJour.is_completed && seanceDuJour.completed_at && (
+                  <span className="text-emerald-400/50 ml-1.5">
+                    · Complétée à {new Date(seanceDuJour.completed_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
               </p>
             )}
 
             {/* Liste exercices (max 3 preview) */}
-            {seanceExos.length > 0 && (
+            {seanceExos.length > 0 && !seanceDuJour.is_completed && (
               <div className="space-y-2 mb-5">
                 {seanceExos.slice(0, 3).map((exo) => (
                   <div key={exo.id} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-white/[0.04]">
@@ -561,18 +582,28 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* CTA Button */}
-            <button
-              onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
-              className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-bold text-sm tracking-wide text-white active:scale-95 transition-all duration-200"
-              style={{
-                background: 'linear-gradient(135deg, var(--color-primary, #FF6B2B), #FF9A6C)',
-                boxShadow: '0 4px 20px rgba(255,107,43,0.35)',
-              }}
-            >
-              <Play size={16} className="fill-white" />
-              COMMENCER L'ENTRAÎNEMENT
-            </button>
+            {/* CTA Button — conditionnel selon l'état */}
+            {seanceDuJour.is_completed ? (
+              <button
+                onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
+                className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-bold text-sm tracking-wide text-emerald-400 bg-emerald-500/10 border border-emerald-500/15 hover:bg-emerald-500/15 active:scale-[0.98] transition-all duration-200"
+              >
+                <CheckCircle2 size={16} />
+                SÉANCE TERMINÉE — VOIR LE RÉSUMÉ
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
+                className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-bold text-sm tracking-wide text-white active:scale-95 transition-all duration-200"
+                style={{
+                  background: 'linear-gradient(135deg, var(--color-primary, #FF6B2B), #FF9A6C)',
+                  boxShadow: '0 4px 20px rgba(255,107,43,0.35)',
+                }}
+              >
+                <Play size={16} className="fill-white" />
+                COMMENCER L'ENTRAÎNEMENT
+              </button>
+            )}
           </div>
         </div>
       ) : (
