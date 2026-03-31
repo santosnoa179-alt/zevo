@@ -130,10 +130,10 @@ export default function ProgrammePage() {
           .eq('plan_id', plan.id)
           .order('ordre'),
         supabase
-          .from('suivi_programmes')
+          .from('suivi_nutrition')
           .select('numero_semaine, completed_at')
           .eq('client_id', user.id)
-          .eq('programme_id', plan.id)
+          .eq('plan_id', plan.id)
           .order('numero_semaine'),
       ])
 
@@ -201,9 +201,9 @@ export default function ProgrammePage() {
     if (!user || !nutritionPlan) return
     setValidatingNutriWeek(weekNum)
     try {
-      const { error } = await supabase.from('suivi_programmes').insert({
+      const { error } = await supabase.from('suivi_nutrition').insert({
         client_id: user.id,
-        programme_id: nutritionPlan.id,
+        plan_id: nutritionPlan.id,
         numero_semaine: weekNum,
       })
       if (error) {

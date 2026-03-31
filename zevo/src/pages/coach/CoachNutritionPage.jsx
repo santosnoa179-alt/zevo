@@ -21,6 +21,7 @@ export default function CoachNutritionPage() {
   const navigate = useNavigate()
 
   const [plans, setPlans] = useState([])
+  const [suiviData, setSuiviData] = useState({}) // { plan_id_client_id: [{ numero_semaine }] }
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -85,6 +86,28 @@ export default function CoachNutritionPage() {
 
     if (error) console.error('[NutritionPage] Erreur fetch:', error)
     setPlans(data || [])
+
+    // Récupérer le suivi de progression nutrition via SECURITY DEFINER (bypass RLS)
+    try {
+      const { data: suivis, error: suiviErr } = await supabase
+        .rpc('get_coach_suivi_nutrition', { coach_uid: user.id })
+
+      if (suiviErr) {
+        console.warn('[NutritionPage] suivi RPC error:', suiviErr.message)
+      }
+
+      const suiviMap = {}
+      ;(suivis || []).forEach(s => {
+        const key = `${s.plan_id}_${s.client_id}`
+        if (!suiviMap[key]) suiviMap[key] = []
+        suiviMap[key].push(s)
+      })
+      console.log('[NutritionPage] suiviMap:', suiviMap)
+      setSuiviData(suiviMap)
+    } catch (suiviCatchErr) {
+      console.warn('[NutritionPage] suivi fetch crashed:', suiviCatchErr)
+    }
+
     setIsLoading(false)
   }, [user])
 
@@ -297,9 +320,9 @@ export default function CoachNutritionPage() {
       <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-visible">
         {/* Table header */}
         <div className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-[#27272a] text-[10px] uppercase tracking-wider text-white/20 font-bold">
-          <div className="col-span-4">Titre</div>
+          <div className="col-span-3">Titre</div>
           <div className="col-span-2">Client</div>
-          <div className="col-span-2">Calories</div>
+          <div className="col-span-3">Progrès</div>
           <div className="col-span-2">Créé le</div>
           <div className="col-span-1">Statut</div>
           <div className="col-span-1 text-right">Actions</div>
@@ -342,7 +365,7 @@ export default function CoachNutritionPage() {
               className="grid grid-cols-12 gap-3 px-5 py-4 border-b border-[#27272a]/30 hover:bg-white/[0.02] transition-colors items-center group cursor-pointer">
 
               {/* Titre */}
-              <div className="col-span-4 flex items-center gap-3 min-w-0">
+              <div className="col-span-3 flex items-center gap-3 min-w-0">
                 <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
                   <UtensilsCrossed size={15} className="text-[#FF6B2B]" />
                 </div>
@@ -379,9 +402,43 @@ export default function CoachNutritionPage() {
                 })()}
               </div>
 
-              {/* Calories */}
-              <div className="col-span-2">
-                <span className="text-white/40 text-sm">—</span>
+              {/* Progrès */}
+              <div className="col-span-3">
+                {(() => {
+                  if (!plan.client_id) {
+                    return (
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
+                            <div className="h-full rounded-full bg-[#27272a]" style={{ width: '0%' }} />
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-semibold text-white/15 shrink-0">Modèle</span>
+                      </div>
+                    )
+                  }
+                  const totalWeeks = plan.duree_semaines || 4
+                  const suiviKey = `${plan.id}_${plan.client_id}`
+                  const weeksDone = (suiviData[suiviKey] || []).length
+                  const progressPct = Math.min(100, Math.round((weeksDone / totalWeeks) * 100))
+                  const isComplete = progressPct >= 100
+                  return (
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full transition-all duration-700 ${
+                            isComplete ? 'bg-emerald-400' : 'bg-[#FF6B2B]'
+                          }`} style={{ width: `${progressPct}%` }} />
+                        </div>
+                      </div>
+                      <span className={`text-[10px] font-semibold shrink-0 ${
+                        isComplete ? 'text-emerald-400' : 'text-[#FF6B2B]'
+                      }`}>
+                        {weeksDone}/{totalWeeks} sem.
+                      </span>
+                    </div>
+                  )
+                })()}
               </div>
 
               {/* Créé le */}
