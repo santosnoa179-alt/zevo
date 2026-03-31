@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
+import { usePageTransition } from '../../hooks/useAnimations'
 import { Card, CardBody } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -82,6 +83,8 @@ export default function ProfilPage() {
     navigate('/login')
   }
 
+  const pageTransition = usePageTransition()
+
   if (loading) {
     return (
       <div className="p-4 flex items-center justify-center min-h-[60vh]">
@@ -91,7 +94,7 @@ export default function ProfilPage() {
   }
 
   return (
-    <div className="p-4 space-y-4 max-w-2xl">
+    <div className={`p-4 space-y-4 max-w-2xl ${pageTransition.className}`}>
 
       {/* ── En-tête ── */}
       <div className="pt-4">

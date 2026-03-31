@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
+import { usePageTransition, useStagger } from '../../hooks/useAnimations'
 import {
   Dumbbell, CheckCircle2, Circle, ChevronLeft, ChevronRight,
   Flame, Clock, Loader2, Calendar, Sparkles, Trophy
@@ -118,6 +119,9 @@ export default function SeancesPage() {
   // Label de la semaine
   const weekLabel = `${monday.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} — ${sunday.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`
 
+  const pageTransition = usePageTransition()
+  const stagger = useStagger(seances.length + 2) // +2 for header and stats
+
   if (loading) {
     return (
       <div className="p-4 flex items-center justify-center min-h-[60vh]">
@@ -127,10 +131,10 @@ export default function SeancesPage() {
   }
 
   return (
-    <div className="p-4 space-y-5 max-w-2xl">
+    <div className={`p-4 space-y-5 max-w-2xl ${pageTransition.className}`}>
 
       {/* ── Header ── */}
-      <div className="pt-2">
+      <div className={`pt-2 ${stagger[0].className}`} style={stagger[0].style}>
         <h1 className="text-[#F5F5F3] text-xl font-bold flex items-center gap-2">
           <Dumbbell size={20} className="text-[#FF6B2B]" />
           Mes Séances
@@ -139,7 +143,7 @@ export default function SeancesPage() {
       </div>
 
       {/* ── Barre de progression de la semaine ── */}
-      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+      <div className={`bg-[#18181b] border border-[#27272a] rounded-2xl p-5 ${stagger[1].className}`} style={stagger[1].style}>
         <div className="flex items-center justify-between mb-3">
           <div>
             <p className="text-[#F5F5F3] text-sm font-bold">Progression hebdo</p>
@@ -251,6 +255,8 @@ export default function SeancesPage() {
                   const isExpanded = expandedId === seance.id
                   const isCelebrating = celebration === seance.id
                   const exos = exercicesMap[seance.id] || []
+                  const seanceIdx = seances.indexOf(seance)
+                  const si = stagger[seanceIdx + 2] || {}
 
                   return (
                     <div
@@ -261,7 +267,8 @@ export default function SeancesPage() {
                           : isToday
                             ? 'border-[#FF6B2B]/20'
                             : 'border-[#27272a]'
-                      } ${isCelebrating ? 'animate-pulse ring-2 ring-emerald-400/30' : ''}`}
+                      } ${isCelebrating ? 'animate-pulse ring-2 ring-emerald-400/30' : ''} ${si.className || ''}`}
+                      style={si.style}
                     >
                       {/* Bandeau complété */}
                       {seance.is_completed && (

@@ -10,6 +10,9 @@ import {
   Play, Sparkles, Minus, Plus, Check
 } from 'lucide-react'
 import { Confetti, StreakMilestone } from '../../components/ui/Confetti'
+import { usePageTransition, useStagger, usePullToRefresh } from '../../hooks/useAnimations'
+import AnimatedNumber from '../../components/ui/AnimatedNumber'
+import PullToRefreshIndicator from '../../components/ui/PullToRefresh'
 
 // ── Jauge circulaire SVG premium ──
 function ScoreGauge({ score, couleur }) {
@@ -256,6 +259,8 @@ export default function DashboardPage() {
   // Recharge à chaque navigation vers le dashboard (ex: retour après workout)
   useEffect(() => { chargerDonnees() }, [chargerDonnees, location.key])
 
+  const pageTransition = usePageTransition()
+
   // ── Toggle habitude ──
   const toggleHabitude = async (habitudeId) => {
     setToggling(habitudeId)
@@ -328,6 +333,11 @@ export default function DashboardPage() {
   const rawPrenom = profil?.prenom || profil?.nom?.split(' ')[0] || 'Sportif'
   const prenom = rawPrenom.charAt(0).toUpperCase() + rawPrenom.slice(1).toLowerCase()
 
+  const sectionCount = 9
+  const stagger = useStagger(sectionCount)
+
+  const { pullDistance, isRefreshing, handlers: pullHandlers } = usePullToRefresh(chargerDonnees)
+
   // ── Skeleton premium ──
   if (loading) {
     return (
@@ -345,12 +355,13 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-5 pb-28 space-y-5 max-w-lg mx-auto">
+    <div className={`p-5 pb-28 space-y-5 max-w-lg mx-auto ${pageTransition.className}`} {...pullHandlers}>
+      <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} />
       <Confetti active={showAllDoneConfetti} />
       <StreakMilestone streak={streak} />
 
       {/* ═══════════════ HEADER PREMIUM ═══════════════ */}
-      <div className="pt-2 flex items-start justify-between">
+      <div className={`pt-2 flex items-start justify-between ${stagger[0].className}`} style={stagger[0].style}>
         <div>
           <h1 className="text-[#F5F5F3] text-[26px] font-extrabold tracking-tight leading-tight">
             Bonjour {prenom} 👋
@@ -379,16 +390,16 @@ export default function DashboardPage() {
 
       {/* ═══════════════ STREAK BADGE ═══════════════ */}
       {streak > 1 && (
-        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B2B]/10 to-transparent border border-[#FF6B2B]/20 active:scale-[0.98] transition-transform">
+        <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B2B]/10 to-transparent border border-[#FF6B2B]/20 active:scale-[0.98] transition-transform ${stagger[1].className}`} style={stagger[1].style}>
           <Flame size={18} className="text-[#FF6B2B]" />
-          <span className="text-[#FF6B2B] font-bold text-sm">{streak} jours</span>
+          <span className="text-[#FF6B2B] font-bold text-sm"><AnimatedNumber value={streak} duration={600} /> jours</span>
           <span className="text-white/40 text-xs">de suite — Continue comme ça !</span>
         </div>
       )}
 
       {/* ═══════════════ CHECK-IN QUOTIDIEN ═══════════════ */}
       {(!sommeilSaved || !humeurSaved) && (
-        <div className="space-y-3">
+        <div className={`space-y-3 ${stagger[2].className}`} style={stagger[2].style}>
           <p className="text-white/30 text-[10px] uppercase tracking-widest font-bold px-1">Check-in du jour</p>
 
           <div className="grid grid-cols-2 gap-3">
@@ -497,7 +508,8 @@ export default function DashboardPage() {
       {formsPending > 0 && (
         <button
           onClick={() => navigate('/app/formulaires')}
-          className="w-full flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 to-amber-600/5 border border-amber-500/20 active:scale-[0.98] transition-transform"
+          className={`w-full flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 to-amber-600/5 border border-amber-500/20 active:scale-[0.98] transition-transform ${stagger[3].className}`}
+          style={stagger[3].style}
         >
           <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0 relative">
             <ClipboardList size={20} className="text-amber-400" />
@@ -506,7 +518,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex-1 text-left">
             <p className="text-amber-300 font-semibold text-sm">
-              {formsPending} bilan{formsPending > 1 ? 's' : ''} en attente
+              <AnimatedNumber value={formsPending} duration={400} /> bilan{formsPending > 1 ? 's' : ''} en attente
             </p>
             <p className="text-amber-300/50 text-xs mt-0.5">
               Ton coach a besoin de ton retour
@@ -522,7 +534,7 @@ export default function DashboardPage() {
           seanceDuJour.is_completed
             ? 'bg-gradient-to-br from-emerald-500/10 via-[#1E1E1E] to-[#1E1E1E] border-emerald-500/15'
             : 'bg-gradient-to-br from-[var(--color-primary,#FF6B2B)]/15 via-[#1E1E1E] to-[#1E1E1E] border-[var(--color-primary,#FF6B2B)]/20'
-        }`}>
+        } ${stagger[4].className}`} style={stagger[4].style}>
           {/* Background decoration */}
           <div className={`absolute top-0 right-0 w-32 h-32 rounded-full -translate-y-8 translate-x-8 blur-2xl ${
             seanceDuJour.is_completed ? 'bg-emerald-500/5' : 'bg-[var(--color-primary,#FF6B2B)]/5'
@@ -604,7 +616,7 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 text-center">
+        <div className={`rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 text-center ${stagger[4].className}`} style={stagger[4].style}>
           <div className="w-12 h-12 rounded-full bg-white/[0.04] flex items-center justify-center mx-auto mb-3">
             <Dumbbell size={22} className="text-white/20" />
           </div>
@@ -614,7 +626,7 @@ export default function DashboardPage() {
       )}
 
       {/* ═══════════════ SCORE BIEN-ÊTRE ═══════════════ */}
-      <div className="rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5">
+      <div className={`rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 ${stagger[5].className}`} style={stagger[5].style}>
         <div className="flex items-center gap-5">
           <ScoreGauge score={score} couleur={couleur} />
           <div className="flex-1 min-w-0">
@@ -645,7 +657,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══════════════ HABITUDES DU JOUR ═══════════════ */}
-      <div className="rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5">
+      <div className={`rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 ${stagger[6].className}`} style={stagger[6].style}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Sparkles size={14} className="text-[var(--color-primary,#FF6B2B)]" />
@@ -655,7 +667,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04]">
             {cochees > 0 && cochees === totalHab && <Flame size={12} className="text-[var(--color-primary,#FF6B2B)]" />}
-            <span className="text-[var(--color-primary,#FF6B2B)] text-xs font-bold">{cochees}/{totalHab}</span>
+            <span className="text-[var(--color-primary,#FF6B2B)] text-xs font-bold"><AnimatedNumber value={cochees} duration={400} />/{totalHab}</span>
           </div>
         </div>
 
@@ -719,7 +731,8 @@ export default function DashboardPage() {
       {programme && (
         <button
           onClick={() => navigate('/app/programme')}
-          className="w-full rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 text-left active:scale-[0.98] transition-transform"
+          className={`w-full rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 text-left active:scale-[0.98] transition-transform ${stagger[7].className}`}
+          style={stagger[7].style}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -777,7 +790,7 @@ export default function DashboardPage() {
       )}
 
       {/* ═══════════════ GRAPHIQUE 7 JOURS ═══════════════ */}
-      <div className="rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5">
+      <div className={`rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 ${stagger[8].className}`} style={stagger[8].style}>
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp size={14} className="text-[var(--color-primary,#FF6B2B)]" />
           <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold">Évolution 7 jours</p>

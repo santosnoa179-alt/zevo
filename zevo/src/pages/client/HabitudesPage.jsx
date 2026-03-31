@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
+import { usePageTransition, useStagger } from '../../hooks/useAnimations'
 import { Card, CardBody } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -112,6 +113,9 @@ export default function HabitudesPage() {
     setSuppression(null)
   }
 
+  const pageTransition = usePageTransition()
+  const stagger = useStagger(habitudes.length + 1) // +1 for header
+
   if (loading) {
     return (
       <div className="p-4 space-y-3 max-w-2xl animate-pulse">
@@ -127,10 +131,10 @@ export default function HabitudesPage() {
   const cocheesCeJour = habitudes.filter(h => logAujourdhui.includes(h.id)).length
 
   return (
-    <div className="p-4 space-y-4 max-w-2xl">
+    <div className={`p-4 space-y-4 max-w-2xl ${pageTransition.className}`}>
 
       {/* ── En-tête ── */}
-      <div className="pt-4 flex items-center justify-between">
+      <div className={`pt-4 flex items-center justify-between ${stagger[0].className}`} style={stagger[0].style}>
         <div>
           <h1 className="text-[#F5F5F3] text-xl font-bold">Habitudes</h1>
           <p className="text-white/40 text-sm mt-0.5">
@@ -155,15 +159,16 @@ export default function HabitudesPage() {
         </Card>
       ) : (
         <div className="space-y-2">
-          {habitudes.map((h) => {
+          {habitudes.map((h, i) => {
             const logsDates = logs.filter(l => l.habitude_id === h.id).map(l => l.date)
             const streak = calculerStreak(logsDates)
             const fait = logAujourdhui.includes(h.id)
             const pct = Math.round((logsDates.length / 30) * 100)
             const estDetail = detail === h.id
+            const si = stagger[i + 1] || {}
 
             return (
-              <Card key={h.id} className={estDetail ? 'ring-1 ring-[#FF6B2B]/25' : ''}>
+              <Card key={h.id} className={`${estDetail ? 'ring-1 ring-[#FF6B2B]/25' : ''} ${si.className || ''}`} style={si.style}>
                 <CardBody>
                   {/* ── Ligne principale ── */}
                   <div className="flex items-center gap-3">

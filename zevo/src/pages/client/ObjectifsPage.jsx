@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
+import { usePageTransition } from '../../hooks/useAnimations'
+import AnimatedNumber from '../../components/ui/AnimatedNumber'
 import {
   Target, Calendar, Scale, TrendingDown,
   TrendingUp, Loader2, X, Ruler,
@@ -227,6 +229,8 @@ export default function ObjectifsPage() {
     await sauvegarderInline(obj, newVal)
   }
 
+  const pageTransition = usePageTransition()
+
   // ── Loading skeleton ──
   if (loading) return (
     <div className="p-4 space-y-4 max-w-2xl animate-pulse">
@@ -240,7 +244,7 @@ export default function ObjectifsPage() {
   const hasChartData = chartData.length >= 2
 
   return (
-    <div className="p-4 pb-28 space-y-4 max-w-2xl">
+    <div className={`p-4 pb-28 space-y-4 max-w-2xl ${pageTransition.className}`}>
 
       {/* ═══════════════════════════════════════════
           HERO — Weight Ring / Empty State
@@ -392,7 +396,7 @@ export default function ObjectifsPage() {
             {totalObjProgress > 0 && (
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/[0.04]">
                 <Zap size={10} className="text-[#FF6B2B]" />
-                <span className="text-white/40 text-[10px] font-medium">{totalObjProgress}% global</span>
+                <span className="text-white/40 text-[10px] font-medium"><AnimatedNumber value={totalObjProgress} />% global</span>
               </div>
             )}
           </div>

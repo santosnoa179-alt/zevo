@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
+import { usePageTransition } from '../../hooks/useAnimations'
 import {
   Calendar, ChevronLeft, ChevronRight, Dumbbell, CheckCircle2,
   Loader2, Clock, X, FileText, Phone, CheckSquare, Users as UsersIcon,
@@ -686,6 +687,8 @@ export default function ClientCalendarPage() {
     )
   }
 
+  const pageTransition = usePageTransition()
+
   // ══════════ MAIN RENDER ══════════
   if (loading) {
     return (
@@ -696,7 +699,7 @@ export default function ClientCalendarPage() {
   }
 
   return (
-    <div className="p-4 space-y-4 max-w-3xl">
+    <div className={`p-4 space-y-4 max-w-3xl ${pageTransition.className}`}>
 
       {/* ── Header + View Toggle ── */}
       <div className="pt-2 flex items-center justify-between">

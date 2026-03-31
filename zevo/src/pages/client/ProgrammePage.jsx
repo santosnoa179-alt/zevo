@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { supabase } from '../../lib/supabase'
+import { usePageTransition } from '../../hooks/useAnimations'
 import { Card, CardBody } from '../../components/ui/Card'
 import {
   Layers, ChevronRight, ChevronDown, Dumbbell, Apple,
@@ -257,6 +258,8 @@ export default function ProgrammePage() {
     if (assignation?.programme_id) loadWeekProgress(assignation.programme_id)
   }, [assignation?.programme_id, loadWeekProgress])
 
+  const pageTransition = usePageTransition()
+
   // ── Loading ──
   if (loading) {
     return (
@@ -293,7 +296,7 @@ export default function ProgrammePage() {
   }, {})
 
   return (
-    <div className="p-4 max-w-2xl space-y-5">
+    <div className={`p-4 max-w-2xl space-y-5 ${pageTransition.className}`}>
 
       {/* ── Header + Tabs ── */}
       <div className="pt-2">

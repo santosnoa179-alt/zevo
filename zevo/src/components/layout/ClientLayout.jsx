@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useCoachTheme } from '../../hooks/useCoachTheme'
 import OnboardingFlow from '../OnboardingFlow'
+import AppTutorial from '../AppTutorial'
 
 // ── 5 onglets principaux (bottom nav flottante) ──
 const MAIN_NAV = [
@@ -53,6 +54,7 @@ export function ClientLayout() {
   const [notifications, setNotifications] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showTutorial, setShowTutorial] = useState(false)
 
   const unreadCount = notifications.filter(n => !n.is_read).length
   const unreadMsgCount = notifications.filter(n => !n.is_read && n.type === 'message').length
@@ -135,6 +137,22 @@ export function ClientLayout() {
     checkOnboarding()
   }, [user])
 
+  // Vérifier si le tutoriel interactif a été vu
+  useEffect(() => {
+    if (!user || showOnboarding) return
+    const checkTutorial = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('tutorial_seen')
+        .eq('id', user.id)
+        .single()
+      if (data && !data.tutorial_seen) {
+        setShowTutorial(true)
+      }
+    }
+    checkTutorial()
+  }, [user, showOnboarding])
+
   const handleLogout = async () => {
     await logout()
     navigate('/login')
@@ -147,6 +165,10 @@ export function ClientLayout() {
     <div className="min-h-screen bg-[#0D0D0D] flex flex-col">
       {showOnboarding && onboardingChecked && (
         <OnboardingFlow onComplete={() => setShowOnboarding(false)} />
+      )}
+
+      {showTutorial && !showOnboarding && (
+        <AppTutorial onComplete={() => setShowTutorial(false)} />
       )}
 
       {/* Header */}
@@ -174,7 +196,7 @@ export function ClientLayout() {
             >
               <Bell size={17} />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center animate-pulse-glow">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -183,7 +205,7 @@ export function ClientLayout() {
             {notifOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                <div className="absolute right-0 top-full mt-2 z-50 w-80 sm:w-96 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 z-50 w-80 sm:w-96 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden animate-scale-in">
                   {/* Header */}
                   <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -276,7 +298,7 @@ export function ClientLayout() {
             {menuOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                <div className="absolute right-0 top-full mt-2 z-50 w-56 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 z-50 w-56 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden animate-slide-down">
                   <div className="py-1.5">
                     {MENU_ITEMS.map(({ to, icon: Icon, label }) => (
                       <NavLink

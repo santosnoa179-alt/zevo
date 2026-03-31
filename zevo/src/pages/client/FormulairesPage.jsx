@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { usePageTransition } from '../../hooks/useAnimations'
 import { ClipboardCheck, ArrowLeft, ArrowRight, Check } from 'lucide-react'
 
 export default function FormulairesPage() {
@@ -16,6 +17,8 @@ export default function FormulairesPage() {
   const [reponseId, setReponseId] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+
+  const pageTransition = usePageTransition()
 
   // ── Charger les formulaires en attente ──
   useEffect(() => {
@@ -318,7 +321,7 @@ export default function FormulairesPage() {
   const completes = formulaires.filter(f => f.complete)
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className={`p-6 max-w-2xl mx-auto ${pageTransition.className}`}>
       <h1 className="text-2xl font-bold text-[#F5F5F3] mb-1">Formulaires</h1>
       <p className="text-white/40 text-sm mb-8">Questionnaires envoyés par votre coach</p>
 

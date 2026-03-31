@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
+import { usePageTransition } from '../../hooks/useAnimations'
 import { Send, Mic } from 'lucide-react'
 import { AudioBubble, VoiceRecorder } from '../../components/chat/VoiceMessage'
 
@@ -261,6 +262,8 @@ export default function MessagesClientPage() {
     setIsRecording(false)
   }
 
+  const pageTransition = usePageTransition()
+
   // ══════════ RENDER ══════════
 
   if (loading) {
@@ -281,7 +284,7 @@ export default function MessagesClientPage() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full">
+    <div className={`flex flex-col h-[100dvh] w-full ${pageTransition.className}`}>
 
       {/* ── Header iMessage ── */}
       <div className="shrink-0 px-4 py-3 border-b border-white/[0.06] bg-[#0D0D0D]/90 backdrop-blur-lg">

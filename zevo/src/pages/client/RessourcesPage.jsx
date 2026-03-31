@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { usePageTransition, useStagger } from '../../hooks/useAnimations'
 import { Card, CardBody } from '../../components/ui/Card'
 import {
   FileText, Video, Link2, Image, BookOpen,
@@ -47,6 +48,9 @@ export default function RessourcesPage() {
     !search || r.titre.toLowerCase().includes(search.toLowerCase())
   )
 
+  const pageTransition = usePageTransition()
+  const stagger = useStagger(filtered.length)
+
   if (loading) {
     return (
       <div className="p-4 flex items-center justify-center min-h-[60vh]">
@@ -56,7 +60,7 @@ export default function RessourcesPage() {
   }
 
   return (
-    <div className="p-4 max-w-2xl space-y-4">
+    <div className={`p-4 max-w-2xl space-y-4 ${pageTransition.className}`}>
       <div className="pt-4">
         <h1 className="text-[#F5F5F3] text-xl font-bold">Ressources</h1>
         <p className="text-white/40 text-sm mt-0.5">Fichiers et liens partagés par ton coach</p>
@@ -88,10 +92,11 @@ export default function RessourcesPage() {
 
       {/* Liste des ressources */}
       <div className="space-y-2">
-        {filtered.map((res) => {
+        {filtered.map((res, i) => {
           const config = TYPE_CONFIG[res.type] || TYPE_CONFIG.lien
           const Icon = config.icon
           const isPDF = res.type === 'pdf' || res.type === 'image'
+          const si = stagger[i] || {}
 
           return (
             <a
@@ -99,7 +104,8 @@ export default function RessourcesPage() {
               href={res.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 bg-[#1E1E1E] border border-white/[0.08] rounded-xl hover:border-white/[0.15] transition-colors"
+              className={`flex items-center gap-3 p-4 bg-[#1E1E1E] border border-white/[0.08] rounded-xl hover:border-white/[0.15] transition-colors ${si.className || ''}`}
+              style={si.style}
             >
               {/* Icône type */}
               <div

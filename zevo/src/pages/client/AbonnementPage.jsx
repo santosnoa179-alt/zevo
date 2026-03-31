@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
+import { usePageTransition, useStagger } from '../../hooks/useAnimations'
 import { CreditCard, CheckCircle, Clock, ExternalLink, Package, Loader2 } from 'lucide-react'
 
 const FREQ_LABELS = {
@@ -93,6 +94,9 @@ export default function AbonnementPage() {
     setProcessing(null)
   }
 
+  const pageTransition = usePageTransition()
+  const stagger = useStagger(offres.length + paiements.length + 2) // +2 for headers
+
   if (loading) {
     return (
       <div className="p-6 max-w-2xl mx-auto">
@@ -105,7 +109,7 @@ export default function AbonnementPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className={`p-6 max-w-2xl mx-auto ${pageTransition.className}`}>
       <h1 className="text-2xl font-bold text-[#F5F5F3] mb-1">Mon abonnement</h1>
       <p className="text-white/40 text-sm mb-8">Offres de coaching et historique de paiements</p>
 
@@ -122,10 +126,13 @@ export default function AbonnementPage() {
         <div className="mb-10">
           <h2 className="text-sm font-semibold text-white/40 uppercase tracking-wider mb-4">Offres disponibles</h2>
           <div className="space-y-4">
-            {offres.map(o => (
+            {offres.map((o, i) => {
+              const si = stagger[i] || {}
+              return (
               <div
                 key={o.id}
-                className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5 flex items-center justify-between"
+                className={`bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5 flex items-center justify-between ${si.className || ''}`}
+                style={si.style}
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
@@ -161,7 +168,8 @@ export default function AbonnementPage() {
                   </button>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
@@ -176,10 +184,13 @@ export default function AbonnementPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {paiements.map(p => (
+          {paiements.map((p, i) => {
+            const si = stagger[offres.length + i] || {}
+            return (
             <div
               key={p.id}
-              className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-4 flex items-center justify-between"
+              className={`bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-4 flex items-center justify-between ${si.className || ''}`}
+              style={si.style}
             >
               <div>
                 <p className="text-[#F5F5F3] text-sm font-medium">
@@ -204,7 +215,8 @@ export default function AbonnementPage() {
                 </span>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
