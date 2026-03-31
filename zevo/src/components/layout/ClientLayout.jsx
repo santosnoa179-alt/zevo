@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Target, MessageSquare, User, LogOut, BookOpen, ClipboardList, CreditCard, Layers, Dumbbell, Calendar, Bell, CheckCircle, TrendingDown } from 'lucide-react'
+import { LayoutDashboard, Target, MessageSquare, User, LogOut, BookOpen, ClipboardList, CreditCard, Layers, Dumbbell, Calendar, Bell, CheckCircle, TrendingDown, Menu, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useCoachTheme } from '../../hooks/useCoachTheme'
@@ -29,6 +29,15 @@ const ALL_NAV_ITEMS = [
   { to: '/app/profil', icon: User, label: 'Profil' },
 ]
 
+// ── Items du menu hamburger mobile (pages non présentes dans la bottom nav) ──
+const MENU_ITEMS = [
+  { to: '/app/habitudes', icon: Dumbbell, label: 'Habitudes' },
+  { to: '/app/ressources', icon: BookOpen, label: 'Ressources' },
+  { to: '/app/formulaires', icon: ClipboardList, label: 'Formulaires' },
+  { to: '/app/abonnement', icon: CreditCard, label: 'Abonnement' },
+  { to: '/app/profil', icon: User, label: 'Profil' },
+]
+
 // Routes où la bottom nav est masquée (mode immersif)
 const HIDDEN_NAV_ROUTES = ['/app/workout']
 
@@ -43,6 +52,7 @@ export function ClientLayout() {
   const [onboardingChecked, setOnboardingChecked] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const unreadCount = notifications.filter(n => !n.is_read).length
   const unreadMsgCount = notifications.filter(n => !n.is_read && n.type === 'message').length
@@ -251,9 +261,59 @@ export function ClientLayout() {
             )}
           </div>
 
+          {/* Menu hamburger (mobile only) */}
+          <div className="relative md:hidden">
+            <button
+              onClick={() => { setMenuOpen(!menuOpen); setNotifOpen(false) }}
+              className={`p-2 rounded-lg transition-colors ${
+                menuOpen ? 'text-[#FF6B2B] bg-white/5' : 'text-white/40 hover:text-white/70'
+              }`}
+              aria-label="Menu"
+            >
+              {menuOpen ? <X size={17} /> : <Menu size={17} />}
+            </button>
+
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 z-50 w-56 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
+                  <div className="py-1.5">
+                    {MENU_ITEMS.map(({ to, icon: Icon, label }) => (
+                      <NavLink
+                        key={to}
+                        to={to}
+                        onClick={() => setMenuOpen(false)}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${
+                            isActive
+                              ? 'text-[#FF6B2B] bg-[#FF6B2B]/5'
+                              : 'text-white/50 hover:text-white hover:bg-white/[0.03]'
+                          }`
+                        }
+                      >
+                        <Icon size={16} />
+                        {label}
+                      </NavLink>
+                    ))}
+                  </div>
+                  <div className="border-t border-[#27272a] py-1.5">
+                    <button
+                      onClick={() => { setMenuOpen(false); handleLogout() }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-400/70 hover:text-red-400 hover:bg-red-500/5 transition-colors"
+                    >
+                      <LogOut size={16} />
+                      Déconnexion
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Logout desktop only */}
           <button
             onClick={handleLogout}
-            className="text-white/40 hover:text-white/70 transition-colors p-1.5"
+            className="hidden md:block text-white/40 hover:text-white/70 transition-colors p-1.5"
             aria-label="Se déconnecter"
           >
             <LogOut size={18} />
