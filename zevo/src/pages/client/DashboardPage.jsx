@@ -155,7 +155,7 @@ export default function DashboardPage() {
       // ── Séance du jour (toutes, pas filtrées par is_completed) ──
       const { data: seancesAuj, error: seancesErr } = await supabase
         .from('seances')
-        .select('id, titre, date_prevue, notes, is_completed, completed_at, is_template')
+        .select('id, titre, date_prevue, notes, is_completed, is_template')
         .eq('client_id', user.id)
         .eq('date_prevue', today)
         .eq('is_template', false)
@@ -549,11 +549,6 @@ export default function DashboardPage() {
             {seanceExos.length > 0 && (
               <p className="text-white/30 text-xs mb-4">
                 {seanceExos.length} exercice{seanceExos.length > 1 ? 's' : ''}
-                {seanceDuJour.is_completed && seanceDuJour.completed_at && (
-                  <span className="text-emerald-400/50 ml-1.5">
-                    · Complétée à {new Date(seanceDuJour.completed_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                )}
               </p>
             )}
 
