@@ -1465,11 +1465,26 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     if (!evtTitle.trim() || !evtDate) return
     setSaving(true)
     const eventDate = new Date(`${evtDate}T${evtTime}:00`)
-    await supabase.from('coach_events').insert({
+    const { error } = await supabase.from('coach_events').insert({
       coach_id: coachId, client_id: clientId,
       title: evtTitle.trim(), event_date: eventDate.toISOString(),
       event_type: evtType, notes: evtNotes.trim() || null,
     })
+
+    // Notifier le client de l'ajout d'événement
+    if (!error && clientId) {
+      supabase.from('notifications').insert({
+        coach_id: coachId,
+        client_id: clientId,
+        titre: 'Nouvel événement prévu 📅',
+        message: `Ton coach a ajouté "${evtTitle.trim()}" à ton calendrier le ${new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}.`,
+        type: 'calendrier',
+        destinataire: 'client',
+      }).then(({ error: notifErr }) => {
+        if (notifErr) console.error('[Calendar] Erreur notif:', notifErr.message)
+      })
+    }
+
     setSaving(false); setModalOpen(false); fetchCalData()
   }
 

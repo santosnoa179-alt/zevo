@@ -236,6 +236,7 @@ export function ClientLayout() {
                           message: { icon: MessageSquare, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/10' },
                           validation_semaine: { icon: CheckCircle, iconColor: 'text-emerald-400', iconBg: 'bg-emerald-500/10' },
                           mensuration: { icon: TrendingDown, iconColor: 'text-purple-400', iconBg: 'bg-purple-500/10' },
+                          calendrier: { icon: Calendar, iconColor: 'text-orange-400', iconBg: 'bg-orange-500/10' },
                         }
                         const cfg = typeConfig[n.type] || { icon: Bell, iconColor: 'text-white/40', iconBg: 'bg-white/5' }
                         const IconComp = cfg.icon
@@ -256,6 +257,7 @@ export function ClientLayout() {
                             onClick={() => {
                               if (!n.is_read) markAsRead(n.id)
                               if (n.type === 'message') { navigate('/app/messages'); setNotifOpen(false) }
+                              if (n.type === 'calendrier') { navigate('/app/seances'); setNotifOpen(false) }
                             }}
                             className={`w-full flex items-start gap-3 px-5 py-3.5 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/30 ${!n.is_read ? 'bg-white/[0.01]' : ''}`}
                           >
