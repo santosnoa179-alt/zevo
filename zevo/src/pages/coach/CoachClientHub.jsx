@@ -5775,9 +5775,21 @@ export default function CoachClientHub() {
                         </defs>
                         {(() => {
                           const d = card.spark
-                          const min = Math.min(...d) - 0.5
-                          const max = Math.max(...d) + 0.5
-                          const pts = d.map((v, i) => `${(i / (d.length - 1)) * 100},${24 - ((v - min) / (max - min)) * 20}`)
+                          // Guard: pas assez de points → ligne plate
+                          if (!d || d.length < 2) {
+                            return <path d="M0,12 L100,12" fill="none" stroke={card.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.2" />
+                          }
+                          const numD = d.map(v => (typeof v === 'number' && isFinite(v)) ? v : 0)
+                          const rawMin = Math.min(...numD)
+                          const rawMax = Math.max(...numD)
+                          const range = rawMax - rawMin
+                          // Guard: toutes les valeurs identiques → ligne plate centrée
+                          if (range === 0) {
+                            return <path d="M0,12 L100,12" fill="none" stroke={card.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+                          }
+                          const min = rawMin - 0.5
+                          const max = rawMax + 0.5
+                          const pts = numD.map((v, i) => `${(i / (numD.length - 1)) * 100},${24 - ((v - min) / (max - min)) * 20}`)
                           const lineD = `M${pts.join(' L')}`
                           const areaD = `${lineD} L100,24 L0,24 Z`
                           return (
