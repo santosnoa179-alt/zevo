@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
+import { sendInvitation } from '../../lib/invitations'
 import { useToast } from '../../components/ui/Toast'
 import { Modal } from '../../components/ui/Modal'
 import { calculerScoreBienEtre, couleurScore } from '../../utils/wellbeing'
@@ -5487,33 +5488,34 @@ export default function CoachClientHub() {
     setObjectifs(data || [])
   }, [selectedId])
 
-  // ── Invitation ──
+  // ── Invitation (DB + email via Edge Function) ──
   const envoyerInvitation = async (e) => {
     e.preventDefault()
     setEnvoi(true)
     setInvitError('')
-    try {
-      const { data, error } = await supabase
-        .from('invitations')
-        .insert({ coach_id: user.id, email: invitEmail.trim() })
-        .select()
-        .single()
-      if (error) {
-        setInvitError(error.message?.includes('duplicate')
-          ? 'Une invitation a déjà été envoyée à cet email.'
-          : 'Erreur lors de l\'invitation.')
-        setEnvoi(false)
-        return
-      }
-      if (data) {
-        const lien = `${window.location.origin}/invite/${data.token}`
-        setInvitSuccess({ email: invitEmail, lien, prenom: invitPrenom })
-        setInvitEmail('')
-        setInvitPrenom('')
-      }
-    } catch {
-      setInvitError('Erreur réseau.')
+
+    const result = await sendInvitation({
+      coachId: user.id,
+      email: invitEmail.trim(),
+      prenom: invitPrenom.trim(),
+    })
+
+    if (!result.success) {
+      setInvitError(result.error)
+      setEnvoi(false)
+      return
     }
+
+    setInvitSuccess({ email: invitEmail, lien: result.lien, prenom: invitPrenom })
+    setInvitEmail('')
+    setInvitPrenom('')
+
+    if (result.emailSent) {
+      toast.success(`Email d'invitation envoyé à ${invitEmail} !`)
+    } else if (result.emailError) {
+      toast.info(result.emailError)
+    }
+
     setEnvoi(false)
   }
 

@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
+import { sendInvitation } from '../../lib/invitations'
 import { calculerScoreBienEtre, couleurScore } from '../../utils/wellbeing'
 import { Card, CardBody } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
+import { useToast } from '../../components/ui/Toast'
 import { UserPlus, Search, ChevronRight, Mail, Users } from 'lucide-react'
 
 // Avatar avec fallback initiales
@@ -33,6 +35,7 @@ const COULEURS_AVATAR = ['#FF6B2B', '#3b82f6', '#22c55e', '#a855f7', '#f59e0b', 
 export default function CoachClientsPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const toast = useToast()
   const [loading, setLoading] = useState(true)
   const [clients, setClients] = useState([])
   const [recherche, setRecherche] = useState('')
@@ -100,37 +103,32 @@ export default function CoachClientsPage() {
 
   useEffect(() => { chargerClients() }, [chargerClients])
 
-  // Envoie une invitation (génère token + insert DB)
+  // Envoie une invitation (DB + email via Edge Function)
   const envoyerInvitation = async (e) => {
     e.preventDefault()
     setEnvoi(true)
     setInvitError('')
 
-    try {
-      const { data, error } = await supabase
-        .from('invitations')
-        .insert({ coach_id: user.id, email: invitEmail.trim() })
-        .select()
-        .single()
+    const result = await sendInvitation({
+      coachId: user.id,
+      email: invitEmail.trim(),
+      prenom: invitPrenom.trim(),
+    })
 
-      if (error) {
-        console.error('Erreur invitation:', error)
-        setInvitError(error.message?.includes('duplicate')
-          ? 'Une invitation a déjà été envoyée à cet email.'
-          : 'Erreur lors de la création de l\'invitation. Réessayez.')
-        setEnvoi(false)
-        return
-      }
+    if (!result.success) {
+      setInvitError(result.error)
+      setEnvoi(false)
+      return
+    }
 
-      if (data) {
-        const lien = `${window.location.origin}/invite/${data.token}`
-        setInvitSuccess({ email: invitEmail, lien, prenom: invitPrenom })
-        setInvitEmail(''); setInvitPrenom('')
-        setInvitationsEnAttente(prev => [data, ...prev])
-      }
-    } catch (err) {
-      console.error('Erreur inattendue invitation:', err)
-      setInvitError('Erreur réseau. Vérifiez votre connexion.')
+    setInvitSuccess({ email: invitEmail, lien: result.lien, prenom: invitPrenom })
+    setInvitEmail(''); setInvitPrenom('')
+    setInvitationsEnAttente(prev => [result.data, ...prev])
+
+    if (result.emailSent) {
+      toast.success(`Email d'invitation envoyé à ${invitEmail} !`)
+    } else if (result.emailError) {
+      toast.info(result.emailError)
     }
 
     setEnvoi(false)

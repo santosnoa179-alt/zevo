@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import { sendInvitation } from '../lib/invitations'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from './ui/Toast'
 import {
   ArrowRight, X, ChevronRight, Check, Copy, ExternalLink,
   Users, Dumbbell, UtensilsCrossed, MessageCircle,
@@ -201,6 +203,7 @@ function injectKeyframes() {
 
 export default function CoachTutorial({ onComplete, coachName }) {
   const { user } = useAuth()
+  const toast = useToast()
   const [step, setStep] = useState(0)
   const [animState, setAnimState] = useState('in')
   const [visible, setVisible] = useState(true)
@@ -281,50 +284,49 @@ export default function CoachTutorial({ onComplete, coachName }) {
     setTimeout(() => { setStep(finalIdx); setAnimState('in') }, 250)
   }, [])
 
-  // ── Send invitation ──
+  // ── Send invitation (via shared utility) ──
   const handleSendInvite = useCallback(async () => {
     if (!inviteEmail.trim() || !invitePrenom.trim()) {
       setInviteError('Remplis les deux champs pour continuer.')
       return
     }
-    // Basic email check
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())) {
       setInviteError('Vérifie le format de l\'email.')
       return
     }
     setInviteSending(true)
     setInviteError('')
-    try {
-      const { data, error } = await supabase
-        .from('invitations')
-        .insert({ coach_id: user.id, email: inviteEmail.trim() })
-        .select()
-        .single()
 
-      if (error) {
-        setInviteError(
-          error.message?.includes('duplicate')
-            ? 'Une invitation a déjà été envoyée à cet email.'
-            : 'Erreur lors de l\'envoi. Réessaye.'
-        )
-        setInviteSending(false)
-        return
-      }
-      if (data) {
-        const lien = `${window.location.origin}/invite/${data.token}`
-        setInviteResult({ email: inviteEmail.trim(), lien, prenom: invitePrenom.trim() })
-        // Auto-advance to success step
-        setAnimState('out')
-        setTimeout(() => {
-          setStep(STEPS.findIndex(s => s.key === 'invite-success'))
-          setAnimState('in')
-        }, 250)
-      }
-    } catch (err) {
-      setInviteError('Erreur réseau. Vérifie ta connexion.')
+    const result = await sendInvitation({
+      coachId: user.id,
+      email: inviteEmail.trim(),
+      prenom: invitePrenom.trim(),
+      coachName: coachName || '',
+    })
+
+    if (!result.success) {
+      setInviteError(result.error)
+      setInviteSending(false)
+      return
     }
+
+    setInviteResult({ email: inviteEmail.trim(), lien: result.lien, prenom: invitePrenom.trim() })
+
+    if (result.emailSent) {
+      toast.success(`Email d'invitation envoyé à ${inviteEmail.trim()} !`)
+    } else if (result.emailError) {
+      toast.info(result.emailError)
+    }
+
+    // Auto-advance to success step
+    setAnimState('out')
+    setTimeout(() => {
+      setStep(STEPS.findIndex(s => s.key === 'invite-success'))
+      setAnimState('in')
+    }, 250)
+
     setInviteSending(false)
-  }, [user, inviteEmail, invitePrenom])
+  }, [user, inviteEmail, invitePrenom, coachName, toast])
 
   // ── Copy link ──
   const copyLink = useCallback(() => {
