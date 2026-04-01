@@ -78,8 +78,8 @@ export default function DashboardPage() {
   const [seanceDuJour, setSeanceDuJour] = useState(null)
   const [seanceExos, setSeanceExos] = useState([])
 
-  // Formulaires en attente
-  const [formsPending, setFormsPending] = useState(0)
+  // Formulaires en attente (détails complets)
+  const [formsPending, setFormsPending] = useState([])
 
   // Programme sport en cours
   const [programme, setProgramme] = useState(null)
@@ -217,12 +217,12 @@ export default function DashboardPage() {
       // ── Formulaires en attente ──
       const { data: formsData, error: formsErr } = await supabase
         .from('formulaire_reponses')
-        .select('id')
+        .select('id, created_at, formulaire_id, formulaires(titre, description, type)')
         .eq('client_id', user.id)
-        .eq('statut', 'en_attente')
+        .eq('complete', false)
 
       if (formsErr) console.error('[Dashboard] formulaires:', formsErr.message)
-      setFormsPending(formsData?.length ?? 0)
+      setFormsPending(formsData ?? [])
 
       // ── Comparatif 7 jours ──
       await chargerComparatif(user.id, habs.length)
@@ -639,29 +639,44 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ═══════════════ ALERTE FORMULAIRE ═══════════════ */}
-      {formsPending > 0 && (
-        <button
-          onClick={() => navigate('/app/formulaires')}
-          className={`w-full flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 to-amber-600/5 border border-amber-500/20 active:scale-[0.98] transition-transform ${stagger[3].className}`}
-          style={stagger[3].style}
-        >
-          <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0 relative">
-            <ClipboardList size={20} className="text-amber-400" />
-            {/* Pulse indicator */}
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full animate-pulse" />
-          </div>
-          <div className="flex-1 text-left">
-            <p className="text-amber-300 font-semibold text-sm">
-              <AnimatedNumber value={formsPending} duration={400} /> bilan{formsPending > 1 ? 's' : ''} en attente
-            </p>
-            <p className="text-amber-300/50 text-xs mt-0.5">
-              Ton coach a besoin de ton retour
-            </p>
-          </div>
-          <ChevronRight size={18} className="text-amber-400/50" />
-        </button>
-      )}
+      {/* ═══════════════ FORMULAIRES EN ATTENTE ═══════════════ */}
+      {formsPending.length > 0 && formsPending.map((form, idx) => {
+        const formInfo = form.formulaires || {}
+        const typeEmojis = { bilan: '📋', satisfaction: '⭐', evaluation: '📊', feedback: '💬' }
+        const typeLabels = { bilan: 'Bilan', satisfaction: 'Satisfaction', evaluation: 'Évaluation', feedback: 'Feedback' }
+        const emoji = typeEmojis[formInfo.type] || '📋'
+        const typeLabel = typeLabels[formInfo.type] || 'Formulaire'
+        const daysAgo = Math.floor((Date.now() - new Date(form.created_at).getTime()) / 86400000)
+        const dateLabel = daysAgo === 0 ? "Aujourd'hui" : daysAgo === 1 ? 'Hier' : `Il y a ${daysAgo}j`
+
+        return (
+          <button
+            key={form.id}
+            onClick={() => navigate('/app/formulaires')}
+            className={`w-full flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/15 active:scale-[0.98] transition-all ${stagger[3].className}`}
+            style={{ ...stagger[3].style, animationDelay: `${(stagger[3].style?.animationDelay ? parseInt(stagger[3].style.animationDelay) : 0) + idx * 60}ms` }}
+          >
+            <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0 relative">
+              <span className="text-lg">{emoji}</span>
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full animate-pulse" />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <p className="text-[#F5F5F3] font-semibold text-sm truncate">
+                {formInfo.titre || 'Formulaire à remplir'}
+              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-amber-400/70 text-xs font-medium">{typeLabel}</span>
+                <span className="text-[rgba(245,245,243,0.2)]">·</span>
+                <span className="text-[rgba(245,245,243,0.4)] text-xs">{dateLabel}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 bg-amber-500/15 px-3 py-1.5 rounded-xl flex-shrink-0">
+              <span className="text-amber-300 text-xs font-semibold">Remplir</span>
+              <ChevronRight size={14} className="text-amber-400/60" />
+            </div>
+          </button>
+        )
+      })}
 
       {/* ═══════════════ SÉANCE DU JOUR ═══════════════ */}
       {seanceDuJour ? (
@@ -938,7 +953,7 @@ export default function DashboardPage() {
             {/* ── Carte Plan Nutrition ── */}
             {nutritionPlan && (
               <button
-                onClick={() => navigate('/app/programme')}
+                onClick={() => navigate('/app/programme?tab=nutrition')}
                 className="w-full rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 text-left active:scale-[0.98] transition-transform relative overflow-hidden"
               >
                 {/* Gradient accent vert */}

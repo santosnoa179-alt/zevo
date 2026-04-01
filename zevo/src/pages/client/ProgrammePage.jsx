@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { supabase } from '../../lib/supabase'
@@ -36,8 +37,9 @@ const REPAS_ICONS = {
 export default function ProgrammePage() {
   const { user } = useAuth()
   const toast = useToast()
+  const [searchParams] = useSearchParams()
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('sport')
+  const [tab, setTab] = useState(searchParams.get('tab') === 'nutrition' ? 'nutrition' : 'sport')
 
   // Sport
   const [assignation, setAssignation] = useState(null)
