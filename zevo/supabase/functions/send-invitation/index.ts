@@ -49,20 +49,8 @@ serve(async (req) => {
       })
     }
 
-    // ── Vérifier que le coach existe ──
-    const { data: coach } = await supabase
-      .from('coaches')
-      .select('id, nom_app')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (!coach) {
-      return new Response(JSON.stringify({ error: 'Coach introuvable' }), {
-        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    const displayCoachName = coachName || coach.nom_app || 'Ton coach'
+    // ── Simplification : on utilise le nom envoyé par l'application ──
+    const displayCoachName = coachName || 'Ton coach Zevo'
     const clientPrenom = prenom || ''
 
     // ── Envoi email via Resend ──
@@ -73,7 +61,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Zevo <noreply@zevo.app>',
+        from: 'Zevo <onboarding@resend.dev>',
         to: [email],
         subject: `${displayCoachName} t'invite sur Zevo`,
         html: buildEmailHtml({ clientPrenom, displayCoachName, inviteLink, email }),
@@ -132,27 +120,19 @@ function buildEmailHtml({
     <tr>
       <td align="center">
         <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
-
-          <!-- Logo -->
           <tr>
             <td align="center" style="padding-bottom:32px;">
               <span style="font-size:28px;font-weight:800;color:#FF6B2B;letter-spacing:-0.5px;">Zevo</span>
             </td>
           </tr>
-
-          <!-- Card -->
           <tr>
             <td style="background:#1E1E1E;border-radius:20px;border:1px solid rgba(255,255,255,0.08);padding:40px 32px;">
-
-              <!-- Greeting -->
               <p style="margin:0 0 8px;font-size:20px;font-weight:700;color:#F5F5F3;">
                 ${greeting}
               </p>
               <p style="margin:0 0 24px;font-size:15px;line-height:1.7;color:rgba(245,245,243,0.55);">
                 <strong style="color:#F5F5F3;">${displayCoachName}</strong> t'invite à rejoindre son espace de coaching sur Zevo. Crée ton compte en un clic pour accéder à tes programmes, ton suivi et bien plus.
               </p>
-
-              <!-- CTA Button -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" style="padding:8px 0 28px;">
@@ -164,11 +144,7 @@ function buildEmailHtml({
                   </td>
                 </tr>
               </table>
-
-              <!-- Divider -->
               <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:0 0 20px;" />
-
-              <!-- What you get -->
               <p style="margin:0 0 12px;font-size:12px;font-weight:600;color:rgba(245,245,243,0.3);text-transform:uppercase;letter-spacing:1px;">
                 Ce qui t'attend
               </p>
@@ -191,16 +167,12 @@ function buildEmailHtml({
                 </tr>
                 `).join('')}
               </table>
-
-              <!-- Link fallback -->
               <p style="margin:28px 0 0;font-size:11px;color:rgba(245,245,243,0.2);word-break:break-all;">
                 Si le bouton ne fonctionne pas, copie ce lien :<br/>
                 <a href="${inviteLink}" style="color:#FF6B2B;text-decoration:none;">${inviteLink}</a>
               </p>
             </td>
           </tr>
-
-          <!-- Footer -->
           <tr>
             <td align="center" style="padding-top:28px;">
               <p style="margin:0;font-size:11px;color:rgba(245,245,243,0.15);">
@@ -209,7 +181,6 @@ function buildEmailHtml({
               </p>
             </td>
           </tr>
-
         </table>
       </td>
     </tr>
