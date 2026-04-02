@@ -15,9 +15,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'customerId requis' })
     }
 
-    const siteUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.URL || 'http://localhost:5173'
+    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '')
+    const siteUrl = origin || process.env.NEXT_PUBLIC_SITE_URL || 'https://zevo-one.vercel.app'
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,

@@ -32,9 +32,10 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Prix Stripe non configuré. Vérifiez les variables d\'environnement.' })
     }
 
-    const siteUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.URL || 'http://localhost:5173'
+    // Utiliser l'origin de la requête (domaine exact du navigateur)
+    // Évite le bug VERCEL_URL qui retourne la preview URL au lieu du domaine principal
+    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '')
+    const siteUrl = origin || process.env.NEXT_PUBLIC_SITE_URL || 'https://zevo-one.vercel.app'
 
     const sessionParams = {
       mode: 'subscription',
