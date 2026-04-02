@@ -79,6 +79,7 @@ export default function App() {
           <Routes>
             {/* Routes publiques */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<LoginPage />} />
             <Route path="/invite/:token" element={<InvitePage />} />
             <Route path="/pricing" element={<PricingPage />} />
 

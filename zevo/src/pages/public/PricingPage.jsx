@@ -69,7 +69,7 @@ export default function PricingPage() {
   // Crée une session Stripe Checkout et redirige vers la page de paiement
   const handleSelectPlan = async (planId) => {
     if (!user) {
-      navigate('/login')
+      navigate('/register')
       return
     }
 
