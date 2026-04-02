@@ -437,12 +437,12 @@ export default function CoachGlobalCalendarPage() {
     return (
       <div className="p-4 md:p-6 w-full space-y-5 max-w-[1400px]">
         <div className="flex items-center justify-between">
-          <div className="h-8 w-56 bg-[#27272a] rounded-lg animate-pulse" />
-          <div className="h-10 w-40 bg-[#27272a] rounded-lg animate-pulse" />
+          <div className="h-8 w-56 bg-[var(--bg-surface)] rounded-lg animate-pulse" />
+          <div className="h-10 w-40 bg-[var(--bg-surface)] rounded-lg animate-pulse" />
         </div>
-        <div className="grid grid-cols-7 gap-px bg-[#27272a] rounded-xl overflow-hidden">
+        <div className="grid grid-cols-7 gap-px bg-[var(--bg-surface)] rounded-xl overflow-hidden">
           {Array.from({ length: 35 }, (_, i) => (
-            <div key={i} className="bg-[#09090b] p-3 h-24 animate-pulse" />
+            <div key={i} className="bg-[var(--bg-elevated)] p-3 h-24 animate-pulse" />
           ))}
         </div>
       </div>
@@ -456,7 +456,7 @@ export default function CoachGlobalCalendarPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <Calendar className="w-6 h-6 text-[#FF6B2B]" />
-          <h1 className="text-xl md:text-2xl font-bold text-[#F5F5F3]">Calendrier</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">Calendrier</h1>
         </div>
         <button
           onClick={openNewModal}
@@ -470,23 +470,23 @@ export default function CoachGlobalCalendarPage() {
       <div className="flex flex-col md:flex-row md:items-center gap-3">
 
         {/* Navigation */}
-        <div className="flex items-center gap-2 bg-[#09090b] border border-[#27272a] rounded-xl px-3 py-2 flex-1 min-w-0">
-          <button onClick={goBack} className="p-1 rounded-lg hover:bg-[#27272a] text-white/40 hover:text-white transition-colors flex-shrink-0">
+        <div className="flex items-center gap-2 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 flex-1 min-w-0">
+          <button onClick={goBack} className="p-1 rounded-lg hover:bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-white transition-colors flex-shrink-0">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-sm font-medium text-[#F5F5F3] flex-1 text-center truncate">{navLabel}</span>
+          <span className="text-sm font-medium text-[var(--text-primary)] flex-1 text-center truncate">{navLabel}</span>
           {!isAtToday && (
             <button onClick={goToday} className="text-[10px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold hover:bg-[#FF6B2B]/20 transition-colors flex-shrink-0 whitespace-nowrap">
               Aujourd'hui
             </button>
           )}
-          <button onClick={goForward} className="p-1 rounded-lg hover:bg-[#27272a] text-white/40 hover:text-white transition-colors flex-shrink-0">
+          <button onClick={goForward} className="p-1 rounded-lg hover:bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-white transition-colors flex-shrink-0">
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
         {/* Toggle Mois / Semaine */}
-        <div className="flex items-center bg-[#09090b] border border-[#27272a] rounded-xl p-1 flex-shrink-0">
+        <div className="flex items-center bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-1 flex-shrink-0">
           {[{ id: 'month', label: 'Mois' }, { id: 'week', label: 'Semaine' }].map(v => (
             <button
               key={v.id}
@@ -494,7 +494,7 @@ export default function CoachGlobalCalendarPage() {
               className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 view === v.id
                   ? 'bg-[#FF6B2B] text-white shadow-sm'
-                  : 'text-white/40 hover:text-white/70'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
               {v.label}
@@ -508,27 +508,27 @@ export default function CoachGlobalCalendarPage() {
             <select
               value={filterClient}
               onChange={(e) => setFilterClient(e.target.value)}
-              className="appearance-none bg-[#09090b] border border-[#27272a] rounded-xl pl-8 pr-4 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer min-w-[130px]"
+              className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl pl-8 pr-4 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer min-w-[130px]"
             >
               <option value="">Tous les clients</option>
               {clients.map(c => (
                 <option key={c.id} value={c.id}>{c.profiles?.nom || 'Client'}</option>
               ))}
             </select>
-            <User className="w-3.5 h-3.5 text-white/30 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <User className="w-3.5 h-3.5 text-[var(--text-muted)] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
           <div className="relative">
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="appearance-none bg-[#09090b] border border-[#27272a] rounded-xl pl-8 pr-4 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer min-w-[130px]"
+              className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl pl-8 pr-4 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer min-w-[130px]"
             >
               <option value="">Tous les types</option>
               {EVENT_TYPES.map(t => (
                 <option key={t.id} value={t.id}>{t.label}</option>
               ))}
             </select>
-            <Filter className="w-3.5 h-3.5 text-white/30 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Filter className="w-3.5 h-3.5 text-[var(--text-muted)] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
       </div>
@@ -540,13 +540,13 @@ export default function CoachGlobalCalendarPage() {
           { label: 'Clients', value: uniqueClients, icon: User, color: '#3b82f6' },
           { label: "Aujourd'hui", value: itemsToday, icon: Clock, color: '#22c55e' },
         ].map((s, i) => (
-          <div key={i} className="bg-[#09090b] border border-[#27272a] rounded-xl p-3 flex items-center gap-3">
+          <div key={i} className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-3 flex items-center gap-3">
             <div className="p-1.5 rounded-lg flex-shrink-0" style={{ backgroundColor: `${s.color}15` }}>
               <s.icon className="w-4 h-4" style={{ color: s.color }} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] text-white/40 truncate">{s.label}</p>
-              <p className="text-lg font-bold text-[#F5F5F3] leading-tight">{s.value}</p>
+              <p className="text-[10px] text-[var(--text-muted)] truncate">{s.label}</p>
+              <p className="text-lg font-bold text-[var(--text-primary)] leading-tight">{s.value}</p>
             </div>
           </div>
         ))}
@@ -556,11 +556,11 @@ export default function CoachGlobalCalendarPage() {
 
       {view === 'month' ? (
         /* ────────── VUE MOIS ────────── */
-        <div className="bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden">
+        <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl overflow-hidden">
           {/* Jours header */}
-          <div className="grid grid-cols-7 border-b border-[#27272a]">
+          <div className="grid grid-cols-7 border-b border-[var(--border-base)]">
             {JOURS.map(j => (
-              <div key={j} className="px-2 py-2 text-center text-[10px] font-semibold text-white/30 uppercase tracking-wider">{j}</div>
+              <div key={j} className="px-2 py-2 text-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">{j}</div>
             ))}
           </div>
 
@@ -576,8 +576,8 @@ export default function CoachGlobalCalendarPage() {
                 <div
                   key={idx}
                   onClick={() => handleDayClick(cell.date)}
-                  className={`relative border-b border-r border-[#27272a] min-h-[90px] md:min-h-[100px] p-1.5 flex flex-col cursor-pointer transition-colors hover:bg-white/[0.02] ${
-                    cell.inMonth ? '' : 'bg-[#0a0a0a] hover:bg-[#0e0e0e]'
+                  className={`relative border-b border-r border-[var(--border-base)] min-h-[90px] md:min-h-[100px] p-1.5 flex flex-col cursor-pointer transition-colors hover:bg-[var(--bg-surface)] ${
+                    cell.inMonth ? '' : 'bg-[var(--bg-surface)] opacity-60'
                   } ${isTo ? 'bg-[#FF6B2B]/[0.04] hover:bg-[#FF6B2B]/[0.07]' : ''}`}
                 >
                   {/* Date number — clic ouvre le détail jour si items */}
@@ -586,13 +586,13 @@ export default function CoachGlobalCalendarPage() {
                       onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
                       className={`text-xs font-medium leading-none ${
                         isTo ? 'w-6 h-6 flex items-center justify-center rounded-full bg-[#FF6B2B] text-white text-[11px] font-bold'
-                          : cell.inMonth ? 'text-white/60' : 'text-white/20'
+                          : cell.inMonth ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
                       } ${dayItems.length > 0 ? 'hover:underline' : ''}`}
                     >
                       {cell.date.getDate()}
                     </span>
                     {dayItems.length > 0 && (
-                      <span className="text-[9px] text-white/25 font-medium">{dayItems.length}</span>
+                      <span className="text-[9px] text-[var(--text-muted)] font-medium">{dayItems.length}</span>
                     )}
                   </div>
 
@@ -607,7 +607,7 @@ export default function CoachGlobalCalendarPage() {
                             className="flex items-center gap-1 px-1 py-0.5 rounded bg-[#FF6B2B]/10 truncate cursor-pointer hover:bg-[#FF6B2B]/20 transition-colors"
                           >
                             <Dumbbell className="w-2.5 h-2.5 text-[#FF6B2B] flex-shrink-0" />
-                            <span className="text-[10px] text-[#F5F5F3] truncate">{item.profiles?.nom || item.titre}</span>
+                            <span className="text-[10px] text-[var(--text-primary)] truncate">{item.profiles?.nom || item.titre}</span>
                           </div>
                         )
                       } else {
@@ -621,7 +621,7 @@ export default function CoachGlobalCalendarPage() {
                             style={{ backgroundColor: `${ti.color}15` }}
                           >
                             <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
-                            <span className="text-[10px] text-[#F5F5F3] truncate">{getClientName(item.client_id) || item.title}</span>
+                            <span className="text-[10px] text-[var(--text-primary)] truncate">{getClientName(item.client_id) || item.title}</span>
                           </div>
                         )
                       }
@@ -644,7 +644,7 @@ export default function CoachGlobalCalendarPage() {
         </div>
       ) : (
         /* ────────── VUE SEMAINE ────────── */
-        <div className="bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden">
+        <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl overflow-hidden">
           {/* All-day section */}
           {(() => {
             const hasAllDay = weekDates.some(d => {
@@ -654,15 +654,15 @@ export default function CoachGlobalCalendarPage() {
             if (!hasAllDay) return null
 
             return (
-              <div className="border-b border-[#27272a]">
+              <div className="border-b border-[var(--border-base)]">
                 <div className="grid grid-cols-[60px_repeat(7,1fr)]">
-                  <div className="p-2 border-r border-[#27272a] flex items-center justify-center">
-                    <span className="text-[9px] text-white/25 uppercase font-semibold">Séances</span>
+                  <div className="p-2 border-r border-[var(--border-base)] flex items-center justify-center">
+                    <span className="text-[9px] text-[var(--text-muted)] uppercase font-semibold">Séances</span>
                   </div>
                   {weekDates.map((date, idx) => {
                     const daySeances = itemsForDay(date).filter(i => i._type === 'seance')
                     return (
-                      <div key={idx} className={`p-1.5 border-r border-[#27272a] last:border-r-0 min-h-[40px] ${isSameDay(date, today) ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
+                      <div key={idx} className={`p-1.5 border-r border-[var(--border-base)] last:border-r-0 min-h-[40px] ${isSameDay(date, today) ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
                         <div className="flex flex-col gap-1">
                           {daySeances.map(s => (
                             <div
@@ -671,7 +671,7 @@ export default function CoachGlobalCalendarPage() {
                               className="flex items-center gap-1 px-1.5 py-1 rounded-md bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 cursor-pointer hover:bg-[#FF6B2B]/20 transition-colors"
                             >
                               <Dumbbell className="w-2.5 h-2.5 text-[#FF6B2B] flex-shrink-0" />
-                              <span className="text-[10px] font-medium text-[#F5F5F3] truncate">{s.titre}</span>
+                              <span className="text-[10px] font-medium text-[var(--text-primary)] truncate">{s.titre}</span>
                             </div>
                           ))}
                         </div>
@@ -684,14 +684,14 @@ export default function CoachGlobalCalendarPage() {
           })()}
 
           {/* Header row */}
-          <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[#27272a]">
-            <div className="p-2 border-r border-[#27272a]" />
+          <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[var(--border-base)]">
+            <div className="p-2 border-r border-[var(--border-base)]" />
             {weekDates.map((date, idx) => {
               const isTo = isSameDay(date, today)
               return (
-                <div key={idx} className={`p-2 border-r border-[#27272a] last:border-r-0 text-center ${isTo ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
-                  <p className="text-[10px] text-white/30 uppercase font-semibold">{JOURS[idx]}</p>
-                  <p className={`text-sm font-bold mt-0.5 ${isTo ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{date.getDate()}</p>
+                <div key={idx} className={`p-2 border-r border-[var(--border-base)] last:border-r-0 text-center ${isTo ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
+                  <p className="text-[10px] text-[var(--text-muted)] uppercase font-semibold">{JOURS[idx]}</p>
+                  <p className={`text-sm font-bold mt-0.5 ${isTo ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{date.getDate()}</p>
                 </div>
               )
             })}
@@ -702,8 +702,8 @@ export default function CoachGlobalCalendarPage() {
             {HOURS.map(h => (
               <div key={h} className="contents">
                 {/* Hour label */}
-                <div className="h-[40px] border-r border-b border-[#27272a] flex items-start justify-end pr-2 pt-0.5">
-                  <span className="text-[10px] text-white/25 font-medium tabular-nums">{String(h).padStart(2, '0')}:00</span>
+                <div className="h-[40px] border-r border-b border-[var(--border-base)] flex items-start justify-end pr-2 pt-0.5">
+                  <span className="text-[10px] text-[var(--text-muted)] font-medium tabular-nums">{String(h).padStart(2, '0')}:00</span>
                 </div>
                 {/* Day columns */}
                 {weekDates.map((date, dIdx) => {
@@ -718,7 +718,7 @@ export default function CoachGlobalCalendarPage() {
                     <div
                       key={dIdx}
                       onClick={() => handleDayClick(date)}
-                      className={`h-[40px] border-r border-b border-[#27272a] last:border-r-0 relative cursor-pointer hover:bg-white/[0.02] transition-colors ${isTo ? 'bg-[#FF6B2B]/[0.02]' : ''}`}
+                      className={`h-[40px] border-r border-b border-[var(--border-base)] last:border-r-0 relative cursor-pointer hover:bg-[var(--bg-surface)] transition-colors ${isTo ? 'bg-[#FF6B2B]/[0.02]' : ''}`}
                     >
                       {hourEvts.map(evt => {
                         const ti = getEventTypeInfo(evt.event_type)
@@ -732,10 +732,10 @@ export default function CoachGlobalCalendarPage() {
                           >
                             <div className="flex items-center gap-1">
                               <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
-                              <span className="text-[10px] font-medium text-[#F5F5F3] truncate">{evt.title}</span>
+                              <span className="text-[10px] font-medium text-[var(--text-primary)] truncate">{evt.title}</span>
                             </div>
                             {getClientName(evt.client_id) && (
-                              <p className="text-[9px] text-white/35 truncate">{getClientName(evt.client_id)}</p>
+                              <p className="text-[9px] text-[var(--text-muted)] truncate">{getClientName(evt.client_id)}</p>
                             )}
                           </div>
                         )
@@ -754,13 +754,13 @@ export default function CoachGlobalCalendarPage() {
         <>
           <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
 
-              <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
-                <h2 className="text-[#F5F5F3] font-semibold text-base">
+              <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
+                <h2 className="text-[var(--text-primary)] font-semibold text-base">
                   {modalType === null ? 'Nouvel événement' : 'Événement classique'}
                 </h2>
-                <button onClick={() => setModalOpen(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                <button onClick={() => setModalOpen(false)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                   <X size={18} />
                 </button>
               </div>
@@ -768,59 +768,59 @@ export default function CoachGlobalCalendarPage() {
               <div className="p-6">
                 {modalType === null ? (
                   <div className="space-y-3">
-                    <p className="text-white/40 text-sm mb-4">Quel type d'événement souhaitez-vous créer ?</p>
+                    <p className="text-[var(--text-muted)] text-sm mb-4">Quel type d'événement souhaitez-vous créer ?</p>
                     <button
                       onClick={() => navigate('/coach/client-hub')}
-                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[#27272a] hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/[0.03] transition-colors text-left"
+                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[var(--border-base)] hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/[0.03] transition-colors text-left"
                     >
                       <div className="w-11 h-11 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
                         <Dumbbell size={20} className="text-[#FF6B2B]" />
                       </div>
                       <div>
-                        <p className="text-[#F5F5F3] text-sm font-semibold">Séance de sport</p>
-                        <p className="text-white/30 text-xs mt-0.5">Ouvrir l'éditeur de séances</p>
+                        <p className="text-[var(--text-primary)] text-sm font-semibold">Séance de sport</p>
+                        <p className="text-[var(--text-muted)] text-xs mt-0.5">Ouvrir l'éditeur de séances</p>
                       </div>
-                      <ChevronRight size={16} className="text-white/15 ml-auto" />
+                      <ChevronRight size={16} className="text-[var(--text-muted)] ml-auto" />
                     </button>
                     <button
                       onClick={() => setModalType('event')}
-                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[#27272a] hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/[0.03] transition-colors text-left"
+                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[var(--border-base)] hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/[0.03] transition-colors text-left"
                     >
                       <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
                         <Calendar size={20} className="text-blue-400" />
                       </div>
                       <div>
-                        <p className="text-[#F5F5F3] text-sm font-semibold">Événement classique</p>
-                        <p className="text-white/30 text-xs mt-0.5">Bilan, appel, réunion, note...</p>
+                        <p className="text-[var(--text-primary)] text-sm font-semibold">Événement classique</p>
+                        <p className="text-[var(--text-muted)] text-xs mt-0.5">Bilan, appel, réunion, note...</p>
                       </div>
-                      <ChevronRight size={16} className="text-white/15 ml-auto" />
+                      <ChevronRight size={16} className="text-[var(--text-muted)] ml-auto" />
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-white/40 text-xs mb-1.5">Titre</label>
+                      <label className="block text-[var(--text-muted)] text-xs mb-1.5">Titre</label>
                       <input type="text" value={evtTitle} onChange={(e) => setEvtTitle(e.target.value)} placeholder="Ex: Bilan mensuel avec Noa" autoFocus
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-white/40 text-xs mb-1.5">Date</label>
+                        <label className="block text-[var(--text-muted)] text-xs mb-1.5">Date</label>
                         <input type="date" value={evtDate} onChange={(e) => setEvtDate(e.target.value)}
-                          className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                          className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                       </div>
                       <div>
-                        <label className="block text-white/40 text-xs mb-1.5">Heure</label>
+                        <label className="block text-[var(--text-muted)] text-xs mb-1.5">Heure</label>
                         <input type="time" value={evtTime} onChange={(e) => setEvtTime(e.target.value)}
-                          className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                          className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-white/40 text-xs mb-1.5">Type</label>
+                      <label className="block text-[var(--text-muted)] text-xs mb-1.5">Type</label>
                       <div className="flex flex-wrap gap-2">
                         {EVENT_TYPES.filter(t => t.id !== 'seance').map((t) => (
                           <button key={t.id} onClick={() => setEvtType(t.id)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${evtType === t.id ? 'border-2' : 'border border-[#27272a] text-white/40 hover:text-white/60'}`}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${evtType === t.id ? 'border-2' : 'border border-[var(--border-base)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                             style={evtType === t.id ? { borderColor: t.color, color: t.color, backgroundColor: `${t.color}10` } : {}}
                           >
                             <t.icon size={12} /> {t.label}
@@ -829,9 +829,9 @@ export default function CoachGlobalCalendarPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-white/40 text-xs mb-1.5">Client associé (optionnel)</label>
+                      <label className="block text-[var(--text-muted)] text-xs mb-1.5">Client associé (optionnel)</label>
                       <select value={evtClient} onChange={(e) => setEvtClient(e.target.value)}
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
                         <option value="">Aucun client</option>
                         {clients.map((c) => (
                           <option key={c.id} value={c.id}>{c.profiles?.nom || 'Client'}</option>
@@ -839,13 +839,13 @@ export default function CoachGlobalCalendarPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-white/40 text-xs mb-1.5">Notes</label>
+                      <label className="block text-[var(--text-muted)] text-xs mb-1.5">Notes</label>
                       <textarea value={evtNotes} onChange={(e) => setEvtNotes(e.target.value)} placeholder="Notes optionnelles..." rows={2}
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none" />
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none" />
                     </div>
                     <div className="flex gap-2 pt-1">
                       <button onClick={() => setModalType(null)}
-                        className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Retour</button>
+                        className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] transition-colors">Retour</button>
                       <button onClick={saveEvent} disabled={!evtTitle.trim() || !evtDate || saving}
                         className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
                         {saving ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Créer
@@ -863,18 +863,18 @@ export default function CoachGlobalCalendarPage() {
         <>
           <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setDayDetailDate(null)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
-                <h2 className="text-[#F5F5F3] font-semibold text-base">
+            <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
+                <h2 className="text-[var(--text-primary)] font-semibold text-base">
                   {dayDetailDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </h2>
-                <button onClick={() => setDayDetailDate(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                <button onClick={() => setDayDetailDate(null)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                   <X size={18} />
                 </button>
               </div>
               <div className="p-4 space-y-2 max-h-[400px] overflow-y-auto">
                 {itemsForDay(dayDetailDate).length === 0 ? (
-                  <p className="text-center text-white/25 text-sm py-8">Aucun événement ce jour</p>
+                  <p className="text-center text-[var(--text-muted)] text-sm py-8">Aucun événement ce jour</p>
                 ) : itemsForDay(dayDetailDate).map(item => {
                   if (item._type === 'seance') {
                     return (
@@ -887,8 +887,8 @@ export default function CoachGlobalCalendarPage() {
                           <Dumbbell size={16} className="text-[#FF6B2B]" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-[#F5F5F3] truncate">{item.titre}</p>
-                          <p className="text-[11px] text-white/35 mt-0.5">{item.profiles?.nom || 'Client'}</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)] truncate">{item.titre}</p>
+                          <p className="text-[11px] text-[var(--text-muted)] mt-0.5">{item.profiles?.nom || 'Client'}</p>
                         </div>
                         {item.is_completed && <CheckSquare size={14} className="text-green-400 flex-shrink-0" />}
                       </button>
@@ -907,8 +907,8 @@ export default function CoachGlobalCalendarPage() {
                           <TI size={16} style={{ color: ti.color }} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-[#F5F5F3] truncate">{item.title}</p>
-                          <p className="text-[11px] text-white/35 mt-0.5">
+                          <p className="text-sm font-medium text-[var(--text-primary)] truncate">{item.title}</p>
+                          <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
                             {formatHHmm(item.event_date)}{getClientName(item.client_id) ? ` — ${getClientName(item.client_id)}` : ''}
                           </p>
                         </div>
@@ -920,7 +920,7 @@ export default function CoachGlobalCalendarPage() {
               <div className="px-4 pb-4">
                 <button
                   onClick={() => { setDayDetailDate(null); handleDayClick(dayDetailDate) }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-xs font-medium hover:text-white/60 hover:border-[#3f3f46] transition-colors"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[var(--border-base)] text-[var(--text-muted)] text-xs font-medium hover:text-[var(--text-secondary)] hover:border-[#3f3f46] transition-colors"
                 >
                   <Plus size={14} /> Ajouter un événement
                 </button>
@@ -935,28 +935,28 @@ export default function CoachGlobalCalendarPage() {
         <>
           <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setDetailSeance(null)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
               {/* Header */}
-              <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+              <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
                     <Dumbbell size={18} className="text-[#FF6B2B]" />
                   </div>
                   <div>
-                    <h2 className="text-[#F5F5F3] font-semibold text-base">{detailSeance.titre}</h2>
-                    <p className="text-white/35 text-xs mt-0.5">{detailSeance.profiles?.nom || 'Client'}</p>
+                    <h2 className="text-[var(--text-primary)] font-semibold text-base">{detailSeance.titre}</h2>
+                    <p className="text-[var(--text-muted)] text-xs mt-0.5">{detailSeance.profiles?.nom || 'Client'}</p>
                   </div>
                 </div>
-                <button onClick={() => setDetailSeance(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                <button onClick={() => setDetailSeance(null)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                   <X size={18} />
                 </button>
               </div>
 
               {/* Infos */}
-              <div className="px-6 py-4 border-b border-[#27272a] flex items-center gap-6">
+              <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                  <Calendar size={14} className="text-white/30" />
-                  <span className="text-sm text-[#F5F5F3]">
+                  <Calendar size={14} className="text-[var(--text-muted)]" />
+                  <span className="text-sm text-[var(--text-primary)]">
                     {new Date(detailSeance.date_prevue).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
                   </span>
                 </div>
@@ -970,7 +970,7 @@ export default function CoachGlobalCalendarPage() {
 
               {/* Exercices */}
               <div className="px-6 py-4 max-h-[300px] overflow-y-auto">
-                <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-3">
+                <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-3">
                   Exercices ({detailExos.length})
                 </p>
                 {loadingExos ? (
@@ -978,23 +978,23 @@ export default function CoachGlobalCalendarPage() {
                     <Loader2 size={20} className="animate-spin text-[#FF6B2B]" />
                   </div>
                 ) : detailExos.length === 0 ? (
-                  <p className="text-center text-white/20 text-sm py-6">Aucun exercice ajouté</p>
+                  <p className="text-center text-[var(--text-muted)] text-sm py-6">Aucun exercice ajouté</p>
                 ) : (
                   <div className="space-y-2">
                     {detailExos.map((ex, i) => (
-                      <div key={ex.id} className="flex items-center gap-3 p-3 rounded-xl bg-[#18181b] border border-[#27272a]">
+                      <div key={ex.id} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)]">
                         <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-[11px] font-bold text-[#FF6B2B]">{i + 1}</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[#F5F5F3] truncate">{ex.exercices?.nom || 'Exercice'}</p>
-                          <p className="text-[11px] text-white/30 mt-0.5">
+                          <p className="text-sm font-medium text-[var(--text-primary)] truncate">{ex.exercices?.nom || 'Exercice'}</p>
+                          <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
                             {ex.exercices?.muscle_group || ''}{ex.exercices?.equipment ? ` — ${ex.exercices.equipment}` : ''}
                           </p>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="text-xs text-[#F5F5F3] font-medium">{ex.series}×{ex.reps}</p>
-                          <p className="text-[10px] text-white/25">{ex.poids ? `${ex.poids}kg` : ''}{ex.repos ? ` ${ex.repos}s` : ''}</p>
+                          <p className="text-xs text-[var(--text-primary)] font-medium">{ex.series}×{ex.reps}</p>
+                          <p className="text-[10px] text-[var(--text-muted)]">{ex.poids ? `${ex.poids}kg` : ''}{ex.repos ? ` ${ex.repos}s` : ''}</p>
                         </div>
                       </div>
                     ))}
@@ -1003,7 +1003,7 @@ export default function CoachGlobalCalendarPage() {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-[#27272a] flex gap-2">
+              <div className="px-6 py-4 border-t border-[var(--border-base)] flex gap-2">
                 <button
                   onClick={() => handleDeleteSeance(detailSeance.id)}
                   className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-400 bg-red-500/10 hover:bg-red-500/15 transition-colors"
@@ -1030,41 +1030,41 @@ export default function CoachGlobalCalendarPage() {
           <>
             <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setDetailEvent(null)} />
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+              <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+                <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${ti.color}20` }}>
                       <TI size={18} style={{ color: ti.color }} />
                     </div>
                     <div>
-                      <h2 className="text-[#F5F5F3] font-semibold text-base">{detailEvent.title}</h2>
+                      <h2 className="text-[var(--text-primary)] font-semibold text-base">{detailEvent.title}</h2>
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${ti.color}15`, color: ti.color }}>
                         {ti.label}
                       </span>
                     </div>
                   </div>
-                  <button onClick={() => setDetailEvent(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                  <button onClick={() => setDetailEvent(null)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                     <X size={18} />
                   </button>
                 </div>
 
                 {/* Infos */}
-                <div className="px-6 py-4 border-b border-[#27272a] flex flex-wrap items-center gap-4">
+                <div className="px-6 py-4 border-b border-[var(--border-base)] flex flex-wrap items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <Calendar size={14} className="text-white/30" />
-                    <span className="text-sm text-[#F5F5F3]">
+                    <Calendar size={14} className="text-[var(--text-muted)]" />
+                    <span className="text-sm text-[var(--text-primary)]">
                       {new Date(detailEvent.event_date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock size={14} className="text-white/30" />
-                    <span className="text-sm text-[#F5F5F3]">{formatHHmm(detailEvent.event_date)}</span>
+                    <Clock size={14} className="text-[var(--text-muted)]" />
+                    <span className="text-sm text-[var(--text-primary)]">{formatHHmm(detailEvent.event_date)}</span>
                   </div>
                   {getClientName(detailEvent.client_id) && (
                     <div className="flex items-center gap-2">
-                      <User size={14} className="text-white/30" />
-                      <span className="text-sm text-[#F5F5F3]">{getClientName(detailEvent.client_id)}</span>
+                      <User size={14} className="text-[var(--text-muted)]" />
+                      <span className="text-sm text-[var(--text-primary)]">{getClientName(detailEvent.client_id)}</span>
                     </div>
                   )}
                 </div>
@@ -1073,8 +1073,8 @@ export default function CoachGlobalCalendarPage() {
                 <div className="px-6 py-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <AlignLeft size={14} className="text-white/30" />
-                      <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold">Notes</p>
+                      <AlignLeft size={14} className="text-[var(--text-muted)]" />
+                      <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold">Notes</p>
                     </div>
                     {!editingNotes && (
                       <button
@@ -1093,13 +1093,13 @@ export default function CoachGlobalCalendarPage() {
                         onChange={(e) => setEditNotesValue(e.target.value)}
                         rows={4}
                         autoFocus
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-3 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none"
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none"
                         placeholder="Ajouter des notes..."
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={() => setEditingNotes(false)}
-                          className="flex-1 py-2 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors"
+                          className="flex-1 py-2 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] transition-colors"
                         >
                           Annuler
                         </button>
@@ -1114,11 +1114,11 @@ export default function CoachGlobalCalendarPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 min-h-[60px]">
+                    <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-4 min-h-[60px]">
                       {detailEvent.notes ? (
-                        <p className="text-sm text-[#F5F5F3] leading-relaxed whitespace-pre-wrap">{detailEvent.notes}</p>
+                        <p className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">{detailEvent.notes}</p>
                       ) : (
-                        <p className="text-sm text-white/20 italic">Aucune note pour cet événement</p>
+                        <p className="text-sm text-[var(--text-muted)] italic">Aucune note pour cet événement</p>
                       )}
                     </div>
                   )}
@@ -1135,7 +1135,7 @@ export default function CoachGlobalCalendarPage() {
                   {detailEvent.client_id && (
                     <button
                       onClick={() => { setDetailEvent(null); navigate(`/coach/clients/${detailEvent.client_id}`) }}
-                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-sm font-medium hover:text-white/60 hover:border-[#3f3f46] transition-colors"
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[var(--border-base)] text-[var(--text-muted)] text-sm font-medium hover:text-[var(--text-secondary)] hover:border-[#3f3f46] transition-colors"
                     >
                       <ExternalLink size={14} /> Voir la fiche client
                     </button>

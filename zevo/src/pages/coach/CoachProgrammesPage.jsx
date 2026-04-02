@@ -403,7 +403,7 @@ export default function CoachProgrammesPage() {
   // VUE ÉDITEUR
   // ═══════════════════════════════════════
   if (view === 'editor') {
-    const inputCls = "w-full bg-[#0D0D0D] border border-white/[0.06] rounded-2xl px-5 py-3.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all"
+    const inputCls = "w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl px-5 py-3.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all"
     return (
       <div className="p-4 md:p-8 lg:p-10 w-full max-w-3xl mx-auto space-y-10">
 
@@ -413,25 +413,25 @@ export default function CoachProgrammesPage() {
             className="inline-flex items-center gap-1.5 text-[#FF6B2B] text-sm font-medium hover:text-[#FF9A6C] transition-colors mb-6">
             <ArrowLeft size={16} /> Retour aux programmes
           </button>
-          <h1 className="text-[#F5F5F3] text-3xl md:text-4xl font-bold tracking-tight">
+          <h1 className="text-[var(--text-primary)] text-3xl md:text-4xl font-bold tracking-tight">
             {editProgramme.id ? editProgramme.titre || 'Modifier le programme' : 'Nouveau programme'}
           </h1>
-          <p className="text-white/25 text-base mt-2">Construis un parcours structuré pour tes clients.</p>
+          <p className="text-[var(--text-muted)] text-base mt-2">Construis un parcours structuré pour tes clients.</p>
         </div>
 
         {/* ── Informations générales ── */}
         <div className="space-y-6">
-          <h2 className="text-[#F5F5F3] text-lg font-bold">Informations</h2>
-          <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-6 md:p-8 space-y-5">
+          <h2 className="text-[var(--text-primary)] text-lg font-bold">Informations</h2>
+          <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] p-6 md:p-8 space-y-5">
             <div>
-              <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Titre du programme</label>
+              <label className="block text-xs text-[var(--text-muted)] mb-2 font-semibold uppercase tracking-wider">Titre du programme</label>
               <input type="text" value={editProgramme.titre}
                 onChange={(e) => setEditProgramme(prev => ({ ...prev, titre: e.target.value }))}
                 placeholder="Ex : Transformation 12 semaines"
                 className={inputCls} />
             </div>
             <div>
-              <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Description</label>
+              <label className="block text-xs text-[var(--text-muted)] mb-2 font-semibold uppercase tracking-wider">Description</label>
               <textarea value={editProgramme.description || ''}
                 onChange={(e) => setEditProgramme(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Décris le programme en quelques lignes..."
@@ -440,13 +440,13 @@ export default function CoachProgrammesPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Durée (semaines)</label>
+                <label className="block text-xs text-[var(--text-muted)] mb-2 font-semibold uppercase tracking-wider">Durée (semaines)</label>
                 <input type="number" min={1} max={52} value={editProgramme.duree_semaines}
                   onChange={(e) => setEditProgramme(prev => ({ ...prev, duree_semaines: parseInt(e.target.value) || 4 }))}
                   className={inputCls} />
               </div>
               <div>
-                <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Catégorie</label>
+                <label className="block text-xs text-[var(--text-muted)] mb-2 font-semibold uppercase tracking-wider">Catégorie</label>
                 <select value={editProgramme.categorie || ''}
                   onChange={(e) => setEditProgramme(prev => ({ ...prev, categorie: e.target.value }))}
                   className={inputCls}>
@@ -462,11 +462,11 @@ export default function CoachProgrammesPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-[#F5F5F3] text-lg font-bold">Phases</h2>
-              <p className="text-white/20 text-sm mt-0.5">{phases.length} phase{phases.length > 1 ? 's' : ''} dans ce programme</p>
+              <h2 className="text-[var(--text-primary)] text-lg font-bold">Phases</h2>
+              <p className="text-[var(--text-muted)] text-sm mt-0.5">{phases.length} phase{phases.length > 1 ? 's' : ''} dans ce programme</p>
             </div>
             <button onClick={addPhase}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#1E1E1E] border border-white/[0.06] text-[#FF6B2B] text-sm font-semibold hover:bg-[#2A2A2A] transition-all">
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] text-[#FF6B2B] text-sm font-semibold hover:bg-[var(--bg-surface)] transition-all">
               <Plus size={15} /> Nouvelle phase
             </button>
           </div>
@@ -491,9 +491,9 @@ export default function CoachProgrammesPage() {
         </div>
 
         {/* ── Actions — sticky bottom ── */}
-        <div className="flex items-center gap-3 justify-end pb-10 pt-4 border-t border-white/[0.04]">
+        <div className="flex items-center gap-3 justify-end pb-10 pt-4 border-t border-[var(--border-subtle)]">
           <button onClick={() => setView('list')}
-            className="px-6 py-3 rounded-2xl text-sm text-white/30 hover:text-white hover:bg-[#1E1E1E] transition-all font-medium">
+            className="px-6 py-3 rounded-2xl text-sm text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-card)] transition-all font-medium">
             Annuler
           </button>
           <button onClick={handleSave}
@@ -517,7 +517,7 @@ export default function CoachProgrammesPage() {
   const STATUS_COLORS = {
     en_cours: 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20',
     pause: 'text-amber-400 bg-amber-500/10 border border-amber-500/20',
-    termine: 'text-white/40 bg-white/5 border border-white/10',
+    termine: 'text-[var(--text-muted)] bg-white/5 border border-white/10',
   }
 
   // Search filter
@@ -539,8 +539,8 @@ export default function CoachProgrammesPage() {
       {/* ═══ Header ═══ */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-[#F5F5F3] text-3xl font-bold tracking-tight">Programmes Sport</h1>
-          <p className="text-white/25 text-sm mt-1.5">Parcours multi-semaines pour tes clients</p>
+          <h1 className="text-[var(--text-primary)] text-3xl font-bold tracking-tight">Programmes Sport</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1.5">Parcours multi-semaines pour tes clients</p>
         </div>
         <button onClick={handleNew}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25 shrink-0">
@@ -550,7 +550,7 @@ export default function CoachProgrammesPage() {
 
       {/* ═══ Tabs + Search ═══ */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-1 bg-[#1E1E1E] rounded-2xl p-1 border border-white/[0.06]">
+        <div className="flex items-center gap-1 bg-[var(--bg-card)] rounded-2xl p-1 border border-[var(--border-base)]">
           {[
             { key: 'assigned', label: 'Assignés', count: assignations.length },
             { key: 'templates', label: 'Modèles', count: templateProgs.length },
@@ -559,20 +559,20 @@ export default function CoachProgrammesPage() {
               className={`py-2.5 px-5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                 tab === t.key
                   ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
-                  : 'text-white/40 hover:text-white/60'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}>
               {t.label}
-              <span className={`ml-1.5 text-xs ${tab === t.key ? 'text-white/70' : 'text-white/20'}`}>
+              <span className={`ml-1.5 text-xs ${tab === t.key ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}`}>
                 {t.count}
               </span>
             </button>
           ))}
         </div>
         <div className="relative">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
             placeholder="Rechercher..."
-            className="w-56 bg-[#1E1E1E] border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all" />
+            className="w-56 bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl pl-10 pr-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all" />
         </div>
       </div>
 
@@ -580,19 +580,19 @@ export default function CoachProgrammesPage() {
       {tab === 'assigned' && (
         <>
           {filteredAssignations.length === 0 ? (
-            <div className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] p-16 text-center">
+            <div className="bg-[var(--bg-card)] rounded-3xl border border-[var(--border-base)] p-16 text-center">
               <div className="w-16 h-16 bg-[#FF6B2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
                 <Send size={28} className="text-[#FF6B2B]" />
               </div>
-              <h3 className="text-[#F5F5F3] font-bold text-lg mb-2">
+              <h3 className="text-[var(--text-primary)] font-bold text-lg mb-2">
                 {searchTerm ? 'Aucun résultat' : 'Aucun programme assigné'}
               </h3>
-              <p className="text-white/25 text-sm mb-6 max-w-sm mx-auto">
+              <p className="text-[var(--text-muted)] text-sm mb-6 max-w-sm mx-auto">
                 {searchTerm ? `Aucun résultat pour "${searchTerm}"` : 'Crée un modèle puis assigne-le à un client.'}
               </p>
               {!searchTerm && (
                 <button onClick={() => setTab('templates')}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/[0.06] text-white/60 text-sm font-medium hover:bg-white/[0.1] transition-all">
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--bg-surface)] transition-all">
                   <Layers size={14} /> Voir les modèles
                 </button>
               )}
@@ -613,7 +613,7 @@ export default function CoachProgrammesPage() {
 
                 return (
                   <div key={assign.id}
-                    className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-5 md:p-6 hover:border-white/[0.12] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 transition-all duration-300">
+                    className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] p-5 md:p-6 hover:border-[var(--border-base)] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 transition-all duration-300">
 
                     <div className="flex items-start gap-4">
                       <div className={`w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
@@ -626,9 +626,9 @@ export default function CoachProgrammesPage() {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
-                          <h3 className="text-[#F5F5F3] font-bold text-sm">{clientNom}</h3>
+                          <h3 className="text-[var(--text-primary)] font-bold text-sm">{clientNom}</h3>
                           <span className="w-1 h-1 rounded-full bg-white/15" />
-                          <span className="text-white/40 text-sm truncate">{prog.titre}</span>
+                          <span className="text-[var(--text-muted)] text-sm truncate">{prog.titre}</span>
                         </div>
 
                         <div className="flex items-center gap-2 mb-3.5">
@@ -636,17 +636,17 @@ export default function CoachProgrammesPage() {
                             {STATUS_LABELS[assign.statut] || assign.statut}
                           </span>
                           {prog.categorie && (
-                            <span className="text-white/20 text-xs">{prog.categorie}</span>
+                            <span className="text-[var(--text-muted)] text-xs">{prog.categorie}</span>
                           )}
                           {assign.date_debut && (
-                            <span className="text-white/20 text-xs">
+                            <span className="text-[var(--text-muted)] text-xs">
                               Depuis le {new Date(assign.date_debut).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                             </span>
                           )}
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                          <div className="flex-1 h-2 rounded-full bg-[var(--bg-surface)] overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-700 ease-out ${
                                 isComplete
@@ -674,14 +674,14 @@ export default function CoachProgrammesPage() {
       {tab === 'templates' && (
         <>
           {filteredTemplates.length === 0 ? (
-            <div className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] p-20 text-center">
+            <div className="bg-[var(--bg-card)] rounded-3xl border border-[var(--border-base)] p-20 text-center">
               <div className="w-20 h-20 bg-[#FF6B2B]/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <FolderOpen size={32} className="text-[#FF6B2B]" />
               </div>
-              <h3 className="text-[#F5F5F3] font-bold text-xl mb-2">
+              <h3 className="text-[var(--text-primary)] font-bold text-xl mb-2">
                 {searchTerm ? 'Aucun résultat' : 'Aucun programme'}
               </h3>
-              <p className="text-white/25 text-sm mb-8 max-w-md mx-auto">
+              <p className="text-[var(--text-muted)] text-sm mb-8 max-w-md mx-auto">
                 {searchTerm ? `Aucun modèle pour "${searchTerm}"` : 'Crée ton premier programme de coaching structuré.'}
               </p>
               {!searchTerm && (
@@ -695,7 +695,7 @@ export default function CoachProgrammesPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {filteredTemplates.map((prog) => (
                 <div key={prog.id}
-                  className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/[0.12] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 group">
+                  className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] overflow-hidden hover:border-[var(--border-base)] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 group">
 
                   <div className="p-6">
                     <div className="flex items-start gap-4 mb-5">
@@ -703,19 +703,19 @@ export default function CoachProgrammesPage() {
                         <Dumbbell size={20} className="text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[#F5F5F3] font-bold text-base leading-tight truncate">{prog.titre}</h3>
+                        <h3 className="text-[var(--text-primary)] font-bold text-base leading-tight truncate">{prog.titre}</h3>
                         {prog.description && (
-                          <p className="text-white/25 text-sm mt-1 line-clamp-2">{prog.description}</p>
+                          <p className="text-[var(--text-muted)] text-sm mt-1 line-clamp-2">{prog.description}</p>
                         )}
                       </div>
                       <button onClick={() => handleDelete(prog.id)}
-                        className="p-2 rounded-xl text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+                        className="p-2 rounded-xl text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
                         <Trash2 size={15} />
                       </button>
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap mb-6">
-                      <span className="inline-flex items-center gap-1.5 bg-[#0D0D0D] px-3 py-1.5 rounded-xl text-xs text-white/40 font-medium border border-white/[0.04]">
+                      <span className="inline-flex items-center gap-1.5 bg-[var(--bg-base)] px-3 py-1.5 rounded-xl text-xs text-[var(--text-muted)] font-medium border border-[var(--border-subtle)]">
                         <Calendar size={12} /> {prog.duree_semaines} sem.
                       </span>
                       {prog.categorie && (
@@ -727,7 +727,7 @@ export default function CoachProgrammesPage() {
 
                     <div className="grid grid-cols-2 gap-3">
                       <button onClick={() => handleEdit(prog)}
-                        className="py-2.5 rounded-xl bg-white/[0.04] text-white/50 text-sm font-medium hover:bg-white/[0.08] hover:text-white transition-all flex items-center justify-center gap-2 border border-white/[0.04]">
+                        className="py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--bg-surface)] hover:text-white transition-all flex items-center justify-center gap-2 border border-[var(--border-subtle)]">
                         <Edit3 size={14} /> Modifier
                       </button>
                       <button onClick={() => setAssignModal(prog)}
@@ -776,20 +776,20 @@ function AssignProgramModal({ programme, clients, deploying, onDeploy, onClose }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div className="relative w-full max-w-md bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+      <div className="relative w-full max-w-md bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] shadow-2xl overflow-hidden"
         onClick={e => e.stopPropagation()}>
         {/* Orange top bar */}
         <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
 
         {/* Header */}
-        <div className="px-6 pt-5 pb-4 border-b border-white/[0.06]">
+        <div className="px-6 pt-5 pb-4 border-b border-[var(--border-base)]">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-[#F5F5F3] text-lg font-bold">Assigner un programme</h2>
-              <p className="text-white/40 text-sm mt-0.5">{programme.titre}</p>
+              <h2 className="text-[var(--text-primary)] text-lg font-bold">Assigner un programme</h2>
+              <p className="text-[var(--text-muted)] text-sm mt-0.5">{programme.titre}</p>
             </div>
             <button onClick={onClose}
-              className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+              className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all">
               <X size={18} />
             </button>
           </div>
@@ -799,7 +799,7 @@ function AssignProgramModal({ programme, clients, deploying, onDeploy, onClose }
         <div className="p-6 space-y-5">
           {/* Programme info badges */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 bg-[#2A2A2A] px-3 py-1.5 rounded-lg text-xs text-white/50">
+            <span className="inline-flex items-center gap-1.5 bg-[var(--bg-surface)] px-3 py-1.5 rounded-lg text-xs text-[var(--text-secondary)]">
               <Calendar size={12} /> {programme.duree_semaines} semaines
             </span>
             {programme.categorie && (
@@ -811,20 +811,20 @@ function AssignProgramModal({ programme, clients, deploying, onDeploy, onClose }
 
           {/* Sélection du client */}
           <div>
-            <label className="block text-sm text-white/50 mb-2 font-medium">Sélectionner un client</label>
+            <label className="block text-sm text-[var(--text-secondary)] mb-2 font-medium">Sélectionner un client</label>
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <input
                 type="text"
                 value={searchClient}
                 onChange={e => setSearchClient(e.target.value)}
                 placeholder="Rechercher un client..."
-                className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl pl-9 pr-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl pl-9 pr-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
               />
             </div>
             <div className="mt-2 max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
               {filteredClients.length === 0 ? (
-                <p className="text-white/25 text-xs text-center py-4">Aucun client trouvé</p>
+                <p className="text-[var(--text-muted)] text-xs text-center py-4">Aucun client trouvé</p>
               ) : (
                 filteredClients.map(c => {
                   const profileId = c.profiles?.id
@@ -837,16 +837,16 @@ function AssignProgramModal({ programme, clients, deploying, onDeploy, onClose }
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
                         isSelected
                           ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30'
-                          : 'hover:bg-white/[0.04] border border-transparent'
+                          : 'hover:bg-[var(--bg-surface)] border border-transparent'
                       }`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                        isSelected ? 'bg-[#FF6B2B] text-white' : 'bg-[#2A2A2A] text-white/50'
+                        isSelected ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-surface)] text-[var(--text-secondary)]'
                       }`}>
                         {initials}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate ${isSelected ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{nom}</p>
-                        <p className="text-xs text-white/30 truncate">{email}</p>
+                        <p className={`text-sm font-medium truncate ${isSelected ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{nom}</p>
+                        <p className="text-xs text-[var(--text-muted)] truncate">{email}</p>
                       </div>
                       {isSelected && (
                         <div className="w-5 h-5 rounded-full bg-[#FF6B2B] flex items-center justify-center shrink-0">
@@ -862,25 +862,25 @@ function AssignProgramModal({ programme, clients, deploying, onDeploy, onClose }
 
           {/* Date de début */}
           <div>
-            <label className="block text-sm text-white/50 mb-2 font-medium">Date de début</label>
+            <label className="block text-sm text-[var(--text-secondary)] mb-2 font-medium">Date de début</label>
             <input
               type="date"
               value={dateDebut}
               onChange={e => setDateDebut(e.target.value)}
-              className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
             />
           </div>
 
           {/* Résumé */}
           {selectedClient && (
-            <div className="bg-[#0D0D0D] rounded-xl p-4 border border-white/[0.04]">
-              <p className="text-xs text-white/40 mb-1">Résumé du déploiement</p>
-              <p className="text-sm text-[#F5F5F3]">
+            <div className="bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-subtle)]">
+              <p className="text-xs text-[var(--text-muted)] mb-1">Résumé du déploiement</p>
+              <p className="text-sm text-[var(--text-primary)]">
                 <span className="font-semibold text-[#FF6B2B]">{programme.titre}</span>
                 {' → '}
                 <span className="font-semibold">{selectedClient.profiles?.nom}</span>
               </p>
-              <p className="text-xs text-white/30 mt-1">
+              <p className="text-xs text-[var(--text-muted)] mt-1">
                 Début le {new Date(dateDebut).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} • {programme.duree_semaines} semaines
               </p>
             </div>
@@ -890,7 +890,7 @@ function AssignProgramModal({ programme, clients, deploying, onDeploy, onClose }
         {/* Footer */}
         <div className="px-6 pb-6 flex items-center gap-3">
           <button onClick={onClose}
-            className="flex-1 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-all border border-white/[0.04]">
+            className="flex-1 py-3 rounded-xl text-sm text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all border border-[var(--border-subtle)]">
             Annuler
           </button>
           <button
@@ -1004,15 +1004,15 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
           </div>
         </div>
 
-        <div className="flex-1 bg-[#1E1E1E] rounded-2xl border border-white/[0.06] mb-4 overflow-hidden shadow-sm">
+        <div className="flex-1 bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] mb-4 overflow-hidden shadow-sm">
           {/* Header */}
           <button onClick={() => setExpanded(prev => !prev)}
-            className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.02] transition-all">
+            className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[var(--bg-surface)] transition-all">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              {expanded ? <ChevronDown size={16} className="text-[#FF6B2B]" /> : <ChevronRight size={16} className="text-white/40" />}
-              <span className="text-[#F5F5F3] font-semibold text-sm truncate">{phase.titre || `Phase ${index + 1}`}</span>
+              {expanded ? <ChevronDown size={16} className="text-[#FF6B2B]" /> : <ChevronRight size={16} className="text-[var(--text-muted)]" />}
+              <span className="text-[var(--text-primary)] font-semibold text-sm truncate">{phase.titre || `Phase ${index + 1}`}</span>
               <div className="flex items-center gap-2">
-                <span className="text-white/25 text-xs bg-[#2A2A2A] px-2 py-0.5 rounded-md">{phase.duree_semaines} sem.</span>
+                <span className="text-[var(--text-muted)] text-xs bg-[var(--bg-surface)] px-2 py-0.5 rounded-md">{phase.duree_semaines} sem.</span>
                 {(phase.habitudes?.length || 0) > 0 && (
                   <span className="text-[#FF6B2B]/70 text-xs bg-[#FF6B2B]/10 px-2 py-0.5 rounded-md">
                     {phase.habitudes.length} hab.
@@ -1022,7 +1022,7 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
             </div>
             {canRemove && (
               <button onClick={(e) => { e.stopPropagation(); onRemove() }}
-                className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all">
+                className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all">
                 <X size={14} />
               </button>
             )}
@@ -1033,39 +1033,39 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
               {/* Titre + durée */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
-                  <label className="block text-xs text-white/40 mb-1.5 font-medium">Titre</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Titre</label>
                   <input type="text" value={phase.titre}
                     onChange={(e) => onUpdate('titre', e.target.value)}
-                    className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-xs text-white/40 mb-1.5 font-medium">Durée (sem.)</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Durée (sem.)</label>
                   <input type="number" min={1} max={12} value={phase.duree_semaines}
                     onChange={(e) => onUpdate('duree_semaines', parseInt(e.target.value) || 1)}
-                    className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-xs text-white/40 mb-1.5 font-medium">Description</label>
+                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Description</label>
                 <textarea value={phase.description || ''}
                   onChange={(e) => onUpdate('description', e.target.value)}
                   rows={2} placeholder="Objectif de cette phase..."
-                  className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all resize-none" />
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-all resize-none" />
               </div>
 
               {/* ── Habitudes ── */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs text-white/50 font-semibold uppercase tracking-wider">Habitudes à créer</label>
+                  <label className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wider">Habitudes à créer</label>
                 </div>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {(phase.habitudes || []).map((h, hi) => (
-                    <span key={hi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0D0D0D] border border-white/[0.06] text-[#F5F5F3] text-xs">
+                    <span key={hi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)] text-[var(--text-primary)] text-xs">
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: h.couleur || '#FF6B2B' }} />
                       {h.nom}
-                      <button onClick={() => onRemoveItem('habitudes', hi)} className="text-white/30 hover:text-red-400 ml-0.5">
+                      <button onClick={() => onRemoveItem('habitudes', hi)} className="text-[var(--text-muted)] hover:text-red-400 ml-0.5">
                         <X size={10} />
                       </button>
                     </span>
@@ -1075,7 +1075,7 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
                   <input type="text" value={newHab} onChange={(e) => setNewHab(e.target.value)}
                     placeholder="Nom de l'habitude..."
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addHabitude())}
-                    className="flex-1 bg-[#0D0D0D] border border-white/[0.06] rounded-lg px-3 py-2 text-[#F5F5F3] text-xs placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50" />
+                    className="flex-1 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50" />
                   <button onClick={addHabitude} disabled={!newHab.trim()}
                     className="px-3 py-2 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-medium hover:bg-[#FF6B2B]/20 transition-colors disabled:opacity-30">
                     <Plus size={14} />
@@ -1086,13 +1086,13 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
               {/* ── Objectifs ── */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs text-white/50 font-semibold uppercase tracking-wider">Objectifs à créer</label>
+                  <label className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wider">Objectifs à créer</label>
                 </div>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {(phase.objectifs || []).map((o, oi) => (
-                    <span key={oi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0D0D0D] border border-white/[0.06] text-[#F5F5F3] text-xs">
+                    <span key={oi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)] text-[var(--text-primary)] text-xs">
                       <span className="text-[#FF6B2B]">&#x1F3AF;</span> {o.titre}
-                      <button onClick={() => onRemoveItem('objectifs', oi)} className="text-white/30 hover:text-red-400 ml-0.5">
+                      <button onClick={() => onRemoveItem('objectifs', oi)} className="text-[var(--text-muted)] hover:text-red-400 ml-0.5">
                         <X size={10} />
                       </button>
                     </span>
@@ -1102,7 +1102,7 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
                   <input type="text" value={newObj} onChange={(e) => setNewObj(e.target.value)}
                     placeholder="Titre de l'objectif..."
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addObjectif())}
-                    className="flex-1 bg-[#0D0D0D] border border-white/[0.06] rounded-lg px-3 py-2 text-[#F5F5F3] text-xs placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50" />
+                    className="flex-1 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50" />
                   <button onClick={addObjectif} disabled={!newObj.trim()}
                     className="px-3 py-2 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-medium hover:bg-[#FF6B2B]/20 transition-colors disabled:opacity-30">
                     <Plus size={14} />
@@ -1111,11 +1111,11 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
               </div>
 
               {/* ── Ressources additionnelles ── */}
-              <div className="bg-[#0D0D0D] rounded-xl border border-white/[0.06] p-4">
+              <div className="bg-[var(--bg-base)] rounded-xl border border-[var(--border-base)] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <BookOpen size={14} className="text-blue-400" />
-                    <label className="text-xs text-white/50 font-semibold uppercase tracking-wider">Ressources</label>
+                    <label className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wider">Ressources</label>
                   </div>
                   <button onClick={() => setShowResourcePicker(true)}
                     className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors">
@@ -1124,23 +1124,23 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
                 </div>
 
                 {(phase.ressources_attachees || []).length === 0 ? (
-                  <p className="text-white/20 text-xs text-center py-3">Aucune ressource attachée</p>
+                  <p className="text-[var(--text-muted)] text-xs text-center py-3">Aucune ressource attachée</p>
                 ) : (
                   <div className="space-y-2">
                     {(phase.ressources_attachees || []).map((res) => {
                       const typeInfo = RESSOURCE_ICONS[res.type] || RESSOURCE_ICONS.lien
                       const Icon = typeInfo.icon
                       return (
-                        <div key={res.id} className="flex items-center gap-3 bg-[#1E1E1E] rounded-xl p-3 group">
+                        <div key={res.id} className="flex items-center gap-3 bg-[var(--bg-card)] rounded-xl p-3 group">
                           <div className={`w-10 h-10 rounded-lg ${typeInfo.bg} flex items-center justify-center flex-shrink-0`}>
                             <Icon size={16} className={typeInfo.color} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[#F5F5F3] text-sm font-medium truncate">{res.titre}</p>
-                            <p className="text-white/30 text-xs capitalize">{res.type}{res.categorie ? ` · ${res.categorie}` : ''}</p>
+                            <p className="text-[var(--text-primary)] text-sm font-medium truncate">{res.titre}</p>
+                            <p className="text-[var(--text-muted)] text-xs capitalize">{res.type}{res.categorie ? ` · ${res.categorie}` : ''}</p>
                           </div>
                           <button onClick={() => toggleResource(res)}
-                            className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
+                            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
                             <X size={12} />
                           </button>
                         </div>
@@ -1168,55 +1168,55 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
                 </button>
 
                 {showNutrition && (
-                  <div className="mt-3 bg-[#0D0D0D] rounded-xl border border-white/[0.06] p-4 space-y-4">
+                  <div className="mt-3 bg-[var(--bg-base)] rounded-xl border border-[var(--border-base)] p-4 space-y-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       <div>
-                        <label className="block text-[10px] text-white/40 mb-1 uppercase tracking-wider">Calories</label>
+                        <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Calories</label>
                         <div className="relative">
                           <input type="number" min={0} value={phase.calories_objectif || ''}
                             onChange={(e) => onUpdate('calories_objectif', parseInt(e.target.value) || null)}
                             placeholder="2000"
-                            className="w-full bg-[#1E1E1E] border border-white/[0.06] rounded-lg px-3 py-2 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50" />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 text-xs">kcal</span>
+                            className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/50" />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs">kcal</span>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[10px] text-white/40 mb-1 uppercase tracking-wider">Protéines</label>
+                        <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Protéines</label>
                         <div className="relative">
                           <input type="number" min={0} value={phase.proteines_g || ''}
                             onChange={(e) => onUpdate('proteines_g', parseInt(e.target.value) || null)}
                             placeholder="150"
-                            className="w-full bg-[#1E1E1E] border border-white/[0.06] rounded-lg px-3 py-2 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50" />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 text-xs">g</span>
+                            className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/50" />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs">g</span>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[10px] text-white/40 mb-1 uppercase tracking-wider">Glucides</label>
+                        <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Glucides</label>
                         <div className="relative">
                           <input type="number" min={0} value={phase.glucides_g || ''}
                             onChange={(e) => onUpdate('glucides_g', parseInt(e.target.value) || null)}
                             placeholder="250"
-                            className="w-full bg-[#1E1E1E] border border-white/[0.06] rounded-lg px-3 py-2 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50" />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 text-xs">g</span>
+                            className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/50" />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs">g</span>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[10px] text-white/40 mb-1 uppercase tracking-wider">Lipides</label>
+                        <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Lipides</label>
                         <div className="relative">
                           <input type="number" min={0} value={phase.lipides_g || ''}
                             onChange={(e) => onUpdate('lipides_g', parseInt(e.target.value) || null)}
                             placeholder="70"
-                            className="w-full bg-[#1E1E1E] border border-white/[0.06] rounded-lg px-3 py-2 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50" />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 text-xs">g</span>
+                            className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/50" />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-xs">g</span>
                         </div>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[10px] text-white/40 mb-1 uppercase tracking-wider">Consignes nutritionnelles</label>
+                      <label className="block text-[10px] text-[var(--text-muted)] mb-1 uppercase tracking-wider">Consignes nutritionnelles</label>
                       <textarea value={phase.consignes_nutrition || ''}
                         onChange={(e) => onUpdate('consignes_nutrition', e.target.value)}
                         rows={2} placeholder="Ex : Privilégier les protéines maigres, manger 5 fruits et légumes par jour..."
-                        className="w-full bg-[#1E1E1E] border border-white/[0.06] rounded-lg px-3 py-2 text-[#F5F5F3] text-xs placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 resize-none" />
+                        className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 resize-none" />
                     </div>
                   </div>
                 )}
@@ -1254,30 +1254,30 @@ function ExercisePicker({ exercises, onSelect, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.08] w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
+      <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
           <div>
-            <h3 className="text-[#F5F5F3] font-semibold text-lg">Bibliothèque d'exercices</h3>
-            <p className="text-white/30 text-xs mt-0.5">{exercises.length} exercices disponibles</p>
+            <h3 className="text-[var(--text-primary)] font-semibold text-lg">Bibliothèque d'exercices</h3>
+            <p className="text-[var(--text-muted)] text-xs mt-0.5">{exercises.length} exercices disponibles</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+          <button onClick={onClose} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all">
             <X size={18} />
           </button>
         </div>
 
         {/* Search + Filter */}
-        <div className="px-6 py-3 border-b border-white/[0.06] flex gap-3">
+        <div className="px-6 py-3 border-b border-[var(--border-base)] flex gap-3">
           <div className="relative flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
             <input ref={inputRef} type="text" value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher un exercice..."
-              className="w-full bg-[#0D0D0D] border border-white/[0.06] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:border-[#FF6B2B]/50" />
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50" />
           </div>
           <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}
-            className="bg-[#0D0D0D] border border-white/[0.06] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50">
+            className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50">
             <option value="">Toutes catégories</option>
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -1286,23 +1286,23 @@ function ExercisePicker({ exercises, onSelect, onClose }) {
         {/* Exercise Grid */}
         <div className="flex-1 overflow-y-auto p-4">
           {filtered.length === 0 ? (
-            <p className="text-white/30 text-sm text-center py-8">Aucun exercice trouvé</p>
+            <p className="text-[var(--text-muted)] text-sm text-center py-8">Aucun exercice trouvé</p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {filtered.map((ex) => (
                 <button key={ex.id} onClick={() => onSelect(ex)}
-                  className="text-left bg-[#0D0D0D] rounded-xl border border-white/[0.06] overflow-hidden hover:border-[#FF6B2B]/40 hover:shadow-lg hover:shadow-[#FF6B2B]/10 transition-all group">
+                  className="text-left bg-[var(--bg-base)] rounded-xl border border-[var(--border-base)] overflow-hidden hover:border-[#FF6B2B]/40 hover:shadow-lg hover:shadow-[#FF6B2B]/10 transition-all group">
                   {ex.image_url ? (
                     <img src={ex.image_url} alt={ex.name}
                       className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
-                    <div className="w-full h-24 bg-[#2A2A2A] flex items-center justify-center">
-                      <Dumbbell size={24} className="text-white/15" />
+                    <div className="w-full h-24 bg-[var(--bg-surface)] flex items-center justify-center">
+                      <Dumbbell size={24} className="text-[var(--text-muted)]" />
                     </div>
                   )}
                   <div className="p-3">
-                    <p className="text-[#F5F5F3] text-xs font-medium truncate">{ex.name}</p>
-                    <p className="text-white/30 text-[10px] mt-0.5">{ex.muscle_group}</p>
+                    <p className="text-[var(--text-primary)] text-xs font-medium truncate">{ex.name}</p>
+                    <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{ex.muscle_group}</p>
                     <span className="inline-block mt-1.5 text-[9px] text-[#FF6B2B]/70 bg-[#FF6B2B]/10 px-2 py-0.5 rounded-full">
                       {ex.category}
                     </span>
@@ -1343,32 +1343,32 @@ function ResourcePicker({ ressources, selected, onToggle, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.08] w-full max-w-xl max-h-[80vh] flex flex-col shadow-2xl"
+      <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] w-full max-w-xl max-h-[80vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
           <div>
-            <h3 className="text-[#F5F5F3] font-semibold text-lg">Ma bibliothèque</h3>
-            <p className="text-white/30 text-xs mt-0.5">
+            <h3 className="text-[var(--text-primary)] font-semibold text-lg">Ma bibliothèque</h3>
+            <p className="text-[var(--text-muted)] text-xs mt-0.5">
               {ressources.length} ressource{ressources.length > 1 ? 's' : ''} · {selected.length} sélectionnée{selected.length > 1 ? 's' : ''}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+          <button onClick={onClose} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all">
             <X size={18} />
           </button>
         </div>
 
         {/* Search + Filter */}
-        <div className="px-6 py-3 border-b border-white/[0.06] flex gap-3">
+        <div className="px-6 py-3 border-b border-[var(--border-base)] flex gap-3">
           <div className="relative flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
             <input ref={inputRef} type="text" value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher une ressource..."
-              className="w-full bg-[#0D0D0D] border border-white/[0.06] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:border-blue-500/50" />
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-500/50" />
           </div>
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-            className="bg-[#0D0D0D] border border-white/[0.06] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-blue-500/50">
+            className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50">
             <option value="">Tous types</option>
             {types.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
           </select>
@@ -1378,12 +1378,12 @@ function ResourcePicker({ ressources, selected, onToggle, onClose }) {
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {filtered.length === 0 ? (
             <div className="text-center py-8">
-              <BookOpen size={32} className="text-white/15 mx-auto mb-3" />
-              <p className="text-white/30 text-sm">
+              <BookOpen size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
+              <p className="text-[var(--text-muted)] text-sm">
                 {ressources.length === 0 ? 'Aucune ressource dans ta bibliothèque' : 'Aucun résultat'}
               </p>
               {ressources.length === 0 && (
-                <p className="text-white/20 text-xs mt-1">Ajoute des ressources depuis l'onglet Bibliothèque</p>
+                <p className="text-[var(--text-muted)] text-xs mt-1">Ajoute des ressources depuis l'onglet Bibliothèque</p>
               )}
             </div>
           ) : (
@@ -1396,14 +1396,14 @@ function ResourcePicker({ ressources, selected, onToggle, onClose }) {
                   className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
                     isSelected
                       ? 'bg-blue-500/10 border border-blue-500/30'
-                      : 'bg-[#0D0D0D] border border-white/[0.04] hover:border-white/[0.1]'
+                      : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] hover:border-[var(--border-base)]'
                   }`}>
                   <div className={`w-10 h-10 rounded-lg ${typeInfo.bg} flex items-center justify-center flex-shrink-0`}>
                     <Icon size={16} className={typeInfo.color} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[#F5F5F3] text-sm font-medium truncate">{res.titre}</p>
-                    <p className="text-white/30 text-xs capitalize mt-0.5">
+                    <p className="text-[var(--text-primary)] text-sm font-medium truncate">{res.titre}</p>
+                    <p className="text-[var(--text-muted)] text-xs capitalize mt-0.5">
                       {res.type}{res.categorie ? ` · ${res.categorie}` : ''}
                     </p>
                   </div>
@@ -1419,7 +1419,7 @@ function ResourcePicker({ ressources, selected, onToggle, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 border-t border-white/[0.06] flex justify-end">
+        <div className="px-6 py-3 border-t border-[var(--border-base)] flex justify-end">
           <button onClick={onClose}
             className="px-5 py-2.5 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20">
             Valider ({selected.length})

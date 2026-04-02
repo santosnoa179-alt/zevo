@@ -123,14 +123,14 @@ export default function OnboardingFlow({ onComplete }) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#0D0D0D]/95 backdrop-blur-sm flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-[var(--bg-base)]/95 backdrop-blur-sm flex items-center justify-center">
         <Loader2 className="animate-spin" size={32} style={{ color: couleur }} />
       </div>
     )
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0D0D0D]/95 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-[var(--bg-base)]/95 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Indicateur de progression */}
         <div className="flex items-center justify-center gap-2 mb-8">
@@ -140,14 +140,14 @@ export default function OnboardingFlow({ onComplete }) {
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 s <= step ? 'w-10' : 'w-6'
               }`}
-              style={{ backgroundColor: s <= step ? couleur : 'rgba(255,255,255,0.1)' }}
+              style={{ backgroundColor: s <= step ? couleur : 'var(--border-base)' }}
             />
           ))}
         </div>
 
         {/* ── Step 1 : Profil ── */}
         {step === 1 && (
-          <div className="bg-[#1E1E1E] rounded-2xl p-8 space-y-6 animate-fade-in">
+          <div className="bg-[var(--bg-card)] rounded-2xl p-8 space-y-6 animate-fade-in">
             <div className="text-center">
               <div
                 className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
@@ -155,8 +155,8 @@ export default function OnboardingFlow({ onComplete }) {
               >
                 <User size={24} style={{ color: couleur }} />
               </div>
-              <h2 className="text-[#F5F5F3] text-xl font-bold mb-1">Ton profil</h2>
-              <p className="text-white/40 text-sm">Dis-nous en un peu plus sur toi</p>
+              <h2 className="text-[var(--text-primary)] text-xl font-bold mb-1">Ton profil</h2>
+              <p className="text-[var(--text-muted)] text-sm">Dis-nous en un peu plus sur toi</p>
             </div>
 
             {/* Avatar */}
@@ -169,8 +169,8 @@ export default function OnboardingFlow({ onComplete }) {
                 {avatarPreview ? (
                   <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-[#2A2A2A] flex items-center justify-center">
-                    <User size={36} className="text-white/20" />
+                  <div className="w-full h-full bg-[var(--bg-surface)] flex items-center justify-center">
+                    <User size={36} className="text-[var(--text-muted)]" />
                   </div>
                 )}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -193,14 +193,14 @@ export default function OnboardingFlow({ onComplete }) {
                 value={prenom}
                 onChange={(e) => setPrenom(e.target.value)}
                 placeholder="Prénom"
-                className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#FF6B2B)]/50 transition-colors"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#FF6B2B)]/50 transition-colors"
               />
               <input
                 type="text"
                 value={nom}
                 onChange={(e) => setNom(e.target.value)}
                 placeholder="Nom"
-                className="w-full bg-[#0D0D0D] border border-white/[0.08] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#FF6B2B)]/50 transition-colors"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#FF6B2B)]/50 transition-colors"
               />
             </div>
 
@@ -222,7 +222,7 @@ export default function OnboardingFlow({ onComplete }) {
 
         {/* ── Step 2 : Bienvenue ── */}
         {step === 2 && (
-          <div className="bg-[#1E1E1E] rounded-2xl p-8 text-center space-y-6 animate-fade-in">
+          <div className="bg-[var(--bg-card)] rounded-2xl p-8 text-center space-y-6 animate-fade-in">
             <div
               className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center"
               style={{ backgroundColor: `${couleur}20` }}
@@ -231,15 +231,15 @@ export default function OnboardingFlow({ onComplete }) {
             </div>
 
             <div>
-              <h2 className="text-[#F5F5F3] text-xl font-bold mb-2">
+              <h2 className="text-[var(--text-primary)] text-xl font-bold mb-2">
                 Bienvenue{prenom ? ` ${prenom}` : ''} sur {nomApp} !
               </h2>
               {messageBienvenue ? (
-                <p className="text-white/60 text-sm leading-relaxed">
+                <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
                   {messageBienvenue}
                 </p>
               ) : (
-                <p className="text-white/60 text-sm leading-relaxed">
+                <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
                   Ton espace personnel est prêt. On va configurer les bases ensemble en quelques secondes.
                 </p>
               )}
@@ -258,7 +258,7 @@ export default function OnboardingFlow({ onComplete }) {
 
         {/* ── Step 3 : Habitudes pré-assignées ── */}
         {step === 3 && (
-          <div className="bg-[#1E1E1E] rounded-2xl p-8 space-y-6 animate-fade-in">
+          <div className="bg-[var(--bg-card)] rounded-2xl p-8 space-y-6 animate-fade-in">
             <div className="text-center">
               <div
                 className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
@@ -266,8 +266,8 @@ export default function OnboardingFlow({ onComplete }) {
               >
                 <CheckSquare size={24} style={{ color: couleur }} />
               </div>
-              <h2 className="text-[#F5F5F3] text-xl font-bold mb-1">Tes habitudes</h2>
-              <p className="text-white/40 text-sm">
+              <h2 className="text-[var(--text-primary)] text-xl font-bold mb-1">Tes habitudes</h2>
+              <p className="text-[var(--text-muted)] text-sm">
                 {habitudes.length > 0
                   ? 'Ton coach t\'a déjà préparé ces habitudes :'
                   : 'Ton coach n\'a pas encore assigné d\'habitudes — tu pourras en créer toi-même !'
@@ -280,13 +280,13 @@ export default function OnboardingFlow({ onComplete }) {
                 {habitudes.map((h) => (
                   <div
                     key={h.id}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#2A2A2A]/50"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-surface)]/50"
                   >
                     <div
                       className="w-3 h-3 rounded-full shrink-0"
                       style={{ backgroundColor: h.couleur || couleur }}
                     />
-                    <span className="text-[#F5F5F3] text-sm">{h.nom}</span>
+                    <span className="text-[var(--text-primary)] text-sm">{h.nom}</span>
                   </div>
                 ))}
               </div>
@@ -305,7 +305,7 @@ export default function OnboardingFlow({ onComplete }) {
 
         {/* ── Step 4 : Premier objectif ── */}
         {step === 4 && (
-          <div className="bg-[#1E1E1E] rounded-2xl p-8 space-y-6 animate-fade-in">
+          <div className="bg-[var(--bg-card)] rounded-2xl p-8 space-y-6 animate-fade-in">
             <div className="text-center">
               <div
                 className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
@@ -313,8 +313,8 @@ export default function OnboardingFlow({ onComplete }) {
               >
                 <Target size={24} style={{ color: couleur }} />
               </div>
-              <h2 className="text-[#F5F5F3] text-xl font-bold mb-1">Ton premier objectif</h2>
-              <p className="text-white/40 text-sm">
+              <h2 className="text-[var(--text-primary)] text-xl font-bold mb-1">Ton premier objectif</h2>
+              <p className="text-[var(--text-muted)] text-sm">
                 Définis un objectif personnel que tu veux atteindre
               </p>
             </div>
@@ -324,7 +324,7 @@ export default function OnboardingFlow({ onComplete }) {
               value={objectifTitre}
               onChange={(e) => setObjectifTitre(e.target.value)}
               placeholder="Ex : Perdre 5 kg, Méditer chaque jour, Courir un 10 km..."
-              className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[var(--color-primary,#FF6B2B)]/50 transition-colors"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary,#FF6B2B)]/50 transition-colors"
             />
 
             <div className="flex gap-3">

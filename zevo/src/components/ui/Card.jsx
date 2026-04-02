@@ -1,8 +1,8 @@
-// Card réutilisable — surface sombre avec bordure subtile
+// Card réutilisable — surface avec bordure subtile (theme-aware)
 export function Card({ children, className = '', ...props }) {
   return (
     <div
-      className={`bg-[#1E1E1E] border border-white/[0.08] rounded-xl ${className}`}
+      className={`bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl ${className}`}
       {...props}
     >
       {children}

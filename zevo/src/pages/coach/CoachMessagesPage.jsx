@@ -81,7 +81,7 @@ function Bulle({ message, estMoi, showTail, clientInitials, clientColor }) {
           className={`px-3.5 py-2.5 text-[15px] leading-relaxed ${
             estMoi
               ? `bg-[#FF6B2B] text-white ${showTail ? 'rounded-2xl rounded-br-md' : 'rounded-2xl'}`
-              : `bg-[#2A2A2A] text-[#F5F5F3] ${showTail ? 'rounded-2xl rounded-bl-md' : 'rounded-2xl'}`
+              : `bg-[var(--bg-surface)] text-[var(--text-primary)] ${showTail ? 'rounded-2xl rounded-bl-md' : 'rounded-2xl'}`
           }`}
         >
           <p className="whitespace-pre-wrap break-words">{message.contenu}</p>
@@ -89,11 +89,11 @@ function Bulle({ message, estMoi, showTail, clientInitials, clientColor }) {
         {/* Heure + statut de lecture — visible sous le dernier message du groupe */}
         {showTail && (
           <div className={`flex items-center gap-1 mt-1 ${estMoi ? 'justify-end pr-1' : 'justify-start pl-1'}`}>
-            <span className="text-white/20 text-[10px]">{formatHeure(message.created_at)}</span>
+            <span className="text-[var(--text-muted)] text-[10px]">{formatHeure(message.created_at)}</span>
             {estMoi && (
               message.lu
                 ? <CheckCheck size={12} className="text-[#FF6B2B]/60" />
-                : <Check size={12} className="text-white/20" />
+                : <Check size={12} className="text-[var(--text-muted)]" />
             )}
           </div>
         )}
@@ -570,11 +570,11 @@ export default function CoachMessagesPage() {
     <div className="flex h-screen overflow-hidden">
 
       {/* ── Sidebar — liste clients ── */}
-      <div className={`flex flex-col w-full md:w-72 border-r border-white/[0.06] flex-shrink-0 ${clientSelectionne ? 'hidden md:flex' : 'flex'}`}>
-        <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+      <div className={`flex flex-col w-full md:w-72 border-r border-[var(--border-subtle)] flex-shrink-0 ${clientSelectionne ? 'hidden md:flex' : 'flex'}`}>
+        <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
           <div>
-            <h1 className="text-[#F5F5F3] font-bold text-lg">Messages</h1>
-            <p className="text-white/30 text-xs mt-0.5">{clients.length} conversation{clients.length !== 1 ? 's' : ''}</p>
+            <h1 className="text-[var(--text-primary)] font-bold text-lg">Messages</h1>
+            <p className="text-[var(--text-muted)] text-xs mt-0.5">{clients.length} conversation{clients.length !== 1 ? 's' : ''}</p>
           </div>
           <button
             onClick={ouvrirModaleNouveauMsg}
@@ -588,8 +588,8 @@ export default function CoachMessagesPage() {
         <div className="flex-1 overflow-y-auto">
           {clients.length === 0 ? (
             <div className="p-6 text-center">
-              <MessageSquare size={24} className="text-white/15 mx-auto mb-2" />
-              <p className="text-white/30 text-sm">Aucun client actif.</p>
+              <MessageSquare size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
+              <p className="text-[var(--text-muted)] text-sm">Aucun client actif.</p>
               <button
                 onClick={ouvrirModaleNouveauMsg}
                 className="mt-3 text-[#FF6B2B] text-xs font-semibold hover:underline"
@@ -602,14 +602,14 @@ export default function CoachMessagesPage() {
               <button
                 key={c.id}
                 onClick={() => ouvrirConversation(c)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-white/[0.04] transition-colors hover:bg-white/[0.03] ${
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-[var(--border-subtle)] transition-colors hover:bg-[var(--bg-surface)] ${
                   clientSelectionne?.id === c.id ? 'bg-[#FF6B2B]/8' : ''
                 }`}
               >
                 <Initiales nom={c.profiles?.nom} couleur={c.couleur} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className={`text-sm truncate ${c.nonLus > 0 ? 'text-[#F5F5F3] font-semibold' : 'text-[#F5F5F3]'}`}>
+                    <p className={`text-sm truncate ${c.nonLus > 0 ? 'text-[var(--text-primary)] font-semibold' : 'text-[var(--text-primary)]'}`}>
                       {c.profiles?.nom ?? c.profiles?.email}
                     </p>
                     {c.nonLus > 0 && (
@@ -619,7 +619,7 @@ export default function CoachMessagesPage() {
                     )}
                   </div>
                   {c.dernierMsg && (
-                    <p className="text-white/30 text-xs truncate mt-0.5">
+                    <p className="text-[var(--text-muted)] text-xs truncate mt-0.5">
                       {c.dernierMsg.expediteur === 'coach' ? 'Vous : ' : ''}{c.dernierMsg.audio_url ? '🎤 Note vocale' : c.dernierMsg.contenu}
                     </p>
                   )}
@@ -634,8 +634,8 @@ export default function CoachMessagesPage() {
       {clientSelectionne ? (
         <div className={`flex flex-col flex-1 ${clientSelectionne ? 'flex' : 'hidden md:flex'}`}>
           {/* Header chat */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.06] flex-shrink-0 bg-[#0D0D0D]/95 backdrop-blur-xl">
-            <button onClick={() => setClientSelectionne(null)} className="md:hidden text-white/40 hover:text-white p-1">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-subtle)] flex-shrink-0 bg-[var(--bg-base)]/95 backdrop-blur-xl">
+            <button onClick={() => setClientSelectionne(null)} className="md:hidden text-[var(--text-muted)] hover:text-white p-1">
               ←
             </button>
             <div className="relative">
@@ -643,10 +643,10 @@ export default function CoachMessagesPage() {
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#0D0D0D]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[#F5F5F3] font-semibold text-[15px] truncate">
+              <p className="text-[var(--text-primary)] font-semibold text-[15px] truncate">
                 {clientSelectionne.profiles?.nom ?? clientSelectionne.profiles?.email}
               </p>
-              <p className="text-white/30 text-[11px]">{clientSelectionne.profiles?.email}</p>
+              <p className="text-[var(--text-muted)] text-[11px]">{clientSelectionne.profiles?.email}</p>
             </div>
           </div>
 
@@ -657,8 +657,8 @@ export default function CoachMessagesPage() {
                 <div className="w-16 h-16 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
                   <Send size={24} className="text-[#FF6B2B]" />
                 </div>
-                <p className="text-[#F5F5F3] font-semibold text-base mb-1">Démarrez la conversation</p>
-                <p className="text-white/30 text-sm">Envoyez un message à {clientName}</p>
+                <p className="text-[var(--text-primary)] font-semibold text-base mb-1">Démarrez la conversation</p>
+                <p className="text-[var(--text-muted)] text-sm">Envoyez un message à {clientName}</p>
               </div>
             ) : (
               <>
@@ -666,7 +666,7 @@ export default function CoachMessagesPage() {
                   if (item.type === 'date') {
                     return (
                       <div key={item.key} className="flex justify-center my-4">
-                        <span className="px-3 py-1 rounded-full bg-white/[0.04] text-white/25 text-[10px] font-medium uppercase tracking-wider">
+                        <span className="px-3 py-1 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] text-[10px] font-medium uppercase tracking-wider">
                           {formatDateSeparator(item.date)}
                         </span>
                       </div>
@@ -691,9 +691,9 @@ export default function CoachMessagesPage() {
             {showScrollBtn && (
               <button
                 onClick={scrollToBottom}
-                className="sticky bottom-3 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-[#1E1E1E] border border-white/[0.1] flex items-center justify-center shadow-xl z-10 hover:bg-[#2A2A2A] active:scale-90 transition-all"
+                className="sticky bottom-3 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center shadow-xl z-10 hover:bg-[var(--bg-surface)] active:scale-90 transition-all"
               >
-                <ChevronDown size={18} className="text-white/50" />
+                <ChevronDown size={18} className="text-[var(--text-secondary)]" />
               </button>
             )}
           </div>
@@ -702,7 +702,7 @@ export default function CoachMessagesPage() {
           <div className="flex gap-2 px-4 pb-2 overflow-x-auto scrollbar-hide">
             {['Bravo cette semaine 💪', 'Continue comme ça !', 'Tu es sur la bonne voie 🚀', 'N\'hésite pas à me contacter 😊'].map((m) => (
               <button key={m} onClick={() => setTexte(m)}
-                className="flex-shrink-0 text-xs bg-[#1E1E1E] text-white/40 hover:text-white/70 border border-white/[0.06] rounded-full px-3 py-1.5 transition-colors hover:border-white/[0.12]">
+                className="flex-shrink-0 text-xs bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] border border-[var(--border-subtle)] rounded-full px-3 py-1.5 transition-colors hover:border-[var(--border-base)]">
                 {m}
               </button>
             ))}
@@ -711,7 +711,7 @@ export default function CoachMessagesPage() {
           {/* Input zone */}
           <form
             onSubmit={envoyerMessage}
-            className="flex items-end gap-2 px-3 py-2.5 border-t border-white/[0.06] flex-shrink-0"
+            className="flex items-end gap-2 px-3 py-2.5 border-t border-[var(--border-subtle)] flex-shrink-0"
           >
             {isRecording ? (
               <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />
@@ -723,7 +723,7 @@ export default function CoachMessagesPage() {
                     value={texte}
                     onChange={(e) => setTexte(e.target.value)}
                     placeholder="Écrire un message..."
-                    className="w-full bg-[#1E1E1E] border border-white/[0.08] rounded-2xl px-4 py-2.5 pr-10 text-[16px] text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/30 transition-colors"
+                    className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-2xl px-4 py-2.5 pr-10 text-[16px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/30 transition-colors"
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e) }}
                   />
                 </div>
@@ -732,7 +732,7 @@ export default function CoachMessagesPage() {
                   <button
                     type="button"
                     onClick={() => setIsRecording(true)}
-                    className="w-10 h-10 rounded-full bg-[#1E1E1E] border border-white/[0.08] flex items-center justify-center flex-shrink-0 text-white/30 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all active:scale-90"
+                    className="w-10 h-10 rounded-full bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center flex-shrink-0 text-[var(--text-muted)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all active:scale-90"
                     title="Note vocale"
                   >
                     <Mic size={18} />
@@ -754,8 +754,8 @@ export default function CoachMessagesPage() {
       ) : (
         <div className="hidden md:flex flex-1 items-center justify-center">
           <div className="text-center">
-            <MessageSquare size={40} className="text-white/10 mx-auto mb-3" />
-            <p className="text-white/20 text-sm">Sélectionne un client pour démarrer</p>
+            <MessageSquare size={40} className="text-[var(--text-muted)] mx-auto mb-3" />
+            <p className="text-[var(--text-muted)] text-sm">Sélectionne un client pour démarrer</p>
             <button
               onClick={ouvrirModaleNouveauMsg}
               className="mt-4 px-4 py-2 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55a1b] transition-colors inline-flex items-center gap-2"
@@ -773,13 +773,13 @@ export default function CoachMessagesPage() {
       {showNewMsg && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowNewMsg(false)} />
-          <div className="relative z-[101] bg-[#18181b] border border-[#27272a] w-full sm:w-[460px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col overflow-hidden">
+          <div className="relative z-[101] bg-[var(--bg-base)] border border-[var(--border-base)] w-full sm:w-[460px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col overflow-hidden">
 
             {/* Header */}
-            <div className="px-4 py-3 border-b border-[#27272a] flex items-center justify-between flex-shrink-0">
+            <div className="px-4 py-3 border-b border-[var(--border-base)] flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
                 <PenSquare size={16} className="text-[#FF6B2B]" />
-                <h3 className="text-[#F5F5F3] font-semibold text-sm">
+                <h3 className="text-[var(--text-primary)] font-semibold text-sm">
                   {isBroadcast ? 'Envoi groupé' : 'Nouvelle conversation'}
                 </h3>
                 {selectedIds.size > 0 && (
@@ -788,22 +788,22 @@ export default function CoachMessagesPage() {
                   </span>
                 )}
               </div>
-              <button onClick={() => setShowNewMsg(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+              <button onClick={() => setShowNewMsg(false)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                 <X size={16} />
               </button>
             </div>
 
             {/* Recherche */}
-            <div className="px-4 py-3 border-b border-[#27272a] flex-shrink-0">
+            <div className="px-4 py-3 border-b border-[var(--border-base)] flex-shrink-0">
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                 <input
                   type="text"
                   value={newMsgSearch}
                   onChange={(e) => setNewMsgSearch(e.target.value)}
                   placeholder="Rechercher un client..."
                   autoFocus
-                  className="w-full bg-[#0f0f10] border border-[#27272a] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/30 transition-all"
+                  className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/30 transition-all"
                 />
               </div>
             </div>
@@ -812,8 +812,8 @@ export default function CoachMessagesPage() {
             <div className="flex-1 overflow-y-auto min-h-0">
               {filteredModalClients.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-                  <Users size={28} className="text-white/10 mb-3" />
-                  <p className="text-white/25 text-xs">
+                  <Users size={28} className="text-[var(--text-muted)] mb-3" />
+                  <p className="text-[var(--text-muted)] text-xs">
                     {newMsgSearch ? 'Aucun client trouvé' : 'Aucun client actif'}
                   </p>
                 </div>
@@ -827,19 +827,19 @@ export default function CoachMessagesPage() {
                     <button
                       key={c.id}
                       onClick={() => toggleClient(c.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/30 ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--bg-surface)] transition-colors text-left border-b border-[var(--border-base)]/30 ${
                         isSelected ? 'bg-[#FF6B2B]/[0.06]' : ''
                       }`}
                     >
                       <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                        isSelected ? 'bg-[#FF6B2B] border-[#FF6B2B]' : 'border-[#27272a]'
+                        isSelected ? 'bg-[#FF6B2B] border-[#FF6B2B]' : 'border-[var(--border-base)]'
                       }`}>
                         {isSelected && <Check size={12} className="text-white" strokeWidth={3} />}
                       </div>
                       <Initiales nom={name} couleur={couleur} size="sm" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[#F5F5F3] text-sm font-medium truncate">{name}</p>
-                        <p className="text-white/20 text-[10px] truncate mt-0.5">{c.profiles?.email}</p>
+                        <p className="text-[var(--text-primary)] text-sm font-medium truncate">{name}</p>
+                        <p className="text-[var(--text-muted)] text-[10px] truncate mt-0.5">{c.profiles?.email}</p>
                       </div>
                     </button>
                   )
@@ -849,10 +849,10 @@ export default function CoachMessagesPage() {
 
             {/* Zone broadcast */}
             {isBroadcast && (
-              <div className="px-4 py-3 border-t border-[#27272a] flex-shrink-0">
+              <div className="px-4 py-3 border-t border-[var(--border-base)] flex-shrink-0">
                 <div className="flex items-center gap-2 mb-2">
                   <Users size={13} className="text-[#FF6B2B]" />
-                  <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold">
+                  <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold">
                     Message groupé à {selectedIds.size} clients
                   </p>
                 </div>
@@ -861,13 +861,13 @@ export default function CoachMessagesPage() {
                   onChange={(e) => setBroadcastText(e.target.value)}
                   placeholder="Écris ton message ici..."
                   rows={3}
-                  className="w-full bg-[#0f0f10] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/30 resize-none transition-all"
+                  className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/30 resize-none transition-all"
                 />
               </div>
             )}
 
             {/* Bouton d'action */}
-            <div className="px-4 py-3 border-t border-[#27272a] flex-shrink-0">
+            <div className="px-4 py-3 border-t border-[var(--border-base)] flex-shrink-0">
               <button
                 onClick={handleModalAction}
                 disabled={selectedIds.size === 0 || sending || (isBroadcast && !broadcastText.trim())}

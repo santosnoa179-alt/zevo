@@ -98,13 +98,13 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-[#F5F5F3]">
+    <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)]">
       {/* Header */}
       <header className="px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
         <ZevoLogo size="md" />
         <button
           onClick={() => navigate('/login')}
-          className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
         >
           <ArrowLeft size={16} />
           Connexion
@@ -117,7 +117,7 @@ export default function PricingPage() {
           Tout ce qu'il faut pour{' '}
           <span className="text-[#FF6B2B]">scaler ton coaching</span>
         </h1>
-        <p className="text-white/50 text-lg max-w-xl mx-auto">
+        <p className="text-[var(--text-secondary)] text-lg max-w-xl mx-auto">
           Installation unique de 249€ (setup + formation 1h) puis un abonnement mensuel adapté à ton activité.
         </p>
       </div>
@@ -143,8 +143,8 @@ export default function PricingPage() {
               key={plan.id}
               className={`relative rounded-2xl p-6 flex flex-col transition-all ${
                 plan.popular
-                  ? 'bg-[#1E1E1E] border-2 border-[#FF6B2B] shadow-[0_0_40px_rgba(255,107,43,0.15)]'
-                  : 'bg-[#1E1E1E] border border-white/[0.08]'
+                  ? 'bg-[var(--bg-card)] border-2 border-[#FF6B2B] shadow-[0_0_40px_rgba(255,107,43,0.15)]'
+                  : 'bg-[var(--bg-card)] border border-[var(--border-base)]'
               }`}
             >
               {/* Badge populaire */}
@@ -161,24 +161,24 @@ export default function PricingPage() {
                 <div className="flex items-center gap-2.5 mb-3">
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      plan.popular ? 'bg-[#FF6B2B]/20' : 'bg-white/[0.04]'
+                      plan.popular ? 'bg-[#FF6B2B]/20' : 'bg-[var(--bg-surface)]'
                     }`}
                   >
                     <Icon
                       size={20}
-                      className={plan.popular ? 'text-[#FF6B2B]' : 'text-white/50'}
+                      className={plan.popular ? 'text-[#FF6B2B]' : 'text-[var(--text-secondary)]'}
                     />
                   </div>
                   <h3 className="text-xl font-bold">{plan.name}</h3>
                 </div>
-                <p className="text-white/40 text-sm">{plan.description}</p>
+                <p className="text-[var(--text-muted)] text-sm">{plan.description}</p>
               </div>
 
               {/* Prix */}
               <div className="mb-6">
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold">{plan.price}€</span>
-                  <span className="text-white/40 text-sm">/mois</span>
+                  <span className="text-[var(--text-muted)] text-sm">/mois</span>
                 </div>
               </div>
 
@@ -187,7 +187,7 @@ export default function PricingPage() {
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2.5">
                     <Check size={16} className="text-[#FF6B2B] shrink-0 mt-0.5" />
-                    <span className="text-sm text-white/70">{feature}</span>
+                    <span className="text-sm text-[var(--text-secondary)]">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -199,7 +199,7 @@ export default function PricingPage() {
                 className={`w-full py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${
                   plan.popular
                     ? 'bg-[#FF6B2B] text-white hover:bg-[#FF6B2B]/90'
-                    : 'bg-white/[0.06] text-[#F5F5F3] hover:bg-white/[0.1] border border-white/[0.08]'
+                    : 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-surface)] border border-[var(--border-base)]'
                 }`}
               >
                 {isLoading ? (
@@ -217,7 +217,7 @@ export default function PricingPage() {
       </div>
 
       {/* Footer */}
-      <div className="text-center pb-12 text-white/20 text-xs">
+      <div className="text-center pb-12 text-[var(--text-muted)] text-xs">
         Paiement sécurisé via Stripe · Annulation possible à tout moment
       </div>
     </div>

@@ -428,11 +428,11 @@ export default function CoachClientFichePage() {
     return (
       <div className="p-6 w-full max-w-4xl animate-pulse space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#2A2A2A] rounded" />
-          <div className="h-7 w-48 bg-[#2A2A2A] rounded" />
+          <div className="w-8 h-8 bg-[var(--bg-surface)] rounded" />
+          <div className="h-7 w-48 bg-[var(--bg-surface)] rounded" />
         </div>
-        <div className="h-32 bg-[#2A2A2A] rounded-xl" />
-        <div className="h-48 bg-[#2A2A2A] rounded-xl" />
+        <div className="h-32 bg-[var(--bg-surface)] rounded-xl" />
+        <div className="h-48 bg-[var(--bg-surface)] rounded-xl" />
       </div>
     )
   }
@@ -442,23 +442,23 @@ export default function CoachClientFichePage() {
 
       {/* ── En-tête ── */}
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate('/coach/clients')} className="text-white/40 hover:text-white transition-colors p-1">
+        <button onClick={() => navigate('/coach/clients')} className="text-[var(--text-muted)] hover:text-white transition-colors p-1">
           <ArrowLeft size={18} />
         </button>
         <div>
-          <h1 className="text-[#F5F5F3] text-xl font-bold">
+          <h1 className="text-[var(--text-primary)] text-xl font-bold">
             {profil?.nom ?? profil?.email}
           </h1>
-          <p className="text-white/30 text-sm">{profil?.email}</p>
+          <p className="text-[var(--text-muted)] text-sm">{profil?.email}</p>
         </div>
         <div className="ml-auto text-right">
           <p className="text-2xl font-bold" style={{ color: couleur }}>{scoreAujourdhui}</p>
-          <p className="text-white/30 text-xs">{labelScore(scoreAujourdhui)}</p>
+          <p className="text-[var(--text-muted)] text-xs">{labelScore(scoreAujourdhui)}</p>
         </div>
       </div>
 
       {/* ── Onglets ── */}
-      <div className="flex gap-1 bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-1">
+      <div className="flex gap-1 bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-1">
         {ONGLETS.map((o) => (
           <button
             key={o}
@@ -466,7 +466,7 @@ export default function CoachClientFichePage() {
             className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
               onglet === o
                 ? 'bg-[#FF6B2B] text-white'
-                : 'text-white/40 hover:text-white/70'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
             }`}
           >
             {o}
@@ -481,14 +481,14 @@ export default function CoachClientFichePage() {
             const il30j = new Date(); il30j.setDate(il30j.getDate() - 30)
             exportHabitudes(supabase, clientId, profil?.nom, il30j.toISOString().split('T')[0], new Date().toISOString().split('T')[0])
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-white/[0.04] border border-white/[0.08] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] border border-[var(--border-base)] transition-colors"
         >
           <Download size={12} />
           Export habitudes (30j)
         </button>
         <button
           onClick={() => exportObjectifs(supabase, clientId, profil?.nom)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-white/[0.04] border border-white/[0.08] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] border border-[var(--border-base)] transition-colors"
         >
           <Download size={12} />
           Export objectifs
@@ -501,13 +501,13 @@ export default function CoachClientFichePage() {
           {/* Graphique score 7j */}
           <Card>
             <CardBody>
-              <p className="text-white/40 text-[11px] uppercase tracking-wider mb-3">Score bien-être 7 jours</p>
+              <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-3">Score bien-être 7 jours</p>
               <ResponsiveContainer width="100%" height={120}>
                 <LineChart data={scoresSemaine} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
-                  <XAxis dataKey="jour" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[0, 100]} tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} ticks={[0, 50, 100]} />
+                  <XAxis dataKey="jour" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, 100]} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} ticks={[0, 50, 100]} />
                   <Tooltip
-                    contentStyle={{ background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, color: '#F5F5F3' }}
+                    contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-base)', borderRadius: 8, color: 'var(--text-primary)' }}
                     formatter={(v) => [`${v}/100`, 'Score']}
                   />
                   <Line type="monotone" dataKey="score" stroke="#FF6B2B" strokeWidth={2} dot={{ fill: '#FF6B2B', r: 3 }} />
@@ -520,20 +520,20 @@ export default function CoachClientFichePage() {
           <div className="grid grid-cols-3 gap-3">
             <Card>
               <CardBody className="text-center py-3">
-                <p className="text-white/30 text-xs mb-1">Habitudes</p>
-                <p className="text-[#F5F5F3] font-bold">{todayLogs.length}/{habitudes.length}</p>
+                <p className="text-[var(--text-muted)] text-xs mb-1">Habitudes</p>
+                <p className="text-[var(--text-primary)] font-bold">{todayLogs.length}/{habitudes.length}</p>
               </CardBody>
             </Card>
             <Card>
               <CardBody className="text-center py-3">
-                <p className="text-white/30 text-xs mb-1">Sommeil</p>
-                <p className="text-[#F5F5F3] font-bold">{todaySommeil ? `${todaySommeil.heures}h` : '—'}</p>
+                <p className="text-[var(--text-muted)] text-xs mb-1">Sommeil</p>
+                <p className="text-[var(--text-primary)] font-bold">{todaySommeil ? `${todaySommeil.heures}h` : '—'}</p>
               </CardBody>
             </Card>
             <Card>
               <CardBody className="text-center py-3">
-                <p className="text-white/30 text-xs mb-1">Humeur</p>
-                <p className="text-[#F5F5F3] font-bold">{todayHumeur ? `${todayHumeur.score}/10` : '—'}</p>
+                <p className="text-[var(--text-muted)] text-xs mb-1">Humeur</p>
+                <p className="text-[var(--text-primary)] font-bold">{todayHumeur ? `${todayHumeur.score}/10` : '—'}</p>
               </CardBody>
             </Card>
           </div>
@@ -545,11 +545,11 @@ export default function CoachClientFichePage() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Layers size={16} className="text-[#FF6B2B]" />
-                    <p className="text-white/40 text-[11px] uppercase tracking-wider">Programme en cours</p>
+                    <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider">Programme en cours</p>
                   </div>
-                  <span className="text-xs text-white/30">Phase {assignation.phase_actuelle}/{programmePhases.length}</span>
+                  <span className="text-xs text-[var(--text-muted)]">Phase {assignation.phase_actuelle}/{programmePhases.length}</span>
                 </div>
-                <p className="text-[#F5F5F3] font-semibold text-sm mb-2">{programmeTitre}</p>
+                <p className="text-[var(--text-primary)] font-semibold text-sm mb-2">{programmeTitre}</p>
                 {/* Barre progression phases */}
                 <div className="flex gap-1">
                   {programmePhases.map((ph, i) => (
@@ -557,12 +557,12 @@ export default function CoachClientFichePage() {
                       key={ph.id}
                       className="h-1.5 rounded-full flex-1"
                       style={{
-                        backgroundColor: i < assignation.phase_actuelle ? '#FF6B2B' : 'rgba(255,255,255,0.08)',
+                        backgroundColor: i < assignation.phase_actuelle ? '#FF6B2B' : 'var(--border-base)',
                       }}
                     />
                   ))}
                 </div>
-                <p className="text-white/30 text-xs mt-2">
+                <p className="text-[var(--text-muted)] text-xs mt-2">
                   {programmePhases[assignation.phase_actuelle - 1]?.titre || ''}
                 </p>
 
@@ -601,7 +601,7 @@ export default function CoachClientFichePage() {
           ) : (
             <button
               onClick={ouvrirModalProgramme}
-              className="w-full py-3 rounded-xl border border-dashed border-white/[0.12] text-white/40 text-sm hover:text-white/70 hover:border-white/[0.2] transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl border border-dashed border-[var(--border-base)] text-[var(--text-muted)] text-sm hover:text-[var(--text-secondary)] hover:border-[var(--border-base)] transition-colors flex items-center justify-center gap-2"
             >
               <Layers size={16} />
               Assigner un programme
@@ -620,7 +620,7 @@ export default function CoachClientFichePage() {
           </div>
 
           {habitudes.length === 0 ? (
-            <Card><CardBody className="text-center py-8 text-white/30 text-sm">Aucune habitude assignée.</CardBody></Card>
+            <Card><CardBody className="text-center py-8 text-[var(--text-muted)] text-sm">Aucune habitude assignée.</CardBody></Card>
           ) : (
             habitudes.map((h) => {
               const logsDates = logs30j.filter(l => l.habitude_id === h.id).map(l => l.date)
@@ -631,15 +631,15 @@ export default function CoachClientFichePage() {
                   <CardBody className="flex items-center gap-3 py-3">
                     {cocheeAujourdHui
                       ? <CheckCircle2 size={18} style={{ color: h.couleur }} />
-                      : <Circle size={18} className="text-white/20" />
+                      : <Circle size={18} className="text-[var(--text-muted)]" />
                     }
                     <div className="flex-1 min-w-0">
-                      <p className="text-[#F5F5F3] text-sm">{h.nom}</p>
-                      <div className="mt-1.5 h-1 bg-[#2A2A2A] rounded-full overflow-hidden">
+                      <p className="text-[var(--text-primary)] text-sm">{h.nom}</p>
+                      <div className="mt-1.5 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                         <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: h.couleur }} />
                       </div>
                     </div>
-                    <span className="text-white/30 text-xs">{pct}%</span>
+                    <span className="text-[var(--text-muted)] text-xs">{pct}%</span>
                     {h.assigned_by === user.id && <Lock size={11} className="text-[#FF6B2B]/50" />}
                   </CardBody>
                 </Card>
@@ -659,7 +659,7 @@ export default function CoachClientFichePage() {
           </div>
 
           {objectifs.length === 0 ? (
-            <Card><CardBody className="text-center py-8 text-white/30 text-sm">Aucun objectif.</CardBody></Card>
+            <Card><CardBody className="text-center py-8 text-[var(--text-muted)] text-sm">Aucun objectif.</CardBody></Card>
           ) : (
             objectifs.map((o) => {
               const couleurO = couleurScore(o.score)
@@ -669,14 +669,14 @@ export default function CoachClientFichePage() {
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-[#F5F5F3] text-sm font-medium truncate">{o.titre}</p>
+                          <p className="text-[var(--text-primary)] text-sm font-medium truncate">{o.titre}</p>
                           {!o.peut_supprimer && <Lock size={11} className="text-[#FF6B2B]/50 flex-shrink-0" />}
                         </div>
-                        {o.description && <p className="text-white/30 text-xs mt-0.5 line-clamp-1">{o.description}</p>}
+                        {o.description && <p className="text-[var(--text-muted)] text-xs mt-0.5 line-clamp-1">{o.description}</p>}
                       </div>
                       <p className="font-bold flex-shrink-0" style={{ color: couleurO }}>{o.score}%</p>
                     </div>
-                    <div className="mt-2 h-1.5 bg-[#2A2A2A] rounded-full overflow-hidden">
+                    <div className="mt-2 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all" style={{ width: `${o.score}%`, backgroundColor: couleurO }} />
                     </div>
                   </CardBody>
@@ -694,8 +694,8 @@ export default function CoachClientFichePage() {
           <div className="flex-1 overflow-y-auto space-y-2 mb-3">
             {messages.length === 0 ? (
               <div className="text-center py-10">
-                <MessageSquare size={28} className="text-white/15 mx-auto mb-2" />
-                <p className="text-white/30 text-sm">Aucun message pour l'instant.</p>
+                <MessageSquare size={28} className="text-[var(--text-muted)] mx-auto mb-2" />
+                <p className="text-[var(--text-muted)] text-sm">Aucun message pour l'instant.</p>
               </div>
             ) : (
               messages.map((msg) => (
@@ -712,10 +712,10 @@ export default function CoachClientFichePage() {
                     <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${
                       msg.expediteur === 'coach'
                         ? 'bg-[#FF6B2B] text-white rounded-br-sm'
-                        : 'bg-[#2A2A2A] text-[#F5F5F3] rounded-bl-sm'
+                        : 'bg-[var(--bg-surface)] text-[var(--text-primary)] rounded-bl-sm'
                     }`}>
                       <p>{msg.contenu}</p>
-                      <p className={`text-[10px] mt-1 ${msg.expediteur === 'coach' ? 'text-white/60' : 'text-white/30'}`}>
+                      <p className={`text-[10px] mt-1 ${msg.expediteur === 'coach' ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}`}>
                         {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -729,7 +729,7 @@ export default function CoachClientFichePage() {
           <div className="flex gap-2 mb-2 overflow-x-auto pb-1">
             {['Bravo cette semaine 💪', 'Continue comme ça !', 'Tu es sur la bonne voie 🚀'].map((msg) => (
               <button key={msg} onClick={() => setTexteMsg(msg)}
-                className="flex-shrink-0 text-xs bg-[#2A2A2A] text-white/50 hover:text-white border border-white/[0.08] rounded-full px-3 py-1.5 transition-colors">
+                className="flex-shrink-0 text-xs bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-white border border-[var(--border-base)] rounded-full px-3 py-1.5 transition-colors">
                 {msg}
               </button>
             ))}
@@ -745,14 +745,14 @@ export default function CoachClientFichePage() {
                   value={texteMsg}
                   onChange={(e) => setTexteMsg(e.target.value)}
                   placeholder="Écrire un message…"
-                  className="flex-1 bg-[#2A2A2A] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
+                  className="flex-1 bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e) }}
                 />
                 {!texteMsg.trim() ? (
                   <button
                     type="button"
                     onClick={() => setIsRecording(true)}
-                    className="w-10 h-10 rounded-xl bg-[#2A2A2A] border border-white/[0.08] flex items-center justify-center text-white/40 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all flex-shrink-0"
+                    className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all flex-shrink-0"
                     title="Note vocale"
                   >
                     <Mic size={16} />
@@ -776,7 +776,7 @@ export default function CoachClientFichePage() {
         <form onSubmit={assignerHabitude} className="space-y-4">
           <Input label="Nom de l'habitude" placeholder="Ex : Boire 2L d'eau" value={nomHab} onChange={(e) => setNomHab(e.target.value)} required autoFocus />
           <div>
-            <p className="text-sm text-white/60 font-medium mb-2">Couleur</p>
+            <p className="text-sm text-[var(--text-secondary)] font-medium mb-2">Couleur</p>
             <div className="flex gap-2">
               {COULEURS_HAB.map((c) => (
                 <button key={c} type="button" onClick={() => setCouleurHab(c)}
@@ -800,8 +800,8 @@ export default function CoachClientFichePage() {
           </div>
         ) : programmes.length === 0 ? (
           <div className="text-center py-8">
-            <Layers size={28} className="text-white/15 mx-auto mb-2" />
-            <p className="text-white/30 text-sm mb-3">Aucun programme créé</p>
+            <Layers size={28} className="text-[var(--text-muted)] mx-auto mb-2" />
+            <p className="text-[var(--text-muted)] text-sm mb-3">Aucun programme créé</p>
             <Button size="sm" onClick={() => { setModalProg(false); window.location.href = '/coach/sport' }}>
               Créer un programme
             </Button>
@@ -813,7 +813,7 @@ export default function CoachClientFichePage() {
                 key={prog.id}
                 onClick={() => assignerProgramme(prog.id)}
                 disabled={assigningProg !== null}
-                className="w-full flex items-center gap-3 p-3 rounded-xl bg-[#2A2A2A]/50 hover:bg-[#2A2A2A] text-left transition-colors disabled:opacity-50"
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface)]/50 hover:bg-[var(--bg-surface)] text-left transition-colors disabled:opacity-50"
               >
                 <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
                   {assigningProg === prog.id ? (
@@ -823,8 +823,8 @@ export default function CoachClientFichePage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[#F5F5F3] text-sm font-medium truncate">{prog.titre}</p>
-                  <p className="text-white/30 text-xs">{prog.duree_semaines} sem. {prog.categorie ? `· ${prog.categorie}` : ''}</p>
+                  <p className="text-[var(--text-primary)] text-sm font-medium truncate">{prog.titre}</p>
+                  <p className="text-[var(--text-muted)] text-xs">{prog.duree_semaines} sem. {prog.categorie ? `· ${prog.categorie}` : ''}</p>
                 </div>
                 {assigningProg === prog.id ? (
                   <span className="text-[#FF6B2B] text-xs shrink-0">Assignation...</span>
@@ -842,9 +842,9 @@ export default function CoachClientFichePage() {
         <form onSubmit={assignerObjectif} className="space-y-4">
           <Input label="Titre de l'objectif" placeholder="Ex : Perdre 5kg d'ici juin" value={titreObj} onChange={(e) => setTitreObj(e.target.value)} required autoFocus />
           <div>
-            <label className="text-sm text-white/60 font-medium block mb-1.5">Description (optionnel)</label>
+            <label className="text-sm text-[var(--text-secondary)] font-medium block mb-1.5">Description (optionnel)</label>
             <textarea value={descObj} onChange={(e) => setDescObj(e.target.value)} placeholder="Contexte, étapes clés…" rows={2}
-              className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/50 resize-none" />
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3.5 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/50 resize-none" />
           </div>
           <Input label="Date cible (optionnel)" type="date" value={dateCibleObj} onChange={(e) => setDateCibleObj(e.target.value)} />
           <div className="flex gap-2 pt-1">

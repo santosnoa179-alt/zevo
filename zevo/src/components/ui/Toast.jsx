@@ -69,17 +69,17 @@ function ToastItem({ toast, onDismiss }) {
     <div
       className={`
         pointer-events-auto flex items-center gap-3 min-w-[280px] max-w-[400px]
-        bg-[#1E1E1E] border ${BORDER_COLORS[toast.type]}
-        rounded-xl px-4 py-3 shadow-lg shadow-black/30
+        bg-[var(--bg-card)] border ${BORDER_COLORS[toast.type]}
+        rounded-xl px-4 py-3 shadow-[var(--shadow-card)]
         transition-all duration-300 ease-out
         ${visible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}
       `}
     >
       {ICONS[toast.type]}
-      <p className="text-[#F5F5F3] text-sm flex-1">{toast.message}</p>
+      <p className="text-[var(--text-primary)] text-sm flex-1">{toast.message}</p>
       <button
         onClick={onDismiss}
-        className="text-white/30 hover:text-white/60 transition-colors flex-shrink-0"
+        className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors flex-shrink-0"
       >
         <X size={14} />
       </button>

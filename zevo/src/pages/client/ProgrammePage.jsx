@@ -302,21 +302,21 @@ export default function ProgrammePage() {
 
       {/* ── Header + Tabs ── */}
       <div className="pt-2">
-        <h1 className="text-[#F5F5F3] text-xl font-bold flex items-center gap-2">
+        <h1 className="text-[var(--text-primary)] text-xl font-bold flex items-center gap-2">
           <Layers size={20} className="text-[#FF6B2B]" />
           Programme
         </h1>
-        <p className="text-white/40 text-sm mt-0.5">Ton plan personnalisé par ton coach</p>
+        <p className="text-[var(--text-muted)] text-sm mt-0.5">Ton plan personnalisé par ton coach</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-[#1E1E1E] border border-white/[0.06] rounded-xl p-1 gap-1">
+      <div className="flex bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-1 gap-1">
         <button
           onClick={() => setTab('sport')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
             tab === 'sport'
               ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
-              : 'text-white/40 hover:text-white/60'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
           }`}
         >
           <Dumbbell size={15} />
@@ -327,7 +327,7 @@ export default function ProgrammePage() {
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
             tab === 'nutrition'
               ? 'bg-[#22c55e] text-white shadow-lg shadow-[#22c55e]/20'
-              : 'text-white/40 hover:text-white/60'
+              : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
           }`}
         >
           <UtensilsCrossed size={15} />
@@ -341,12 +341,12 @@ export default function ProgrammePage() {
           {/* DEBUG : log prog dans la console */}
 
           {!assignation ? (
-            <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-12 text-center">
+            <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] p-12 text-center">
               <div className="w-14 h-14 bg-[#FF6B2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Dumbbell size={24} className="text-[#FF6B2B]" />
               </div>
-              <h2 className="text-[#F5F5F3] font-semibold text-lg mb-2">Aucun programme sportif</h2>
-              <p className="text-white/40 text-sm">Ton coach n'a pas encore assigné de programme sportif.</p>
+              <h2 className="text-[var(--text-primary)] font-semibold text-lg mb-2">Aucun programme sportif</h2>
+              <p className="text-[var(--text-muted)] text-sm">Ton coach n'a pas encore assigné de programme sportif.</p>
             </div>
           ) : isDocumentMode ? (
             /* ═══════════════════════════════════════════ */
@@ -355,13 +355,13 @@ export default function ProgrammePage() {
             <>
               {/* Programme Header */}
               <div>
-                <p className="text-white/40 text-[11px] uppercase tracking-wider mb-1">Programme actif</p>
-                <h2 className="text-[#F5F5F3] text-lg font-bold">{prog?.titre}</h2>
-                {prog?.description && <p className="text-white/40 text-sm mt-1">{prog.description}</p>}
+                <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-1">Programme actif</p>
+                <h2 className="text-[var(--text-primary)] text-lg font-bold">{prog?.titre}</h2>
+                {prog?.description && <p className="text-[var(--text-muted)] text-sm mt-1">{prog.description}</p>}
               </div>
 
               {/* Grande carte PDF premium */}
-              <div className="bg-[#1E1E1E] rounded-2xl p-8 text-center shadow-xl border border-[#27272a] my-2">
+              <div className="bg-[var(--bg-card)] rounded-2xl p-8 text-center shadow-xl border border-[var(--border-base)] my-2">
                 <div className="flex justify-center mb-4">
                   <div className="p-4 bg-[#FF6B2B]/10 rounded-full">
                     <svg className="w-12 h-12 text-[#FF6B2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,7 +370,7 @@ export default function ProgrammePage() {
                   </div>
                 </div>
                 <h2 className="text-xl font-bold text-white mb-2">Ton programme PDF</h2>
-                <p className="text-white/40 mb-6 text-sm">Consulte ton plan d'entraînement complet joint par ton coach.</p>
+                <p className="text-[var(--text-muted)] mb-6 text-sm">Consulte ton plan d'entraînement complet joint par ton coach.</p>
                 <a
                   href={prog.document_url}
                   target="_blank"
@@ -385,28 +385,28 @@ export default function ProgrammePage() {
               </div>
 
               {/* ── Suivi de progression — Semaines ── */}
-              <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden">
+              <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] overflow-hidden">
                 {/* Header */}
-                <div className="px-5 py-4 border-b border-white/[0.04]">
+                <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Calendar size={15} className="text-[#FF6B2B]" />
-                      <h3 className="text-[#F5F5F3] font-semibold text-sm">Suivi de progression</h3>
+                      <h3 className="text-[var(--text-primary)] font-semibold text-sm">Suivi de progression</h3>
                     </div>
                     <span className="text-[#FF6B2B] text-xs font-bold">{weekProgress}%</span>
                   </div>
                   {/* Progress bar global */}
-                  <div className="h-2 bg-[#27272a] rounded-full overflow-hidden">
+                  <div className="h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                     <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-500"
                       style={{ width: `${weekProgress}%` }} />
                   </div>
-                  <p className="text-white/25 text-[10px] mt-2">
+                  <p className="text-[var(--text-muted)] text-[10px] mt-2">
                     {completedCount} / {totalWeeks} semaine{totalWeeks > 1 ? 's' : ''} validée{completedCount > 1 ? 's' : ''}
                   </p>
                 </div>
 
                 {/* Weeks list */}
-                <div className="divide-y divide-white/[0.04]">
+                <div className="divide-y divide-[var(--border-subtle)]">
                   {Array.from({ length: totalWeeks }, (_, i) => i + 1).map(weekNum => {
                     const done = isWeekCompleted(weekNum)
                     const isValidating = validatingWeek === weekNum
@@ -423,24 +423,24 @@ export default function ProgrammePage() {
                             ? 'bg-emerald-500/15'
                             : unlocked
                               ? 'bg-[#FF6B2B]/10'
-                              : 'bg-[#27272a]'
+                              : 'bg-[var(--bg-surface)]'
                         }`}>
                           {done ? (
                             <CheckCircle2 size={16} className="text-emerald-400" />
                           ) : unlocked ? (
                             <span className="text-[#FF6B2B] text-xs font-bold">{weekNum}</span>
                           ) : (
-                            <Lock size={13} className="text-white/15" />
+                            <Lock size={13} className="text-[var(--text-muted)]" />
                           )}
                         </div>
 
                         {/* Week label */}
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[#F5F5F3]' : 'text-white/25'}`}>
+                          <p className={`text-sm font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
                             Semaine {weekNum}
                           </p>
                           {done && (
-                            <p className="text-white/20 text-[10px]">
+                            <p className="text-[var(--text-muted)] text-[10px]">
                               Validée le {new Date(completedWeeks.find(cw => cw.numero_semaine === weekNum)?.completed_at).toLocaleDateString('fr-FR')}
                             </p>
                           )}
@@ -461,7 +461,7 @@ export default function ProgrammePage() {
                             {isValidating ? 'Validation...' : 'Valider'}
                           </button>
                         ) : (
-                          <span className="text-white/10 text-[10px]">Verrouillée</span>
+                          <span className="text-[var(--text-muted)] text-[10px]">Verrouillée</span>
                         )}
                       </div>
                     )
@@ -476,16 +476,16 @@ export default function ProgrammePage() {
             <>
               {/* Programme Header */}
               <div>
-                <p className="text-white/40 text-[11px] uppercase tracking-wider mb-1">Programme actif</p>
-                <h2 className="text-[#F5F5F3] text-lg font-bold">{prog?.titre}</h2>
-                {prog?.description && <p className="text-white/40 text-sm mt-1">{prog.description}</p>}
+                <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-1">Programme actif</p>
+                <h2 className="text-[var(--text-primary)] text-lg font-bold">{prog?.titre}</h2>
+                {prog?.description && <p className="text-[var(--text-muted)] text-sm mt-1">{prog.description}</p>}
               </div>
 
               {/* Progress Card */}
               <Card>
                 <CardBody>
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-white/40 text-[11px] uppercase tracking-wider">Progression</p>
+                    <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider">Progression</p>
                     <span className="text-[#FF6B2B] text-sm font-bold">{progressPercent}%</span>
                   </div>
                   <div className="flex gap-1 mb-3">
@@ -493,11 +493,11 @@ export default function ProgrammePage() {
                       <div key={ph.id}
                         className="h-2.5 rounded-full flex-1 transition-all"
                         style={{
-                          backgroundColor: i < assignation.phase_actuelle ? '#FF6B2B' : 'rgba(255,255,255,0.06)',
+                          backgroundColor: i < assignation.phase_actuelle ? '#FF6B2B' : 'var(--border-base)',
                         }} />
                     ))}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-white/40">
+                  <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
                     <span>Phase {assignation.phase_actuelle}/{phases.length}</span>
                     {prog?.categorie && (
                       <span className="px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px]">
@@ -512,15 +512,15 @@ export default function ProgrammePage() {
               {/* Global document attached to programme */}
               {prog?.document_url && (
                 <a href={prog.document_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-4 p-4 bg-[#1E1E1E] rounded-2xl border border-[#FF6B2B]/20 hover:border-[#FF6B2B]/40 transition-all group">
+                  className="flex items-center gap-4 p-4 bg-[var(--bg-card)] rounded-2xl border border-[#FF6B2B]/20 hover:border-[#FF6B2B]/40 transition-all group">
                   <div className="w-12 h-12 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B]/20 transition-all">
                     <FileText size={22} className="text-[#FF6B2B]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[#F5F5F3] text-sm font-semibold truncate">
+                    <p className="text-[var(--text-primary)] text-sm font-semibold truncate">
                       {prog.document_nom || 'Programme PDF'}
                     </p>
-                    <p className="text-white/30 text-xs mt-0.5">Fichier joint par ton coach • Appuie pour ouvrir</p>
+                    <p className="text-[var(--text-muted)] text-xs mt-0.5">Fichier joint par ton coach • Appuie pour ouvrir</p>
                   </div>
                   <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B] group-hover:text-white transition-all">
                     <Download size={16} className="text-[#FF6B2B] group-hover:text-white transition-all" />
@@ -530,7 +530,7 @@ export default function ProgrammePage() {
 
               {/* Phases */}
               <div className="space-y-3">
-                <h2 className="text-[#F5F5F3] font-semibold text-base">Phases du programme</h2>
+                <h2 className="text-[var(--text-primary)] font-semibold text-base">Phases du programme</h2>
                 {phases.map((phase, index) => {
                   const isCurrent = phase.ordre === assignation.phase_actuelle
                   const isDone = phase.ordre < assignation.phase_actuelle
@@ -538,25 +538,25 @@ export default function ProgrammePage() {
 
                   return (
                     <div key={phase.id}
-                      className={`bg-[#1E1E1E] rounded-2xl border overflow-hidden transition-all ${
-                        isCurrent ? 'border-[#FF6B2B]/30 shadow-lg shadow-[#FF6B2B]/10' : 'border-white/[0.06]'
+                      className={`bg-[var(--bg-card)] rounded-2xl border overflow-hidden transition-all ${
+                        isCurrent ? 'border-[#FF6B2B]/30 shadow-lg shadow-[#FF6B2B]/10' : 'border-[var(--border-base)]'
                       }`}>
                       <button onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
-                        className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-white/[0.02] transition-colors">
+                        className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-[var(--bg-surface)] transition-colors">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          isDone ? 'bg-green-500/20' : isCurrent ? 'bg-[#FF6B2B]/20' : 'bg-[#2A2A2A]'
+                          isDone ? 'bg-green-500/20' : isCurrent ? 'bg-[#FF6B2B]/20' : 'bg-[var(--bg-surface)]'
                         }`}>
                           {isDone ? (
                             <CheckCircle2 size={16} className="text-green-400" />
                           ) : (
-                            <span className={`text-xs font-bold ${isCurrent ? 'text-[#FF6B2B]' : 'text-white/30'}`}>
+                            <span className={`text-xs font-bold ${isCurrent ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
                               {index + 1}
                             </span>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className={`text-sm font-medium truncate ${isCurrent ? 'text-[#F5F5F3]' : 'text-white/50'}`}>
+                            <span className={`text-sm font-medium truncate ${isCurrent ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                               {phase.titre}
                             </span>
                             {isCurrent && (
@@ -565,41 +565,41 @@ export default function ProgrammePage() {
                               </span>
                             )}
                           </div>
-                          <span className="text-white/25 text-xs">{phase.duree_semaines} semaine{phase.duree_semaines > 1 ? 's' : ''}</span>
+                          <span className="text-[var(--text-muted)] text-xs">{phase.duree_semaines} semaine{phase.duree_semaines > 1 ? 's' : ''}</span>
                         </div>
-                        {isExpanded ? <ChevronDown size={16} className="text-white/30" /> : <ChevronRight size={16} className="text-white/30" />}
+                        {isExpanded ? <ChevronDown size={16} className="text-[var(--text-muted)]" /> : <ChevronRight size={16} className="text-[var(--text-muted)]" />}
                       </button>
 
                       {isExpanded && (
-                        <div className="px-4 pb-4 space-y-4 border-t border-white/[0.04] pt-4">
-                          {phase.description && <p className="text-white/40 text-sm">{phase.description}</p>}
+                        <div className="px-4 pb-4 space-y-4 border-t border-[var(--border-subtle)] pt-4">
+                          {phase.description && <p className="text-[var(--text-muted)] text-sm">{phase.description}</p>}
 
                           {/* Exercices */}
                           {(phase.exercices?.length || 0) > 0 && (
                             <div>
                               <div className="flex items-center gap-2 mb-3">
                                 <Dumbbell size={14} className="text-[#FF6B2B]" />
-                                <p className="text-white/50 text-[11px] uppercase tracking-wider font-semibold">
+                                <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold">
                                   Exercices ({phase.exercices.length})
                                 </p>
                               </div>
                               <div className="space-y-2">
                                 {phase.exercices.map((ex, ei) => (
-                                  <div key={ei} className="flex items-center gap-3 bg-[#0D0D0D] rounded-xl p-3">
+                                  <div key={ei} className="flex items-center gap-3 bg-[var(--bg-base)] rounded-xl p-3">
                                     {ex.image_url ? (
                                       <img src={ex.image_url} alt={ex.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
                                     ) : (
-                                      <div className="w-14 h-14 rounded-lg bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
-                                        <ImageIcon size={18} className="text-white/20" />
+                                      <div className="w-14 h-14 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center flex-shrink-0">
+                                        <ImageIcon size={18} className="text-[var(--text-muted)]" />
                                       </div>
                                     )}
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-[#F5F5F3] text-sm font-medium">{ex.name}</p>
-                                      <p className="text-white/30 text-xs">{ex.muscle_group}</p>
+                                      <p className="text-[var(--text-primary)] text-sm font-medium">{ex.name}</p>
+                                      <p className="text-[var(--text-muted)] text-xs">{ex.muscle_group}</p>
                                     </div>
                                     <div className="text-right flex-shrink-0">
                                       <p className="text-[#FF6B2B] text-sm font-bold">{ex.sets}×{ex.reps}</p>
-                                      {ex.rest_seconds && <p className="text-white/25 text-[10px]">{ex.rest_seconds}s repos</p>}
+                                      {ex.rest_seconds && <p className="text-[var(--text-muted)] text-[10px]">{ex.rest_seconds}s repos</p>}
                                     </div>
                                   </div>
                                 ))}
@@ -612,39 +612,39 @@ export default function ProgrammePage() {
                             <div>
                               <div className="flex items-center gap-2 mb-3">
                                 <Apple size={14} className="text-green-400" />
-                                <p className="text-white/50 text-[11px] uppercase tracking-wider font-semibold">Nutrition</p>
+                                <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold">Nutrition</p>
                               </div>
                               {(phase.calories_objectif || phase.proteines_g) && (
                                 <div className="grid grid-cols-4 gap-2 mb-3">
                                   {phase.calories_objectif && (
-                                    <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
-                                      <p className="text-[#F5F5F3] text-lg font-bold">{phase.calories_objectif}</p>
-                                      <p className="text-white/30 text-[10px] uppercase">kcal</p>
+                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
+                                      <p className="text-[var(--text-primary)] text-lg font-bold">{phase.calories_objectif}</p>
+                                      <p className="text-[var(--text-muted)] text-[10px] uppercase">kcal</p>
                                     </div>
                                   )}
                                   {phase.proteines_g && (
-                                    <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
+                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
                                       <p className="text-blue-400 text-lg font-bold">{phase.proteines_g}g</p>
-                                      <p className="text-white/30 text-[10px] uppercase">Protéines</p>
+                                      <p className="text-[var(--text-muted)] text-[10px] uppercase">Protéines</p>
                                     </div>
                                   )}
                                   {phase.glucides_g && (
-                                    <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
+                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
                                       <p className="text-yellow-400 text-lg font-bold">{phase.glucides_g}g</p>
-                                      <p className="text-white/30 text-[10px] uppercase">Glucides</p>
+                                      <p className="text-[var(--text-muted)] text-[10px] uppercase">Glucides</p>
                                     </div>
                                   )}
                                   {phase.lipides_g && (
-                                    <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
+                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
                                       <p className="text-purple-400 text-lg font-bold">{phase.lipides_g}g</p>
-                                      <p className="text-white/30 text-[10px] uppercase">Lipides</p>
+                                      <p className="text-[var(--text-muted)] text-[10px] uppercase">Lipides</p>
                                     </div>
                                   )}
                                 </div>
                               )}
                               {phase.consignes_nutrition && (
-                                <div className="bg-[#0D0D0D] rounded-xl p-3">
-                                  <p className="text-white/50 text-xs whitespace-pre-wrap">{phase.consignes_nutrition}</p>
+                                <div className="bg-[var(--bg-base)] rounded-xl p-3">
+                                  <p className="text-[var(--text-secondary)] text-xs whitespace-pre-wrap">{phase.consignes_nutrition}</p>
                                 </div>
                               )}
                             </div>
@@ -653,10 +653,10 @@ export default function ProgrammePage() {
                           {/* Habitudes */}
                           {(phase.habitudes?.length || 0) > 0 && (
                             <div>
-                              <p className="text-white/50 text-[11px] uppercase tracking-wider font-semibold mb-2">Habitudes</p>
+                              <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold mb-2">Habitudes</p>
                               <div className="flex flex-wrap gap-2">
                                 {phase.habitudes.map((h, hi) => (
-                                  <span key={hi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0D0D0D] border border-white/[0.06] text-xs text-[#F5F5F3]">
+                                  <span key={hi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)] text-xs text-[var(--text-primary)]">
                                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: h.couleur || '#FF6B2B' }} />
                                     {h.nom}
                                   </span>
@@ -668,10 +668,10 @@ export default function ProgrammePage() {
                           {/* Objectifs */}
                           {(phase.objectifs?.length || 0) > 0 && (
                             <div>
-                              <p className="text-white/50 text-[11px] uppercase tracking-wider font-semibold mb-2">Objectifs</p>
+                              <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold mb-2">Objectifs</p>
                               <div className="flex flex-wrap gap-2">
                                 {phase.objectifs.map((o, oi) => (
-                                  <span key={oi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0D0D0D] border border-white/[0.06] text-xs text-[#F5F5F3]">
+                                  <span key={oi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)] text-xs text-[var(--text-primary)]">
                                     🎯 {o.titre}
                                   </span>
                                 ))}
@@ -684,7 +684,7 @@ export default function ProgrammePage() {
                             <div>
                               <div className="flex items-center gap-2 mb-3">
                                 <BookOpen size={14} className="text-blue-400" />
-                                <p className="text-white/50 text-[11px] uppercase tracking-wider font-semibold">
+                                <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold">
                                   Ressources ({phase.ressources_attachees.length})
                                 </p>
                               </div>
@@ -695,15 +695,15 @@ export default function ProgrammePage() {
                                   const ActionIcon = typeInfo.action
                                   return (
                                     <a key={ri} href={res.url} target="_blank" rel="noopener noreferrer"
-                                      className="flex items-center gap-3 bg-[#0D0D0D] rounded-xl p-3 border border-white/[0.04] hover:border-white/[0.12] transition-all group">
+                                      className="flex items-center gap-3 bg-[var(--bg-base)] rounded-xl p-3 border border-[var(--border-subtle)] hover:border-[var(--border-base)] transition-all group">
                                       <div className={`w-10 h-10 rounded-lg ${typeInfo.bg} flex items-center justify-center flex-shrink-0`}>
                                         <Icon size={16} className={typeInfo.color} />
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                        <p className="text-[#F5F5F3] text-sm font-medium truncate group-hover:text-blue-400 transition-colors">{res.titre}</p>
-                                        <p className="text-white/25 text-[10px] capitalize mt-0.5">{res.type}{res.categorie ? ` · ${res.categorie}` : ''}</p>
+                                        <p className="text-[var(--text-primary)] text-sm font-medium truncate group-hover:text-blue-400 transition-colors">{res.titre}</p>
+                                        <p className="text-[var(--text-muted)] text-[10px] capitalize mt-0.5">{res.type}{res.categorie ? ` · ${res.categorie}` : ''}</p>
                                       </div>
-                                      <ActionIcon size={14} className="text-white/20 group-hover:text-white/50 transition-colors flex-shrink-0" />
+                                      <ActionIcon size={14} className="text-[var(--text-muted)] group-hover:text-[var(--text-muted)] transition-colors flex-shrink-0" />
                                     </a>
                                   )
                                 })}
@@ -719,21 +719,21 @@ export default function ProgrammePage() {
 
               {/* ── Suivi semaines (mode classique aussi) ── */}
               {totalWeeks > 0 && (
-                <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden">
-                  <div className="px-5 py-4 border-b border-white/[0.04]">
+                <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] overflow-hidden">
+                  <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Calendar size={15} className="text-[#FF6B2B]" />
-                        <h3 className="text-[#F5F5F3] font-semibold text-sm">Suivi hebdomadaire</h3>
+                        <h3 className="text-[var(--text-primary)] font-semibold text-sm">Suivi hebdomadaire</h3>
                       </div>
                       <span className="text-[#FF6B2B] text-xs font-bold">{completedCount}/{totalWeeks}</span>
                     </div>
-                    <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                       <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-500"
                         style={{ width: `${weekProgress}%` }} />
                     </div>
                   </div>
-                  <div className="divide-y divide-white/[0.04]">
+                  <div className="divide-y divide-[var(--border-subtle)]">
                     {Array.from({ length: totalWeeks }, (_, i) => i + 1).map(weekNum => {
                       const done = isWeekCompleted(weekNum)
                       const isValidating = validatingWeek === weekNum
@@ -741,13 +741,13 @@ export default function ProgrammePage() {
                       return (
                         <div key={weekNum} className={`flex items-center gap-3 px-5 py-3 ${done ? 'bg-emerald-500/[0.03]' : ''}`}>
                           <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            done ? 'bg-emerald-500/15' : unlocked ? 'bg-[#FF6B2B]/10' : 'bg-[#27272a]'
+                            done ? 'bg-emerald-500/15' : unlocked ? 'bg-[#FF6B2B]/10' : 'bg-[var(--bg-surface)]'
                           }`}>
                             {done ? <CheckCircle2 size={14} className="text-emerald-400" /> :
                              unlocked ? <span className="text-[#FF6B2B] text-[10px] font-bold">{weekNum}</span> :
-                             <Lock size={11} className="text-white/15" />}
+                             <Lock size={11} className="text-[var(--text-muted)]" />}
                           </div>
-                          <span className={`flex-1 text-xs font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[#F5F5F3]' : 'text-white/25'}`}>
+                          <span className={`flex-1 text-xs font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
                             Sem. {weekNum}
                           </span>
                           {done ? (
@@ -777,36 +777,36 @@ export default function ProgrammePage() {
               <Loader2 className="animate-spin text-[#22c55e]" size={28} />
             </div>
           ) : !nutritionPlan ? (
-            <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-12 text-center">
+            <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] p-12 text-center">
               <div className="w-14 h-14 bg-[#22c55e]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <UtensilsCrossed size={24} className="text-[#22c55e]" />
               </div>
-              <h2 className="text-[#F5F5F3] font-semibold text-lg mb-2">Aucun plan nutritionnel</h2>
-              <p className="text-white/40 text-sm">Ton coach n'a pas encore assigné de plan nutrition.</p>
+              <h2 className="text-[var(--text-primary)] font-semibold text-lg mb-2">Aucun plan nutritionnel</h2>
+              <p className="text-[var(--text-muted)] text-sm">Ton coach n'a pas encore assigné de plan nutrition.</p>
             </div>
           ) : (
             <>
               {/* Nutrition Header */}
               <div>
-                <p className="text-white/40 text-[11px] uppercase tracking-wider mb-1">Plan nutritionnel</p>
-                <h2 className="text-[#F5F5F3] text-lg font-bold">{nutritionPlan.titre || nutritionPlan.nom || 'Mon plan nutrition'}</h2>
-                {nutritionPlan.objectif && <p className="text-white/40 text-sm mt-1">{nutritionPlan.objectif}</p>}
+                <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-1">Plan nutritionnel</p>
+                <h2 className="text-[var(--text-primary)] text-lg font-bold">{nutritionPlan.titre || nutritionPlan.nom || 'Mon plan nutrition'}</h2>
+                {nutritionPlan.objectif && <p className="text-[var(--text-muted)] text-sm mt-1">{nutritionPlan.objectif}</p>}
               </div>
 
               {/* Carte PDF compacte (si document_url existe) */}
               {nutritionPlan.document_url && (
                 <a href={nutritionPlan.document_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-4 p-4 bg-[#1E1E1E] rounded-2xl border border-[#FF6B2B]/20 hover:border-[#FF6B2B]/40 transition-all group">
+                  className="flex items-center gap-4 p-4 bg-[var(--bg-card)] rounded-2xl border border-[#FF6B2B]/20 hover:border-[#FF6B2B]/40 transition-all group">
                   <div className="w-12 h-12 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B]/20 transition-all">
                     <svg className="w-6 h-6 text-[#FF6B2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[#F5F5F3] text-sm font-semibold truncate">
+                    <p className="text-[var(--text-primary)] text-sm font-semibold truncate">
                       {nutritionPlan.document_nom || 'Plan nutritionnel PDF'}
                     </p>
-                    <p className="text-white/30 text-xs mt-0.5">Fichier joint par ton coach • Appuie pour ouvrir</p>
+                    <p className="text-[var(--text-muted)] text-xs mt-0.5">Fichier joint par ton coach • Appuie pour ouvrir</p>
                   </div>
                   <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B] transition-all">
                     <Download size={16} className="text-[#FF6B2B] group-hover:text-white transition-all" />
@@ -818,34 +818,34 @@ export default function ProgrammePage() {
               {(nutritionPlan.calories_cible || nutritionPlan.proteines_cible) && (
                 <Card>
                   <CardBody>
-                    <p className="text-white/40 text-[11px] uppercase tracking-wider mb-3">Objectifs journaliers</p>
+                    <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-3">Objectifs journaliers</p>
                     <div className="grid grid-cols-4 gap-2">
                       {nutritionPlan.calories_cible && (
-                        <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
+                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
                           <Flame size={14} className="text-[#FF6B2B] mx-auto mb-1" />
-                          <p className="text-[#F5F5F3] text-base font-bold">{nutritionPlan.calories_cible}</p>
-                          <p className="text-white/30 text-[9px] uppercase">kcal</p>
+                          <p className="text-[var(--text-primary)] text-base font-bold">{nutritionPlan.calories_cible}</p>
+                          <p className="text-[var(--text-muted)] text-[9px] uppercase">kcal</p>
                         </div>
                       )}
                       {nutritionPlan.proteines_cible && (
-                        <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
+                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
                           <Droplets size={14} className="text-blue-400 mx-auto mb-1" />
                           <p className="text-blue-400 text-base font-bold">{nutritionPlan.proteines_cible}g</p>
-                          <p className="text-white/30 text-[9px] uppercase">Prot.</p>
+                          <p className="text-[var(--text-muted)] text-[9px] uppercase">Prot.</p>
                         </div>
                       )}
                       {nutritionPlan.glucides_cible && (
-                        <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
+                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
                           <Wheat size={14} className="text-yellow-400 mx-auto mb-1" />
                           <p className="text-yellow-400 text-base font-bold">{nutritionPlan.glucides_cible}g</p>
-                          <p className="text-white/30 text-[9px] uppercase">Gluc.</p>
+                          <p className="text-[var(--text-muted)] text-[9px] uppercase">Gluc.</p>
                         </div>
                       )}
                       {nutritionPlan.lipides_cible && (
-                        <div className="bg-[#0D0D0D] rounded-xl p-3 text-center">
+                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
                           <Droplets size={14} className="text-purple-400 mx-auto mb-1" />
                           <p className="text-purple-400 text-base font-bold">{nutritionPlan.lipides_cible}g</p>
-                          <p className="text-white/30 text-[9px] uppercase">Lip.</p>
+                          <p className="text-[var(--text-muted)] text-[9px] uppercase">Lip.</p>
                         </div>
                       )}
                     </div>
@@ -858,7 +858,7 @@ export default function ProgrammePage() {
                 <div className="space-y-4">
                   {Object.entries(repasParJour).sort(([a], [b]) => Number(a) - Number(b)).map(([jour, jourRepas]) => (
                     <div key={jour}>
-                      <p className="text-white/50 text-[11px] uppercase tracking-wider font-semibold mb-2">
+                      <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold mb-2">
                         Jour {Number(jour) + 1 > 1 ? `Jour ${Number(jour) + 1}` : 'Repas du jour'}
                       </p>
                       <div className="space-y-2">
@@ -874,14 +874,14 @@ export default function ProgrammePage() {
                           const macros = r.metadata?.macros
 
                           return (
-                            <div key={r.id} className="bg-[#1E1E1E] rounded-xl border border-white/[0.06] overflow-hidden">
+                            <div key={r.id} className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-base)] overflow-hidden">
                               <div className="px-4 py-3 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <span className="text-base">{emoji}</span>
                                   <div>
-                                    <p className="text-[#F5F5F3] text-sm font-medium">{titre}</p>
+                                    <p className="text-[var(--text-primary)] text-sm font-medium">{titre}</p>
                                     {r.metadata?.description && (
-                                      <p className="text-white/30 text-[10px] mt-0.5">{r.metadata.description}</p>
+                                      <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{r.metadata.description}</p>
                                     )}
                                   </div>
                                 </div>
@@ -890,7 +890,7 @@ export default function ProgrammePage() {
                                     <span className="text-[#FF6B2B] text-xs font-bold">{totalKcal} kcal</span>
                                   )}
                                   {macros && (
-                                    <span className="text-white/20 text-[9px]">
+                                    <span className="text-[var(--text-muted)] text-[9px]">
                                       P{macros.p} G{macros.g} L{macros.l}
                                     </span>
                                   )}
@@ -902,8 +902,8 @@ export default function ProgrammePage() {
                                     const kcal = Math.round((a.aliments?.kcal_100g || 0) * (a.quantite_g || 100) / 100)
                                     return (
                                       <div key={ai} className="flex items-center justify-between text-xs">
-                                        <span className="text-white/50">{a.aliments?.nom || 'Aliment'}</span>
-                                        <span className="text-white/25">{a.quantite_g}g {kcal > 0 && `• ${kcal} kcal`}</span>
+                                        <span className="text-[var(--text-secondary)]">{a.aliments?.nom || 'Aliment'}</span>
+                                        <span className="text-[var(--text-muted)]">{a.quantite_g}g {kcal > 0 && `• ${kcal} kcal`}</span>
                                       </div>
                                     )
                                   })}
@@ -920,11 +920,11 @@ export default function ProgrammePage() {
 
               {/* Message si pas de repas ET pas de PDF */}
               {Object.keys(repasParJour).length === 0 && !nutritionPlan.document_url && (
-                <div className="bg-[#1E1E1E] rounded-xl border border-white/[0.06] p-6 text-center">
-                  <p className="text-white/30 text-sm">Pas de détail de repas pour ce plan.</p>
+                <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-base)] p-6 text-center">
+                  <p className="text-[var(--text-muted)] text-sm">Pas de détail de repas pour ce plan.</p>
                   {nutritionPlan.notes && (
-                    <div className="mt-3 bg-[#0D0D0D] rounded-xl p-4">
-                      <p className="text-white/50 text-xs whitespace-pre-wrap text-left">{nutritionPlan.notes}</p>
+                    <div className="mt-3 bg-[var(--bg-base)] rounded-xl p-4">
+                      <p className="text-[var(--text-secondary)] text-xs whitespace-pre-wrap text-left">{nutritionPlan.notes}</p>
                     </div>
                   )}
                 </div>
@@ -934,29 +934,29 @@ export default function ProgrammePage() {
               {nutritionPlan.notes && Object.keys(repasParJour).length > 0 && (
                 <Card>
                   <CardBody>
-                    <p className="text-white/40 text-[11px] uppercase tracking-wider mb-2">Notes du coach</p>
-                    <p className="text-white/50 text-sm whitespace-pre-wrap">{nutritionPlan.notes}</p>
+                    <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-2">Notes du coach</p>
+                    <p className="text-[var(--text-secondary)] text-sm whitespace-pre-wrap">{nutritionPlan.notes}</p>
                   </CardBody>
                 </Card>
               )}
 
               {/* ── Suivi semaines ── */}
               {nutriTotalWeeks > 0 && (
-                <div className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden">
-                  <div className="px-5 py-4 border-b border-white/[0.04]">
+                <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] overflow-hidden">
+                  <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Calendar size={15} className="text-[#FF6B2B]" />
-                        <h3 className="text-[#F5F5F3] font-semibold text-sm">Suivi hebdomadaire</h3>
+                        <h3 className="text-[var(--text-primary)] font-semibold text-sm">Suivi hebdomadaire</h3>
                       </div>
                       <span className="text-[#FF6B2B] text-xs font-bold">{completedNutriCount}/{nutriTotalWeeks}</span>
                     </div>
-                    <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                       <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-500"
                         style={{ width: `${nutriWeekProgress}%` }} />
                     </div>
                   </div>
-                  <div className="divide-y divide-white/[0.04]">
+                  <div className="divide-y divide-[var(--border-subtle)]">
                     {Array.from({ length: nutriTotalWeeks }, (_, i) => i + 1).map(weekNum => {
                       const done = isNutriWeekCompleted(weekNum)
                       const isValidating = validatingNutriWeek === weekNum
@@ -964,13 +964,13 @@ export default function ProgrammePage() {
                       return (
                         <div key={weekNum} className={`flex items-center gap-3 px-5 py-3 ${done ? 'bg-emerald-500/[0.03]' : ''}`}>
                           <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            done ? 'bg-emerald-500/15' : unlocked ? 'bg-[#FF6B2B]/10' : 'bg-[#27272a]'
+                            done ? 'bg-emerald-500/15' : unlocked ? 'bg-[#FF6B2B]/10' : 'bg-[var(--bg-surface)]'
                           }`}>
                             {done ? <CheckCircle2 size={14} className="text-emerald-400" /> :
                              unlocked ? <span className="text-[#FF6B2B] text-[10px] font-bold">{weekNum}</span> :
-                             <Lock size={11} className="text-white/15" />}
+                             <Lock size={11} className="text-[var(--text-muted)]" />}
                           </div>
-                          <span className={`flex-1 text-xs font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[#F5F5F3]' : 'text-white/25'}`}>
+                          <span className={`flex-1 text-xs font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
                             Sem. {weekNum}
                           </span>
                           {done ? (

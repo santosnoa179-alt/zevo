@@ -175,8 +175,8 @@ export default function CoachAppBuilderPage() {
       <div className="p-4 md:p-6 w-full max-w-5xl space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-[#F5F5F3]">App Builder</h1>
-          <p className="text-white/40 text-sm mt-1">Personnalisez l'application à vos couleurs</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">App Builder</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1">Personnalisez l'application à vos couleurs</p>
         </div>
 
         {/* Preview floutée + Overlay */}
@@ -186,24 +186,24 @@ export default function CoachAppBuilderPage() {
             <div className="grid grid-cols-[1fr_340px] gap-6 p-6">
               {/* Colonne contrôles */}
               <div className="space-y-5">
-                <div className="bg-[#1E1E1E] rounded-xl p-5 space-y-4">
-                  <div className="h-5 w-32 bg-[#2A2A2A] rounded" />
-                  <div className="h-10 w-full bg-[#2A2A2A] rounded-lg" />
+                <div className="bg-[var(--bg-card)] rounded-xl p-5 space-y-4">
+                  <div className="h-5 w-32 bg-[var(--bg-surface)] rounded" />
+                  <div className="h-10 w-full bg-[var(--bg-surface)] rounded-lg" />
                   <div className="flex gap-2">
                     {PRESETS.slice(0, 8).map(c => (
                       <div key={c} className="w-8 h-8 rounded-full" style={{ backgroundColor: c }} />
                     ))}
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 bg-[#2A2A2A] rounded-xl" />
-                    <div className="h-9 w-28 bg-[#2A2A2A] rounded-lg" />
+                    <div className="w-14 h-14 bg-[var(--bg-surface)] rounded-xl" />
+                    <div className="h-9 w-28 bg-[var(--bg-surface)] rounded-lg" />
                   </div>
                 </div>
-                <div className="bg-[#1E1E1E] rounded-xl p-5 space-y-3">
-                  <div className="h-5 w-36 bg-[#2A2A2A] rounded" />
+                <div className="bg-[var(--bg-card)] rounded-xl p-5 space-y-3">
+                  <div className="h-5 w-36 bg-[var(--bg-surface)] rounded" />
                   <div className="grid grid-cols-2 gap-3">
                     {[1, 2, 3, 4, 5, 6].map(i => (
-                      <div key={i} className="h-16 bg-[#2A2A2A] rounded-xl" />
+                      <div key={i} className="h-16 bg-[var(--bg-surface)] rounded-xl" />
                     ))}
                   </div>
                 </div>
@@ -211,15 +211,15 @@ export default function CoachAppBuilderPage() {
               {/* Colonne preview mobile */}
               <div className="flex flex-col items-center">
                 <div className="w-[260px] h-[500px] bg-black rounded-[2.5rem] p-2">
-                  <div className="bg-[#0D0D0D] rounded-[2rem] h-full">
+                  <div className="bg-[var(--bg-base)] rounded-[2rem] h-full">
                     <div className="flex justify-center pt-3">
                       <div className="w-20 h-5 bg-black rounded-full" />
                     </div>
                     <div className="p-4 space-y-3 mt-2">
-                      <div className="h-4 w-28 bg-[#1E1E1E] rounded" />
-                      <div className="h-20 bg-[#1E1E1E] rounded-xl" />
-                      <div className="h-16 bg-[#1E1E1E] rounded-xl" />
-                      <div className="h-16 bg-[#1E1E1E] rounded-xl" />
+                      <div className="h-4 w-28 bg-[var(--bg-card)] rounded" />
+                      <div className="h-20 bg-[var(--bg-card)] rounded-xl" />
+                      <div className="h-16 bg-[var(--bg-card)] rounded-xl" />
+                      <div className="h-16 bg-[var(--bg-card)] rounded-xl" />
                     </div>
                   </div>
                 </div>
@@ -234,7 +234,7 @@ export default function CoachAppBuilderPage() {
 
             {/* Card centrale */}
             <div className="relative z-10 max-w-lg w-full">
-              <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-8 text-center shadow-2xl shadow-black/40">
+              <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-8 text-center shadow-2xl shadow-black/40">
                 {/* Glow */}
                 <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#FF6B2B]/15 rounded-full blur-[60px] pointer-events-none" />
 
@@ -250,26 +250,26 @@ export default function CoachAppBuilderPage() {
                 </span>
 
                 {/* Titre */}
-                <h2 className="text-[#F5F5F3] text-2xl font-bold mb-3">
+                <h2 className="text-[var(--text-primary)] text-2xl font-bold mb-3">
                   Passez en Marque Blanche
                 </h2>
 
                 {/* Sous-titre */}
-                <p className="text-white/45 text-sm leading-relaxed mb-6 max-w-sm mx-auto">
+                <p className="text-[var(--text-muted)] text-sm leading-relaxed mb-6 max-w-sm mx-auto">
                   Personnalisez l'application à vos couleurs et avec votre logo pour offrir
                   une expérience 100% premium à vos clients.
                 </p>
 
                 {/* Social proof */}
-                <div className="bg-[#0D0D0D] rounded-xl p-4 mb-6 border border-[#27272a]">
+                <div className="bg-[var(--bg-base)] rounded-xl p-4 mb-6 border border-[var(--border-base)]">
                   <div className="flex items-start gap-3">
                     <Quote size={16} className="text-[#FF6B2B] flex-shrink-0 mt-0.5" />
                     <div className="text-left">
-                      <p className="text-white/50 text-xs italic leading-relaxed">
+                      <p className="text-[var(--text-secondary)] text-xs italic leading-relaxed">
                         "Mes clients pensent que c'est ma propre application. Ça a complètement
                         professionnalisé mon image de coach."
                       </p>
-                      <p className="text-white/25 text-[10px] mt-2 font-medium">— Coach utilisant le plan Pro</p>
+                      <p className="text-[var(--text-muted)] text-[10px] mt-2 font-medium">— Coach utilisant le plan Pro</p>
                     </div>
                   </div>
                 </div>
@@ -284,22 +284,22 @@ export default function CoachAppBuilderPage() {
                   <ArrowRight size={16} />
                 </button>
 
-                <p className="text-white/20 text-[11px] mt-3">
-                  Votre plan actuel : <span className="capitalize text-white/30">{plan}</span>
+                <p className="text-[var(--text-muted)] text-[11px] mt-3">
+                  Votre plan actuel : <span className="capitalize text-[var(--text-muted)]">{plan}</span>
                 </p>
               </div>
 
               {/* ── Mini comparatif ── */}
-              <div className="mt-6 bg-[#18181b] border border-[#27272a] rounded-2xl p-6 shadow-xl shadow-black/30">
-                <h3 className="text-[#F5F5F3] text-sm font-semibold mb-4 text-center">Comparatif des plans</h3>
+              <div className="mt-6 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-6 shadow-xl shadow-black/30">
+                <h3 className="text-[var(--text-primary)] text-sm font-semibold mb-4 text-center">Comparatif des plans</h3>
 
                 <div className="space-y-0">
                   {/* Header */}
-                  <div className="grid grid-cols-4 gap-2 pb-3 border-b border-[#27272a]">
+                  <div className="grid grid-cols-4 gap-2 pb-3 border-b border-[var(--border-base)]">
                     <div />
                     <div className="text-center">
-                      <p className="text-white/30 text-[10px] font-semibold uppercase">Starter</p>
-                      <p className="text-white/20 text-[10px]">39€</p>
+                      <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase">Starter</p>
+                      <p className="text-[var(--text-muted)] text-[10px]">39€</p>
                     </div>
                     <div className="text-center">
                       <p className="text-[#FF6B2B] text-[10px] font-bold uppercase">Pro</p>
@@ -313,19 +313,19 @@ export default function CoachAppBuilderPage() {
 
                   {/* Rows */}
                   {PLAN_FEATURES.map((f, i) => (
-                    <div key={i} className={`grid grid-cols-4 gap-2 py-2.5 ${i < PLAN_FEATURES.length - 1 ? 'border-b border-[#27272a]/50' : ''}`}>
-                      <p className="text-white/40 text-xs">{f.label}</p>
+                    <div key={i} className={`grid grid-cols-4 gap-2 py-2.5 ${i < PLAN_FEATURES.length - 1 ? 'border-b border-[var(--border-base)]/50' : ''}`}>
+                      <p className="text-[var(--text-muted)] text-xs">{f.label}</p>
                       {['starter', 'pro', 'unlimited'].map(p => (
                         <div key={p} className="flex justify-center">
                           {typeof f[p] === 'boolean' ? (
                             f[p] ? (
                               <CheckCircle size={14} className={p === 'pro' ? 'text-[#FF6B2B]' : p === 'unlimited' ? 'text-amber-400' : 'text-green-400'} />
                             ) : (
-                              <X size={14} className="text-white/10" />
+                              <X size={14} className="text-[var(--text-muted)]" />
                             )
                           ) : (
                             <span className={`text-xs font-medium ${
-                              p === 'pro' ? 'text-[#FF6B2B]' : p === 'unlimited' ? 'text-amber-400' : 'text-white/30'
+                              p === 'pro' ? 'text-[#FF6B2B]' : p === 'unlimited' ? 'text-amber-400' : 'text-[var(--text-muted)]'
                             }`}>
                               {f[p]}
                             </span>
@@ -338,38 +338,38 @@ export default function CoachAppBuilderPage() {
               </div>
 
               {/* Aperçu mockup avec nom du coach */}
-              <div className="mt-6 bg-[#18181b] border border-[#27272a] rounded-2xl p-5 shadow-xl shadow-black/30">
-                <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider mb-3 text-center">
+              <div className="mt-6 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5 shadow-xl shadow-black/30">
+                <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-wider mb-3 text-center">
                   Aperçu de votre future app
                 </p>
                 <div className="mx-auto w-[200px]">
                   <div className="bg-black rounded-[1.5rem] p-1.5">
-                    <div className="bg-[#0D0D0D] rounded-[1.2rem] overflow-hidden" style={{ minHeight: 280 }}>
+                    <div className="bg-[var(--bg-base)] rounded-[1.2rem] overflow-hidden" style={{ minHeight: 280 }}>
                       {/* Notch */}
                       <div className="flex justify-center pt-1.5 pb-1">
                         <div className="w-16 h-3.5 bg-black rounded-full" />
                       </div>
                       {/* Header avec le nom du coach */}
-                      <div className="px-3 py-2 flex items-center gap-2 border-b border-white/[0.06]">
+                      <div className="px-3 py-2 flex items-center gap-2 border-b border-[var(--border-base)]">
                         <div className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[8px] font-bold bg-[#FF6B2B]">
                           {(coachPrenom || 'Z')[0].toUpperCase()}
                         </div>
-                        <span className="text-[#F5F5F3] text-[10px] font-semibold">
+                        <span className="text-[var(--text-primary)] text-[10px] font-semibold">
                           {coachPrenom ? `${coachPrenom} Coaching` : 'Votre App'}
                         </span>
                       </div>
                       {/* Faux contenu */}
                       <div className="p-3 space-y-2">
-                        <p className="text-[#F5F5F3] text-[9px] font-semibold">Bonjour, Marie 👋</p>
+                        <p className="text-[var(--text-primary)] text-[9px] font-semibold">Bonjour, Marie 👋</p>
                         <div className="h-12 bg-[#FF6B2B]/10 rounded-lg border border-[#FF6B2B]/20 flex items-center justify-center">
                           <span className="text-[#FF6B2B] text-[9px] font-bold">Score : 78%</span>
                         </div>
-                        <div className="h-8 bg-[#1E1E1E] rounded-lg" />
-                        <div className="h-8 bg-[#1E1E1E] rounded-lg" />
-                        <div className="h-8 bg-[#1E1E1E] rounded-lg" />
+                        <div className="h-8 bg-[var(--bg-card)] rounded-lg" />
+                        <div className="h-8 bg-[var(--bg-card)] rounded-lg" />
+                        <div className="h-8 bg-[var(--bg-card)] rounded-lg" />
                       </div>
                       {/* Nav bar */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-[#1E1E1E] border-t border-white/[0.06] px-2 py-1.5">
+                      <div className="absolute bottom-0 left-0 right-0 bg-[var(--bg-card)] border-t border-[var(--border-base)] px-2 py-1.5">
                         <div className="flex justify-around">
                           {['🏠', '💪', '📊', '💬', '👤'].map((e, i) => (
                             <span key={i} className={`text-[10px] ${i === 0 ? '' : 'opacity-30'}`}>{e}</span>
@@ -379,7 +379,7 @@ export default function CoachAppBuilderPage() {
                     </div>
                   </div>
                 </div>
-                <p className="text-white/15 text-[10px] text-center mt-3">
+                <p className="text-[var(--text-muted)] text-[10px] text-center mt-3">
                   Votre nom et couleurs seront appliqués automatiquement
                 </p>
               </div>
@@ -408,13 +408,13 @@ export default function CoachAppBuilderPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-[#F5F5F3]">App Builder</h1>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">App Builder</h1>
             <span className="inline-flex items-center gap-1 bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold px-2 py-0.5 rounded-full">
               <Crown size={10} />
               {plan === 'unlimited' ? 'UNLIMITED' : 'PRO'}
             </span>
           </div>
-          <p className="text-white/40 text-sm mt-1">Personnalisez l'app de vos clients en temps réel</p>
+          <p className="text-[var(--text-muted)] text-sm mt-1">Personnalisez l'app de vos clients en temps réel</p>
         </div>
         <button
           onClick={handleSave}
@@ -432,17 +432,17 @@ export default function CoachAppBuilderPage() {
         <div className="space-y-5">
 
           {/* Section Identité */}
-          <section className="bg-[#18181b] border border-[#27272a] rounded-2xl p-6 space-y-5">
+          <section className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-6 space-y-5">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-[#FF6B2B]/10">
                 <Palette size={18} className="text-[#FF6B2B]" />
               </div>
-              <h2 className="text-[#F5F5F3] font-semibold">Identité de l'app</h2>
+              <h2 className="text-[var(--text-primary)] font-semibold">Identité de l'app</h2>
             </div>
 
             {/* Nom de l'app */}
             <div>
-              <label className="flex items-center gap-2 text-sm text-white/50 mb-1.5">
+              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mb-1.5">
                 <Type size={14} />
                 Nom de l'app
               </label>
@@ -451,19 +451,19 @@ export default function CoachAppBuilderPage() {
                 value={nomApp}
                 onChange={(e) => setNomApp(e.target.value)}
                 placeholder="Ex : FitCoach, WellnessApp"
-                className="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
               />
-              <p className="text-white/20 text-xs mt-1">Vos clients verront ce nom au lieu de "Zevo"</p>
+              <p className="text-[var(--text-muted)] text-xs mt-1">Vos clients verront ce nom au lieu de "Zevo"</p>
             </div>
 
             {/* Logo */}
             <div>
-              <label className="flex items-center gap-2 text-sm text-white/50 mb-1.5">
+              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mb-1.5">
                 <Image size={14} />
                 Logo
               </label>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-xl bg-[#09090b] border border-[#27272a] flex items-center justify-center overflow-hidden shrink-0">
+                <div className="w-16 h-16 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-base)] flex items-center justify-center overflow-hidden shrink-0">
                   {logoUrl ? (
                     <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
                   ) : (
@@ -474,7 +474,7 @@ export default function CoachAppBuilderPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#09090b] border border-[#27272a] text-sm text-white/50 hover:text-white hover:border-[#3f3f46] transition-colors">
+                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-base)] text-sm text-[var(--text-secondary)] hover:text-white hover:border-[#3f3f46] transition-colors">
                       {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                       {uploading ? 'Upload...' : 'Changer le logo'}
                       <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
@@ -490,14 +490,14 @@ export default function CoachAppBuilderPage() {
                       </button>
                     )}
                   </div>
-                  <p className="text-white/15 text-[10px]">PNG, SVG ou JPG · 512×512px recommandé</p>
+                  <p className="text-[var(--text-muted)] text-[10px]">PNG, SVG ou JPG · 512×512px recommandé</p>
                 </div>
               </div>
             </div>
 
             {/* Couleur primaire */}
             <div>
-              <label className="flex items-center gap-2 text-sm text-white/50 mb-2">
+              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mb-2">
                 <Palette size={14} />
                 Couleur primaire
               </label>
@@ -515,7 +515,7 @@ export default function CoachAppBuilderPage() {
                   </button>
                 ))}
                 <label className="relative cursor-pointer">
-                  <div className="w-9 h-9 rounded-full border-2 border-dashed border-[#27272a] flex items-center justify-center text-white/30 text-xs hover:border-[#3f3f46] transition-colors">
+                  <div className="w-9 h-9 rounded-full border-2 border-dashed border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] text-xs hover:border-[#3f3f46] transition-colors">
                     +
                   </div>
                   <input type="color" value={couleur} onChange={(e) => setCouleur(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" />
@@ -523,21 +523,21 @@ export default function CoachAppBuilderPage() {
               </div>
               <div className="flex items-center gap-2 mt-2.5">
                 <div className="w-5 h-5 rounded" style={{ backgroundColor: couleur }} />
-                <span className="text-white/30 text-xs font-mono">{couleur}</span>
+                <span className="text-[var(--text-muted)] text-xs font-mono">{couleur}</span>
                 <div className="ml-2 h-5 w-24 rounded" style={{ background: `linear-gradient(90deg, ${couleur}, ${couleur}40)` }} />
               </div>
             </div>
           </section>
 
           {/* Section Modules */}
-          <section className="bg-[#18181b] border border-[#27272a] rounded-2xl p-6 space-y-4">
+          <section className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-6 space-y-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-purple-500/10">
                 <ToggleLeft size={18} className="text-purple-400" />
               </div>
               <div>
-                <h2 className="text-[#F5F5F3] font-semibold">Modules visibles</h2>
-                <p className="text-white/30 text-xs">Activez ou désactivez les modules que vos clients voient</p>
+                <h2 className="text-[var(--text-primary)] font-semibold">Modules visibles</h2>
+                <p className="text-[var(--text-muted)] text-xs">Activez ou désactivez les modules que vos clients voient</p>
               </div>
             </div>
 
@@ -548,19 +548,19 @@ export default function CoachAppBuilderPage() {
                   onClick={() => toggleModule(key)}
                   className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
                     modules[key]
-                      ? 'border-white/[0.08] bg-white/[0.02]'
-                      : 'border-[#27272a] bg-transparent opacity-40'
+                      ? 'border-[var(--border-base)] bg-[var(--bg-surface)]'
+                      : 'border-[var(--border-base)] bg-transparent opacity-40'
                   }`}
                 >
                   <div
                     className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
                     style={{ backgroundColor: modules[key] ? `${couleur}15` : 'transparent' }}
                   >
-                    <Icon size={18} style={{ color: modules[key] ? couleur : 'rgba(255,255,255,0.2)' }} />
+                    <Icon size={18} style={{ color: modules[key] ? couleur : 'var(--text-muted)' }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[#F5F5F3] text-sm font-medium">{label}</p>
-                    <p className="text-white/25 text-xs truncate">{desc}</p>
+                    <p className="text-[var(--text-primary)] text-sm font-medium">{label}</p>
+                    <p className="text-[var(--text-muted)] text-xs truncate">{desc}</p>
                   </div>
                   <div className={`w-10 h-[22px] rounded-full relative transition-colors ${
                     modules[key] ? '' : 'bg-white/10'
@@ -575,14 +575,14 @@ export default function CoachAppBuilderPage() {
           </section>
 
           {/* Section Message de bienvenue */}
-          <section className="bg-[#18181b] border border-[#27272a] rounded-2xl p-6 space-y-3">
+          <section className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-6 space-y-3">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-blue-500/10">
                 <MessageSquare size={18} className="text-blue-400" />
               </div>
               <div>
-                <h2 className="text-[#F5F5F3] font-semibold">Message de bienvenue</h2>
-                <p className="text-white/30 text-xs">Affiché au premier login de chaque nouveau client</p>
+                <h2 className="text-[var(--text-primary)] font-semibold">Message de bienvenue</h2>
+                <p className="text-[var(--text-muted)] text-xs">Affiché au premier login de chaque nouveau client</p>
               </div>
             </div>
             <textarea
@@ -590,14 +590,14 @@ export default function CoachAppBuilderPage() {
               onChange={(e) => setMessageBienvenue(e.target.value)}
               placeholder="Ex : Bienvenue dans ton espace coaching ! Je suis ravi de t'accompagner..."
               rows={3}
-              className="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none"
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none"
             />
           </section>
         </div>
 
         {/* ── Colonne droite : Preview mobile live ── */}
         <div className="lg:sticky lg:top-6 self-start">
-          <p className="text-white/30 text-xs font-semibold uppercase tracking-wider mb-3 text-center flex items-center justify-center gap-2">
+          <p className="text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider mb-3 text-center flex items-center justify-center gap-2">
             <Smartphone size={12} />
             Aperçu en temps réel
           </p>
@@ -605,7 +605,7 @@ export default function CoachAppBuilderPage() {
           <div className="mx-auto w-[300px]">
             {/* Frame smartphone */}
             <div className="bg-[#000] rounded-[2.5rem] p-2 shadow-2xl shadow-black/50 ring-1 ring-white/[0.06]">
-              <div className="bg-[#0D0D0D] rounded-[2rem] overflow-hidden relative" style={{ minHeight: 560 }}>
+              <div className="bg-[var(--bg-base)] rounded-[2rem] overflow-hidden relative" style={{ minHeight: 560 }}>
 
                 {/* Notch */}
                 <div className="flex justify-center pt-2 pb-1">
@@ -613,7 +613,7 @@ export default function CoachAppBuilderPage() {
                 </div>
 
                 {/* Header app */}
-                <div className="px-4 py-3 flex items-center justify-between border-b border-white/[0.06]">
+                <div className="px-4 py-3 flex items-center justify-between border-b border-[var(--border-base)]">
                   <div className="flex items-center gap-2">
                     {logoUrl ? (
                       <img src={logoUrl} alt="" className="w-6 h-6 rounded-md object-cover" />
@@ -622,7 +622,7 @@ export default function CoachAppBuilderPage() {
                         {nomApp.charAt(0)}
                       </div>
                     )}
-                    <span className="text-[#F5F5F3] text-sm font-semibold">{nomApp || 'Mon App'}</span>
+                    <span className="text-[var(--text-primary)] text-sm font-semibold">{nomApp || 'Mon App'}</span>
                   </div>
                   <div className="w-5 h-5 rounded-full bg-white/10" />
                 </div>
@@ -630,25 +630,25 @@ export default function CoachAppBuilderPage() {
                 {/* Contenu dashboard */}
                 <div className="p-4 space-y-3">
                   <div>
-                    <p className="text-[#F5F5F3] text-sm font-semibold">Bonjour, Marie 👋</p>
-                    <p className="text-white/30 text-[10px]">Voici ton récap du jour</p>
+                    <p className="text-[var(--text-primary)] text-sm font-semibold">Bonjour, Marie 👋</p>
+                    <p className="text-[var(--text-muted)] text-[10px]">Voici ton récap du jour</p>
                   </div>
 
                   {/* Score bien-être */}
-                  <div className="rounded-xl p-3 border border-white/[0.06]" style={{ backgroundColor: `${couleur}08` }}>
+                  <div className="rounded-xl p-3 border border-[var(--border-base)]" style={{ backgroundColor: `${couleur}08` }}>
                     <div className="flex items-center justify-between">
-                      <p className="text-white/40 text-[10px]">Score bien-être</p>
+                      <p className="text-[var(--text-muted)] text-[10px]">Score bien-être</p>
                       <p className="text-lg font-bold" style={{ color: couleur }}>78%</p>
                     </div>
-                    <div className="w-full h-1.5 bg-white/[0.06] rounded-full mt-2">
+                    <div className="w-full h-1.5 bg-[var(--bg-surface)] rounded-full mt-2">
                       <div className="h-full rounded-full transition-colors" style={{ width: '78%', backgroundColor: couleur }} />
                     </div>
                   </div>
 
                   {/* Habitudes */}
                   {modules.habitudes && (
-                    <div className="bg-[#1E1E1E] rounded-xl p-3">
-                      <p className="text-white/40 text-[10px] font-semibold mb-2">HABITUDES DU JOUR</p>
+                    <div className="bg-[var(--bg-card)] rounded-xl p-3">
+                      <p className="text-[var(--text-muted)] text-[10px] font-semibold mb-2">HABITUDES DU JOUR</p>
                       <div className="space-y-2">
                         {['Méditation', 'Lecture 30min'].map((h, i) => (
                           <div key={h} className="flex items-center gap-2">
@@ -657,7 +657,7 @@ export default function CoachAppBuilderPage() {
                             }`} style={i === 0 ? { backgroundColor: couleur, borderColor: couleur } : {}}>
                               {i === 0 && <Check size={10} className="text-white" />}
                             </div>
-                            <span className={`text-xs ${i === 0 ? 'text-white/30 line-through' : 'text-[#F5F5F3]'}`}>{h}</span>
+                            <span className={`text-xs ${i === 0 ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>{h}</span>
                           </div>
                         ))}
                       </div>
@@ -666,11 +666,11 @@ export default function CoachAppBuilderPage() {
 
                   {/* Objectifs */}
                   {modules.objectifs && (
-                    <div className="bg-[#1E1E1E] rounded-xl p-3">
-                      <p className="text-white/40 text-[10px] font-semibold mb-2">OBJECTIF EN COURS</p>
-                      <p className="text-[#F5F5F3] text-xs">Perdre 5kg</p>
+                    <div className="bg-[var(--bg-card)] rounded-xl p-3">
+                      <p className="text-[var(--text-muted)] text-[10px] font-semibold mb-2">OBJECTIF EN COURS</p>
+                      <p className="text-[var(--text-primary)] text-xs">Perdre 5kg</p>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full">
+                        <div className="flex-1 h-1.5 bg-[var(--bg-surface)] rounded-full">
                           <div className="h-full rounded-full transition-colors" style={{ width: '60%', backgroundColor: couleur }} />
                         </div>
                         <span className="text-[10px]" style={{ color: couleur }}>60%</span>
@@ -680,10 +680,10 @@ export default function CoachAppBuilderPage() {
 
                   {/* Humeur */}
                   {modules.humeur && (
-                    <div className="bg-[#1E1E1E] rounded-xl p-3 flex items-center justify-between">
+                    <div className="bg-[var(--bg-card)] rounded-xl p-3 flex items-center justify-between">
                       <div>
-                        <p className="text-white/40 text-[10px] font-semibold">HUMEUR</p>
-                        <p className="text-[#F5F5F3] text-xs mt-0.5">Comment tu te sens ?</p>
+                        <p className="text-[var(--text-muted)] text-[10px] font-semibold">HUMEUR</p>
+                        <p className="text-[var(--text-primary)] text-xs mt-0.5">Comment tu te sens ?</p>
                       </div>
                       <div className="flex gap-1.5">
                         {['😴', '😐', '😊', '😄', '🤩'].map((e, i) => (
@@ -695,12 +695,12 @@ export default function CoachAppBuilderPage() {
                 </div>
 
                 {/* Bottom nav */}
-                <div className="absolute bottom-0 left-0 right-0 bg-[#1E1E1E] border-t border-white/[0.06] px-2">
+                <div className="absolute bottom-0 left-0 right-0 bg-[var(--bg-card)] border-t border-[var(--border-base)] px-2">
                   <div className="flex items-center justify-around h-12">
                     {activeNavItems.slice(0, 5).map(({ icon: Icon, label }, i) => (
                       <div key={label} className="flex flex-col items-center gap-0.5">
-                        <Icon size={14} style={{ color: i === 0 ? couleur : 'rgba(255,255,255,0.3)' }} />
-                        <span className="text-[8px]" style={{ color: i === 0 ? couleur : 'rgba(255,255,255,0.3)' }}>{label}</span>
+                        <Icon size={14} style={{ color: i === 0 ? couleur : 'var(--text-muted)' }} />
+                        <span className="text-[8px]" style={{ color: i === 0 ? couleur : 'var(--text-muted)' }}>{label}</span>
                       </div>
                     ))}
                   </div>
@@ -712,9 +712,9 @@ export default function CoachAppBuilderPage() {
 
           {/* Message de bienvenue preview */}
           {messageBienvenue && (
-            <div className="mt-4 bg-[#18181b] border border-[#27272a] rounded-xl p-4">
-              <p className="text-white/30 text-[10px] font-semibold uppercase tracking-wider mb-1.5">Message de bienvenue</p>
-              <p className="text-[#F5F5F3] text-xs leading-relaxed">{messageBienvenue}</p>
+            <div className="mt-4 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-4">
+              <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-wider mb-1.5">Message de bienvenue</p>
+              <p className="text-[var(--text-primary)] text-xs leading-relaxed">{messageBienvenue}</p>
             </div>
           )}
         </div>

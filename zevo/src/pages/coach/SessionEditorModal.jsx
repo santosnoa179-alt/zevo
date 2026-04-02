@@ -265,32 +265,32 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6" onClick={onClose}>
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
-      <div className="relative w-full max-w-6xl h-[85vh] bg-[#09090b] rounded-2xl border border-[#27272a] shadow-2xl overflow-hidden flex flex-col"
+      <div className="relative w-full max-w-6xl h-[85vh] bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border-base)] shadow-2xl overflow-hidden flex flex-col"
         onClick={e => e.stopPropagation()}>
 
         {/* ═══ Header ═══ */}
-        <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between shrink-0">
+        <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
               <Dumbbell size={16} className="text-[#FF6B2B]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-[#F5F5F3] text-base font-bold">Édition de séance</h2>
-                <span className="text-white/20 text-sm">—</span>
-                <span className="text-white/40 text-sm">{dayLabel}</span>
+                <h2 className="text-[var(--text-primary)] text-base font-bold">Édition de séance</h2>
+                <span className="text-[var(--text-muted)] text-sm">—</span>
+                <span className="text-[var(--text-muted)] text-sm">{dayLabel}</span>
               </div>
               <input
                 type="text"
                 value={titre}
                 onChange={e => setTitre(e.target.value)}
-                className="bg-transparent text-white/50 text-xs border-none focus:outline-none focus:text-[#F5F5F3] placeholder:text-white/20 mt-0.5"
+                className="bg-transparent text-[var(--text-secondary)] text-xs border-none focus:outline-none focus:text-[var(--text-primary)] placeholder:text-[var(--text-muted)] mt-0.5"
                 placeholder="Nom de la séance..."
               />
             </div>
           </div>
           <button onClick={onClose}
-            className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+            className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all">
             <X size={18} />
           </button>
         </div>
@@ -299,20 +299,20 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
         <div className="flex-1 flex overflow-hidden">
 
           {/* ── Left: Library (35%) ── */}
-          <div className="w-[35%] border-r border-[#27272a] flex flex-col bg-[#0D0D0D]">
+          <div className="w-[35%] border-r border-[var(--border-base)] flex flex-col bg-[var(--bg-base)]">
 
             {/* Segmented Control */}
             <div className="px-4 pt-3 pb-0">
-              <div className="bg-[#18181b] p-0.5 flex rounded-lg">
+              <div className="bg-[var(--bg-base)] p-0.5 flex rounded-lg">
                 <button onClick={() => setLeftTab('exercices')}
                   className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold text-center transition-all ${
-                    leftTab === 'exercices' ? 'bg-[#27272a] text-[#F5F5F3] shadow-sm' : 'text-white/30 hover:text-white/50'
+                    leftTab === 'exercices' ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                   }`}>
                   <Dumbbell size={11} className="inline mr-1" />Exercices
                 </button>
                 <button onClick={() => setLeftTab('fichiers')}
                   className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold text-center transition-all ${
-                    leftTab === 'fichiers' ? 'bg-[#27272a] text-[#F5F5F3] shadow-sm' : 'text-white/30 hover:text-white/50'
+                    leftTab === 'fichiers' ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                   }`}>
                   <Paperclip size={11} className="inline mr-1" />Fichiers
                 </button>
@@ -322,14 +322,14 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
             {/* ── Fichiers tab ── */}
             {leftTab === 'fichiers' && (
               <div className="flex-1 flex flex-col">
-                <div className="p-4 border-b border-[#27272a]/50">
+                <div className="p-4 border-b border-[var(--border-base)]/50">
                   <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload}
                     accept=".pdf,.mp4,.mov,.xlsx,.docx,.jpg,.jpeg,.png,.gif,.webp" />
                   <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
-                    className="w-full py-3 rounded-xl border-2 border-dashed border-[#27272a] text-white/25 text-xs font-medium hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/50 hover:bg-[#FF6B2B]/[0.02] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-wait">
+                    className="w-full py-3 rounded-xl border-2 border-dashed border-[var(--border-base)] text-[var(--text-muted)] text-xs font-medium hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/50 hover:bg-[#FF6B2B]/[0.02] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-wait">
                     {uploading ? <><Loader2 size={14} className="animate-spin" /> Upload en cours...</> : <><Upload size={14} /> Importer un fichier</>}
                   </button>
-                  <p className="text-white/15 text-[10px] mt-2">{availableFiles.length} fichier{availableFiles.length !== 1 ? 's' : ''} disponible{availableFiles.length !== 1 ? 's' : ''}</p>
+                  <p className="text-[var(--text-muted)] text-[10px] mt-2">{availableFiles.length} fichier{availableFiles.length !== 1 ? 's' : ''} disponible{availableFiles.length !== 1 ? 's' : ''}</p>
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
                   {availableFiles.map(file => {
@@ -340,7 +340,7 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                         className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
                           attached
                             ? 'bg-[#FF6B2B]/5 border border-[#FF6B2B]/15 opacity-60'
-                            : 'bg-[#18181b] border border-transparent hover:border-[#FF6B2B]/20 hover:bg-[#1E1E1E]'
+                            : 'bg-[var(--bg-base)] border border-transparent hover:border-[#FF6B2B]/20 hover:bg-[var(--bg-card)]'
                         }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                           file.type === 'pdf' ? 'bg-red-500/10' : file.type === 'video' ? 'bg-purple-500/10' : 'bg-blue-500/10'
@@ -350,8 +350,8 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                           } />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[#F5F5F3] text-sm font-medium truncate">{file.name}</p>
-                          <p className="text-white/20 text-[10px] mt-0.5">{file.size}</p>
+                          <p className="text-[var(--text-primary)] text-sm font-medium truncate">{file.name}</p>
+                          <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{file.size}</p>
                         </div>
                         {attached && (
                           <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/20 flex items-center justify-center shrink-0">
@@ -367,21 +367,21 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
 
             {/* Search + filters (exercices tab only) */}
             {leftTab === 'exercices' && <>
-            <div className="p-4 space-y-3 border-b border-[#27272a]/50">
+            <div className="p-4 space-y-3 border-b border-[var(--border-base)]/50">
               <div className="flex items-center gap-2">
                 <div className="flex-1 relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Rechercher un exercice..."
-                    className="w-full bg-[#18181b] border border-[#27272a] rounded-xl pl-9 pr-3 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl pl-9 pr-3 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
                   />
                 </div>
                 <button onClick={() => setShowFilters(!showFilters)}
                   className={`p-2.5 rounded-xl border transition-all ${
-                    showFilters ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/30 text-[#FF6B2B]' : 'bg-[#18181b] border-[#27272a] text-white/30 hover:text-white/50'
+                    showFilters ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/30 text-[#FF6B2B]' : 'bg-[var(--bg-base)] border-[var(--border-base)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                   }`}>
                   <Filter size={14} />
                 </button>
@@ -395,7 +395,7 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-all ${
                         muscleFilter === mg
                           ? 'bg-[#FF6B2B] text-white'
-                          : 'bg-[#18181b] text-white/30 hover:text-white/50 border border-[#27272a]'
+                          : 'bg-[var(--bg-base)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] border border-[var(--border-base)]'
                       }`}>
                       {mg}
                     </button>
@@ -404,7 +404,7 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
               )}
 
               <div className="flex items-center justify-between">
-                <p className="text-white/15 text-[10px]">{filtered.length} exercice{filtered.length !== 1 ? 's' : ''}</p>
+                <p className="text-[var(--text-muted)] text-[10px]">{filtered.length} exercice{filtered.length !== 1 ? 's' : ''}</p>
                 <button onClick={() => { setIsCreatingExercise(!isCreatingExercise); setNewExName(searchQuery) }}
                   className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
                   {isCreatingExercise ? 'Annuler' : '+ Créer'}
@@ -417,28 +417,28 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
 
               {/* ── Create exercise form ── */}
               {isCreatingExercise && (
-                <div className="bg-[#1E1E1E] border border-[#FF6B2B]/20 rounded-xl p-4 mb-3 space-y-3">
-                  <p className="text-[#F5F5F3] text-xs font-bold">Nouvel exercice personnalisé</p>
+                <div className="bg-[var(--bg-card)] border border-[#FF6B2B]/20 rounded-xl p-4 mb-3 space-y-3">
+                  <p className="text-[var(--text-primary)] text-xs font-bold">Nouvel exercice personnalisé</p>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between py-1.5 border-b border-[#27272a]/50">
-                      <span className="text-white/30 text-[11px] font-medium">Nom</span>
+                    <div className="flex items-center justify-between py-1.5 border-b border-[var(--border-base)]/50">
+                      <span className="text-[var(--text-muted)] text-[11px] font-medium">Nom</span>
                       <input type="text" value={newExName} onChange={e => setNewExName(e.target.value)}
                         placeholder="Ex : Romanian deadlift" autoFocus
-                        className="bg-transparent text-[#F5F5F3] text-[11px] text-right border-none focus:outline-none placeholder:text-white/15 w-2/3" />
+                        className="bg-transparent text-[var(--text-primary)] text-[11px] text-right border-none focus:outline-none placeholder:text-[var(--text-muted)] w-2/3" />
                     </div>
-                    <div className="flex items-center justify-between py-1.5 border-b border-[#27272a]/50">
-                      <span className="text-white/30 text-[11px] font-medium">Muscle</span>
+                    <div className="flex items-center justify-between py-1.5 border-b border-[var(--border-base)]/50">
+                      <span className="text-[var(--text-muted)] text-[11px] font-medium">Muscle</span>
                       <select value={newExMuscle} onChange={e => setNewExMuscle(e.target.value)}
-                        className="bg-transparent text-[#F5F5F3] text-[11px] text-right border-none focus:outline-none appearance-none cursor-pointer">
+                        className="bg-transparent text-[var(--text-primary)] text-[11px] text-right border-none focus:outline-none appearance-none cursor-pointer">
                         <option value="">—</option>
                         {MUSCLE_GROUPS.filter(m => m !== 'Tous').map(m => <option key={m} value={m}>{m}</option>)}
                       </select>
                     </div>
                     <div className="flex items-center justify-between py-1.5">
-                      <span className="text-white/30 text-[11px] font-medium">Équipement</span>
+                      <span className="text-[var(--text-muted)] text-[11px] font-medium">Équipement</span>
                       <input type="text" value={newExEquip} onChange={e => setNewExEquip(e.target.value)}
                         placeholder="Barre, Haltère..."
-                        className="bg-transparent text-[#F5F5F3] text-[11px] text-right border-none focus:outline-none placeholder:text-white/15 w-2/3" />
+                        className="bg-transparent text-[var(--text-primary)] text-[11px] text-right border-none focus:outline-none placeholder:text-[var(--text-muted)] w-2/3" />
                     </div>
                   </div>
                   <button onClick={handleCreateExercise} disabled={!newExName.trim() || creatingEx}
@@ -455,8 +455,8 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="text-center py-12">
-                  <Dumbbell size={24} className="text-white/10 mx-auto mb-2" />
-                  <p className="text-white/20 text-xs mb-3">Aucun exercice trouvé</p>
+                  <Dumbbell size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
+                  <p className="text-[var(--text-muted)] text-xs mb-3">Aucun exercice trouvé</p>
                   {searchQuery && !isCreatingExercise && (
                     <button onClick={() => { setIsCreatingExercise(true); setNewExName(searchQuery) }}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-[#FF6B2B]/30 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/5 transition-all">
@@ -475,23 +475,23 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                       className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
                         added
                           ? 'bg-[#FF6B2B]/5 border border-[#FF6B2B]/15 opacity-60'
-                          : 'bg-[#18181b] border border-transparent hover:border-[#FF6B2B]/20 hover:bg-[#1E1E1E]'
+                          : 'bg-[var(--bg-base)] border border-transparent hover:border-[#FF6B2B]/20 hover:bg-[var(--bg-card)]'
                       }`}
                     >
                       {/* Icon */}
-                      <div className="w-10 h-10 rounded-xl bg-[#27272a] flex items-center justify-center shrink-0">
-                        <Dumbbell size={16} className="text-white/25" />
+                      <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center shrink-0">
+                        <Dumbbell size={16} className="text-[var(--text-muted)]" />
                       </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-[#F5F5F3] text-sm font-medium truncate">{ex.nom}</p>
+                        <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.nom}</p>
                         <div className="flex items-center gap-2 mt-0.5">
                           {ex.muscle_group && (
                             <span className="text-[10px] text-[#FF6B2B]/60 font-medium">{ex.muscle_group}</span>
                           )}
                           {ex.equipment && (
-                            <span className="text-[10px] text-white/20">{ex.equipment}</span>
+                            <span className="text-[10px] text-[var(--text-muted)]">{ex.equipment}</span>
                           )}
                         </div>
                       </div>
@@ -502,8 +502,8 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                           <Check size={12} className="text-[#FF6B2B]" />
                         </div>
                       ) : (
-                        <div className="w-6 h-6 rounded-full border border-[#27272a] flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100">
-                          <Plus size={12} className="text-white/20" />
+                        <div className="w-6 h-6 rounded-full border border-[var(--border-base)] flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100">
+                          <Plus size={12} className="text-[var(--text-muted)]" />
                         </div>
                       )}
                     </button>
@@ -515,18 +515,18 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
           </div>
 
           {/* ── Right: Canvas (65%) ── */}
-          <div className="flex-1 flex flex-col bg-[#0D0D0D]">
+          <div className="flex-1 flex flex-col bg-[var(--bg-base)]">
 
             {/* Canvas header */}
-            <div className="px-5 py-3 border-b border-[#27272a]/50 flex items-center justify-between">
+            <div className="px-5 py-3 border-b border-[var(--border-base)]/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Dumbbell size={14} className="text-[#FF6B2B]" />
-                <span className="text-[#F5F5F3] text-sm font-semibold">{titre}</span>
-                <span className="text-white/15 text-xs ml-1">
+                <span className="text-[var(--text-primary)] text-sm font-semibold">{titre}</span>
+                <span className="text-[var(--text-muted)] text-xs ml-1">
                   {canvas.length} exercice{canvas.length !== 1 ? 's' : ''}
                 </span>
               </div>
-              <div className="flex items-center gap-4 text-[10px] text-white/20">
+              <div className="flex items-center gap-4 text-[10px] text-[var(--text-muted)]">
                 <span className="flex items-center gap-1"><Repeat size={10} /> Séries</span>
                 <span className="flex items-center gap-1"><Dumbbell size={10} /> Reps</span>
                 <span className="flex items-center gap-1"><Timer size={10} /> Repos</span>
@@ -538,11 +538,11 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
               {canvas.length === 0 ? (
                 /* Empty state */
                 <div className="h-full flex flex-col items-center justify-center">
-                  <div className="w-20 h-20 rounded-full border-2 border-dashed border-[#27272a] flex items-center justify-center mb-4 hover:border-[#FF6B2B]/30 transition-all">
-                    <Plus size={28} className="text-white/10" />
+                  <div className="w-20 h-20 rounded-full border-2 border-dashed border-[var(--border-base)] flex items-center justify-center mb-4 hover:border-[#FF6B2B]/30 transition-all">
+                    <Plus size={28} className="text-[var(--text-muted)]" />
                   </div>
-                  <p className="text-[#F5F5F3] text-base font-semibold mb-1">Séance vide</p>
-                  <p className="text-white/25 text-sm text-center max-w-xs leading-relaxed">
+                  <p className="text-[var(--text-primary)] text-base font-semibold mb-1">Séance vide</p>
+                  <p className="text-[var(--text-muted)] text-sm text-center max-w-xs leading-relaxed">
                     Cliquez sur un exercice à gauche pour commencer à construire votre séance
                   </p>
                 </div>
@@ -550,23 +550,23 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                 <div className="space-y-2">
                   {canvas.map((ex, idx) => (
                     <div key={ex._key}
-                      className="group flex items-center gap-3 p-3 rounded-xl bg-[#18181b] border border-[#27272a]/50 hover:border-[#27272a] transition-all">
+                      className="group flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)]/50 hover:border-[var(--border-base)] transition-all">
 
                       {/* Drag handle + order */}
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <GripVertical size={14} className="text-white/10 cursor-grab" />
+                        <GripVertical size={14} className="text-[var(--text-muted)] cursor-grab" />
                         <span className="text-[#FF6B2B] text-xs font-bold w-5 text-center">{idx + 1}</span>
                       </div>
 
                       {/* Icon */}
-                      <div className="w-9 h-9 rounded-lg bg-[#27272a] flex items-center justify-center shrink-0">
-                        <Dumbbell size={14} className="text-white/25" />
+                      <div className="w-9 h-9 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center shrink-0">
+                        <Dumbbell size={14} className="text-[var(--text-muted)]" />
                       </div>
 
                       {/* Name + muscle */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-[#F5F5F3] text-sm font-medium truncate">{ex.nom}</p>
-                        <p className="text-white/20 text-[10px] mt-0.5">{ex.muscle_group || ''}</p>
+                        <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.nom}</p>
+                        <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{ex.muscle_group || ''}</p>
                       </div>
 
                       {/* Series / Reps / Repos inputs */}
@@ -576,19 +576,19 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                             type="number"
                             value={ex.series}
                             onChange={e => updateExField(ex._key, 'series', parseInt(e.target.value) || 0)}
-                            className="w-12 bg-[#0D0D0D] border border-[#27272a] rounded-lg px-2 py-1.5 text-[#F5F5F3] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
+                            className="w-12 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-2 py-1.5 text-[var(--text-primary)] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
                           />
-                          <span className="text-white/15 text-[8px] mt-0.5">séries</span>
+                          <span className="text-[var(--text-muted)] text-[8px] mt-0.5">séries</span>
                         </div>
-                        <span className="text-white/10 text-xs">×</span>
+                        <span className="text-[var(--text-muted)] text-xs">×</span>
                         <div className="flex flex-col items-center">
                           <input
                             type="number"
                             value={ex.reps}
                             onChange={e => updateExField(ex._key, 'reps', parseInt(e.target.value) || 0)}
-                            className="w-12 bg-[#0D0D0D] border border-[#27272a] rounded-lg px-2 py-1.5 text-[#F5F5F3] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
+                            className="w-12 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-2 py-1.5 text-[var(--text-primary)] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
                           />
-                          <span className="text-white/15 text-[8px] mt-0.5">reps</span>
+                          <span className="text-[var(--text-muted)] text-[8px] mt-0.5">reps</span>
                         </div>
                         <div className="flex flex-col items-center ml-1">
                           <div className="flex items-center">
@@ -596,16 +596,16 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                               type="number"
                               value={ex.repos}
                               onChange={e => updateExField(ex._key, 'repos', parseInt(e.target.value) || 0)}
-                              className="w-14 bg-[#0D0D0D] border border-[#27272a] rounded-lg px-2 py-1.5 text-[#F5F5F3] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
+                              className="w-14 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-2 py-1.5 text-[var(--text-primary)] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
                             />
                           </div>
-                          <span className="text-white/15 text-[8px] mt-0.5">repos (s)</span>
+                          <span className="text-[var(--text-muted)] text-[8px] mt-0.5">repos (s)</span>
                         </div>
                       </div>
 
                       {/* Delete */}
                       <button onClick={() => removeFromCanvas(ex._key)}
-                        className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -616,19 +616,19 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
 
             {/* Fichiers joints section */}
             {attachedFiles.length > 0 && (
-              <div className="px-5 py-3 border-t border-[#27272a]/50 shrink-0">
-                <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <div className="px-5 py-3 border-t border-[var(--border-base)]/50 shrink-0">
+                <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <Paperclip size={10} /> Fichiers joints ({attachedFiles.length})
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {attachedFiles.map(file => (
                     <div key={file.id} onClick={() => handleOpenFile(file)}
-                      className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a]/50 cursor-pointer hover:bg-[#27272a] hover:border-[#27272a] transition-all">
+                      className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)]/50 cursor-pointer hover:bg-[var(--bg-surface)] hover:border-[var(--border-base)] transition-all">
                       <FileText size={12} className={file.type === 'pdf' ? 'text-red-400' : file.type === 'video' ? 'text-purple-400' : 'text-blue-400'} />
-                      <span className="text-[#F5F5F3] text-[11px] font-medium">{file.name}</span>
-                      <ExternalLink size={9} className="text-white/15 group-hover:text-white/30 transition-all" />
+                      <span className="text-[var(--text-primary)] text-[11px] font-medium">{file.name}</span>
+                      <ExternalLink size={9} className="text-[var(--text-muted)] group-hover:text-[var(--text-muted)] transition-all" />
                       <button onClick={e => { e.stopPropagation(); removeFile(file.id) }}
-                        className="p-0.5 rounded text-white/10 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100">
+                        className="p-0.5 rounded text-[var(--text-muted)] hover:text-red-400 transition-all opacity-0 group-hover:opacity-100">
                         <X size={10} />
                       </button>
                     </div>
@@ -638,8 +638,8 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
             )}
 
             {/* Canvas footer */}
-            <div className="px-5 py-4 border-t border-[#27272a] flex items-center justify-between shrink-0">
-              <div className="text-xs text-white/20">
+            <div className="px-5 py-4 border-t border-[var(--border-base)] flex items-center justify-between shrink-0">
+              <div className="text-xs text-[var(--text-muted)]">
                 {canvas.length > 0 && (
                   <span>
                     {canvas.reduce((sum, ex) => sum + ex.series, 0)} séries totales

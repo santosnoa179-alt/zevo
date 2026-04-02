@@ -12,7 +12,7 @@ export function ProtectedRoute({ children, allowedRoles }) {
   // Affiche un spinner tant que auth OU role n'est pas résolu
   if (authLoading || roleLoading) {
     return (
-      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
       </div>
     )

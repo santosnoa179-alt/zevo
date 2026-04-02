@@ -104,9 +104,9 @@ export default function AdminCoachsPage() {
   if (loading) {
     return (
       <div className="p-6 w-full">
-        <div className="h-8 w-36 bg-[#2A2A2A] rounded animate-pulse mb-8" />
+        <div className="h-8 w-36 bg-[var(--bg-surface)] rounded animate-pulse mb-8" />
         <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-16 bg-[#1E1E1E] rounded-xl animate-pulse" />)}
+          {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-16 bg-[var(--bg-card)] rounded-xl animate-pulse" />)}
         </div>
       </div>
     )
@@ -116,28 +116,28 @@ export default function AdminCoachsPage() {
     <div className="p-6 w-full">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-[#F5F5F3] text-2xl font-bold">Coachs</h1>
-          <p className="text-white/40 text-sm mt-0.5">{coaches.length} comptes — {coaches.filter(c => c.abonnement_actif).length} actifs</p>
+          <h1 className="text-[var(--text-primary)] text-2xl font-bold">Coachs</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-0.5">{coaches.length} comptes — {coaches.filter(c => c.abonnement_actif).length} actifs</p>
         </div>
       </div>
 
       {/* ── Barre de recherche + filtres ── */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher un coach..."
-            className="w-full bg-[#1E1E1E] border border-white/[0.08] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#F5F5F3] placeholder-white/20 focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
+            className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
           />
         </div>
 
         <select
           value={filtrePlan}
           onChange={(e) => setFiltrePlan(e.target.value)}
-          className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-[#F5F5F3] focus:outline-none"
+          className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none"
         >
           <option value="tous">Tous les plans</option>
           <option value="starter">Starter</option>
@@ -148,7 +148,7 @@ export default function AdminCoachsPage() {
         <select
           value={filtreActif}
           onChange={(e) => setFiltreActif(e.target.value)}
-          className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-[#F5F5F3] focus:outline-none"
+          className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none"
         >
           <option value="tous">Tous statuts</option>
           <option value="actif">Actifs</option>
@@ -158,7 +158,7 @@ export default function AdminCoachsPage() {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-[#F5F5F3] focus:outline-none"
+          className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none"
         >
           <option value="date">Trier par date</option>
           <option value="clients">Trier par nb clients</option>
@@ -167,9 +167,9 @@ export default function AdminCoachsPage() {
       </div>
 
       {/* ── Tableau des coachs ── */}
-      <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl overflow-hidden">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-6 gap-4 px-5 py-3 border-b border-white/[0.06] text-white/30 text-xs font-semibold uppercase tracking-wider">
+        <div className="grid grid-cols-6 gap-4 px-5 py-3 border-b border-[var(--border-base)] text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider">
           <span className="col-span-2">Coach</span>
           <span>Plan</span>
           <span>Clients</span>
@@ -178,20 +178,20 @@ export default function AdminCoachsPage() {
         </div>
 
         {coachsFiltres.length === 0 ? (
-          <div className="p-10 text-center text-white/30 text-sm">Aucun coach trouvé</div>
+          <div className="p-10 text-center text-[var(--text-muted)] text-sm">Aucun coach trouvé</div>
         ) : (
           coachsFiltres.map(c => (
             <div
               key={c.id}
-              className="grid grid-cols-6 gap-4 px-5 py-4 border-b border-white/[0.04] items-center hover:bg-white/[0.02] transition-colors"
+              className="grid grid-cols-6 gap-4 px-5 py-4 border-b border-[var(--border-subtle)] items-center hover:bg-[var(--bg-surface)] transition-colors"
             >
               {/* Nom + email */}
               <div className="col-span-2">
-                <p className="text-[#F5F5F3] text-sm font-medium truncate">
+                <p className="text-[var(--text-primary)] text-sm font-medium truncate">
                   {c.profiles?.nom || '—'}
                 </p>
-                <p className="text-white/30 text-xs truncate">{c.profiles?.email}</p>
-                <p className="text-white/20 text-[10px] mt-0.5">
+                <p className="text-[var(--text-muted)] text-xs truncate">{c.profiles?.email}</p>
+                <p className="text-[var(--text-muted)] text-[10px] mt-0.5">
                   Inscrit le {new Date(c.created_at).toLocaleDateString('fr-FR')}
                 </p>
               </div>
@@ -216,8 +216,8 @@ export default function AdminCoachsPage() {
 
               {/* Nb clients */}
               <div className="flex items-center gap-1.5">
-                <Users size={14} className="text-white/25" />
-                <span className="text-[#F5F5F3] text-sm font-medium">{clientCounts[c.id] || 0}</span>
+                <Users size={14} className="text-[var(--text-muted)]" />
+                <span className="text-[var(--text-primary)] text-sm font-medium">{clientCounts[c.id] || 0}</span>
               </div>
 
               {/* Statut */}

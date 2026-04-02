@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Card, CardBody } from '../../components/ui/Card'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { Users, UserCheck, DollarSign, TrendingUp, Activity } from 'lucide-react'
+import { Users, UserCheck, Euro, TrendingUp, Activity } from 'lucide-react'
 
 // Prix mensuels par plan (en €)
 const PLAN_PRICES = { starter: 39, pro: 59, unlimited: 79 }
@@ -59,7 +59,7 @@ export default function AdminDashboardPage() {
   const arr = mrr * 12
 
   const statCards = [
-    { label: 'MRR', value: `${mrr.toLocaleString('fr-FR')} €`, icon: DollarSign, color: '#FF6B2B' },
+    { label: 'MRR', value: `${mrr.toLocaleString('fr-FR')} €`, icon: Euro, color: '#FF6B2B' },
     { label: 'Coachs actifs', value: coachsActifs.length, icon: UserCheck, color: '#10B981' },
     { label: 'Clients total', value: totalClients, icon: Users, color: '#3B82F6' },
     { label: 'Nouveaux ce mois', value: newCoachesThisMonth, icon: TrendingUp, color: '#F59E0B' },
@@ -68,9 +68,9 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="p-6 w-full">
-        <div className="h-8 w-48 bg-[#2A2A2A] rounded animate-pulse mb-8" />
+        <div className="h-8 w-48 bg-[var(--bg-surface)] rounded animate-pulse mb-8" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-[#1E1E1E] rounded-xl animate-pulse" />)}
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-[var(--bg-card)] rounded-xl animate-pulse" />)}
         </div>
       </div>
     )
@@ -79,44 +79,44 @@ export default function AdminDashboardPage() {
   return (
     <div className="p-6 w-full">
       <div className="mb-8">
-        <h1 className="text-[#F5F5F3] text-2xl font-bold">Super Admin</h1>
-        <p className="text-white/40 text-sm mt-0.5">Vue globale de la plateforme Zevo</p>
+        <h1 className="text-[var(--text-primary)] text-2xl font-bold">Super Admin</h1>
+        <p className="text-[var(--text-muted)] text-sm mt-0.5">Vue globale de la plateforme Zevo</p>
       </div>
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5">
+          <div key={label} className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-white/40 text-xs uppercase tracking-wider font-semibold">{label}</p>
+              <p className="text-[var(--text-muted)] text-xs uppercase tracking-wider font-semibold">{label}</p>
               <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}15` }}>
                 <Icon size={16} style={{ color }} />
               </div>
             </div>
-            <p className="text-[#F5F5F3] text-2xl font-bold">{value}</p>
+            <p className="text-[var(--text-primary)] text-2xl font-bold">{value}</p>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* ── ARR ── */}
-        <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5">
-          <p className="text-white/40 text-xs uppercase tracking-wider font-semibold mb-2">Revenus annuels estimés (ARR)</p>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5">
+          <p className="text-[var(--text-muted)] text-xs uppercase tracking-wider font-semibold mb-2">Revenus annuels estimés (ARR)</p>
           <p className="text-3xl font-bold text-[#FF6B2B]">{arr.toLocaleString('fr-FR')} €</p>
-          <p className="text-white/30 text-xs mt-1">Basé sur {coachsActifs.length} coachs actifs</p>
+          <p className="text-[var(--text-muted)] text-xs mt-1">Basé sur {coachsActifs.length} coachs actifs</p>
         </div>
 
         {/* ── Répartition des plans ── */}
-        <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5">
-          <p className="text-white/40 text-xs uppercase tracking-wider font-semibold mb-4">Répartition des plans</p>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5">
+          <p className="text-[var(--text-muted)] text-xs uppercase tracking-wider font-semibold mb-4">Répartition des plans</p>
           <div className="space-y-3">
             {['starter', 'pro', 'unlimited'].map(plan => {
               const count = coachsActifs.filter(c => c.plan === plan).length
               const pct = coachsActifs.length > 0 ? Math.round((count / coachsActifs.length) * 100) : 0
               return (
                 <div key={plan} className="flex items-center gap-3">
-                  <span className="text-[#F5F5F3] text-sm font-medium capitalize w-20">{plan}</span>
-                  <div className="flex-1 h-2 bg-[#2A2A2A] rounded-full overflow-hidden">
+                  <span className="text-[var(--text-primary)] text-sm font-medium capitalize w-20">{plan}</span>
+                  <div className="flex-1 h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -125,7 +125,7 @@ export default function AdminDashboardPage() {
                       }}
                     />
                   </div>
-                  <span className="text-white/40 text-xs w-16 text-right">{count} ({pct}%)</span>
+                  <span className="text-[var(--text-muted)] text-xs w-16 text-right">{count} ({pct}%)</span>
                 </div>
               )
             })}
@@ -134,14 +134,14 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* ── Graphique nouveaux coachs par mois ── */}
-      <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5 mt-6">
-        <p className="text-white/40 text-xs uppercase tracking-wider font-semibold mb-4">Nouveaux coachs par mois</p>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5 mt-6">
+        <p className="text-[var(--text-muted)] text-xs uppercase tracking-wider font-semibold mb-4">Nouveaux coachs par mois</p>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={monthlyData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-            <XAxis dataKey="mois" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
+            <XAxis dataKey="mois" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} />
             <Tooltip
-              contentStyle={{ background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, color: '#F5F5F3' }}
+              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-base)', borderRadius: 8, color: 'var(--text-primary)' }}
               formatter={(v) => [v, 'Nouveaux']}
             />
             <Bar dataKey="nouveaux" fill="#FF6B2B" radius={[4, 4, 0, 0]} />
@@ -150,19 +150,19 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* ── Derniers coachs inscrits ── */}
-      <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl mt-6 overflow-hidden">
-        <div className="px-5 py-4 border-b border-white/[0.06]">
-          <p className="text-white/40 text-xs uppercase tracking-wider font-semibold">Derniers coachs inscrits</p>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl mt-6 overflow-hidden">
+        <div className="px-5 py-4 border-b border-[var(--border-base)]">
+          <p className="text-[var(--text-muted)] text-xs uppercase tracking-wider font-semibold">Derniers coachs inscrits</p>
         </div>
         <div className="divide-y divide-white/[0.04]">
           {coaches
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
             .slice(0, 8)
             .map(c => (
-              <div key={c.id} className="px-5 py-3 flex items-center justify-between hover:bg-white/[0.02]">
+              <div key={c.id} className="px-5 py-3 flex items-center justify-between hover:bg-[var(--bg-surface)]">
                 <div>
-                  <p className="text-[#F5F5F3] text-sm font-medium">{c.profiles?.nom || c.profiles?.email || '—'}</p>
-                  <p className="text-white/30 text-xs">{c.profiles?.email}</p>
+                  <p className="text-[var(--text-primary)] text-sm font-medium">{c.profiles?.nom || c.profiles?.email || '—'}</p>
+                  <p className="text-[var(--text-muted)] text-xs">{c.profiles?.email}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${

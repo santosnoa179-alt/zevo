@@ -6,6 +6,8 @@ import { useAuth } from '../../hooks/useAuth'
 import { useCoachTheme } from '../../hooks/useCoachTheme'
 import OnboardingFlow from '../OnboardingFlow'
 import AppTutorial from '../AppTutorial'
+import ThemeToggle from '../ui/ThemeToggle'
+import { ZevoLogo } from '../ui/ZevoLogo'
 
 // ── 5 onglets principaux (bottom nav flottante) ──
 const MAIN_NAV = [
@@ -162,7 +164,7 @@ export function ClientLayout() {
   const hideBottomNav = HIDDEN_NAV_ROUTES.some(r => location.pathname.startsWith(r))
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] flex flex-col">
+    <div className="min-h-screen bg-[var(--bg-base)] flex flex-col">
       {showOnboarding && onboardingChecked && (
         <OnboardingFlow onComplete={() => setShowOnboarding(false)} />
       )}
@@ -172,26 +174,29 @@ export function ClientLayout() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-[#0D0D0D]/90 backdrop-blur-lg border-b border-white/[0.06] px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-[var(--bg-base)]/90 backdrop-blur-lg border-b border-[var(--border-base)] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           {logoUrl ? (
             <>
               <img src={logoUrl} alt={nomApp} className="w-7 h-7 rounded-lg object-cover" />
-              <span className="font-bold tracking-tight text-[#F5F5F3] text-base">
+              <span className="font-bold tracking-tight text-[var(--text-primary)] text-base">
                 {nomApp}
               </span>
             </>
           ) : (
-            <img src="/icons/zevo-logo.svg" alt="Zevo" className="h-9 object-contain flex-shrink-0" />
+            <ZevoLogo size="sm" className="text-[var(--text-primary)]" />
           )}
         </div>
         <div className="flex items-center gap-1">
+          {/* Theme toggle */}
+          <ThemeToggle size="sm" />
+
           {/* Notifications */}
           <div className="relative">
             <button
               onClick={() => setNotifOpen(!notifOpen)}
               className={`p-2 rounded-lg transition-colors relative ${
-                notifOpen ? 'text-[#FF6B2B] bg-white/5' : 'text-white/40 hover:text-white/70'
+                notifOpen ? 'text-[#FF6B2B] bg-[var(--bg-surface)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
               <Bell size={17} />
@@ -205,11 +210,11 @@ export function ClientLayout() {
             {notifOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                <div className="absolute right-0 top-full mt-2 z-50 w-80 sm:w-96 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden animate-scale-in">
+                <div className="absolute right-0 top-full mt-2 z-50 w-80 sm:w-96 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl shadow-2xl overflow-hidden animate-scale-in">
                   {/* Header */}
-                  <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
+                  <div className="px-5 py-3.5 border-b border-[var(--border-base)] flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <h3 className="text-[#F5F5F3] text-sm font-bold">Notifications</h3>
+                      <h3 className="text-[var(--text-primary)] text-sm font-bold">Notifications</h3>
                       {unreadCount > 0 && (
                         <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
                           {unreadCount} nouvelle{unreadCount > 1 ? 's' : ''}
@@ -217,7 +222,7 @@ export function ClientLayout() {
                       )}
                     </div>
                     {unreadCount > 0 && (
-                      <button className="text-xs text-zinc-400 hover:text-white transition-colors" onClick={markAllAsRead}>
+                      <button className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" onClick={markAllAsRead}>
                         Tout lire
                       </button>
                     )}
@@ -227,8 +232,8 @@ export function ClientLayout() {
                   <div className="max-h-80 overflow-y-auto">
                     {notifications.length === 0 ? (
                       <div className="px-5 py-10 text-center">
-                        <Bell size={20} className="text-white/10 mx-auto mb-2" />
-                        <p className="text-white/20 text-xs">Aucune notification</p>
+                        <Bell size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
+                        <p className="text-[var(--text-muted)] text-xs">Aucune notification</p>
                       </div>
                     ) : (
                       notifications.map((n) => {
@@ -238,7 +243,7 @@ export function ClientLayout() {
                           mensuration: { icon: TrendingDown, iconColor: 'text-purple-400', iconBg: 'bg-purple-500/10' },
                           calendrier: { icon: Calendar, iconColor: 'text-orange-400', iconBg: 'bg-orange-500/10' },
                         }
-                        const cfg = typeConfig[n.type] || { icon: Bell, iconColor: 'text-white/40', iconBg: 'bg-white/5' }
+                        const cfg = typeConfig[n.type] || { icon: Bell, iconColor: 'text-[var(--text-muted)]', iconBg: 'bg-[var(--border-base)]' }
                         const IconComp = cfg.icon
 
                         const diff = Date.now() - new Date(n.created_at).getTime()
@@ -259,21 +264,21 @@ export function ClientLayout() {
                               if (n.type === 'message') { navigate('/app/messages'); setNotifOpen(false) }
                               if (n.type === 'calendrier') { navigate('/app/seances'); setNotifOpen(false) }
                             }}
-                            className={`w-full flex items-start gap-3 px-5 py-3.5 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/30 ${!n.is_read ? 'bg-white/[0.01]' : ''}`}
+                            className={`w-full flex items-start gap-3 px-5 py-3.5 hover:bg-[var(--border-subtle)] transition-colors text-left border-b border-[var(--border-subtle)] ${!n.is_read ? 'bg-[var(--border-subtle)]' : ''}`}
                           >
                             <div className={`w-8 h-8 rounded-xl ${cfg.iconBg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
                               <IconComp size={14} className={cfg.iconColor} />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <p className="text-[#F5F5F3] text-xs font-semibold">{n.titre}</p>
+                                <p className="text-[var(--text-primary)] text-xs font-semibold">{n.titre}</p>
                                 {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] flex-shrink-0" />}
                               </div>
                               {coachName && (
                                 <p className="text-[#FF6B2B] text-[10px] font-semibold mt-0.5">{coachName}</p>
                               )}
-                              <p className="text-white/40 text-[11px] mt-0.5 leading-relaxed truncate">{n.message}</p>
-                              <p className="text-white/20 text-[10px] mt-0.5 font-medium">{timeLabel}</p>
+                              <p className="text-[var(--text-secondary)] text-[11px] mt-0.5 leading-relaxed truncate">{n.message}</p>
+                              <p className="text-[var(--text-muted)] text-[10px] mt-0.5 font-medium">{timeLabel}</p>
                             </div>
                           </button>
                         )
@@ -290,7 +295,7 @@ export function ClientLayout() {
             <button
               onClick={() => { setMenuOpen(!menuOpen); setNotifOpen(false) }}
               className={`p-2 rounded-lg transition-colors ${
-                menuOpen ? 'text-[#FF6B2B] bg-white/5' : 'text-white/40 hover:text-white/70'
+                menuOpen ? 'text-[#FF6B2B] bg-[var(--bg-surface)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
               aria-label="Menu"
             >
@@ -300,7 +305,7 @@ export function ClientLayout() {
             {menuOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                <div className="absolute right-0 top-full mt-2 z-50 w-56 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden animate-slide-down">
+                <div className="absolute right-0 top-full mt-2 z-50 w-56 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl shadow-2xl overflow-hidden animate-slide-down">
                   <div className="py-1.5">
                     {MENU_ITEMS.map(({ to, icon: Icon, label }) => (
                       <NavLink
@@ -311,7 +316,7 @@ export function ClientLayout() {
                           `flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${
                             isActive
                               ? 'text-[#FF6B2B] bg-[#FF6B2B]/5'
-                              : 'text-white/50 hover:text-white hover:bg-white/[0.03]'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]'
                           }`
                         }
                       >
@@ -320,7 +325,7 @@ export function ClientLayout() {
                       </NavLink>
                     ))}
                   </div>
-                  <div className="border-t border-[#27272a] py-1.5">
+                  <div className="border-t border-[var(--border-base)] py-1.5">
                     <button
                       onClick={() => { setMenuOpen(false); handleLogout() }}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-400/70 hover:text-red-400 hover:bg-red-500/5 transition-colors"
@@ -337,7 +342,7 @@ export function ClientLayout() {
           {/* Logout desktop only */}
           <button
             onClick={handleLogout}
-            className="hidden md:block text-white/40 hover:text-white/70 transition-colors p-1.5"
+            className="hidden md:block text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors p-1.5"
             aria-label="Se déconnecter"
           >
             <LogOut size={18} />
@@ -353,7 +358,7 @@ export function ClientLayout() {
       {/* ═══════ FLOATING BOTTOM NAV — iOS/Apple Fitness Style ═══════ */}
       {!hideBottomNav && (
         <nav className="fixed bottom-5 left-4 right-4 z-50 md:hidden">
-          <div className="bg-black/80 backdrop-blur-xl border border-white/[0.10] rounded-3xl shadow-2xl shadow-black/50 px-2 py-2">
+          <div className="bg-[var(--bg-elevated)]/90 backdrop-blur-xl border border-[var(--border-base)] rounded-3xl shadow-2xl shadow-black/20 px-2 py-2">
             <ul className="flex items-center justify-around">
               {MAIN_NAV.map(({ to, icon: Icon, label }) => {
                 const isMsgTab = to === '/app/messages'
@@ -365,7 +370,7 @@ export function ClientLayout() {
                       className={({ isActive }) => 'relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-300 ' + (
                         isActive
                           ? 'bg-[#FF6B2B]/10'
-                          : 'hover:bg-white/[0.04]'
+                          : 'hover:bg-[var(--border-subtle)]'
                       )}
                     >
                       {({ isActive }) => (
@@ -374,7 +379,7 @@ export function ClientLayout() {
                             <Icon
                               size={21}
                               className={`transition-colors duration-300 ${
-                                isActive ? 'text-[#FF6B2B]' : 'text-white/35'
+                                isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
                               }`}
                               strokeWidth={isActive ? 2.3 : 1.8}
                             />
@@ -385,7 +390,7 @@ export function ClientLayout() {
                             )}
                           </div>
                           <span className={`text-[9px] font-semibold transition-colors duration-300 ${
-                            isActive ? 'text-[#FF6B2B]' : 'text-white/30'
+                            isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
                           }`}>
                             {label}
                           </span>
@@ -404,7 +409,7 @@ export function ClientLayout() {
       )}
 
       {/* Sidebar desktop */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-56 bg-[#1E1E1E] border-r border-white/[0.08] flex-col pt-16">
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-56 bg-[var(--bg-card)] border-r border-[var(--border-base)] flex-col pt-16">
         <nav className="flex-1 px-3 py-4">
           <ul className="space-y-1">
             {ALL_NAV_ITEMS.map(({ to, icon: Icon, label }) => {
@@ -418,7 +423,7 @@ export function ClientLayout() {
                       `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                         isActive
                           ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
-                          : 'text-white/50 hover:text-white hover:bg-white/[0.04]'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]'
                       }`
                     }
                   >

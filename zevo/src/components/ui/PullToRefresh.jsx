@@ -22,13 +22,13 @@ export default function PullToRefreshIndicator({ pullDistance, isRefreshing, thr
       }}
     >
       <div
-        className={`flex items-center justify-center transition-all duration-200 ${showReady && !isRefreshing ? 'text-[#FF6B2B]' : 'text-white/30'}`}
+        className={`flex items-center justify-center transition-all duration-200 ${showReady && !isRefreshing ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}
         style={{ transform: `scale(${isRefreshing ? 1 : scale}) rotate(${isRefreshing ? 0 : rotation}deg)` }}
       >
         {isRefreshing ? (
           <div className="flex items-center gap-2">
             <Loader2 size={18} className="animate-spin text-[#FF6B2B]" />
-            <span className="text-white/40 text-xs font-medium">Actualisation...</span>
+            <span className="text-[var(--text-muted)] text-xs font-medium">Actualisation...</span>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-1">

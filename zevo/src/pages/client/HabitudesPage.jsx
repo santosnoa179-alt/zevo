@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import { CheckCircle2, Circle, Plus, Flame, Trash2, TrendingUp, Lock } from 'lucide-react'
-import { BarChart, Bar, Tooltip, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 
 // Calcule le streak consécutif d'une habitude depuis ses logs
 function calculerStreak(logsDates) {
@@ -120,10 +120,10 @@ export default function HabitudesPage() {
     return (
       <div className="p-4 space-y-3 max-w-2xl animate-pulse">
         <div className="pt-4 flex justify-between items-center">
-          <div className="space-y-1"><div className="h-7 w-36 bg-[#2A2A2A] rounded" /><div className="h-4 w-44 bg-[#2A2A2A] rounded" /></div>
-          <div className="h-9 w-24 bg-[#2A2A2A] rounded-lg" />
+          <div className="space-y-1"><div className="h-7 w-36 bg-[var(--bg-surface)] rounded" /><div className="h-4 w-44 bg-[var(--bg-surface)] rounded" /></div>
+          <div className="h-9 w-24 bg-[var(--bg-surface)] rounded-lg" />
         </div>
-        {[1, 2, 3].map(i => <div key={i} className="h-20 bg-[#2A2A2A] rounded-xl" />)}
+        {[1, 2, 3].map(i => <div key={i} className="h-20 bg-[var(--bg-surface)] rounded-xl" />)}
       </div>
     )
   }
@@ -136,8 +136,8 @@ export default function HabitudesPage() {
       {/* ── En-tête ── */}
       <div className={`pt-4 flex items-center justify-between ${stagger[0].className}`} style={stagger[0].style}>
         <div>
-          <h1 className="text-[#F5F5F3] text-xl font-bold">Habitudes</h1>
-          <p className="text-white/40 text-sm mt-0.5">
+          <h1 className="text-[var(--text-primary)] text-xl font-bold">Habitudes</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-0.5">
             {cocheesCeJour}/{habitudes.length} cochées aujourd'hui
           </p>
         </div>
@@ -151,7 +151,7 @@ export default function HabitudesPage() {
         <Card>
           <CardBody className="text-center py-10">
             <p className="text-4xl mb-3">🎯</p>
-            <p className="text-white/40 text-sm">Aucune habitude pour l'instant.</p>
+            <p className="text-[var(--text-muted)] text-sm">Aucune habitude pour l'instant.</p>
             <button onClick={() => setModalOuvert(true)} className="mt-3 text-[#FF6B2B] text-sm font-medium hover:underline">
               + Créer ma première habitude
             </button>
@@ -180,16 +180,16 @@ export default function HabitudesPage() {
                     >
                       {fait
                         ? <CheckCircle2 size={22} style={{ color: h.couleur ?? '#FF6B2B' }} />
-                        : <Circle size={22} className="text-white/20 hover:text-white/50 transition-colors" />
+                        : <Circle size={22} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors" />
                       }
                     </button>
 
                     {/* Nom + progression */}
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${fait ? 'line-through text-white/35' : 'text-[#F5F5F3]'}`}>
+                      <p className={`text-sm font-medium truncate ${fait ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text-primary)]'}`}>
                         {h.nom}
                       </p>
-                      <p className="text-white/25 text-xs mt-0.5">{pct}% ce mois</p>
+                      <p className="text-[var(--text-muted)] text-xs mt-0.5">{pct}% ce mois</p>
                     </div>
 
                     {/* Streak */}
@@ -202,12 +202,12 @@ export default function HabitudesPage() {
 
                     {/* Actions */}
                     {h.assigned_by
-                      ? <Lock size={13} className="text-white/15 flex-shrink-0" title="Assignée par votre coach" />
+                      ? <Lock size={13} className="text-[var(--text-muted)] flex-shrink-0" title="Assignée par votre coach" />
                       : (
                         <button
                           onClick={() => supprimerHabitude(h.id)}
                           disabled={suppression === h.id}
-                          className="text-white/15 hover:text-red-400 transition-colors p-1 disabled:opacity-40 flex-shrink-0"
+                          className="text-[var(--text-muted)] hover:text-red-400 transition-colors p-1 disabled:opacity-40 flex-shrink-0"
                         >
                           <Trash2 size={13} />
                         </button>
@@ -216,14 +216,14 @@ export default function HabitudesPage() {
 
                     <button
                       onClick={() => setDetail(estDetail ? null : h.id)}
-                      className={`p-1 transition-colors flex-shrink-0 ${estDetail ? 'text-[#FF6B2B]' : 'text-white/20 hover:text-[#FF6B2B]'}`}
+                      className={`p-1 transition-colors flex-shrink-0 ${estDetail ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)] hover:text-[#FF6B2B]'}`}
                     >
                       <TrendingUp size={14} />
                     </button>
                   </div>
 
                   {/* Barre de progression */}
-                  <div className="mt-3 h-1 bg-[#2A2A2A] rounded-full overflow-hidden">
+                  <div className="mt-3 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{ width: `${pct}%`, backgroundColor: h.couleur ?? '#FF6B2B' }}
@@ -231,21 +231,28 @@ export default function HabitudesPage() {
                   </div>
 
                   {/* ── Graphique développé ── */}
-                  {estDetail && (
-                    <div className="mt-4 pt-4 border-t border-white/[0.06]">
-                      <p className="text-white/40 text-[11px] uppercase tracking-wider mb-3">
+                  {estDetail && (() => {
+                    const mensuel = genererMensuel(logsDates)
+                    const chartData = mensuel.map(d => ({ ...d, val: 1 }))
+                    return (
+                    <div className="mt-4 pt-4 border-t border-[var(--border-base)]">
+                      <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-3">
                         30 derniers jours · {logsDates.length} fois cochée
                       </p>
                       <ResponsiveContainer width="100%" height={56}>
-                        <BarChart data={genererMensuel(logsDates)} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barCategoryGap={2}>
+                        <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }} barCategoryGap={2}>
                           <Tooltip
                             content={({ active, payload }) =>
                               active && payload?.length
-                                ? <div className="bg-[#2A2A2A] border border-white/[0.08] rounded px-2 py-1 text-xs text-[#F5F5F3]">{payload[0].payload.date}</div>
+                                ? <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded px-2 py-1 text-xs text-[var(--text-primary)]">{payload[0].payload.date}{payload[0].payload.fait ? ' ✓' : ''}</div>
                                 : null
                             }
                           />
-                          <Bar dataKey="fait" fill={h.couleur ?? '#FF6B2B'} radius={[2, 2, 0, 0]} />
+                          <Bar dataKey="val" radius={[2, 2, 0, 0]}>
+                            {mensuel.map((d, idx) => (
+                              <Cell key={idx} fill={d.fait ? (h.couleur ?? '#FF6B2B') : 'var(--bg-surface)'} />
+                            ))}
+                          </Bar>
                         </BarChart>
                       </ResponsiveContainer>
                       {streak > 0 && (
@@ -254,7 +261,8 @@ export default function HabitudesPage() {
                         </p>
                       )}
                     </div>
-                  )}
+                    )
+                  })()}
                 </CardBody>
               </Card>
             )
@@ -274,11 +282,11 @@ export default function HabitudesPage() {
             autoFocus
           />
           <div>
-            <p className="text-sm text-white/60 font-medium mb-2">Couleur</p>
+            <p className="text-sm text-[var(--text-secondary)] font-medium mb-2">Couleur</p>
             <div className="flex gap-2 flex-wrap">
               {COULEURS.map((c) => (
                 <button key={c} type="button" onClick={() => setCouleur(c)}
-                  className={`w-8 h-8 rounded-full transition-transform ${couleur === c ? 'ring-2 ring-offset-2 ring-offset-[#1E1E1E] ring-white/60 scale-110' : 'hover:scale-105'}`}
+                  className={`w-8 h-8 rounded-full transition-transform ${couleur === c ? 'ring-2 ring-offset-2 ring-offset-[var(--bg-card)] ring-[var(--text-muted)] scale-110' : 'hover:scale-105'}`}
                   style={{ backgroundColor: c }}
                 />
               ))}

@@ -242,29 +242,29 @@ export default function ClientCalendarPage() {
     return (
       <>
         <div className="flex items-center justify-between mb-4">
-          <button onClick={prev} className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+          <button onClick={prev} className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
             <ChevronLeft size={18} />
           </button>
           <div className="text-center">
-            <p className="text-[#F5F5F3] text-sm font-semibold capitalize">{monthLabel}</p>
+            <p className="text-[var(--text-primary)] text-sm font-semibold capitalize">{monthLabel}</p>
             {offset !== 0 && (
               <button onClick={goToday} className="text-[#FF6B2B] text-[10px] font-medium hover:underline mt-0.5">
                 Aujourd'hui
               </button>
             )}
           </div>
-          <button onClick={next} className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+          <button onClick={next} className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
             <ChevronRight size={18} />
           </button>
         </div>
 
         <div className="grid grid-cols-7 mb-1">
           {JOURS.map(j => (
-            <div key={j} className="text-center text-[10px] text-white/25 font-semibold uppercase py-1">{j}</div>
+            <div key={j} className="text-center text-[10px] text-[var(--text-muted)] font-semibold uppercase py-1">{j}</div>
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-px bg-[#27272a]/30 rounded-xl overflow-hidden border border-[#27272a]">
+        <div className="grid grid-cols-7 gap-px bg-[var(--bg-surface)]/30 rounded-xl overflow-hidden border border-[var(--border-base)]">
           {cells.map(({ date, inMonth }, i) => {
             const isToday = isSameDay(date, today)
             const dayItems = getItemsForDay(date)
@@ -273,8 +273,8 @@ export default function ClientCalendarPage() {
               <div
                 key={i}
                 className={`min-h-[52px] sm:min-h-[72px] p-1 sm:p-1.5 transition-colors ${
-                  inMonth ? 'bg-[#18181b]' : 'bg-[#0f0f10]'
-                } ${dayItems.length > 0 ? 'cursor-pointer hover:bg-[#1e1e20]' : ''}`}
+                  inMonth ? 'bg-[var(--bg-base)]' : 'bg-[var(--bg-surface)] opacity-60'
+                } ${dayItems.length > 0 ? 'cursor-pointer hover:bg-[var(--bg-surface)]' : ''}`}
                 onClick={() => {
                   if (dayItems.length === 1) handleItemClick(dayItems[0])
                   else if (dayItems.length > 1) setSelectedDay({ date, items: dayItems })
@@ -284,7 +284,7 @@ export default function ClientCalendarPage() {
                   <span className={`text-[10px] sm:text-xs leading-none ${
                     isToday
                       ? 'bg-[#FF6B2B] text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-bold'
-                      : inMonth ? 'text-white/50' : 'text-white/15'
+                      : inMonth ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
                   }`}>
                     {date.getDate()}
                   </span>
@@ -302,7 +302,7 @@ export default function ClientCalendarPage() {
                     </button>
                   ))}
                   {dayItems.length > 2 && (
-                    <p className="text-white/20 text-[8px] pl-1">+{dayItems.length - 2}</p>
+                    <p className="text-[var(--text-muted)] text-[8px] pl-1">+{dayItems.length - 2}</p>
                   )}
                 </div>
               </div>
@@ -321,18 +321,18 @@ export default function ClientCalendarPage() {
     return (
       <>
         <div className="flex items-center justify-between mb-4">
-          <button onClick={prev} className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+          <button onClick={prev} className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
             <ChevronLeft size={18} />
           </button>
           <div className="text-center">
-            <p className="text-[#F5F5F3] text-sm font-semibold">{weekLabel}</p>
+            <p className="text-[var(--text-primary)] text-sm font-semibold">{weekLabel}</p>
             {offset !== 0 && (
               <button onClick={goToday} className="text-[#FF6B2B] text-[10px] font-medium hover:underline mt-0.5">
                 Aujourd'hui
               </button>
             )}
           </div>
-          <button onClick={next} className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+          <button onClick={next} className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
             <ChevronRight size={18} />
           </button>
         </div>
@@ -346,12 +346,12 @@ export default function ClientCalendarPage() {
             return (
               <div
                 key={i}
-                className={`bg-[#18181b] border rounded-xl overflow-hidden ${
-                  isToday ? 'border-[#FF6B2B]/30' : 'border-[#27272a]'
+                className={`bg-[var(--bg-base)] border rounded-xl overflow-hidden ${
+                  isToday ? 'border-[#FF6B2B]/30' : 'border-[var(--border-base)]'
                 }`}
               >
                 <div className={`px-3 py-2 flex items-center gap-2 ${isToday ? 'bg-[#FF6B2B]/5' : ''}`}>
-                  <span className={`text-xs font-semibold capitalize ${isToday ? 'text-[#FF6B2B]' : 'text-white/40'}`}>
+                  <span className={`text-xs font-semibold capitalize ${isToday ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
                     {dayLabel}
                   </span>
                   {isToday && (
@@ -363,7 +363,7 @@ export default function ClientCalendarPage() {
 
                 {dayItems.length === 0 ? (
                   <div className="px-3 py-3">
-                    <p className="text-white/10 text-[10px]">Rien de prévu</p>
+                    <p className="text-[var(--text-muted)] text-[10px]">Rien de prévu</p>
                   </div>
                 ) : (
                   <div className="px-2 pb-2 space-y-1.5">
@@ -390,12 +390,12 @@ export default function ClientCalendarPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className={`text-xs font-medium truncate ${
-                                s.is_completed ? 'text-emerald-300/80' : 'text-[#F5F5F3]'
+                                s.is_completed ? 'text-emerald-300/80' : 'text-[var(--text-primary)]'
                               }`}>
                                 {s.titre}
                               </p>
                               {s.notes && !s.notes.startsWith('programme:') && (
-                                <p className="text-white/15 text-[10px] truncate mt-0.5">{s.notes}</p>
+                                <p className="text-[var(--text-muted)] text-[10px] truncate mt-0.5">{s.notes}</p>
                               )}
                             </div>
                             {s.is_completed && (
@@ -413,7 +413,7 @@ export default function ClientCalendarPage() {
                         <button
                           key={item.id}
                           onClick={() => openEventDetail(e)}
-                          className="w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3 hover:bg-white/[0.03]"
+                          className="w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3 hover:bg-[var(--bg-surface)]"
                           style={{ backgroundColor: `${evType.color}08` }}
                         >
                           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
@@ -421,11 +421,11 @@ export default function ClientCalendarPage() {
                             <EvIcon size={16} style={{ color: evType.color }} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[#F5F5F3] text-xs font-medium truncate">{e.title}</p>
-                            <p className="text-white/20 text-[10px] mt-0.5">{evType.label}</p>
+                            <p className="text-[var(--text-primary)] text-xs font-medium truncate">{e.title}</p>
+                            <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{evType.label}</p>
                           </div>
                           {e.event_date && (
-                            <span className="text-white/20 text-[9px] shrink-0">
+                            <span className="text-[var(--text-muted)] text-[9px] shrink-0">
                               {new Date(e.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           )}
@@ -449,17 +449,17 @@ export default function ClientCalendarPage() {
     return (
       <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm" onClick={() => setSelectedSeance(null)} />
-        <div className="relative z-[101] bg-[#18181b] border border-[#27272a] w-full sm:w-[480px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto">
+        <div className="relative z-[101] bg-[var(--bg-base)] border border-[var(--border-base)] w-full sm:w-[480px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto">
           {/* Header */}
-          <div className="sticky top-0 z-10 bg-[#18181b] border-b border-[#27272a] px-4 py-3 flex items-center justify-between">
+          <div className="sticky top-0 z-10 bg-[var(--bg-base)] border-b border-[var(--border-base)] px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               {selectedSeance.is_completed
                 ? <CheckCircle2 size={16} className="text-emerald-400" />
                 : <Dumbbell size={16} className="text-[#FF6B2B]" />
               }
-              <h3 className="text-[#F5F5F3] font-semibold text-sm">{selectedSeance.titre}</h3>
+              <h3 className="text-[var(--text-primary)] font-semibold text-sm">{selectedSeance.titre}</h3>
             </div>
-            <button onClick={() => setSelectedSeance(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+            <button onClick={() => setSelectedSeance(null)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
               <X size={16} />
             </button>
           </div>
@@ -468,7 +468,7 @@ export default function ClientCalendarPage() {
           <div className="p-4 pb-24 space-y-4">
             {/* Info */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-white/40 text-xs">
+              <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs">
                 <Calendar size={13} />
                 <span>{new Date(selectedSeance.date_prevue).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
               </div>
@@ -481,7 +481,7 @@ export default function ClientCalendarPage() {
                 </div>
               )}
               {selectedSeance.notes && !selectedSeance.notes.startsWith('programme:') && (
-                <div className="flex items-start gap-2 text-white/30 text-xs">
+                <div className="flex items-start gap-2 text-[var(--text-muted)] text-xs">
                   <FileText size={13} className="mt-0.5 shrink-0" />
                   <span>{selectedSeance.notes}</span>
                 </div>
@@ -490,31 +490,31 @@ export default function ClientCalendarPage() {
 
             {/* Exercices */}
             <div>
-              <p className="text-white/25 text-[10px] uppercase tracking-wider font-semibold mb-2">Exercices</p>
+              <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-2">Exercices</p>
               {loadingExos ? (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="animate-spin text-[#FF6B2B]" size={20} />
                 </div>
               ) : exercices.length === 0 ? (
-                <p className="text-white/15 text-xs text-center py-4">Aucun exercice détaillé</p>
+                <p className="text-[var(--text-muted)] text-xs text-center py-4">Aucun exercice détaillé</p>
               ) : (
                 <div className="space-y-1.5">
                   {exercices.map((ex, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-[#0f0f10] rounded-xl px-3.5 py-2.5">
+                    <div key={i} className="flex items-center gap-3 bg-[var(--bg-surface)] rounded-xl px-3.5 py-2.5">
                       <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
                         <Dumbbell size={14} className="text-[#FF6B2B]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[#F5F5F3] text-xs font-medium truncate">
+                        <p className="text-[var(--text-primary)] text-xs font-medium truncate">
                           {ex.exercices?.nom || 'Exercice'}
                         </p>
-                        <p className="text-white/20 text-[10px]">{ex.exercices?.muscle_group}</p>
+                        <p className="text-[var(--text-muted)] text-[10px]">{ex.exercices?.muscle_group}</p>
                       </div>
                       <div className="flex items-center gap-2 text-[10px] shrink-0">
                         {ex.series && <span className="text-[#FF6B2B] font-bold">{ex.series}x</span>}
-                        {ex.reps && <span className="text-white/40">{ex.reps} reps</span>}
+                        {ex.reps && <span className="text-[var(--text-muted)]">{ex.reps} reps</span>}
                         {ex.repos && (
-                          <span className="text-white/20 flex items-center gap-0.5">
+                          <span className="text-[var(--text-muted)] flex items-center gap-0.5">
                             <Clock size={8} />{ex.repos}s
                           </span>
                         )}
@@ -551,14 +551,14 @@ export default function ClientCalendarPage() {
     return (
       <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm" onClick={() => setSelectedEvent(null)} />
-        <div className="relative z-[101] bg-[#18181b] border border-[#27272a] w-full sm:w-[420px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto">
+        <div className="relative z-[101] bg-[var(--bg-base)] border border-[var(--border-base)] w-full sm:w-[420px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto">
           {/* Header */}
-          <div className="sticky top-0 z-10 bg-[#18181b] border-b border-[#27272a] px-4 py-3 flex items-center justify-between">
+          <div className="sticky top-0 z-10 bg-[var(--bg-base)] border-b border-[var(--border-base)] px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <EvIcon size={16} style={{ color: evType.color }} />
-              <h3 className="text-[#F5F5F3] font-semibold text-sm">{selectedEvent.title}</h3>
+              <h3 className="text-[var(--text-primary)] font-semibold text-sm">{selectedEvent.title}</h3>
             </div>
-            <button onClick={() => setSelectedEvent(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+            <button onClick={() => setSelectedEvent(null)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
               <X size={16} />
             </button>
           </div>
@@ -571,18 +571,18 @@ export default function ClientCalendarPage() {
             </div>
 
             {selectedEvent.event_date && (
-              <div className="flex items-center gap-2 text-white/40 text-xs">
+              <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs">
                 <Calendar size={13} />
                 <span>{new Date(selectedEvent.event_date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-                <span className="text-white/20">
+                <span className="text-[var(--text-muted)]">
                   {new Date(selectedEvent.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
             )}
 
             {selectedEvent.notes && (
-              <div className="bg-[#0f0f10] rounded-xl px-4 py-3">
-                <p className="text-white/50 text-xs leading-relaxed">{selectedEvent.notes}</p>
+              <div className="bg-[var(--bg-surface)] rounded-xl px-4 py-3">
+                <p className="text-[var(--text-secondary)] text-xs leading-relaxed">{selectedEvent.notes}</p>
               </div>
             )}
           </div>
@@ -602,14 +602,14 @@ export default function ClientCalendarPage() {
     return (
       <div className="fixed inset-0 z-[105] flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div className="absolute inset-0 z-[105] bg-black/60 backdrop-blur-sm" onClick={() => setSelectedDay(null)} />
-        <div className="relative z-[106] bg-[#18181b] border border-[#27272a] w-full sm:w-[420px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto">
+        <div className="relative z-[106] bg-[var(--bg-base)] border border-[var(--border-base)] w-full sm:w-[420px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto">
           {/* Header */}
-          <div className="sticky top-0 z-10 bg-[#18181b] border-b border-[#27272a] px-4 py-3 flex items-center justify-between">
+          <div className="sticky top-0 z-10 bg-[var(--bg-base)] border-b border-[var(--border-base)] px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Calendar size={16} className="text-[#FF6B2B]" />
-              <h3 className="text-[#F5F5F3] font-semibold text-sm capitalize">{dayLabel}</h3>
+              <h3 className="text-[var(--text-primary)] font-semibold text-sm capitalize">{dayLabel}</h3>
             </div>
-            <button onClick={() => setSelectedDay(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+            <button onClick={() => setSelectedDay(null)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
               <X size={16} />
             </button>
           </div>
@@ -639,12 +639,12 @@ export default function ClientCalendarPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-xs font-medium truncate ${
-                        s.is_completed ? 'text-emerald-300/80' : 'text-[#F5F5F3]'
+                        s.is_completed ? 'text-emerald-300/80' : 'text-[var(--text-primary)]'
                       }`}>
                         {s.titre || 'Séance'}
                       </p>
                       {s.notes && !s.notes.startsWith('programme:') && (
-                        <p className="text-white/15 text-[10px] truncate mt-0.5">{s.notes}</p>
+                        <p className="text-[var(--text-muted)] text-[10px] truncate mt-0.5">{s.notes}</p>
                       )}
                     </div>
                     {s.is_completed && (
@@ -662,7 +662,7 @@ export default function ClientCalendarPage() {
                 <button
                   key={item.id}
                   onClick={() => { setSelectedDay(null); openEventDetail(e) }}
-                  className="w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3 hover:bg-white/[0.03]"
+                  className="w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3 hover:bg-[var(--bg-surface)]"
                   style={{ backgroundColor: `${evType.color}08` }}
                 >
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
@@ -670,11 +670,11 @@ export default function ClientCalendarPage() {
                     <EvIcon size={16} style={{ color: evType.color }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[#F5F5F3] text-xs font-medium truncate">{e.title}</p>
-                    <p className="text-white/20 text-[10px] mt-0.5">{evType.label}</p>
+                    <p className="text-[var(--text-primary)] text-xs font-medium truncate">{e.title}</p>
+                    <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{evType.label}</p>
                   </div>
                   {e.event_date && (
-                    <span className="text-white/20 text-[9px] shrink-0">
+                    <span className="text-[var(--text-muted)] text-[9px] shrink-0">
                       {new Date(e.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   )}
@@ -704,11 +704,11 @@ export default function ClientCalendarPage() {
       {/* ── Header + View Toggle ── */}
       <div className="pt-2 flex items-center justify-between">
         <div>
-          <h1 className="text-[#F5F5F3] text-xl font-bold flex items-center gap-2">
+          <h1 className="text-[var(--text-primary)] text-xl font-bold flex items-center gap-2">
             <Calendar size={20} className="text-[#FF6B2B]" />
             Calendrier
           </h1>
-          <p className="text-white/40 text-sm mt-0.5">
+          <p className="text-[var(--text-muted)] text-sm mt-0.5">
             {allItems.length === 0
               ? 'Aucun événement pour le moment'
               : `${seances.length} séance${seances.length !== 1 ? 's' : ''} · ${events.length} événement${events.length !== 1 ? 's' : ''}`
@@ -716,13 +716,13 @@ export default function ClientCalendarPage() {
           </p>
         </div>
 
-        <div className="flex bg-[#18181b] border border-[#27272a] rounded-xl p-0.5">
+        <div className="flex bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-0.5">
           <button
             onClick={() => { setView('month'); setOffset(0) }}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               view === 'month'
                 ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
-                : 'text-white/40 hover:text-white/60'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
             }`}
           >
             Mois
@@ -732,7 +732,7 @@ export default function ClientCalendarPage() {
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               view === 'week'
                 ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
-                : 'text-white/40 hover:text-white/60'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
             }`}
           >
             Semaine

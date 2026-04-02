@@ -40,7 +40,7 @@ function FileIcon({ type, size = 18 }) {
     case 'video': return <FileVideo size={size} className="text-purple-400" />
     case 'pdf': return <FileText size={size} className="text-red-400" />
     case 'document': return <FileText size={size} className="text-green-400" />
-    default: return <File size={size} className="text-white/30" />
+    default: return <File size={size} className="text-[var(--text-muted)]" />
   }
 }
 
@@ -317,11 +317,11 @@ export default function CoachDrivePage() {
       {/* HEADER                                */}
       {/* ══════════════════════════════════════ */}
       <div>
-        <h1 className="text-[#F5F5F3] text-2xl font-bold flex items-center gap-3">
+        <h1 className="text-[var(--text-primary)] text-2xl font-bold flex items-center gap-3">
           <HardDrive size={22} className="text-[#FF6B2B]" />
           Drive
         </h1>
-        <p className="text-white/25 text-sm mt-1">Gérez et partagez vos fichiers avec vos clients.</p>
+        <p className="text-[var(--text-muted)] text-sm mt-1">Gérez et partagez vos fichiers avec vos clients.</p>
       </div>
 
       {/* ══════════════════════════════════════ */}
@@ -336,20 +336,20 @@ export default function CoachDrivePage() {
             className={`px-2.5 py-1 rounded-lg transition-colors ${
               breadcrumbs.length === 0
                 ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold'
-                : 'text-white/30 hover:text-white/60'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
             }`}
           >
             Drive
           </button>
           {breadcrumbs.map((bc, i) => (
             <div key={bc.id} className="flex items-center gap-1 min-w-0">
-              <ChevronRight size={12} className="text-white/15 flex-shrink-0" />
+              <ChevronRight size={12} className="text-[var(--text-muted)] flex-shrink-0" />
               <button
                 onClick={() => naviguerBreadcrumb(i)}
                 className={`px-2.5 py-1 rounded-lg truncate max-w-[150px] transition-colors ${
                   i === breadcrumbs.length - 1
                     ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold'
-                    : 'text-white/30 hover:text-white/60'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                 }`}
               >
                 {bc.name}
@@ -362,7 +362,7 @@ export default function CoachDrivePage() {
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => setModalNewFolder(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#27272a] text-[#F5F5F3] text-xs font-medium hover:bg-[#27272a]/50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--border-base)] text-[var(--text-primary)] text-xs font-medium hover:bg-[var(--bg-surface)]/50 transition-colors"
           >
             <FolderPlus size={14} />
             Nouveau dossier
@@ -381,25 +381,25 @@ export default function CoachDrivePage() {
       {/* ══════════════════════════════════════ */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-md">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/15" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher..."
-            className="w-full bg-[#09090b] border border-[#27272a] rounded-lg pl-9 pr-4 py-2 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+            className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg pl-9 pr-4 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
           />
         </div>
 
-        <div className="flex items-center bg-[#09090b] border border-[#27272a] rounded-lg overflow-hidden">
+        <div className="flex items-center bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg overflow-hidden">
           <button
             onClick={() => setViewMode('list')}
-            className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-[#27272a] text-[#F5F5F3]' : 'text-white/20 hover:text-white/40'}`}
+            className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-muted)]'}`}
           >
             <List size={15} />
           </button>
           <button
             onClick={() => setViewMode('grid')}
-            className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-[#27272a] text-[#F5F5F3]' : 'text-white/20 hover:text-white/40'}`}
+            className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-muted)]'}`}
           >
             <Grid3X3 size={15} />
           </button>
@@ -410,13 +410,13 @@ export default function CoachDrivePage() {
       {/* BARRE DE PROGRESSION UPLOAD           */}
       {/* ══════════════════════════════════════ */}
       {uploading && (
-        <div className="bg-[#09090b] border border-[#27272a] rounded-xl p-4">
+        <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-4">
           <div className="flex items-center gap-3 mb-2">
             <Loader2 size={16} className="animate-spin text-[#FF6B2B]" />
-            <span className="text-[#F5F5F3] text-sm font-medium">Upload en cours...</span>
-            <span className="text-white/20 text-xs ml-auto">{uploadProgress}%</span>
+            <span className="text-[var(--text-primary)] text-sm font-medium">Upload en cours...</span>
+            <span className="text-[var(--text-muted)] text-xs ml-auto">{uploadProgress}%</span>
           </div>
-          <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden">
+          <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
             <div
               className="h-full bg-[#FF6B2B] rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
@@ -434,26 +434,26 @@ export default function CoachDrivePage() {
         </div>
       ) : totalItems === 0 && !searchQuery ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-20 h-20 rounded-2xl bg-[#27272a]/30 flex items-center justify-center mb-4">
-            <HardDrive size={32} className="text-white/10" />
+          <div className="w-20 h-20 rounded-2xl bg-[var(--bg-surface)]/30 flex items-center justify-center mb-4">
+            <HardDrive size={32} className="text-[var(--text-muted)]" />
           </div>
-          <p className="text-white/20 text-sm font-medium mb-1">
+          <p className="text-[var(--text-muted)] text-sm font-medium mb-1">
             {currentFolderId ? 'Ce dossier est vide' : 'Votre Drive est vide'}
           </p>
-          <p className="text-white/10 text-xs max-w-[280px] text-center">
+          <p className="text-[var(--text-muted)] text-xs max-w-[280px] text-center">
             Créez un dossier ou uploadez un fichier pour commencer
           </p>
         </div>
       ) : totalItems === 0 && searchQuery ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <Search size={28} className="text-white/10 mb-3" />
-          <p className="text-white/20 text-sm">Aucun résultat pour "{searchQuery}"</p>
+          <Search size={28} className="text-[var(--text-muted)] mb-3" />
+          <p className="text-[var(--text-muted)] text-sm">Aucun résultat pour "{searchQuery}"</p>
         </div>
       ) : viewMode === 'list' ? (
         /* ── VUE LISTE ── */
-        <div className="bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden">
+        <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl overflow-hidden">
           {/* En-tête tableau */}
-          <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-[#27272a] text-white/20 text-[10px] uppercase tracking-widest font-semibold">
+          <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-[var(--border-base)] text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-semibold">
             <div className="col-span-1"></div>
             <div className="col-span-4">Nom</div>
             <div className="col-span-3">Partagé avec</div>
@@ -465,7 +465,7 @@ export default function CoachDrivePage() {
           {filteredFolders.map((folder) => (
             <div
               key={folder.id}
-              className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-[#27272a]/50 hover:bg-[#27272a]/20 transition-colors cursor-pointer group items-center"
+              className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-[var(--border-base)]/50 hover:bg-[var(--bg-surface)]/20 transition-colors cursor-pointer group items-center"
               onDoubleClick={() => naviguerDossier(folder)}
               onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'folder', item: folder, x: e.clientX, y: e.clientY }) }}
             >
@@ -475,17 +475,17 @@ export default function CoachDrivePage() {
                 </div>
               </div>
               <div className="col-span-4">
-                <button onClick={() => naviguerDossier(folder)} className="text-[#F5F5F3] text-sm font-medium hover:text-[#FF6B2B] transition-colors text-left truncate">
+                <button onClick={() => naviguerDossier(folder)} className="text-[var(--text-primary)] text-sm font-medium hover:text-[#FF6B2B] transition-colors text-left truncate">
                   {folder.name}
                 </button>
               </div>
-              <div className="col-span-3 text-white/15 text-sm">—</div>
-              <div className="col-span-2 text-white/15 text-sm">—</div>
+              <div className="col-span-3 text-[var(--text-muted)] text-sm">—</div>
+              <div className="col-span-2 text-[var(--text-muted)] text-sm">—</div>
               <div className="col-span-2 flex items-center justify-between">
-                <span className="text-white/25 text-sm">{formatDate(folder.created_at)}</span>
+                <span className="text-[var(--text-muted)] text-sm">{formatDate(folder.created_at)}</span>
                 <button
                   onClick={(e) => { e.stopPropagation(); setContextMenu({ type: 'folder', item: folder, x: e.clientX, y: e.clientY }) }}
-                  className="p-1 rounded text-white/0 group-hover:text-white/20 hover:!text-white/50 transition-all"
+                  className="p-1 rounded text-white/0 group-hover:text-[var(--text-muted)] hover:!text-[var(--text-secondary)] transition-all"
                 >
                   <MoreVertical size={14} />
                 </button>
@@ -502,11 +502,11 @@ export default function CoachDrivePage() {
             return (
               <div
                 key={file.id}
-                className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-[#27272a]/50 hover:bg-[#27272a]/20 transition-colors group items-center"
+                className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-[var(--border-base)]/50 hover:bg-[var(--bg-surface)]/20 transition-colors group items-center"
                 onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'file', item: file, x: e.clientX, y: e.clientY }) }}
               >
                 <div className="col-span-1 flex justify-center">
-                  <div className="w-9 h-9 rounded-lg bg-[#18181b] border border-[#27272a] flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)] flex items-center justify-center">
                     {file.type === 'image' && file.url ? (
                       <img src={file.url} alt="" className="w-full h-full rounded-lg object-cover" />
                     ) : (
@@ -515,7 +515,7 @@ export default function CoachDrivePage() {
                   </div>
                 </div>
                 <div className="col-span-4">
-                  <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-[#F5F5F3] text-sm font-medium hover:text-[#FF6B2B] transition-colors truncate block">
+                  <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-[var(--text-primary)] text-sm font-medium hover:text-[#FF6B2B] transition-colors truncate block">
                     {file.name}
                   </a>
                 </div>
@@ -525,15 +525,15 @@ export default function CoachDrivePage() {
                       <Users size={11} /> {sharedWith}
                     </span>
                   ) : (
-                    <span className="text-white/15 text-sm">—</span>
+                    <span className="text-[var(--text-muted)] text-sm">—</span>
                   )}
                 </div>
-                <div className="col-span-2 text-white/25 text-sm">{formatSize(file.size)}</div>
+                <div className="col-span-2 text-[var(--text-muted)] text-sm">{formatSize(file.size)}</div>
                 <div className="col-span-2 flex items-center justify-between">
-                  <span className="text-white/25 text-sm">{formatDate(file.created_at)}</span>
+                  <span className="text-[var(--text-muted)] text-sm">{formatDate(file.created_at)}</span>
                   <button
                     onClick={(e) => { e.stopPropagation(); setContextMenu({ type: 'file', item: file, x: e.clientX, y: e.clientY }) }}
-                    className="p-1 rounded text-white/0 group-hover:text-white/20 hover:!text-white/50 transition-all"
+                    className="p-1 rounded text-white/0 group-hover:text-[var(--text-muted)] hover:!text-[var(--text-secondary)] transition-all"
                   >
                     <MoreVertical size={14} />
                   </button>
@@ -551,13 +551,13 @@ export default function CoachDrivePage() {
               key={folder.id}
               onClick={() => naviguerDossier(folder)}
               onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'folder', item: folder, x: e.clientX, y: e.clientY }) }}
-              className="bg-[#09090b] border border-[#27272a] rounded-xl p-4 hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/5 transition-colors text-left group"
+              className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-4 hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/5 transition-colors text-left group"
             >
               <div className="w-11 h-11 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center mb-3">
                 <FolderOpen size={20} className="text-[#FF6B2B]" />
               </div>
-              <p className="text-[#F5F5F3] text-sm font-medium truncate">{folder.name}</p>
-              <p className="text-white/15 text-[10px] mt-1">Dossier</p>
+              <p className="text-[var(--text-primary)] text-sm font-medium truncate">{folder.name}</p>
+              <p className="text-[var(--text-muted)] text-[10px] mt-1">Dossier</p>
             </button>
           ))}
 
@@ -566,20 +566,20 @@ export default function CoachDrivePage() {
             <div
               key={file.id}
               onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'file', item: file, x: e.clientX, y: e.clientY }) }}
-              className="bg-[#09090b] border border-[#27272a] rounded-xl p-4 hover:border-[#27272a] transition-colors group relative"
+              className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-4 hover:border-[var(--border-base)] transition-colors group relative"
             >
               {/* Thumbnail / Icon */}
-              <div className="w-full aspect-square rounded-lg bg-[#18181b] border border-[#27272a] flex items-center justify-center mb-3 overflow-hidden">
+              <div className="w-full aspect-square rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)] flex items-center justify-center mb-3 overflow-hidden">
                 {file.type === 'image' && file.url ? (
                   <img src={file.url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <FileIcon type={file.type} size={28} />
                 )}
               </div>
-              <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-[#F5F5F3] text-xs font-medium truncate block hover:text-[#FF6B2B] transition-colors">
+              <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-[var(--text-primary)] text-xs font-medium truncate block hover:text-[#FF6B2B] transition-colors">
                 {file.name}
               </a>
-              <p className="text-white/15 text-[10px] mt-1">{formatSize(file.size)}</p>
+              <p className="text-[var(--text-muted)] text-[10px] mt-1">{formatSize(file.size)}</p>
               {file.profiles && (
                 <p className="text-green-400/60 text-[9px] mt-1 flex items-center gap-1">
                   <Users size={8} /> Partagé
@@ -590,7 +590,7 @@ export default function CoachDrivePage() {
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => { e.stopPropagation(); setContextMenu({ type: 'file', item: file, x: e.clientX, y: e.clientY }) }}
-                  className="p-1.5 rounded-lg bg-[#09090b]/80 text-white/30 hover:text-white/60 border border-[#27272a]"
+                  className="p-1.5 rounded-lg bg-[var(--bg-elevated)]/80 text-[var(--text-muted)] hover:text-[var(--text-secondary)] border border-[var(--border-base)]"
                 >
                   <MoreVertical size={12} />
                 </button>
@@ -605,7 +605,7 @@ export default function CoachDrivePage() {
       {/* ══════════════════════════════════════ */}
       {contextMenu && (
         <div
-          className="fixed z-50 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl py-1.5 min-w-[180px]"
+          className="fixed z-50 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl shadow-2xl py-1.5 min-w-[180px]"
           style={{ left: Math.min(contextMenu.x, window.innerWidth - 200), top: Math.min(contextMenu.y, window.innerHeight - 200) }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -615,24 +615,24 @@ export default function CoachDrivePage() {
                 href={contextMenu.item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#F5F5F3] hover:bg-[#27272a]/50 transition-colors"
+                className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-surface)]/50 transition-colors"
                 onClick={() => setContextMenu(null)}
               >
-                <Eye size={13} className="text-white/30" />
+                <Eye size={13} className="text-[var(--text-muted)]" />
                 Ouvrir
               </a>
               <a
                 href={contextMenu.item.url}
                 download
-                className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#F5F5F3] hover:bg-[#27272a]/50 transition-colors"
+                className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-surface)]/50 transition-colors"
                 onClick={() => setContextMenu(null)}
               >
-                <Download size={13} className="text-white/30" />
+                <Download size={13} className="text-[var(--text-muted)]" />
                 Télécharger
               </a>
               <button
                 onClick={() => { setModalShare(contextMenu.item); setContextMenu(null) }}
-                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[#F5F5F3] hover:bg-[#27272a]/50 transition-colors"
+                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-surface)]/50 transition-colors"
               >
                 <Share2 size={13} className="text-[#FF6B2B]" />
                 Partager avec un client
@@ -640,13 +640,13 @@ export default function CoachDrivePage() {
               {contextMenu.item.client_id && (
                 <button
                   onClick={() => retirerPartage(contextMenu.item)}
-                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-white/40 hover:bg-[#27272a]/50 transition-colors"
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-muted)] hover:bg-[var(--bg-surface)]/50 transition-colors"
                 >
-                  <X size={13} className="text-white/20" />
+                  <X size={13} className="text-[var(--text-muted)]" />
                   Retirer le partage
                 </button>
               )}
-              <div className="border-t border-[#27272a] my-1" />
+              <div className="border-t border-[var(--border-base)] my-1" />
               <button
                 onClick={() => supprimerFichier(contextMenu.item)}
                 className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-400 hover:bg-red-500/10 transition-colors"
@@ -661,12 +661,12 @@ export default function CoachDrivePage() {
             <>
               <button
                 onClick={() => { naviguerDossier(contextMenu.item); setContextMenu(null) }}
-                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[#F5F5F3] hover:bg-[#27272a]/50 transition-colors"
+                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-surface)]/50 transition-colors"
               >
                 <FolderOpen size={13} className="text-[#FF6B2B]" />
                 Ouvrir le dossier
               </button>
-              <div className="border-t border-[#27272a] my-1" />
+              <div className="border-t border-[var(--border-base)] my-1" />
               <button
                 onClick={() => supprimerDossier(contextMenu.item)}
                 className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-400 hover:bg-red-500/10 transition-colors"
@@ -685,7 +685,7 @@ export default function CoachDrivePage() {
       <Modal isOpen={modalNewFolder} onClose={() => setModalNewFolder(false)} title="Nouveau dossier">
         <form onSubmit={creerDossier} className="space-y-4">
           <div>
-            <label className="block text-sm text-white/50 mb-1.5">Nom du dossier</label>
+            <label className="block text-sm text-[var(--text-secondary)] mb-1.5">Nom du dossier</label>
             <input
               type="text"
               value={newFolderName}
@@ -693,20 +693,20 @@ export default function CoachDrivePage() {
               placeholder="Ex: Mes documents"
               autoFocus
               required
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors"
+              className="w-full bg-[var(--bg-input)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors"
             />
           </div>
           {currentFolderId && (
-            <div className="bg-[#09090b] rounded-lg p-3 flex items-center gap-2">
+            <div className="bg-[var(--bg-elevated)] rounded-lg p-3 flex items-center gap-2">
               <Folder size={13} className="text-[#FF6B2B]" />
-              <span className="text-white/25 text-xs">
+              <span className="text-[var(--text-muted)] text-xs">
                 Dans : {breadcrumbs[breadcrumbs.length - 1]?.name || 'Drive'}
               </span>
             </div>
           )}
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={() => setModalNewFolder(false)}
-              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">
+              className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[#3f3f46] transition-colors">
               Annuler
             </button>
             <button type="submit" disabled={creatingFolder}
@@ -725,26 +725,26 @@ export default function CoachDrivePage() {
         {modalShare && (
           <div className="space-y-4">
             {/* Fichier concerné */}
-            <div className="bg-[#09090b] rounded-xl p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#18181b] border border-[#27272a] flex items-center justify-center flex-shrink-0">
+            <div className="bg-[var(--bg-elevated)] rounded-xl p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)] flex items-center justify-center flex-shrink-0">
                 <FileIcon type={modalShare.type} size={18} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[#F5F5F3] text-sm font-medium truncate">{modalShare.name}</p>
-                <p className="text-white/20 text-[10px]">{formatSize(modalShare.size)}</p>
+                <p className="text-[var(--text-primary)] text-sm font-medium truncate">{modalShare.name}</p>
+                <p className="text-[var(--text-muted)] text-[10px]">{formatSize(modalShare.size)}</p>
               </div>
             </div>
 
             {/* Sélection du client */}
             <div>
-              <label className="block text-sm text-white/50 mb-1.5">Partager avec</label>
+              <label className="block text-sm text-[var(--text-secondary)] mb-1.5">Partager avec</label>
               {clients.length === 0 ? (
-                <p className="text-white/20 text-xs bg-[#09090b] rounded-lg p-3">Aucun client trouvé</p>
+                <p className="text-[var(--text-muted)] text-xs bg-[var(--bg-elevated)] rounded-lg p-3">Aucun client trouvé</p>
               ) : (
                 <select
                   value={shareClientId}
                   onChange={(e) => setShareClientId(e.target.value)}
-                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors"
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors"
                 >
                   <option value="">— Sélectionner un client —</option>
                   {clients.map((c) => {
@@ -755,11 +755,11 @@ export default function CoachDrivePage() {
               )}
             </div>
 
-            <p className="text-white/15 text-xs">Le client pourra voir et télécharger ce fichier depuis son espace.</p>
+            <p className="text-[var(--text-muted)] text-xs">Le client pourra voir et télécharger ce fichier depuis son espace.</p>
 
             <div className="flex gap-2 pt-1">
               <button onClick={() => setModalShare(null)}
-                className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">
+                className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[#3f3f46] transition-colors">
                 Annuler
               </button>
               <button onClick={partagerFichier} disabled={sharing || !shareClientId}

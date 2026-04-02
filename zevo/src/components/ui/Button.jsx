@@ -11,8 +11,8 @@ export function Button({
 
   const variants = {
     primary: 'bg-[#FF6B2B] text-white hover:bg-[#FF9A6C] active:scale-[0.98]',
-    secondary: 'bg-[#2A2A2A] text-[#F5F5F3] hover:bg-white/[0.12] border border-white/[0.08]',
-    ghost: 'text-white/60 hover:text-white hover:bg-white/[0.06]',
+    secondary: 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:opacity-80 border border-[var(--border-base)]',
+    ghost: 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-base)]',
     danger: 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20',
   }
 

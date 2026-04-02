@@ -14,7 +14,7 @@
   <polygon points="12,55 17,44 76,75 71,75" fill="white"/>
   <rect x="12" y="65" width="64" height="11" fill="white"/>
 
-  <!-- Wordmark ZEVO blanc -->
+  <!-- Wordmark ZEVO — utilise currentColor pour s'adapter au thème -->
   <text
     x="106"
     y="66"
@@ -22,6 +22,6 @@
     font-weight="900"
     font-size="72"
     letter-spacing="-1"
-    fill="white"
+    fill="currentColor"
   >ZEVO</text>
 </svg>

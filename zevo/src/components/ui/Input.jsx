@@ -1,17 +1,17 @@
-// Input réutilisable — style Zevo sombre
+// Input réutilisable — style Zevo (theme-aware)
 export function Input({ label, error, className = '', ...props }) {
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label className="text-sm text-white/60 font-medium">{label}</label>
+        <label className="text-sm text-[var(--text-secondary)] font-medium">{label}</label>
       )}
       <input
         className={`
-          bg-[#2A2A2A] border rounded-lg px-3.5 py-2.5 text-[#F5F5F3] text-sm
-          placeholder:text-white/25
+          bg-[var(--bg-input)] border rounded-lg px-3.5 py-2.5 text-[var(--text-primary)] text-sm
+          placeholder:text-[var(--text-muted)]
           focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/50
           transition-all duration-150
-          ${error ? 'border-red-500/50' : 'border-white/[0.08] focus:border-[#FF6B2B]/50'}
+          ${error ? 'border-red-500/50' : 'border-[var(--border-base)] focus:border-[#FF6B2B]/50'}
           ${className}
         `}
         {...props}

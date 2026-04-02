@@ -12,6 +12,8 @@ import {
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import CoachTutorial from '../CoachTutorial'
+import ThemeToggle from '../ui/ThemeToggle'
+import { ZevoLogo } from '../ui/ZevoLogo'
 
 // ══════════════════════════════════════
 // SIDEBAR NAV — Structure par sections
@@ -210,21 +212,17 @@ export function CoachLayout() {
   const coachInitials = coachName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 
   return (
-    <div className="min-h-screen bg-[#18181b] flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[var(--bg-base)] flex flex-col md:flex-row">
 
       {/* ══════════════════════════════════════ */}
       {/* HEADER MOBILE                         */}
       {/* ══════════════════════════════════════ */}
-      <header className="md:hidden sticky top-0 z-50 bg-[#09090b] border-b border-[#27272a] px-4 py-3 flex items-center justify-between">
-        <img
-          src="/icons/zevo-logo.svg"
-          alt="Zevo"
-          className="h-9 object-contain flex-shrink-0"
-        />
+      <header className="md:hidden sticky top-0 z-50 bg-[var(--bg-elevated)] border-b border-[var(--border-base)] px-4 py-3 flex items-center justify-between">
+        <ZevoLogo size="sm" className="text-[var(--text-primary)]" />
         <div className="flex items-center gap-2">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="text-white/50 hover:text-white p-1.5 transition-colors"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1.5 transition-colors"
           >
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -233,12 +231,12 @@ export function CoachLayout() {
 
       {/* ── Menu mobile overlay ── */}
       {menuOpen && (
-        <div className="md:hidden fixed inset-0 top-[53px] z-40 bg-[#09090b]/95 backdrop-blur-sm overflow-auto">
+        <div className="md:hidden fixed inset-0 top-[53px] z-40 bg-[var(--bg-elevated)]/95 backdrop-blur-sm overflow-auto">
           <nav className="p-4">
             {NAV_SECTIONS.map((section, si) => (
               <div key={si} className={si > 0 ? 'mt-4' : ''}>
                 {section.title && (
-                  <p className="text-[10px] uppercase tracking-widest text-white/20 font-semibold px-3 mb-2">
+                  <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold px-3 mb-2">
                     {section.title}
                   </p>
                 )}
@@ -252,7 +250,7 @@ export function CoachLayout() {
                           `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
                             isActive
                               ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
-                              : 'text-white/50 hover:text-white hover:bg-white/[0.04]'
+                              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]'
                           }`
                         }
                       >
@@ -264,10 +262,10 @@ export function CoachLayout() {
                 </ul>
               </div>
             ))}
-            <div className="mt-4 pt-4 border-t border-[#27272a]">
+            <div className="mt-4 pt-4 border-t border-[var(--border-base)]">
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-colors w-full"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors w-full"
               >
                 <LogOut size={18} />
                 Se déconnecter
@@ -280,16 +278,12 @@ export function CoachLayout() {
       {/* ══════════════════════════════════════ */}
       {/* SIDEBAR DESKTOP                       */}
       {/* ══════════════════════════════════════ */}
-      <aside className="hidden md:flex w-64 flex-shrink-0 bg-[#09090b] border-r border-[#27272a] flex-col sticky top-0 h-screen">
+      <aside className="hidden md:flex w-64 flex-shrink-0 bg-[var(--bg-elevated)] border-r border-[var(--border-base)] flex-col sticky top-0 h-screen">
 
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-[#27272a]">
-          <img
-            src="/icons/zevo-logo.svg"
-            alt="Zevo"
-            className="h-10 object-contain"
-          />
-          <p className="text-zinc-500 text-[10px] font-medium mt-1.5 tracking-wide">Espace coach</p>
+        <div className="px-5 py-5 border-b border-[var(--border-base)]">
+          <ZevoLogo size="md" className="text-[var(--text-primary)]" />
+          <p className="text-[var(--text-muted)] text-[10px] font-medium mt-1.5 tracking-wide">Espace coach</p>
         </div>
 
         {/* Navigation par sections */}
@@ -297,7 +291,7 @@ export function CoachLayout() {
           {NAV_SECTIONS.map((section, si) => (
             <div key={si}>
               {section.title && (
-                <p className="text-[10px] uppercase tracking-widest text-white/20 font-semibold px-3 mb-2">
+                <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold px-3 mb-2">
                   {section.title}
                 </p>
               )}
@@ -309,14 +303,14 @@ export function CoachLayout() {
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all group ${
                           isActive
-                            ? 'bg-[#27272a]/60 text-[#F5F5F3]'
-                            : 'text-white/40 hover:text-white/70 hover:bg-[#27272a]/30'
+                            ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]'
+                            : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
                         }`
                       }
                     >
                       {({ isActive }) => (
                         <>
-                          <Icon size={17} className={`flex-shrink-0 transition-colors ${isActive ? 'text-[#FF6B2B]' : 'text-white/30 group-hover:text-white/50'}`} />
+                          <Icon size={17} className={`flex-shrink-0 transition-colors ${isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]'}`} />
                           <span className="flex-1">{label}</span>
                           {msgBadge && unreadMsgCount > 0 && (
                             <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
@@ -339,7 +333,7 @@ export function CoachLayout() {
         </nav>
 
         {/* Bas de sidebar */}
-        <div className="px-3 pb-4 space-y-2 border-t border-[#27272a] pt-3">
+        <div className="px-3 pb-4 space-y-2 border-t border-[var(--border-base)] pt-3">
           {/* Bouton Démarrage — TODO: remettre la condition après tests */}
           <button
             onClick={() => setShowTutorial(true)}
@@ -352,18 +346,18 @@ export function CoachLayout() {
           {/* Profil coach */}
           <button
             onClick={() => navigate('/coach/parametres')}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#27272a]/40 transition-colors group"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--bg-surface)] transition-colors group"
           >
             <div className="w-8 h-8 rounded-full bg-[#FF6B2B]/15 flex items-center justify-center flex-shrink-0">
               <span className="text-[#FF6B2B] text-xs font-bold">{coachInitials}</span>
             </div>
             <div className="flex-1 text-left min-w-0">
-              <p className="text-[#F5F5F3] text-xs font-medium truncate">{coachName}</p>
-              <p className="text-white/20 text-[10px] truncate">{user?.email}</p>
+              <p className="text-[var(--text-primary)] text-xs font-medium truncate">{coachName}</p>
+              <p className="text-[var(--text-muted)] text-[10px] truncate">{user?.email}</p>
             </div>
             <LogOut
               size={14}
-              className="text-white/15 group-hover:text-white/40 transition-colors flex-shrink-0 cursor-pointer"
+              className="text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors flex-shrink-0 cursor-pointer"
               onClick={(e) => { e.stopPropagation(); handleLogout() }}
             />
           </button>
@@ -376,22 +370,25 @@ export function CoachLayout() {
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
 
         {/* Header desktop */}
-        <header className="hidden md:flex h-14 items-center justify-between px-6 bg-[#09090b] border-b border-[#27272a] flex-shrink-0">
+        <header className="hidden md:flex h-14 items-center justify-between px-6 bg-[var(--bg-elevated)] border-b border-[var(--border-base)] flex-shrink-0">
           {/* Titre de page dynamique */}
-          <h1 className="text-[#F5F5F3] text-lg font-semibold">{pageTitle}</h1>
+          <h1 className="text-[var(--text-primary)] text-lg font-semibold">{pageTitle}</h1>
 
           {/* Actions header */}
           <div className="flex items-center gap-2">
             {/* Bouton upgrade */}
             <button
               onClick={() => navigate('/pricing')}
-              className="px-3.5 py-1.5 rounded-lg bg-[#F5F5F3] text-[#09090b] text-xs font-semibold hover:bg-white transition-colors"
+              className="px-3.5 py-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-elevated)] text-xs font-semibold hover:opacity-80 transition-colors"
             >
               Mettre à niveau
             </button>
 
+            {/* Theme toggle */}
+            <ThemeToggle size="sm" />
+
             {/* Recherche */}
-            <button className="p-2 rounded-lg text-white/30 hover:text-white/60 hover:bg-[#27272a]/50 transition-colors">
+            <button className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-colors">
               <Search size={17} />
             </button>
 
@@ -400,7 +397,7 @@ export function CoachLayout() {
               <button
                 onClick={() => setNotifOpen(!notifOpen)}
                 className={`p-2 rounded-lg transition-colors relative ${
-                  notifOpen ? 'text-[#FF6B2B] bg-[#27272a]/50' : 'text-white/30 hover:text-white/60 hover:bg-[#27272a]/50'
+                  notifOpen ? 'text-[#FF6B2B] bg-[var(--bg-surface)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
                 }`}
               >
                 <Bell size={17} />
@@ -415,11 +412,11 @@ export function CoachLayout() {
               {notifOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 z-50 w-80 sm:w-96 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 z-50 w-80 sm:w-96 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl shadow-2xl overflow-hidden">
                     {/* Header */}
-                    <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
+                    <div className="px-5 py-3.5 border-b border-[var(--border-base)] flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
-                        <h3 className="text-[#F5F5F3] text-sm font-bold">Notifications</h3>
+                        <h3 className="text-[var(--text-primary)] text-sm font-bold">Notifications</h3>
                         {unreadCount > 0 && (
                           <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
                             {unreadCount} nouvelle{unreadCount > 1 ? 's' : ''}
@@ -428,7 +425,7 @@ export function CoachLayout() {
                       </div>
                       {unreadCount > 0 && (
                         <button
-                          className="text-xs text-zinc-400 hover:text-white transition-colors"
+                          className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                           onClick={markAllAsRead}
                         >
                           Tout marquer comme lu
@@ -440,8 +437,8 @@ export function CoachLayout() {
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.length === 0 ? (
                         <div className="px-5 py-10 text-center">
-                          <Bell size={20} className="text-white/10 mx-auto mb-2" />
-                          <p className="text-white/20 text-xs">Aucune notification pour le moment</p>
+                          <Bell size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
+                          <p className="text-[var(--text-muted)] text-xs">Aucune notification pour le moment</p>
                         </div>
                       ) : (
                         notifications.map((n) => {
@@ -451,7 +448,7 @@ export function CoachLayout() {
                             message: { icon: MessageCircle, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/10' },
                             objectif: { icon: Flame, iconColor: 'text-[#FF6B2B]', iconBg: 'bg-[#FF6B2B]/10' },
                           }
-                          const cfg = typeConfig[n.type] || { icon: Bell, iconColor: 'text-white/40', iconBg: 'bg-white/5' }
+                          const cfg = typeConfig[n.type] || { icon: Bell, iconColor: 'text-[var(--text-muted)]', iconBg: 'bg-[var(--border-base)]' }
                           const IconComp = cfg.icon
                           const senderName = n.client_id ? clientNames[n.client_id] : null
 
@@ -470,21 +467,21 @@ export function CoachLayout() {
                             <button
                               key={n.id}
                               onClick={() => { if (!n.is_read) markAsRead(n.id) }}
-                              className={`w-full flex items-start gap-3 px-5 py-4 hover:bg-white/[0.03] transition-colors text-left border-b border-[#27272a]/30 ${!n.is_read ? 'bg-white/[0.01]' : ''}`}
+                              className={`w-full flex items-start gap-3 px-5 py-4 hover:bg-[var(--border-subtle)] transition-colors text-left border-b border-[var(--border-subtle)] ${!n.is_read ? 'bg-[var(--border-subtle)]' : ''}`}
                             >
                               <div className={`w-9 h-9 rounded-xl ${cfg.iconBg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
                                 <IconComp size={16} className={cfg.iconColor} />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <p className="text-[#F5F5F3] text-xs font-semibold">{n.titre}</p>
+                                  <p className="text-[var(--text-primary)] text-xs font-semibold">{n.titre}</p>
                                   {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] flex-shrink-0" />}
                                 </div>
                                 {senderName && (
                                   <p className="text-[#FF6B2B] text-[10px] font-semibold mt-0.5">{senderName}</p>
                                 )}
-                                <p className="text-white/40 text-[11px] mt-0.5 leading-relaxed">{n.message}</p>
-                                <p className="text-white/20 text-[10px] mt-1 font-medium">{timeLabel}</p>
+                                <p className="text-[var(--text-secondary)] text-[11px] mt-0.5 leading-relaxed">{n.message}</p>
+                                <p className="text-[var(--text-muted)] text-[10px] mt-1 font-medium">{timeLabel}</p>
                               </div>
                             </button>
                           )
@@ -494,8 +491,8 @@ export function CoachLayout() {
 
                     {/* Footer */}
                     {notifications.length > 0 && (
-                      <div className="px-5 py-3 border-t border-[#27272a]">
-                        <p className="text-white/15 text-[10px] text-center">
+                      <div className="px-5 py-3 border-t border-[var(--border-base)]">
+                        <p className="text-[var(--text-muted)] text-[10px] text-center">
                           {notifications.length} notification{notifications.length > 1 ? 's' : ''}
                         </p>
                       </div>
@@ -509,7 +506,7 @@ export function CoachLayout() {
         </header>
 
         {/* Zone de contenu */}
-        <main className="flex-1 overflow-auto pb-16 md:pb-0 bg-[#18181b]">
+        <main className="flex-1 overflow-auto pb-16 md:pb-0 bg-[var(--bg-base)]">
           <Outlet />
         </main>
       </div>
@@ -530,7 +527,7 @@ export function CoachLayout() {
       {/* ══════════════════════════════════════ */}
       {/* BOTTOM NAV MOBILE                     */}
       {/* ══════════════════════════════════════ */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b] border-t border-[#27272a]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-elevated)] border-t border-[var(--border-base)]">
         <ul className="flex items-center justify-around h-14">
           {MOBILE_NAV.map(({ to, icon: Icon, label }) => {
             const isMsgTab = to === '/coach/messages'
@@ -541,7 +538,7 @@ export function CoachLayout() {
                   to={to}
                   className={({ isActive }) =>
                     `flex flex-col items-center gap-0.5 px-2 py-1.5 transition-colors relative ${
-                      isActive ? 'text-[#FF6B2B]' : 'text-white/30'
+                      isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
                     }`
                   }
                 >

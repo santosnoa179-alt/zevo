@@ -63,21 +63,21 @@ export default function LoginPage() {
   // Pendant le chargement initial (refresh page alors qu'on est déjà connecté)
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <ZevoLogo size="lg" />
           </div>
-          <p className="text-white/40 text-sm mt-1">
+          <p className="text-[var(--text-muted)] text-sm mt-1">
             {forgotMode ? 'Réinitialiser le mot de passe' : 'Connexion à votre espace'}
           </p>
         </div>
@@ -117,7 +117,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setForgotMode(true)}
-              className="w-full text-center text-sm text-white/40 hover:text-white/70 transition-colors mt-2"
+              className="w-full text-center text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors mt-2"
             >
               Mot de passe oublié ?
             </button>
@@ -149,7 +149,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => { setForgotMode(false); setError('') }}
-              className="w-full text-center text-sm text-white/40 hover:text-white/70 transition-colors"
+              className="w-full text-center text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
             >
               ← Retour à la connexion
             </button>
@@ -166,7 +166,7 @@ export default function LoginPage() {
             </div>
             <button
               onClick={() => { setForgotMode(false); setResetSent(false) }}
-              className="text-sm text-white/40 hover:text-white/70 transition-colors"
+              className="text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
             >
               ← Retour à la connexion
             </button>

@@ -432,18 +432,18 @@ export default function ProgramBuilder({ programme, onBack }) {
     <div className="flex flex-col h-full min-h-screen">
 
       {/* ═══ Header ═══ */}
-      <div className="px-4 md:px-6 py-4 border-b border-[#27272a] bg-[#0D0D0D] flex-shrink-0">
+      <div className="px-4 md:px-6 py-4 border-b border-[var(--border-base)] bg-[var(--bg-base)] flex-shrink-0">
         <div className="flex items-center justify-between gap-4">
 
           {/* Left: Back + Title */}
           <div className="flex items-center gap-3 min-w-0">
             <button onClick={onBack}
-              className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/[0.06] transition-all shrink-0">
+              className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all shrink-0">
               <ArrowLeft size={18} />
             </button>
             <div className="min-w-0">
               <div className="flex items-center gap-2.5">
-                <h1 className="text-[#F5F5F3] text-lg font-bold truncate">{programme?.titre || 'Nouveau programme'}</h1>
+                <h1 className="text-[var(--text-primary)] text-lg font-bold truncate">{programme?.titre || 'Nouveau programme'}</h1>
                 <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold shrink-0">
                   {programme?.mode === 'modele' ? 'Modèle' : 'Client'}
                 </span>
@@ -455,16 +455,16 @@ export default function ProgramBuilder({ programme, onBack }) {
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={() => setWeekOffset(prev => Math.max(0, prev - 1))}
               disabled={weekOffset === 0}
-              className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-all disabled:opacity-20 disabled:cursor-not-allowed">
+              className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all disabled:opacity-20 disabled:cursor-not-allowed">
               <ChevronLeft size={18} />
             </button>
             <div className="text-center min-w-[140px]">
-              <p className="text-[#F5F5F3] text-sm font-bold">Semaine {currentWeek} / {totalWeeks}</p>
-              <p className="text-white/20 text-[10px]">Dates indicatives uniquement</p>
+              <p className="text-[var(--text-primary)] text-sm font-bold">Semaine {currentWeek} / {totalWeeks}</p>
+              <p className="text-[var(--text-muted)] text-[10px]">Dates indicatives uniquement</p>
             </div>
             <button onClick={() => setWeekOffset(prev => Math.min(totalWeeks - 1, prev + 1))}
               disabled={weekOffset >= totalWeeks - 1}
-              className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-all disabled:opacity-20 disabled:cursor-not-allowed">
+              className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all disabled:opacity-20 disabled:cursor-not-allowed">
               <ChevronRight size={18} />
             </button>
           </div>
@@ -475,7 +475,7 @@ export default function ProgramBuilder({ programme, onBack }) {
             <button onClick={triggerGlobalFileUpload} disabled={uploadingGlobal}
               className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                 uploadingGlobal
-                  ? 'bg-[#27272a] text-white/30 cursor-wait'
+                  ? 'bg-[var(--bg-surface)] text-[var(--text-muted)] cursor-wait'
                   : globalDoc || pendingFile
                     ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20'
                     : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20'
@@ -487,8 +487,8 @@ export default function ProgramBuilder({ programme, onBack }) {
             <button onClick={handleSave} disabled={saving || saved}
               className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 saved
-                  ? 'bg-[#18181b] text-white/25 cursor-default'
-                  : 'bg-[#18181b] border border-[#27272a] text-white/50 hover:text-white hover:bg-[#27272a]'
+                  ? 'bg-[var(--bg-base)] text-[var(--text-muted)] cursor-default'
+                  : 'bg-[var(--bg-base)] border border-[var(--border-base)] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-surface)]'
               }`}>
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
               {saving ? 'Sauvegarde...' : saved ? '● Sauvegardé' : 'Sauvegarder'}
@@ -504,7 +504,7 @@ export default function ProgramBuilder({ programme, onBack }) {
 
       {/* ═══ Global attached file banner ═══ */}
       {(globalDoc || pendingFile) && (
-        <div className="px-4 md:px-6 py-2.5 border-b border-[#27272a] bg-[#1E1E1E]/50">
+        <div className="px-4 md:px-6 py-2.5 border-b border-[var(--border-base)] bg-[var(--bg-card)]/50">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
               pendingFile ? 'bg-[#FF6B2B]/10' : 'bg-emerald-500/10'
@@ -512,10 +512,10 @@ export default function ProgramBuilder({ programme, onBack }) {
               <FileText size={16} className={pendingFile ? 'text-[#FF6B2B]' : 'text-emerald-400'} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[#F5F5F3] text-xs font-semibold truncate">
+              <p className="text-[var(--text-primary)] text-xs font-semibold truncate">
                 {pendingFile ? pendingFile.name : globalDoc?.nom}
               </p>
-              <p className="text-white/25 text-[10px]">
+              <p className="text-[var(--text-muted)] text-[10px]">
                 {pendingFile
                   ? '⏳ En attente — sera uploadé à la sauvegarde'
                   : '✓ Fichier global joint au programme'}
@@ -523,13 +523,13 @@ export default function ProgramBuilder({ programme, onBack }) {
             </div>
             {globalDoc?.url && (
               <a href={globalDoc.url} target="_blank" rel="noopener noreferrer"
-                className="p-1.5 rounded-lg text-white/30 hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-all shrink-0"
+                className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-all shrink-0"
                 title="Voir le fichier">
                 <FileText size={14} />
               </a>
             )}
             <button onClick={removeGlobalDoc}
-              className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0"
+              className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0"
               title="Retirer le fichier">
               <X size={14} />
             </button>
@@ -541,13 +541,13 @@ export default function ProgramBuilder({ programme, onBack }) {
       {loadingData && (
         <div className="flex items-center justify-center py-20 gap-3">
           <Loader2 className="animate-spin text-[#FF6B2B]" size={20} />
-          <span className="text-white/25 text-sm">Chargement des séances...</span>
+          <span className="text-[var(--text-muted)] text-sm">Chargement des séances...</span>
         </div>
       )}
 
       {/* ═══ Grid — 7 days ═══ */}
       <div className="flex-1 overflow-x-auto px-4 md:px-6 py-5">
-        <div className="grid grid-cols-7 gap-px bg-[#27272a] border border-[#27272a] rounded-xl overflow-hidden min-w-[900px]">
+        <div className="grid grid-cols-7 gap-px bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl overflow-hidden min-w-[900px]">
 
           {/* Column headers */}
           {DAYS.map((day, i) => (
@@ -560,7 +560,7 @@ export default function ProgramBuilder({ programme, onBack }) {
           {DAYS.map((_, dayIdx) => {
             const daySessions = getDaySessions(dayIdx)
             return (
-              <div key={dayIdx} className="bg-[#0D0D0D] p-2 flex flex-col gap-2" style={{ minHeight: '60vh' }}>
+              <div key={dayIdx} className="bg-[var(--bg-base)] p-2 flex flex-col gap-2" style={{ minHeight: '60vh' }}>
 
                 {/* Day number label */}
                 <div className="flex items-center justify-between px-1 py-1">
@@ -573,33 +573,33 @@ export default function ProgramBuilder({ programme, onBack }) {
                 {daySessions.map((session, sIdx) => (
                   <div key={session.id}
                     onClick={() => openSessionEditor(dayIdx, sIdx)}
-                    className="bg-[#1E1E1E] border border-white/[0.06] rounded-xl p-3 group hover:border-[#FF6B2B]/20 transition-all cursor-pointer">
+                    className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-3 group hover:border-[#FF6B2B]/20 transition-all cursor-pointer">
                     {/* Session title */}
                     <div className="flex items-center gap-1.5 mb-2">
-                      <GripVertical size={12} className="text-white/10 shrink-0 cursor-grab" />
+                      <GripVertical size={12} className="text-[var(--text-muted)] shrink-0 cursor-grab" />
                       <input type="text" value={session.titre}
                         onClick={e => e.stopPropagation()}
                         onChange={e => updateSessionTitle(dayIdx, sIdx, e.target.value)}
-                        className="flex-1 bg-transparent text-[#F5F5F3] text-xs font-semibold border-none focus:outline-none placeholder:text-white/20 min-w-0"
+                        className="flex-1 bg-transparent text-[var(--text-primary)] text-xs font-semibold border-none focus:outline-none placeholder:text-[var(--text-muted)] min-w-0"
                         placeholder="Nom de la séance" />
                       <button onClick={e => { e.stopPropagation(); removeSession(dayIdx, sIdx) }}
-                        className="p-1 rounded text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+                        className="p-1 rounded text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
                         <Trash2 size={11} />
                       </button>
                     </div>
 
                     {/* Exercises list */}
                     {session.exercices.length === 0 ? (
-                      <div className="border border-dashed border-[#27272a] rounded-lg p-3 flex items-center justify-center text-white/15 text-[10px] italic hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/40 transition-all cursor-pointer">
+                      <div className="border border-dashed border-[var(--border-base)] rounded-lg p-3 flex items-center justify-center text-[var(--text-muted)] text-[10px] italic hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/40 transition-all cursor-pointer">
                         <Plus size={12} className="mr-1" /> Ajouter des exercices
                       </div>
                     ) : (
                       <div className="space-y-1">
                         {session.exercices.map((ex, eIdx) => (
-                          <div key={eIdx} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-[#0D0D0D] text-xs">
-                            <span className="text-white/20 text-[9px] font-mono w-4">{eIdx + 1}.</span>
-                            <span className="text-[#F5F5F3] text-[11px] truncate flex-1">{ex.nom}</span>
-                            <span className="text-white/15 text-[9px] shrink-0">{ex.series}×{ex.reps}</span>
+                          <div key={eIdx} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-[var(--bg-base)] text-xs">
+                            <span className="text-[var(--text-muted)] text-[9px] font-mono w-4">{eIdx + 1}.</span>
+                            <span className="text-[var(--text-primary)] text-[11px] truncate flex-1">{ex.nom}</span>
+                            <span className="text-[var(--text-muted)] text-[9px] shrink-0">{ex.series}×{ex.reps}</span>
                           </div>
                         ))}
                       </div>
@@ -607,7 +607,7 @@ export default function ProgramBuilder({ programme, onBack }) {
 
                     {/* Fichiers badge */}
                     {session.fichiers?.length > 0 && (
-                      <div className="mt-1.5 flex items-center gap-1 text-white/20 text-[9px]">
+                      <div className="mt-1.5 flex items-center gap-1 text-[var(--text-muted)] text-[9px]">
                         <Paperclip size={9} />
                         <span>{session.fichiers.length} fichier{session.fichiers.length > 1 ? 's' : ''}</span>
                       </div>
@@ -617,7 +617,7 @@ export default function ProgramBuilder({ programme, onBack }) {
 
                 {/* Empty state / Add session button */}
                 <button onClick={() => addSession(dayIdx)}
-                  className="group/add flex-1 min-h-[80px] border border-dashed border-[#27272a] rounded-xl flex flex-col items-center justify-center text-white/10 transition-all hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/50 hover:bg-[#FF6B2B]/[0.02] cursor-pointer">
+                  className="group/add flex-1 min-h-[80px] border border-dashed border-[var(--border-base)] rounded-xl flex flex-col items-center justify-center text-[var(--text-muted)] transition-all hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]/50 hover:bg-[#FF6B2B]/[0.02] cursor-pointer">
                   <div className="w-8 h-8 rounded-full border border-dashed border-current flex items-center justify-center mb-1.5 group-hover/add:border-[#FF6B2B]/30 transition-all">
                     <Plus size={14} />
                   </div>

@@ -121,8 +121,8 @@ export default function FormulairesPage() {
           <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
             <Check size={32} className="text-green-400" />
           </div>
-          <h2 className="text-xl font-bold text-[#F5F5F3] mb-2">Formulaire envoyé !</h2>
-          <p className="text-white/40 text-sm text-center mb-6">
+          <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Formulaire envoyé !</h2>
+          <p className="text-[var(--text-muted)] text-sm text-center mb-6">
             Vos réponses ont été transmises à votre coach. Merci !
           </p>
           <button
@@ -143,24 +143,24 @@ export default function FormulairesPage() {
         {/* Header */}
         <button
           onClick={retourListe}
-          className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-6 transition-colors"
+          className="flex items-center gap-2 text-[var(--text-muted)] hover:text-white text-sm mb-6 transition-colors"
         >
           <ArrowLeft size={16} />
           Retour
         </button>
 
-        <h1 className="text-xl font-bold text-[#F5F5F3] mb-1">{activeForm.titre}</h1>
+        <h1 className="text-xl font-bold text-[var(--text-primary)] mb-1">{activeForm.titre}</h1>
         {activeForm.description && (
-          <p className="text-white/40 text-sm mb-6">{activeForm.description}</p>
+          <p className="text-[var(--text-muted)] text-sm mb-6">{activeForm.description}</p>
         )}
 
         {/* Barre de progression */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-white/30 text-xs">Question {currentStep + 1} / {champs.length}</span>
-            <span className="text-white/30 text-xs">{Math.round(progress)}%</span>
+            <span className="text-[var(--text-muted)] text-xs">Question {currentStep + 1} / {champs.length}</span>
+            <span className="text-[var(--text-muted)] text-xs">{Math.round(progress)}%</span>
           </div>
-          <div className="h-1.5 bg-[#2A2A2A] rounded-full overflow-hidden">
+          <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
             <div
               className="h-full bg-[#FF6B2B] rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -170,12 +170,12 @@ export default function FormulairesPage() {
 
         {/* Champ actuel */}
         {champ && (
-          <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-6 mb-6">
-            <p className="text-[#F5F5F3] font-medium mb-1">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-6 mb-6">
+            <p className="text-[var(--text-primary)] font-medium mb-1">
               {champ.label}
               {champ.obligatoire && <span className="text-[#FF6B2B] ml-1">*</span>}
             </p>
-            <p className="text-white/25 text-xs mb-4">{TYPE_LABEL_CLIENT[champ.type_champ]}</p>
+            <p className="text-[var(--text-muted)] text-xs mb-4">{TYPE_LABEL_CLIENT[champ.type_champ]}</p>
 
             {/* ── Texte libre ── */}
             {champ.type_champ === 'texte' && (
@@ -184,7 +184,7 @@ export default function FormulairesPage() {
                 onChange={(e) => setReponse(champ.id, e.target.value)}
                 placeholder="Votre réponse..."
                 rows={4}
-                className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] placeholder-white/20 focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none"
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none"
               />
             )}
 
@@ -195,7 +195,7 @@ export default function FormulairesPage() {
                 value={reponses[champ.id] || ''}
                 onChange={(e) => setReponse(champ.id, e.target.value)}
                 placeholder="0"
-                className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] placeholder-white/20 focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
               />
             )}
 
@@ -209,7 +209,7 @@ export default function FormulairesPage() {
                     className={`w-10 h-10 rounded-lg text-sm font-semibold transition-all ${
                       reponses[champ.id] === n
                         ? 'bg-[#FF6B2B] text-white scale-110'
-                        : 'bg-[#2A2A2A] text-white/40 hover:text-white hover:bg-[#2A2A2A]/80'
+                        : 'bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)]/80'
                     }`}
                   >
                     {n}
@@ -231,7 +231,7 @@ export default function FormulairesPage() {
                     className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all ${
                       reponses[champ.id] === val
                         ? 'bg-[#FF6B2B] text-white'
-                        : 'bg-[#2A2A2A] text-white/40 hover:text-white'
+                        : 'bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-white'
                     }`}
                   >
                     {label}
@@ -251,8 +251,8 @@ export default function FormulairesPage() {
                       onClick={() => toggleChoix(champ.id, opt)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-left transition-all ${
                         selected
-                          ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30 text-[#F5F5F3]'
-                          : 'bg-[#2A2A2A] border border-white/[0.06] text-white/50 hover:text-white'
+                          ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30 text-[var(--text-primary)]'
+                          : 'bg-[var(--bg-surface)] border border-[var(--border-base)] text-[var(--text-secondary)] hover:text-white'
                       }`}
                     >
                       <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center ${
@@ -273,7 +273,7 @@ export default function FormulairesPage() {
                 type="date"
                 value={reponses[champ.id] || ''}
                 onChange={(e) => setReponse(champ.id, e.target.value)}
-                className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
               />
             )}
           </div>
@@ -284,7 +284,7 @@ export default function FormulairesPage() {
           <button
             onClick={() => setCurrentStep(s => Math.max(0, s - 1))}
             disabled={currentStep === 0}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
           >
             <ArrowLeft size={16} />
             Précédent
@@ -322,25 +322,25 @@ export default function FormulairesPage() {
 
   return (
     <div className={`p-6 max-w-2xl mx-auto ${pageTransition.className}`}>
-      <h1 className="text-2xl font-bold text-[#F5F5F3] mb-1">Formulaires</h1>
-      <p className="text-white/40 text-sm mb-8">Questionnaires envoyés par votre coach</p>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Formulaires</h1>
+      <p className="text-[var(--text-muted)] text-sm mb-8">Questionnaires envoyés par votre coach</p>
 
       {loading ? (
         <div className="space-y-3">
-          {[1, 2].map(i => <div key={i} className="bg-[#1E1E1E] rounded-xl h-20 animate-pulse" />)}
+          {[1, 2].map(i => <div key={i} className="bg-[var(--bg-card)] rounded-xl h-20 animate-pulse" />)}
         </div>
       ) : formulaires.length === 0 ? (
-        <div className="bg-[#1E1E1E] rounded-xl border border-dashed border-white/[0.08] p-12 text-center">
-          <ClipboardCheck size={32} className="text-white/20 mx-auto mb-3" />
-          <p className="text-white/40 text-sm">Aucun formulaire pour le moment</p>
-          <p className="text-white/25 text-xs mt-1">Votre coach vous en enverra bientôt</p>
+        <div className="bg-[var(--bg-card)] rounded-xl border border-dashed border-[var(--border-base)] p-12 text-center">
+          <ClipboardCheck size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
+          <p className="text-[var(--text-muted)] text-sm">Aucun formulaire pour le moment</p>
+          <p className="text-[var(--text-muted)] text-xs mt-1">Votre coach vous en enverra bientôt</p>
         </div>
       ) : (
         <>
           {/* En attente */}
           {enAttente.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-sm font-semibold text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
                 À compléter
                 <span className="bg-[#FF6B2B] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
                   {enAttente.length}
@@ -351,15 +351,15 @@ export default function FormulairesPage() {
                   <button
                     key={f.id}
                     onClick={() => ouvrirFormulaire(f)}
-                    className="w-full bg-[#1E1E1E] border border-[#FF6B2B]/20 rounded-xl p-4 text-left hover:border-[#FF6B2B]/40 transition-colors group"
+                    className="w-full bg-[var(--bg-card)] border border-[#FF6B2B]/20 rounded-xl p-4 text-left hover:border-[#FF6B2B]/40 transition-colors group"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-[#F5F5F3] font-medium">{f.formulaires?.titre}</p>
+                        <p className="text-[var(--text-primary)] font-medium">{f.formulaires?.titre}</p>
                         {f.formulaires?.description && (
-                          <p className="text-white/40 text-xs mt-1">{f.formulaires.description}</p>
+                          <p className="text-[var(--text-muted)] text-xs mt-1">{f.formulaires.description}</p>
                         )}
-                        <p className="text-white/25 text-xs mt-1">
+                        <p className="text-[var(--text-muted)] text-xs mt-1">
                           Reçu le {new Date(f.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
                         </p>
                       </div>
@@ -376,19 +376,19 @@ export default function FormulairesPage() {
           {/* Complétés */}
           {completes.length > 0 && (
             <div>
-              <h2 className="text-sm font-semibold text-white/40 uppercase tracking-wider mb-3">
+              <h2 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">
                 Complétés
               </h2>
               <div className="space-y-3">
                 {completes.map(f => (
                   <div
                     key={f.id}
-                    className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-4"
+                    className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-[#F5F5F3] font-medium">{f.formulaires?.titre}</p>
-                        <p className="text-white/25 text-xs mt-1">
+                        <p className="text-[var(--text-primary)] font-medium">{f.formulaires?.titre}</p>
+                        <p className="text-[var(--text-muted)] text-xs mt-1">
                           Complété le {new Date(f.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
                         </p>
                       </div>

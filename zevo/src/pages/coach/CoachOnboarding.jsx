@@ -115,7 +115,7 @@ export default function CoachOnboarding() {
   const progress = ((step + 1) / 3) * 100
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex">
+    <div className="min-h-screen bg-[var(--bg-base)] flex">
 
       {/* ══════════════════════════════════════ */}
       {/* GAUCHE — Formulaire                   */}
@@ -143,7 +143,7 @@ export default function CoachOnboarding() {
                         ? 'bg-[#FF6B2B] text-white'
                         : s === step
                           ? 'bg-[#FF6B2B]/20 text-[#FF6B2B] ring-2 ring-[#FF6B2B]/40'
-                          : 'bg-[#1a1a1a] text-white/20'
+                          : 'bg-[#1a1a1a] text-[var(--text-muted)]'
                     }`}
                   >
                     {s < step ? <Check size={14} /> : s + 1}
@@ -162,7 +162,7 @@ export default function CoachOnboarding() {
               <div className="space-y-6 animate-fade-in">
                 <div>
                   <p className="text-[#FF6B2B] text-sm font-semibold uppercase tracking-wider mb-2">Étape 1 / 3</p>
-                  <h1 className="text-[#F5F5F3] text-2xl font-bold">
+                  <h1 className="text-[var(--text-primary)] text-2xl font-bold">
                     Faisons connaissance, vous êtes :
                   </h1>
                 </div>
@@ -170,46 +170,46 @@ export default function CoachOnboarding() {
                 <div className="space-y-4">
                   {/* Prénom */}
                   <div>
-                    <label className="block text-sm text-white/50 mb-1.5 font-medium">Prénom *</label>
+                    <label className="block text-sm text-[var(--text-secondary)] mb-1.5 font-medium">Prénom *</label>
                     <div className="relative">
-                      <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+                      <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                       <input
                         type="text"
                         value={prenom}
                         onChange={(e) => setPrenom(e.target.value)}
                         placeholder="Votre prénom"
                         autoFocus
-                        className="w-full bg-[#141414] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+                        className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl pl-10 pr-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Nom */}
                   <div>
-                    <label className="block text-sm text-white/50 mb-1.5 font-medium">Nom *</label>
+                    <label className="block text-sm text-[var(--text-secondary)] mb-1.5 font-medium">Nom *</label>
                     <div className="relative">
-                      <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+                      <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                       <input
                         type="text"
                         value={nom}
                         onChange={(e) => setNom(e.target.value)}
                         placeholder="Votre nom"
-                        className="w-full bg-[#141414] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+                        className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl pl-10 pr-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Téléphone */}
                   <div>
-                    <label className="block text-sm text-white/50 mb-1.5 font-medium">Téléphone</label>
+                    <label className="block text-sm text-[var(--text-secondary)] mb-1.5 font-medium">Téléphone</label>
                     <div className="relative">
-                      <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+                      <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                       <input
                         type="tel"
                         value={telephone}
                         onChange={(e) => setTelephone(e.target.value)}
                         placeholder="+33 6 12 34 56 78"
-                        className="w-full bg-[#141414] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+                        className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl pl-10 pr-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
                       />
                     </div>
                   </div>
@@ -222,14 +222,14 @@ export default function CoachOnboarding() {
               <div className="space-y-6 animate-fade-in">
                 <div>
                   <p className="text-[#FF6B2B] text-sm font-semibold uppercase tracking-wider mb-2">Étape 2 / 3</p>
-                  <h1 className="text-[#F5F5F3] text-2xl font-bold">
+                  <h1 className="text-[var(--text-primary)] text-2xl font-bold">
                     Parlons de votre activité professionnelle :
                   </h1>
                 </div>
 
                 {/* Métier — cartes cliquables */}
                 <div>
-                  <label className="block text-sm text-white/50 mb-3 font-medium">Votre métier</label>
+                  <label className="block text-sm text-[var(--text-secondary)] mb-3 font-medium">Votre métier</label>
                   <div className="grid grid-cols-2 gap-2.5">
                     {METIERS.map((m) => (
                       <button
@@ -239,11 +239,11 @@ export default function CoachOnboarding() {
                         className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
                           metier === m.id
                             ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/50 ring-1 ring-[#FF6B2B]/20'
-                            : 'bg-[#141414] border-white/[0.06] hover:border-white/[0.12]'
+                            : 'bg-[var(--bg-card)] border-[var(--border-base)] hover:border-[var(--border-base)]'
                         }`}
                       >
                         <span className="text-xl">{m.emoji}</span>
-                        <span className={`text-sm font-medium ${metier === m.id ? 'text-[#FF6B2B]' : 'text-white/60'}`}>
+                        <span className={`text-sm font-medium ${metier === m.id ? 'text-[#FF6B2B]' : 'text-[var(--text-secondary)]'}`}>
                           {m.label}
                         </span>
                       </button>
@@ -253,7 +253,7 @@ export default function CoachOnboarding() {
 
                 {/* Nombre de clients */}
                 <div>
-                  <label className="block text-sm text-white/50 mb-3 font-medium">Nombre moyen de clients</label>
+                  <label className="block text-sm text-[var(--text-secondary)] mb-3 font-medium">Nombre moyen de clients</label>
                   <div className="space-y-2">
                     {NB_CLIENTS.map((n) => (
                       <button
@@ -263,14 +263,14 @@ export default function CoachOnboarding() {
                         className={`w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all ${
                           nbClients === n.id
                             ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/50 ring-1 ring-[#FF6B2B]/20'
-                            : 'bg-[#141414] border-white/[0.06] hover:border-white/[0.12]'
+                            : 'bg-[var(--bg-card)] border-[var(--border-base)] hover:border-[var(--border-base)]'
                         }`}
                       >
                         <div>
-                          <span className={`text-sm font-semibold ${nbClients === n.id ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>
+                          <span className={`text-sm font-semibold ${nbClients === n.id ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>
                             {n.label}
                           </span>
-                          <span className="text-white/25 text-xs ml-2">{n.sub}</span>
+                          <span className="text-[var(--text-muted)] text-xs ml-2">{n.sub}</span>
                         </div>
                         {nbClients === n.id && (
                           <div className="w-5 h-5 rounded-full bg-[#FF6B2B] flex items-center justify-center">
@@ -289,10 +289,10 @@ export default function CoachOnboarding() {
               <div className="space-y-6 animate-fade-in">
                 <div>
                   <p className="text-[#FF6B2B] text-sm font-semibold uppercase tracking-wider mb-2">Étape 3 / 3</p>
-                  <h1 className="text-[#F5F5F3] text-2xl font-bold">
+                  <h1 className="text-[var(--text-primary)] text-2xl font-bold">
                     Quelles sont vos priorités ?
                   </h1>
-                  <p className="text-white/30 text-sm mt-1">Sélectionnez une ou plusieurs options</p>
+                  <p className="text-[var(--text-muted)] text-sm mt-1">Sélectionnez une ou plusieurs options</p>
                 </div>
 
                 <div className="space-y-2.5">
@@ -306,19 +306,19 @@ export default function CoachOnboarding() {
                         className={`w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-all ${
                           selected
                             ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/50 ring-1 ring-[#FF6B2B]/20'
-                            : 'bg-[#141414] border-white/[0.06] hover:border-white/[0.12]'
+                            : 'bg-[var(--bg-card)] border-[var(--border-base)] hover:border-[var(--border-base)]'
                         }`}
                       >
                         {/* Checkbox custom */}
                         <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                           selected
                             ? 'bg-[#FF6B2B] border-[#FF6B2B]'
-                            : 'border-white/20'
+                            : 'border-[var(--border-base)]'
                         }`}>
                           {selected && <Check size={12} className="text-white" />}
                         </div>
                         <span className="text-lg">{p.icon}</span>
-                        <span className={`text-sm font-medium ${selected ? 'text-[#F5F5F3]' : 'text-white/50'}`}>
+                        <span className={`text-sm font-medium ${selected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                           {p.label}
                         </span>
                       </button>
@@ -333,7 +333,7 @@ export default function CoachOnboarding() {
               {step > 0 && (
                 <button
                   onClick={() => setStep(step - 1)}
-                  className="px-5 py-3 rounded-xl text-sm text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-all"
+                  className="px-5 py-3 rounded-xl text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-all"
                 >
                   Retour
                 </button>
@@ -381,19 +381,19 @@ export default function CoachOnboarding() {
             <div className="w-12 h-12 rounded-2xl bg-[#FF6B2B] flex items-center justify-center">
               <span className="text-white text-xl font-black">Z</span>
             </div>
-            <span className="text-[#F5F5F3] text-2xl font-bold tracking-tight">Zevo</span>
+            <span className="text-[var(--text-primary)] text-2xl font-bold tracking-tight">Zevo</span>
           </div>
 
           {/* Bulle de BD dynamique */}
           <div className="relative max-w-xs">
-            <div className="bg-[#1a1a1a] border border-white/[0.08] rounded-2xl px-6 py-5 shadow-xl shadow-black/20">
-              <p className="text-[#F5F5F3] text-sm leading-relaxed font-medium text-center">
+            <div className="bg-[#1a1a1a] border border-[var(--border-base)] rounded-2xl px-6 py-5 shadow-xl shadow-black/20">
+              <p className="text-[var(--text-primary)] text-sm leading-relaxed font-medium text-center">
                 {MASCOT_MESSAGES[step]}
               </p>
             </div>
             {/* Triangle de la bulle */}
             <div className="flex justify-center -mb-1">
-              <div className="w-4 h-4 bg-[#1a1a1a] border-r border-b border-white/[0.08] rotate-45 -translate-y-2" />
+              <div className="w-4 h-4 bg-[#1a1a1a] border-r border-b border-[var(--border-base)] rotate-45 -translate-y-2" />
             </div>
           </div>
 
@@ -407,7 +407,7 @@ export default function CoachOnboarding() {
           </div>
 
           {/* Texte d'accroche */}
-          <p className="text-white/20 text-xs text-center max-w-[220px] mt-2">
+          <p className="text-[var(--text-muted)] text-xs text-center max-w-[220px] mt-2">
             Personnalisons votre espace de travail Zevo 🚀
           </p>
         </div>

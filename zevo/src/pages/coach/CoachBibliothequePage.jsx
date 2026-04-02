@@ -348,15 +348,15 @@ export default function CoachBibliothequePage() {
       {/* ═══════ HEADER ═══════ */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#F5F5F3] tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight flex items-center gap-3">
             <BookOpen size={22} className="text-[#FF6B2B]" />
             Bibliothèque
           </h1>
-          <p className="text-white/30 text-sm mt-0.5">Tous vos fichiers et ressources en un seul endroit</p>
+          <p className="text-[var(--text-muted)] text-sm mt-0.5">Tous vos fichiers et ressources en un seul endroit</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setModalNewFolder(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] text-white/50 text-xs font-medium hover:text-white hover:bg-white/[0.04] transition-colors">
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--border-base)] text-[var(--text-secondary)] text-xs font-medium hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
             <FolderPlus size={14} /> Dossier
           </button>
           <button onClick={() => setModalAdd(true)}
@@ -380,11 +380,11 @@ export default function CoachBibliothequePage() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   activeSection === s.id && !currentDossier
                     ? 'bg-[#FF6B2B] text-white shadow-sm'
-                    : 'text-white/35 hover:text-white/60 hover:bg-white/[0.04]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
                 }`}>
                 <Ic size={13} />
                 {s.label}
-                <span className={`text-[10px] tabular-nums ${activeSection === s.id && !currentDossier ? 'text-white/70' : 'text-white/20'}`}>{count}</span>
+                <span className={`text-[10px] tabular-nums ${activeSection === s.id && !currentDossier ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}`}>{count}</span>
               </button>
             )
           })}
@@ -394,15 +394,15 @@ export default function CoachBibliothequePage() {
         {currentDossier && (
           <div className="flex items-center gap-1 text-sm">
             <button onClick={() => naviguerBreadcrumb(-1)}
-              className="px-2 py-1 rounded-lg text-white/30 hover:text-white/60 transition-colors text-xs">
+              className="px-2 py-1 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors text-xs">
               Bibliothèque
             </button>
             {breadcrumbs.map((bc, i) => (
               <div key={bc.id} className="flex items-center gap-1">
-                <ChevronRight size={12} className="text-white/15" />
+                <ChevronRight size={12} className="text-[var(--text-muted)]" />
                 <button onClick={() => naviguerBreadcrumb(i)}
                   className={`px-2 py-1 rounded-lg text-xs truncate max-w-[150px] transition-colors ${
-                    i === breadcrumbs.length - 1 ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold' : 'text-white/30 hover:text-white/60'
+                    i === breadcrumbs.length - 1 ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                   }`}>{bc.name}</button>
               </div>
             ))}
@@ -412,34 +412,34 @@ export default function CoachBibliothequePage() {
         {/* Search + filters + view toggle */}
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
             <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher..."
-              className="w-full pl-9 pr-3 py-2 bg-[#09090b] border border-white/[0.08] rounded-xl text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors" />
+              className="w-full pl-9 pr-3 py-2 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors" />
           </div>
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-            className="appearance-none bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
+            className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
             <option value="">Tous types</option>
             {TYPES.map(t => <option key={t} value={t}>{TYPE_CONFIG[t].label}</option>)}
           </select>
           <select value={filterCat} onChange={(e) => setFilterCat(e.target.value)}
-            className="appearance-none bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
+            className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
             <option value="">Toutes catégories</option>
             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           {/* View toggle */}
-          <div className="flex items-center bg-[#09090b] border border-white/[0.08] rounded-xl overflow-hidden ml-auto">
+          <div className="flex items-center bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl overflow-hidden ml-auto">
             <button onClick={() => setViewMode('grid')}
-              className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-white/[0.08] text-[#F5F5F3]' : 'text-white/20 hover:text-white/40'}`}>
+              className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-muted)]'}`}>
               <Grid3X3 size={14} />
             </button>
             <button onClick={() => setViewMode('list')}
-              className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-white/[0.08] text-[#F5F5F3]' : 'text-white/20 hover:text-white/40'}`}>
+              className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-muted)]'}`}>
               <List size={14} />
             </button>
           </div>
           {/* Quick upload */}
-          <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/40 text-xs cursor-pointer hover:text-white hover:bg-white/[0.08] transition-colors">
+          <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-[var(--text-muted)] text-xs cursor-pointer hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
             <Upload size={14} /> Upload rapide
             <input type="file" className="hidden" onChange={(e) => { if (e.target.files?.[0]) quickUpload(e.target.files[0]); e.target.value = '' }} disabled={uploading} />
           </label>
@@ -448,13 +448,13 @@ export default function CoachBibliothequePage() {
 
       {/* Upload progress bar */}
       {uploading && (
-        <div className="bg-[#09090b] border border-white/[0.08] rounded-xl p-3 mb-4">
+        <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-3 mb-4">
           <div className="flex items-center gap-3 mb-2">
             <Loader2 size={14} className="animate-spin text-[#FF6B2B]" />
-            <span className="text-[#F5F5F3] text-xs font-medium">Upload en cours...</span>
-            <span className="text-white/20 text-xs ml-auto tabular-nums">{uploadProgress}%</span>
+            <span className="text-[var(--text-primary)] text-xs font-medium">Upload en cours...</span>
+            <span className="text-[var(--text-muted)] text-xs ml-auto tabular-nums">{uploadProgress}%</span>
           </div>
-          <div className="h-1 bg-white/[0.06] rounded-full overflow-hidden">
+          <div className="h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
             <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
           </div>
         </div>
@@ -467,14 +467,14 @@ export default function CoachBibliothequePage() {
         </div>
       ) : filteredDossiers.length === 0 && filtered.length === 0 ? (
         /* Empty state */
-        <div className="bg-white/[0.02] rounded-2xl border border-dashed border-white/[0.08] p-14 text-center">
+        <div className="bg-[var(--bg-surface)] rounded-2xl border border-dashed border-[var(--border-base)] p-14 text-center">
           <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/[0.06] flex items-center justify-center mx-auto mb-5">
             <BookOpen size={28} className="text-[#FF6B2B]/40" />
           </div>
-          <p className="text-white/40 text-sm font-medium">
+          <p className="text-[var(--text-muted)] text-sm font-medium">
             {ressources.length === 0 ? 'Votre bibliothèque est vide' : 'Aucun résultat'}
           </p>
-          <p className="text-white/20 text-xs mt-1.5 mb-5">
+          <p className="text-[var(--text-muted)] text-xs mt-1.5 mb-5">
             {ressources.length === 0 ? 'Ajoutez des PDF, vidéos, liens ou guides pour vos clients' : 'Modifiez vos filtres'}
           </p>
           {ressources.length === 0 && (
@@ -490,16 +490,16 @@ export default function CoachBibliothequePage() {
           {/* Dossiers */}
           {filteredDossiers.length > 0 && (
             <div className="mb-6">
-              <p className="text-[10px] text-white/25 uppercase tracking-wider font-semibold mb-3">Dossiers</p>
+              <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-3">Dossiers</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {filteredDossiers.map(folder => (
                   <button key={folder.id} onClick={() => naviguerDossier(folder)}
                     onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'folder', item: folder, x: e.clientX, y: e.clientY }) }}
-                    className="bg-white/[0.02] border border-white/[0.08] rounded-2xl p-4 hover:border-[#FF6B2B]/30 hover:-translate-y-0.5 transition-all text-left group">
+                    className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl p-4 hover:border-[#FF6B2B]/30 hover:-translate-y-0.5 transition-all text-left group">
                     <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center mb-3">
                       <FolderOpen size={18} className="text-[#FF6B2B]" />
                     </div>
-                    <p className="text-[#F5F5F3] text-sm font-medium truncate">{folder.name}</p>
+                    <p className="text-[var(--text-primary)] text-sm font-medium truncate">{folder.name}</p>
                   </button>
                 ))}
               </div>
@@ -509,7 +509,7 @@ export default function CoachBibliothequePage() {
           {/* Resources grid */}
           {filtered.length > 0 && (
             <div>
-              {filteredDossiers.length > 0 && <p className="text-[10px] text-white/25 uppercase tracking-wider font-semibold mb-3">Fichiers</p>}
+              {filteredDossiers.length > 0 && <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-3">Fichiers</p>}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filtered.map(res => {
                   const config = TYPE_CONFIG[res.type] || TYPE_CONFIG.autre
@@ -519,7 +519,7 @@ export default function CoachBibliothequePage() {
                   return (
                     <div key={res.id}
                       onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'resource', item: res, x: e.clientX, y: e.clientY }) }}
-                      className="bg-white/[0.02] rounded-2xl border border-white/[0.06] hover:border-white/[0.15] transition-all group relative">
+                      className="bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-base)] hover:border-[var(--border-base)] transition-all group relative">
 
                       {/* Favori star */}
                       {res.favori && (
@@ -539,46 +539,46 @@ export default function CoachBibliothequePage() {
                             <Icon size={18} style={{ color: config.color }} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-[#F5F5F3] font-medium text-sm truncate group-hover:text-white transition-colors">
+                            <h3 className="text-[var(--text-primary)] font-medium text-sm truncate group-hover:text-white transition-colors">
                               {res.titre}
                             </h3>
                             <div className="flex items-center gap-2 mt-0.5">
                               <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${config.color}15`, color: config.color }}>
                                 {config.label}
                               </span>
-                              {res.categorie && <span className="text-white/25 text-[10px]">{res.categorie}</span>}
-                              {res.taille && <span className="text-white/15 text-[10px]">{formatSize(res.taille)}</span>}
+                              {res.categorie && <span className="text-[var(--text-muted)] text-[10px]">{res.categorie}</span>}
+                              {res.taille && <span className="text-[var(--text-muted)] text-[10px]">{formatSize(res.taille)}</span>}
                             </div>
                           </div>
-                          {res.url && <ExternalLink size={13} className="text-white/10 group-hover:text-white/30 transition-colors shrink-0 mt-0.5" />}
+                          {res.url && <ExternalLink size={13} className="text-[var(--text-muted)] group-hover:text-[var(--text-muted)] transition-colors shrink-0 mt-0.5" />}
                         </div>
-                        {res.description && <p className="text-white/30 text-xs mb-3 line-clamp-2">{res.description}</p>}
+                        {res.description && <p className="text-[var(--text-muted)] text-xs mb-3 line-clamp-2">{res.description}</p>}
                       </button>
 
                       {/* Actions bar */}
-                      <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.04]">
+                      <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--border-subtle)]">
                         {/* Visibility badge */}
                         {nbPartages > 0 ? (
                           <span className="text-xs inline-flex items-center gap-1.5 text-[#FF6B2B]/70">
                             <Globe size={11} /> {nbPartages} client{nbPartages > 1 ? 's' : ''}
                           </span>
                         ) : (
-                          <span className="text-xs inline-flex items-center gap-1.5 text-white/20">
+                          <span className="text-xs inline-flex items-center gap-1.5 text-[var(--text-muted)]">
                             <Lock size={11} /> Privé
                           </span>
                         )}
 
                         <div className="flex items-center gap-0.5 opacity-40 group-hover:opacity-100 transition-opacity">
                           <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavori(res) }} title="Favori"
-                            className="p-2 rounded-lg text-white/40 hover:text-yellow-400 hover:bg-yellow-400/10 transition-colors">
+                            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-yellow-400 hover:bg-yellow-400/10 transition-colors">
                             {res.favori ? <BookmarkCheck size={15} className="text-yellow-400" /> : <Bookmark size={15} />}
                           </button>
                           <button type="button" onClick={(e) => { e.stopPropagation(); openShareModal(res.id) }} title="Partager"
-                            className="p-2 rounded-lg text-white/40 hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors">
+                            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors">
                             <Share2 size={15} />
                           </button>
                           <button type="button" onClick={(e) => { e.stopPropagation(); handleDelete(res) }} title="Supprimer"
-                            className="p-2 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors">
                             <Trash2 size={15} />
                           </button>
                         </div>
@@ -592,19 +592,19 @@ export default function CoachBibliothequePage() {
         </div>
       ) : (
         /* ── VUE LISTE ── */
-        <div className="bg-[#09090b] border border-white/[0.08] rounded-2xl overflow-hidden">
+        <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl overflow-hidden">
           {/* Folders in list */}
           {filteredDossiers.map(folder => (
             <div key={folder.id}
               onClick={() => naviguerDossier(folder)}
               onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'folder', item: folder, x: e.clientX, y: e.clientY }) }}
-              className="flex items-center gap-4 px-5 py-3 border-b border-white/[0.06] hover:bg-white/[0.03] transition-colors cursor-pointer group">
+              className="flex items-center gap-4 px-5 py-3 border-b border-[var(--border-base)] hover:bg-[var(--bg-surface)] transition-colors cursor-pointer group">
               <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
                 <Folder size={16} className="text-[#FF6B2B]" />
               </div>
-              <p className="text-[#F5F5F3] text-sm font-medium flex-1 truncate">{folder.name}</p>
-              <span className="text-white/15 text-xs">Dossier</span>
-              <ChevronRight size={14} className="text-white/10 group-hover:text-white/30" />
+              <p className="text-[var(--text-primary)] text-sm font-medium flex-1 truncate">{folder.name}</p>
+              <span className="text-[var(--text-muted)] text-xs">Dossier</span>
+              <ChevronRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--text-muted)]" />
             </div>
           ))}
 
@@ -617,34 +617,34 @@ export default function CoachBibliothequePage() {
             return (
               <div key={res.id}
                 onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'resource', item: res, x: e.clientX, y: e.clientY }) }}
-                className="group flex items-center gap-4 px-5 py-3 border-b border-white/[0.06] last:border-b-0 hover:bg-white/[0.03] transition-colors">
+                className="group flex items-center gap-4 px-5 py-3 border-b border-[var(--border-base)] last:border-b-0 hover:bg-[var(--bg-surface)] transition-colors">
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${config.color}15` }}>
                   <Icon size={16} style={{ color: config.color }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <a href={res.url} target="_blank" rel="noopener noreferrer"
-                    className="text-[#F5F5F3] text-sm font-medium truncate block hover:text-[#FF6B2B] transition-colors">{res.titre}</a>
+                    className="text-[var(--text-primary)] text-sm font-medium truncate block hover:text-[#FF6B2B] transition-colors">{res.titre}</a>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] text-white/25">{config.label}</span>
-                    {res.categorie && <><span className="text-white/10">·</span><span className="text-[10px] text-white/25">{res.categorie}</span></>}
+                    <span className="text-[10px] text-[var(--text-muted)]">{config.label}</span>
+                    {res.categorie && <><span className="text-[var(--text-muted)]">·</span><span className="text-[10px] text-[var(--text-muted)]">{res.categorie}</span></>}
                   </div>
                 </div>
                 {res.favori && <Star size={13} className="text-yellow-400 fill-yellow-400 flex-shrink-0" />}
                 {nbPartages > 0 ? (
                   <span className="text-[10px] text-[#FF6B2B]/60 flex items-center gap-1 flex-shrink-0"><Globe size={10} />{nbPartages}</span>
                 ) : (
-                  <span className="text-[10px] text-white/15 flex items-center gap-1 flex-shrink-0"><Lock size={10} /></span>
+                  <span className="text-[10px] text-[var(--text-muted)] flex items-center gap-1 flex-shrink-0"><Lock size={10} /></span>
                 )}
-                <span className="text-white/15 text-[10px] flex-shrink-0 w-16 text-right">{formatDate(res.created_at)}</span>
+                <span className="text-[var(--text-muted)] text-[10px] flex-shrink-0 w-16 text-right">{formatDate(res.created_at)}</span>
                 <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                   <button onClick={(e) => { e.stopPropagation(); toggleFavori(res) }}
-                    className="p-1.5 rounded-lg text-white/30 hover:text-yellow-400 transition-colors">
+                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-yellow-400 transition-colors">
                     {res.favori ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); openShareModal(res.id) }}
-                    className="p-1.5 rounded-lg text-white/30 hover:text-[#FF6B2B] transition-colors"><Share2 size={14} /></button>
+                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] transition-colors"><Share2 size={14} /></button>
                   <button onClick={(e) => { e.stopPropagation(); handleDelete(res) }}
-                    className="p-1.5 rounded-lg text-white/30 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
                 </div>
               </div>
             )
@@ -654,26 +654,26 @@ export default function CoachBibliothequePage() {
 
       {/* ═══════ CONTEXT MENU ═══════ */}
       {contextMenu && (
-        <div className="fixed z-50 bg-[#09090b] border border-[#27272a] rounded-xl shadow-2xl py-1.5 min-w-[180px]"
+        <div className="fixed z-50 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl shadow-2xl py-1.5 min-w-[180px]"
           style={{ left: Math.min(contextMenu.x, window.innerWidth - 200), top: Math.min(contextMenu.y, window.innerHeight - 200) }}
           onClick={(e) => e.stopPropagation()}>
           {contextMenu.type === 'resource' && (
             <>
               {contextMenu.item.url && (
                 <a href={contextMenu.item.url} target="_blank" rel="noopener noreferrer" onClick={() => setContextMenu(null)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#F5F5F3] hover:bg-white/[0.06] transition-colors">
-                  <Eye size={13} className="text-white/30" /> Ouvrir
+                  className="flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
+                  <Eye size={13} className="text-[var(--text-muted)]" /> Ouvrir
                 </a>
               )}
               <button onClick={() => { openShareModal(contextMenu.item.id); setContextMenu(null) }}
-                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[#F5F5F3] hover:bg-white/[0.06] transition-colors">
+                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
                 <Share2 size={13} className="text-[#FF6B2B]" /> Partager
               </button>
               <button onClick={() => { toggleFavori(contextMenu.item) }}
-                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[#F5F5F3] hover:bg-white/[0.06] transition-colors">
+                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
                 <Star size={13} className="text-yellow-400" /> {contextMenu.item.favori ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               </button>
-              <div className="border-t border-[#27272a] my-1" />
+              <div className="border-t border-[var(--border-base)] my-1" />
               <button onClick={() => handleDelete(contextMenu.item)}
                 className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-400 hover:bg-red-500/10 transition-colors">
                 <Trash2 size={13} /> Supprimer
@@ -683,10 +683,10 @@ export default function CoachBibliothequePage() {
           {contextMenu.type === 'folder' && (
             <>
               <button onClick={() => { naviguerDossier(contextMenu.item); setContextMenu(null) }}
-                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[#F5F5F3] hover:bg-white/[0.06] transition-colors">
+                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
                 <FolderOpen size={13} className="text-[#FF6B2B]" /> Ouvrir
               </button>
-              <div className="border-t border-[#27272a] my-1" />
+              <div className="border-t border-[var(--border-base)] my-1" />
               <button onClick={() => supprimerDossier(contextMenu.item)}
                 className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-400 hover:bg-red-500/10 transition-colors">
                 <Trash2 size={13} /> Supprimer
@@ -702,28 +702,28 @@ export default function CoachBibliothequePage() {
           <div className="flex gap-2">
             {[{ id: 'lien', label: 'Lien / URL' }, { id: 'fichier', label: 'Upload fichier' }].map(m => (
               <button key={m.id} type="button" onClick={() => setAddMode(m.id)}
-                className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${addMode === m.id ? 'bg-[#FF6B2B] text-white' : 'bg-[#27272a] text-white/40'}`}>
+                className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${addMode === m.id ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'}`}>
                 {m.label}
               </button>
             ))}
           </div>
 
           <div>
-            <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Titre *</label>
+            <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Titre *</label>
             <input type="text" value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex : Guide nutrition" required autoFocus
-              className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
           </div>
 
           {addMode === 'lien' ? (
             <>
               <div>
-                <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Type</label>
+                <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Type</label>
                 <div className="flex gap-2 flex-wrap">
                   {TYPES.map(t => {
                     const cfg = TYPE_CONFIG[t]
                     return (
                       <button key={t} type="button" onClick={() => setType(t)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${type === t ? 'text-white' : 'text-white/40 bg-[#27272a]'}`}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${type === t ? 'text-white' : 'text-[var(--text-muted)] bg-[var(--bg-surface)]'}`}
                         style={type === t ? { backgroundColor: cfg.color } : {}}>
                         <cfg.icon size={12} /> {cfg.label}
                       </button>
@@ -732,15 +732,15 @@ export default function CoachBibliothequePage() {
                 </div>
               </div>
               <div>
-                <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">URL *</label>
+                <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">URL *</label>
                 <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..."
-                  className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                  className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
               </div>
             </>
           ) : (
             <div>
-              <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Fichier *</label>
-              <label className="flex items-center justify-center gap-2 w-full py-5 rounded-xl border-2 border-dashed border-white/[0.1] text-white/30 text-sm cursor-pointer hover:border-[#FF6B2B]/30 hover:text-white/50 transition-colors">
+              <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Fichier *</label>
+              <label className="flex items-center justify-center gap-2 w-full py-5 rounded-xl border-2 border-dashed border-[var(--border-base)] text-[var(--text-muted)] text-sm cursor-pointer hover:border-[#FF6B2B]/30 hover:text-[var(--text-secondary)] transition-colors">
                 <Upload size={16} />
                 {file ? file.name : 'Choisir un fichier'}
                 <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} className="hidden" />
@@ -750,23 +750,23 @@ export default function CoachBibliothequePage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Catégorie</label>
+              <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Catégorie</label>
               <select value={categorie} onChange={(e) => setCategorie(e.target.value)}
-                className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-3 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
                 <option value="">Aucune</option>
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Description</label>
+              <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Description</label>
               <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optionnel..."
-                className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-3 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
             </div>
           </div>
 
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={() => { setModalAdd(false); resetAddForm() }}
-              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
+              className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[#3f3f46] transition-colors">Annuler</button>
             <button type="submit" disabled={saving}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
               {saving ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Ajouter
@@ -779,19 +779,19 @@ export default function CoachBibliothequePage() {
       <Modal isOpen={modalNewFolder} onClose={() => setModalNewFolder(false)} title="Nouveau dossier">
         <form onSubmit={creerDossier} className="space-y-4">
           <div>
-            <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Nom</label>
+            <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Nom</label>
             <input type="text" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder="Ex : Programmes" autoFocus required
-              className="w-full bg-[#09090b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
           </div>
           {currentDossier && (
-            <div className="bg-[#09090b] rounded-xl p-3 flex items-center gap-2">
+            <div className="bg-[var(--bg-elevated)] rounded-xl p-3 flex items-center gap-2">
               <Folder size={13} className="text-[#FF6B2B]" />
-              <span className="text-white/25 text-xs">Dans : {breadcrumbs[breadcrumbs.length - 1]?.name || 'Racine'}</span>
+              <span className="text-[var(--text-muted)] text-xs">Dans : {breadcrumbs[breadcrumbs.length - 1]?.name || 'Racine'}</span>
             </div>
           )}
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={() => setModalNewFolder(false)}
-              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
+              className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[#3f3f46] transition-colors">Annuler</button>
             <button type="submit" disabled={creatingFolder}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
               {creatingFolder ? <Loader2 size={15} className="animate-spin" /> : <FolderPlus size={15} />} Créer
@@ -809,13 +809,13 @@ export default function CoachBibliothequePage() {
           </div>
         ) : clients.length === 0 ? (
           <div className="text-center py-8">
-            <Users size={24} className="text-white/15 mx-auto mb-2" />
-            <p className="text-white/30 text-sm">Aucun client actif</p>
+            <Users size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
+            <p className="text-[var(--text-muted)] text-sm">Aucun client actif</p>
           </div>
         ) : (
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
-              <p className="text-white/30 text-xs">{clients.length} client{clients.length > 1 ? 's' : ''}</p>
+              <p className="text-[var(--text-muted)] text-xs">{clients.length} client{clients.length > 1 ? 's' : ''}</p>
               <p className="text-[#FF6B2B] text-xs font-medium">{partagesExistants.length} partagé{partagesExistants.length > 1 ? 's' : ''}</p>
             </div>
             <div className="space-y-1.5 max-h-[350px] overflow-y-auto">
@@ -826,16 +826,16 @@ export default function CoachBibliothequePage() {
                 return (
                   <button key={c.id} type="button" onClick={() => togglePartage(c.id)}
                     className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
-                      partage ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/25 hover:bg-[#FF6B2B]/15' : 'bg-white/[0.02] hover:bg-white/[0.06] border border-transparent'
+                      partage ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/25 hover:bg-[#FF6B2B]/15' : 'bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] border border-transparent'
                     }`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${partage ? 'bg-[#FF6B2B] text-white' : 'bg-white/[0.06] text-white/40'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${partage ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'}`}>
                       {nom.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[#F5F5F3] text-sm truncate">{nom}</p>
-                      {email && nom !== email && <p className="text-white/20 text-[10px] truncate">{email}</p>}
+                      <p className="text-[var(--text-primary)] text-sm truncate">{nom}</p>
+                      {email && nom !== email && <p className="text-[var(--text-muted)] text-[10px] truncate">{email}</p>}
                     </div>
-                    {partage ? <CheckCircle2 size={18} className="text-[#FF6B2B] shrink-0" /> : <Circle size={18} className="text-white/15 shrink-0" />}
+                    {partage ? <CheckCircle2 size={18} className="text-[#FF6B2B] shrink-0" /> : <Circle size={18} className="text-[var(--text-muted)] shrink-0" />}
                   </button>
                 )
               })}

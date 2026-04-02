@@ -7,7 +7,7 @@ import {
 } from 'recharts'
 import {
   Users, TrendingUp, TrendingDown, Target, Award,
-  Calendar, DollarSign, Activity, Save, ChevronRight
+  Calendar, Euro, Activity, Save, ChevronRight
 } from 'lucide-react'
 
 // ── Périodes de filtre ──
@@ -226,10 +226,10 @@ export default function CoachStatistiquesPage() {
   const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null
     return (
-      <div className="bg-[#1E1E1E] border border-white/[0.1] rounded-lg px-3 py-2 text-xs shadow-lg">
-        <p className="text-white/50 mb-1">{label}</p>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-xs shadow-lg">
+        <p className="text-[var(--text-secondary)] mb-1">{label}</p>
         {payload.map((p, i) => (
-          <p key={i} className="text-[#F5F5F3] font-medium">
+          <p key={i} className="text-[var(--text-primary)] font-medium">
             {p.name} : {typeof p.value === 'number' && p.name?.includes('CA') ? `${p.value.toFixed(0)}€` : p.value}
           </p>
         ))}
@@ -240,12 +240,12 @@ export default function CoachStatistiquesPage() {
   if (loading) {
     return (
       <div className="p-6 w-full">
-        <div className="h-8 w-48 bg-[#1E1E1E] rounded-lg animate-pulse mb-8" />
+        <div className="h-8 w-48 bg-[var(--bg-card)] rounded-lg animate-pulse mb-8" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-[#1E1E1E] rounded-xl animate-pulse" />)}
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-[var(--bg-card)] rounded-xl animate-pulse" />)}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-[#1E1E1E] rounded-xl animate-pulse" />)}
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-[var(--bg-card)] rounded-xl animate-pulse" />)}
         </div>
       </div>
     )
@@ -256,10 +256,10 @@ export default function CoachStatistiquesPage() {
       {/* Header + filtres */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-[#F5F5F3]">Statistiques</h1>
-          <p className="text-white/50 text-sm mt-1">Vue d'ensemble de votre activité</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Statistiques</h1>
+          <p className="text-[var(--text-secondary)] text-sm mt-1">Vue d'ensemble de votre activité</p>
         </div>
-        <div className="flex bg-[#1E1E1E] rounded-xl p-1 border border-white/[0.08]">
+        <div className="flex bg-[var(--bg-card)] rounded-xl p-1 border border-[var(--border-base)]">
           {PERIODES.map(p => (
             <button
               key={p.id}
@@ -267,7 +267,7 @@ export default function CoachStatistiquesPage() {
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 periode === p.id
                   ? 'bg-[#FF6B2B] text-white'
-                  : 'text-white/40 hover:text-white'
+                  : 'text-[var(--text-muted)] hover:text-white'
               }`}
             >
               {p.label}
@@ -300,40 +300,40 @@ export default function CoachStatistiquesPage() {
         <KpiCard
           label="CA période"
           value={`${kpis.ca.toFixed(0)}€`}
-          icon={DollarSign}
+          icon={Euro}
           color="#FF6B2B"
         />
       </div>
 
       {/* Ligne 2 : KPIs secondaires */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-4">
-          <p className="text-white/40 text-xs">Churn</p>
-          <p className="text-[#F5F5F3] text-xl font-bold mt-1">{kpis.churn}</p>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4">
+          <p className="text-[var(--text-muted)] text-xs">Churn</p>
+          <p className="text-[var(--text-primary)] text-xl font-bold mt-1">{kpis.churn}</p>
         </div>
-        <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-4">
-          <p className="text-white/40 text-xs">Revenu moyen / client</p>
-          <p className="text-[#F5F5F3] text-xl font-bold mt-1">{kpis.revenuMoyen}€</p>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4">
+          <p className="text-[var(--text-muted)] text-xs">Revenu moyen / client</p>
+          <p className="text-[var(--text-primary)] text-xl font-bold mt-1">{kpis.revenuMoyen}€</p>
         </div>
-        <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-4">
-          <p className="text-white/40 text-xs">MRR projeté</p>
-          <p className="text-[#F5F5F3] text-xl font-bold mt-1">{kpis.mrr.toFixed(0)}€</p>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4">
+          <p className="text-[var(--text-muted)] text-xs">MRR projeté</p>
+          <p className="text-[var(--text-primary)] text-xl font-bold mt-1">{kpis.mrr.toFixed(0)}€</p>
         </div>
       </div>
 
       {/* ── Graphiques ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* LineChart — Évolution CA */}
-        <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5">
-          <h3 className="text-[#F5F5F3] font-semibold text-sm mb-4 flex items-center gap-2">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5">
+          <h3 className="text-[var(--text-primary)] font-semibold text-sm mb-4 flex items-center gap-2">
             <TrendingUp size={16} className="text-[#FF6B2B]" />
             Évolution CA (12 mois)
           </h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={caParMois}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="mois" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-base)" />
+              <XAxis dataKey="mois" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
               <Line type="monotone" dataKey="ca" name="CA" stroke="#FF6B2B" strokeWidth={2} dot={{ fill: '#FF6B2B', r: 3 }} activeDot={{ r: 5 }} />
             </LineChart>
@@ -341,16 +341,16 @@ export default function CoachStatistiquesPage() {
         </div>
 
         {/* BarChart — Nouveaux clients par mois */}
-        <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5">
-          <h3 className="text-[#F5F5F3] font-semibold text-sm mb-4 flex items-center gap-2">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5">
+          <h3 className="text-[var(--text-primary)] font-semibold text-sm mb-4 flex items-center gap-2">
             <Users size={16} className="text-[#FF6B2B]" />
             Nouveaux clients par mois
           </h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={clientsParMois}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="mois" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-base)" />
+              <XAxis dataKey="mois" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="count" name="Nouveaux" fill="#FF6B2B" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -358,9 +358,9 @@ export default function CoachStatistiquesPage() {
         </div>
 
         {/* PieChart — Répartition CA */}
-        <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5">
-          <h3 className="text-[#F5F5F3] font-semibold text-sm mb-4 flex items-center gap-2">
-            <DollarSign size={16} className="text-[#FF6B2B]" />
+        <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5">
+          <h3 className="text-[var(--text-primary)] font-semibold text-sm mb-4 flex items-center gap-2">
+            <Euro size={16} className="text-[#FF6B2B]" />
             Répartition CA par offre
           </h3>
           <ResponsiveContainer width="100%" height={220}>
@@ -380,28 +380,28 @@ export default function CoachStatistiquesPage() {
               </Pie>
               <Tooltip content={<CustomTooltip />} />
               <Legend
-                formatter={(val) => <span className="text-white/50 text-xs">{val}</span>}
+                formatter={(val) => <span className="text-[var(--text-secondary)] text-xs">{val}</span>}
               />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
         {/* LineChart — Score bien-être moyen clients (30j) */}
-        <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5">
-          <h3 className="text-[#F5F5F3] font-semibold text-sm mb-4 flex items-center gap-2">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5">
+          <h3 className="text-[var(--text-primary)] font-semibold text-sm mb-4 flex items-center gap-2">
             <Activity size={16} className="text-[#FF6B2B]" />
             Humeur moyenne clients (30j)
           </h3>
           {bienEtreData.length === 0 ? (
-            <div className="flex items-center justify-center h-[220px] text-white/20 text-sm">
+            <div className="flex items-center justify-center h-[220px] text-[var(--text-muted)] text-sm">
               Pas assez de données
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={bienEtreData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="date" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[0, 10]} tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-base)" />
+                <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 10]} tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="score" name="Score" stroke="#FF9A6C" strokeWidth={2} dot={{ fill: '#FF9A6C', r: 2 }} />
               </LineChart>
@@ -411,16 +411,16 @@ export default function CoachStatistiquesPage() {
       </div>
 
       {/* ── Section Objectifs Coach ── */}
-      <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-[#F5F5F3] font-semibold flex items-center gap-2">
+          <h3 className="text-[var(--text-primary)] font-semibold flex items-center gap-2">
             <Target size={18} className="text-[#FF6B2B]" />
             Mes objectifs business
           </h3>
           {!editObjectifs ? (
             <button
               onClick={() => setEditObjectifs(true)}
-              className="text-xs text-white/40 hover:text-[#FF6B2B] transition-colors"
+              className="text-xs text-[var(--text-muted)] hover:text-[#FF6B2B] transition-colors"
             >
               Modifier
             </button>
@@ -468,43 +468,43 @@ export default function CoachStatistiquesPage() {
         </div>
 
         {/* Projection */}
-        <div className="mt-6 bg-[#2A2A2A] rounded-lg p-4 flex items-center gap-3">
+        <div className="mt-6 bg-[var(--bg-surface)] rounded-lg p-4 flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
             <ChevronRight size={16} className="text-[#FF6B2B]" />
           </div>
-          <p className="text-white/50 text-sm">
-            <span className="text-[#F5F5F3] font-medium">Projection : </span>
+          <p className="text-[var(--text-secondary)] text-sm">
+            <span className="text-[var(--text-primary)] font-medium">Projection : </span>
             {projectionClients()}
           </p>
         </div>
       </div>
 
       {/* ── Tableau performances ── */}
-      <div className="mt-6 bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5">
-        <h3 className="text-[#F5F5F3] font-semibold flex items-center gap-2 mb-4">
+      <div className="mt-6 bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5">
+        <h3 className="text-[var(--text-primary)] font-semibold flex items-center gap-2 mb-4">
           <Award size={18} className="text-[#FF6B2B]" />
           Performances
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-[#2A2A2A] rounded-lg p-4">
-            <p className="text-white/40 text-xs mb-1">Client le plus engagé</p>
-            <p className="text-[#F5F5F3] font-medium text-sm">
+          <div className="bg-[var(--bg-surface)] rounded-lg p-4">
+            <p className="text-[var(--text-muted)] text-xs mb-1">Client le plus engagé</p>
+            <p className="text-[var(--text-primary)] font-medium text-sm">
               {clients.filter(c => c.actif)[0]?.profiles?.nom || '—'}
             </p>
           </div>
-          <div className="bg-[#2A2A2A] rounded-lg p-4">
-            <p className="text-white/40 text-xs mb-1">Meilleur mois (nouveaux clients)</p>
-            <p className="text-[#F5F5F3] font-medium text-sm">
+          <div className="bg-[var(--bg-surface)] rounded-lg p-4">
+            <p className="text-[var(--text-muted)] text-xs mb-1">Meilleur mois (nouveaux clients)</p>
+            <p className="text-[var(--text-primary)] font-medium text-sm">
               {(() => {
                 const best = clientsParMois.reduce((max, m) => m.count > max.count ? m : max, { mois: '—', count: 0 })
                 return best.count > 0 ? `${best.mois} (${best.count})` : '—'
               })()}
             </p>
           </div>
-          <div className="bg-[#2A2A2A] rounded-lg p-4">
-            <p className="text-white/40 text-xs mb-1">Total clients historique</p>
-            <p className="text-[#F5F5F3] font-medium text-sm">{clients.length}</p>
+          <div className="bg-[var(--bg-surface)] rounded-lg p-4">
+            <p className="text-[var(--text-muted)] text-xs mb-1">Total clients historique</p>
+            <p className="text-[var(--text-primary)] font-medium text-sm">{clients.length}</p>
           </div>
         </div>
       </div>
@@ -518,16 +518,16 @@ export default function CoachStatistiquesPage() {
 
 function KpiCard({ label, value, icon: Icon, color, suffix }) {
   return (
-    <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-4">
+    <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-white/40 text-xs">{label}</span>
+        <span className="text-[var(--text-muted)] text-xs">{label}</span>
         <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
           <Icon size={14} style={{ color }} />
         </div>
       </div>
-      <p className="text-[#F5F5F3] text-2xl font-bold">
+      <p className="text-[var(--text-primary)] text-2xl font-bold">
         {value}
-        {suffix && <span className="text-white/30 text-xs font-normal ml-1">{suffix}</span>}
+        {suffix && <span className="text-[var(--text-muted)] text-xs font-normal ml-1">{suffix}</span>}
       </p>
     </div>
   )
@@ -540,28 +540,28 @@ function ObjectifBar({ label, current, cible, suffix = '', editing, onChangeCibl
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-white/50 text-sm">{label}</span>
+        <span className="text-[var(--text-secondary)] text-sm">{label}</span>
         <div className="flex items-center gap-2">
-          <span className="text-[#F5F5F3] font-bold text-sm">
+          <span className="text-[var(--text-primary)] font-bold text-sm">
             {typeof current === 'number' ? current.toFixed(current % 1 === 0 ? 0 : 0) : current}{suffix}
           </span>
-          <span className="text-white/25 text-xs">/</span>
+          <span className="text-[var(--text-muted)] text-xs">/</span>
           {editing ? (
             <input
               type="number"
               value={cible}
               onChange={(e) => onChangeCible(e.target.value)}
-              className="w-20 bg-[#2A2A2A] border border-white/[0.1] rounded px-2 py-1 text-xs text-[#F5F5F3] focus:border-[#FF6B2B]/50 focus:outline-none"
+              className="w-20 bg-[var(--bg-surface)] border border-[var(--border-base)] rounded px-2 py-1 text-xs text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none"
             />
           ) : (
-            <span className="text-white/30 text-sm">{cible}{suffix}</span>
+            <span className="text-[var(--text-muted)] text-sm">{cible}{suffix}</span>
           )}
-          <span className={`text-xs font-medium ${atteint ? 'text-green-400' : 'text-white/30'}`}>
+          <span className={`text-xs font-medium ${atteint ? 'text-green-400' : 'text-[var(--text-muted)]'}`}>
             ({pct}%)
           </span>
         </div>
       </div>
-      <div className="h-2.5 bg-[#2A2A2A] rounded-full overflow-hidden">
+      <div className="h-2.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{

@@ -146,11 +146,11 @@ export default function CoachClientsPage() {
     return (
       <div className="p-6 space-y-4 w-full animate-pulse">
         <div className="flex justify-between items-center">
-          <div className="h-8 w-32 bg-[#2A2A2A] rounded" />
-          <div className="h-10 w-36 bg-[#2A2A2A] rounded-lg" />
+          <div className="h-8 w-32 bg-[var(--bg-surface)] rounded" />
+          <div className="h-10 w-36 bg-[var(--bg-surface)] rounded-lg" />
         </div>
-        <div className="h-11 bg-[#2A2A2A] rounded-lg" />
-        {[1, 2, 3].map(i => <div key={i} className="h-18 bg-[#2A2A2A] rounded-xl" />)}
+        <div className="h-11 bg-[var(--bg-surface)] rounded-lg" />
+        {[1, 2, 3].map(i => <div key={i} className="h-18 bg-[var(--bg-surface)] rounded-xl" />)}
       </div>
     )
   }
@@ -161,8 +161,8 @@ export default function CoachClientsPage() {
       {/* ── En-tête ── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[#F5F5F3] text-2xl font-bold">Clients</h1>
-          <p className="text-white/40 text-sm mt-0.5">{clients.length} client{clients.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-[var(--text-primary)] text-2xl font-bold">Clients</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-0.5">{clients.length} client{clients.length !== 1 ? 's' : ''}</p>
         </div>
         <Button onClick={() => { setModalInvit(true); setInvitSuccess(null); setInvitError('') }}>
           <UserPlus size={15} /> Inviter
@@ -172,12 +172,12 @@ export default function CoachClientsPage() {
       {/* ── Recherche ── */}
       {clients.length > 3 && (
         <div className="relative">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
             value={recherche}
             onChange={(e) => setRecherche(e.target.value)}
             placeholder="Rechercher un client…"
-            className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
+            className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/40"
           />
         </div>
       )}
@@ -186,8 +186,8 @@ export default function CoachClientsPage() {
       {clientsFiltres.length === 0 ? (
         <Card>
           <CardBody className="text-center py-12">
-            <Users size={36} className="text-white/15 mx-auto mb-3" />
-            <p className="text-white/30 text-sm">
+            <Users size={36} className="text-[var(--text-muted)] mx-auto mb-3" />
+            <p className="text-[var(--text-muted)] text-sm">
               {recherche ? 'Aucun client ne correspond.' : 'Aucun client pour l\'instant.'}
             </p>
             {!recherche && (
@@ -203,7 +203,7 @@ export default function CoachClientsPage() {
             const couleur = couleurScore(c.score)
             return (
               <Card key={c.id}
-                className="cursor-pointer hover:border-white/[0.14] transition-colors"
+                className="cursor-pointer hover:border-[var(--border-base)] transition-colors"
                 onClick={() => navigate(`/coach/clients/${c.id}`)}
               >
                 <CardBody className="flex items-center gap-3 py-3">
@@ -214,22 +214,22 @@ export default function CoachClientsPage() {
                     couleur={c.couleurAvatar}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[#F5F5F3] text-sm font-medium truncate">
+                    <p className="text-[var(--text-primary)] text-sm font-medium truncate">
                       {[c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || c.profiles?.email}
                     </p>
                     {(c.profiles?.prenom || c.profiles?.nom) && (
-                      <p className="text-white/30 text-xs truncate">{c.profiles.email}</p>
+                      <p className="text-[var(--text-muted)] text-xs truncate">{c.profiles.email}</p>
                     )}
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-sm font-bold" style={{ color: couleur }}>{c.score}/100</p>
-                    <p className="text-white/25 text-[10px] mt-0.5">
+                    <p className="text-[var(--text-muted)] text-[10px] mt-0.5">
                       {c.derniereActivite
                         ? new Date(c.derniereActivite).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
                         : 'inactif'}
                     </p>
                   </div>
-                  <ChevronRight size={14} className="text-white/20 flex-shrink-0" />
+                  <ChevronRight size={14} className="text-[var(--text-muted)] flex-shrink-0" />
                 </CardBody>
               </Card>
             )
@@ -240,18 +240,18 @@ export default function CoachClientsPage() {
       {/* ── Invitations en attente ── */}
       {invitationsEnAttente.length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-white/40 text-xs uppercase tracking-wider">
+          <h2 className="text-[var(--text-muted)] text-xs uppercase tracking-wider">
             Invitations en attente ({invitationsEnAttente.length})
           </h2>
           {invitationsEnAttente.map((inv) => (
-            <Card key={inv.id} className="border-dashed border-white/[0.06]">
+            <Card key={inv.id} className="border-dashed border-[var(--border-base)]">
               <CardBody className="flex items-center gap-3 py-3">
-                <div className="w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
-                  <Mail size={14} className="text-white/30" />
+                <div className="w-10 h-10 rounded-full bg-[var(--bg-surface)] flex items-center justify-center flex-shrink-0">
+                  <Mail size={14} className="text-[var(--text-muted)]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white/60 text-sm truncate">{inv.email}</p>
-                  <p className="text-white/25 text-xs mt-0.5">
+                  <p className="text-[var(--text-secondary)] text-sm truncate">{inv.email}</p>
+                  <p className="text-[var(--text-muted)] text-xs mt-0.5">
                     Expire {new Date(inv.expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                   </p>
                 </div>
@@ -288,7 +288,7 @@ export default function CoachClientsPage() {
                 {invitError}
               </p>
             )}
-            <p className="text-white/30 text-xs">
+            <p className="text-[var(--text-muted)] text-xs">
               Un lien d'invitation valable 7 jours sera généré. Copiez-le et envoyez-le à votre client.
             </p>
             <div className="flex gap-2 pt-1">
@@ -304,9 +304,9 @@ export default function CoachClientsPage() {
           <div className="space-y-4">
             <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
               <p className="text-green-400 text-sm font-medium mb-1">✓ Invitation créée !</p>
-              <p className="text-white/40 text-xs">Envoyez ce lien à {invitSuccess.prenom || invitSuccess.email} :</p>
+              <p className="text-[var(--text-muted)] text-xs">Envoyez ce lien à {invitSuccess.prenom || invitSuccess.email} :</p>
             </div>
-            <div className="bg-[#2A2A2A] rounded-lg p-3">
+            <div className="bg-[var(--bg-surface)] rounded-lg p-3">
               <p className="text-[#FF6B2B] text-xs font-mono break-all">{invitSuccess.lien}</p>
             </div>
             <Button

@@ -242,8 +242,8 @@ export default function CoachNutritionPage() {
       {/* ═══ Header ═══ */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-[#F5F5F3] text-3xl font-bold tracking-tight">Plans Nutrition</h1>
-          <p className="text-white/25 text-sm mt-1.5">Plans nutritionnels, macros et suivi client</p>
+          <h1 className="text-[var(--text-primary)] text-3xl font-bold tracking-tight">Plans Nutrition</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1.5">Plans nutritionnels, macros et suivi client</p>
         </div>
         <button onClick={() => navigate('/coach/nutrition/new')}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25 shrink-0">
@@ -253,7 +253,7 @@ export default function CoachNutritionPage() {
 
       {/* ═══ Tabs + Search ═══ */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-1 bg-[#1E1E1E] rounded-2xl p-1 border border-white/[0.06]">
+        <div className="flex items-center gap-1 bg-[var(--bg-card)] rounded-2xl p-1 border border-[var(--border-base)]">
           {[
             { key: 'assigned', label: 'Assignés', count: assignedPlans.length },
             { key: 'templates', label: 'Modèles', count: templatePlans.length },
@@ -262,20 +262,20 @@ export default function CoachNutritionPage() {
               className={`py-2.5 px-5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                 tab === t.key
                   ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
-                  : 'text-white/40 hover:text-white/60'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}>
               {t.label}
-              <span className={`ml-1.5 text-xs ${tab === t.key ? 'text-white/70' : 'text-white/20'}`}>
+              <span className={`ml-1.5 text-xs ${tab === t.key ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}`}>
                 {t.count}
               </span>
             </button>
           ))}
         </div>
         <div className="relative">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
             placeholder="Rechercher..."
-            className="w-56 bg-[#1E1E1E] border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all" />
+            className="w-56 bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl pl-10 pr-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all" />
         </div>
       </div>
 
@@ -283,7 +283,7 @@ export default function CoachNutritionPage() {
       {isLoading && (
         <div className="flex items-center justify-center py-20 gap-3">
           <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
-          <span className="text-white/25 text-sm">Chargement des plans...</span>
+          <span className="text-[var(--text-muted)] text-sm">Chargement des plans...</span>
         </div>
       )}
 
@@ -291,19 +291,19 @@ export default function CoachNutritionPage() {
       {!isLoading && tab === 'assigned' && (
         <>
           {filteredAssigned.length === 0 ? (
-            <div className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] p-16 text-center">
+            <div className="bg-[var(--bg-card)] rounded-3xl border border-[var(--border-base)] p-16 text-center">
               <div className="w-16 h-16 bg-[#FF6B2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
                 <Send size={28} className="text-[#FF6B2B]" />
               </div>
-              <h3 className="text-[#F5F5F3] font-bold text-lg mb-2">
+              <h3 className="text-[var(--text-primary)] font-bold text-lg mb-2">
                 {searchTerm ? 'Aucun résultat' : 'Aucun plan assigné'}
               </h3>
-              <p className="text-white/25 text-sm mb-6 max-w-sm mx-auto">
+              <p className="text-[var(--text-muted)] text-sm mb-6 max-w-sm mx-auto">
                 {searchTerm ? `Aucun résultat pour "${searchTerm}"` : 'Crée un modèle puis assigne-le à un client.'}
               </p>
               {!searchTerm && (
                 <button onClick={() => setTab('templates')}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/[0.06] text-white/60 text-sm font-medium hover:bg-white/[0.1] transition-all">
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--bg-surface)] transition-all">
                   <Layers size={14} /> Voir les modèles
                 </button>
               )}
@@ -323,7 +323,7 @@ export default function CoachNutritionPage() {
                 return (
                   <div key={plan.id}
                     onClick={() => navigate(`/coach/nutrition/${plan.id}`)}
-                    className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-5 md:p-6 hover:border-white/[0.12] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 transition-all duration-300 cursor-pointer">
+                    className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] p-5 md:p-6 hover:border-[var(--border-base)] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 transition-all duration-300 cursor-pointer">
 
                     <div className="flex items-start gap-4">
                       <div className={`w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold shrink-0 uppercase ${
@@ -334,28 +334,28 @@ export default function CoachNutritionPage() {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
-                          <h3 className="text-[#F5F5F3] font-bold text-sm">{clientName}</h3>
+                          <h3 className="text-[var(--text-primary)] font-bold text-sm">{clientName}</h3>
                           <span className="w-1 h-1 rounded-full bg-white/15" />
-                          <span className="text-white/40 text-sm truncate">{plan.nom || 'Plan du jour'}</span>
+                          <span className="text-[var(--text-muted)] text-sm truncate">{plan.nom || 'Plan du jour'}</span>
                         </div>
 
                         <div className="flex items-center gap-2 mb-3.5">
                           <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
                             plan.is_active
                               ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
-                              : 'text-white/40 bg-white/5 border-white/10'
+                              : 'text-[var(--text-muted)] bg-white/5 border-white/10'
                           }`}>
                             {plan.is_active ? 'Actif' : 'Inactif'}
                           </span>
                           {plan.date_plan && (
-                            <span className="text-white/20 text-xs">
+                            <span className="text-[var(--text-muted)] text-xs">
                               Depuis le {new Date(plan.date_plan).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                             </span>
                           )}
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                          <div className="flex-1 h-2 rounded-full bg-[var(--bg-surface)] overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-700 ease-out ${
                                 isComplete
@@ -383,14 +383,14 @@ export default function CoachNutritionPage() {
       {!isLoading && tab === 'templates' && (
         <>
           {filteredTemplates.length === 0 ? (
-            <div className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] p-20 text-center">
+            <div className="bg-[var(--bg-card)] rounded-3xl border border-[var(--border-base)] p-20 text-center">
               <div className="w-20 h-20 bg-[#FF6B2B]/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <UtensilsCrossed size={32} className="text-[#FF6B2B]" />
               </div>
-              <h3 className="text-[#F5F5F3] font-bold text-xl mb-2">
+              <h3 className="text-[var(--text-primary)] font-bold text-xl mb-2">
                 {searchTerm ? 'Aucun résultat' : 'Aucun plan nutritionnel'}
               </h3>
-              <p className="text-white/25 text-sm mb-8 max-w-md mx-auto">
+              <p className="text-[var(--text-muted)] text-sm mb-8 max-w-md mx-auto">
                 {searchTerm ? `Aucun modèle pour "${searchTerm}"` : 'Crée ton premier plan nutritionnel pour commencer.'}
               </p>
               {!searchTerm && (
@@ -404,7 +404,7 @@ export default function CoachNutritionPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {filteredTemplates.map(plan => (
                 <div key={plan.id}
-                  className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/[0.12] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 group">
+                  className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] overflow-hidden hover:border-[var(--border-base)] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 group">
 
                   <div className="p-6">
                     <div className="flex items-start gap-4 mb-5">
@@ -412,25 +412,25 @@ export default function CoachNutritionPage() {
                         <UtensilsCrossed size={20} className="text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[#F5F5F3] font-bold text-base leading-tight truncate">{plan.nom || 'Plan du jour'}</h3>
-                        <p className="text-white/25 text-sm mt-1">
+                        <h3 className="text-[var(--text-primary)] font-bold text-base leading-tight truncate">{plan.nom || 'Plan du jour'}</h3>
+                        <p className="text-[var(--text-muted)] text-sm mt-1">
                           Créé le {new Date(plan.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                       </div>
                       <button onClick={e => { e.stopPropagation(); handleDelete(plan.id, e) }}
-                        className="p-2 rounded-xl text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+                        className="p-2 rounded-xl text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
                         <Trash2 size={15} />
                       </button>
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap mb-6">
-                      <span className="inline-flex items-center gap-1.5 bg-[#0D0D0D] px-3 py-1.5 rounded-xl text-xs text-white/40 font-medium border border-white/[0.04]">
+                      <span className="inline-flex items-center gap-1.5 bg-[var(--bg-base)] px-3 py-1.5 rounded-xl text-xs text-[var(--text-muted)] font-medium border border-[var(--border-subtle)]">
                         <Calendar size={12} /> {plan.duree_semaines || 4} sem.
                       </span>
                       <span className={`px-3 py-1.5 rounded-xl text-xs font-semibold border ${
                         plan.is_active
                           ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/15'
-                          : 'bg-white/5 text-white/30 border-white/[0.04]'
+                          : 'bg-white/5 text-[var(--text-muted)] border-[var(--border-subtle)]'
                       }`}>
                         {plan.is_active ? 'Actif' : 'Inactif'}
                       </span>
@@ -438,7 +438,7 @@ export default function CoachNutritionPage() {
 
                     <div className="grid grid-cols-2 gap-3">
                       <button onClick={() => navigate(`/coach/nutrition/${plan.id}`)}
-                        className="py-2.5 rounded-xl bg-white/[0.04] text-white/50 text-sm font-medium hover:bg-white/[0.08] hover:text-white transition-all flex items-center justify-center gap-2 border border-white/[0.04]">
+                        className="py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--bg-surface)] hover:text-white transition-all flex items-center justify-center gap-2 border border-[var(--border-subtle)]">
                         <Edit3 size={14} /> Modifier
                       </button>
                       <button onClick={() => setAssignPlan(plan)}
@@ -458,29 +458,29 @@ export default function CoachNutritionPage() {
       {assignPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setAssignPlan(null)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative w-full max-w-md bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+          <div className="relative w-full max-w-md bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
             <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
 
-            <div className="px-6 pt-5 pb-4 border-b border-white/[0.06] flex items-center justify-between">
+            <div className="px-6 pt-5 pb-4 border-b border-[var(--border-base)] flex items-center justify-between">
               <div>
-                <h2 className="text-[#F5F5F3] text-lg font-bold">Assigner le plan</h2>
-                <p className="text-white/30 text-sm mt-0.5">{assignPlan.nom || 'Plan du jour'}</p>
+                <h2 className="text-[var(--text-primary)] text-lg font-bold">Assigner le plan</h2>
+                <p className="text-[var(--text-muted)] text-sm mt-0.5">{assignPlan.nom || 'Plan du jour'}</p>
               </div>
               <button onClick={() => setAssignPlan(null)}
-                className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+                className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all">
                 <X size={18} />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs text-white/40 mb-2 font-medium">
-                  Sélectionner un client <span className="text-white/15">({coachClients.length} trouvé{coachClients.length > 1 ? 's' : ''})</span>
+                <label className="block text-xs text-[var(--text-muted)] mb-2 font-medium">
+                  Sélectionner un client <span className="text-[var(--text-muted)]">({coachClients.length} trouvé{coachClients.length > 1 ? 's' : ''})</span>
                 </label>
                 <div className="space-y-1.5 max-h-60 overflow-y-auto">
                   {coachClients.length === 0 ? (
-                    <p className="text-white/20 text-xs text-center py-4">Aucun client trouvé</p>
+                    <p className="text-[var(--text-muted)] text-xs text-center py-4">Aucun client trouvé</p>
                   ) : coachClients.map(c => {
                     const displayName = (c.prenom && c.nom) ? `${c.prenom} ${c.nom}` : (c.prenom || c.nom || c.email || 'Client sans nom')
                     const isSelected = selectedClient === c.id
@@ -490,12 +490,12 @@ export default function CoachNutritionPage() {
                     return (
                       <button key={c.id} onClick={() => setSelectedClient(c.id)}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
-                          isSelected ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'hover:bg-white/[0.03] border border-transparent'
+                          isSelected ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'hover:bg-[var(--bg-surface)] border border-transparent'
                         }`}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                          isSelected ? 'bg-[#FF6B2B] text-white' : 'bg-[#2A2A2A] text-white/40'
+                          isSelected ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'
                         }`}>{initials}</div>
-                        <span className={`text-sm font-medium ${isSelected ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{displayName}</span>
+                        <span className={`text-sm font-medium ${isSelected ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{displayName}</span>
                         {isSelected && <Check size={14} className="text-[#FF6B2B] ml-auto" />}
                       </button>
                     )
@@ -506,7 +506,7 @@ export default function CoachNutritionPage() {
 
             <div className="px-6 pb-6 flex gap-3">
               <button onClick={() => setAssignPlan(null)}
-                className="flex-1 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-all border border-white/[0.04]">
+                className="flex-1 py-3 rounded-xl text-sm text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all border border-[var(--border-subtle)]">
                 Annuler
               </button>
               <button onClick={handleAssign} disabled={!selectedClient || assigning}

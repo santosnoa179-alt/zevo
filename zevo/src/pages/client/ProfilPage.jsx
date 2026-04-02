@@ -103,8 +103,8 @@ export default function ProfilPage() {
             <User size={24} className="text-[#FF6B2B]" />
           </div>
           <div>
-            <h1 className="text-[#F5F5F3] text-xl font-bold">Mon profil</h1>
-            <p className="text-white/40 text-sm mt-0.5">{email}</p>
+            <h1 className="text-[var(--text-primary)] text-xl font-bold">Mon profil</h1>
+            <p className="text-[var(--text-muted)] text-sm mt-0.5">{email}</p>
           </div>
         </div>
       </div>
@@ -112,7 +112,7 @@ export default function ProfilPage() {
       {/* ── Formulaire profil complet ── */}
       <Card>
         <CardBody>
-          <p className="text-white/40 text-[11px] uppercase tracking-wider mb-4">Informations personnelles</p>
+          <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-4">Informations personnelles</p>
           <form onSubmit={sauvegarder} className="space-y-4">
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -138,7 +138,7 @@ export default function ProfilPage() {
                 className="opacity-50 cursor-not-allowed"
               />
               <div className="absolute right-3 top-8">
-                <Mail size={14} className="text-white/15" />
+                <Mail size={14} className="text-[var(--text-muted)]" />
               </div>
             </div>
 
@@ -162,13 +162,13 @@ export default function ProfilPage() {
             </div>
 
             <div>
-              <label className="text-white/60 text-sm block mb-1.5">Objectifs</label>
+              <label className="text-[var(--text-secondary)] text-sm block mb-1.5">Objectifs</label>
               <textarea
                 value={objectifs}
                 onChange={(e) => setObjectifs(e.target.value)}
                 placeholder="Décris tes objectifs de coaching..."
                 rows={3}
-                className="w-full bg-[#1E1E1E] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/40 transition-all resize-none"
+                className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/40 transition-all resize-none"
               />
             </div>
 

@@ -122,15 +122,15 @@ export default function CoachAbonnementsPage() {
   return (
     <div className="p-6 w-full">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#F5F5F3]">Abonnements</h1>
-        <p className="text-white/50 text-sm mt-1">Gérez vos offres de coaching et suivez les paiements</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Abonnements</h1>
+        <p className="text-[var(--text-secondary)] text-sm mt-1">Gérez vos offres de coaching et suivez les paiements</p>
       </div>
 
       {/* ── Total encaissé ── */}
       <div className="bg-gradient-to-r from-[#FF6B2B]/10 to-transparent border border-[#FF6B2B]/20 rounded-xl p-5 mb-8 flex items-center justify-between">
         <div>
-          <p className="text-white/40 text-xs uppercase tracking-wider font-semibold">Encaissé ce mois</p>
-          <p className="text-3xl font-bold text-[#F5F5F3] mt-1">{totalMois.toFixed(2)} €</p>
+          <p className="text-[var(--text-muted)] text-xs uppercase tracking-wider font-semibold">Encaissé ce mois</p>
+          <p className="text-3xl font-bold text-[var(--text-primary)] mt-1">{totalMois.toFixed(2)} €</p>
         </div>
         <Euro size={32} className="text-[#FF6B2B]/30" />
       </div>
@@ -138,7 +138,7 @@ export default function CoachAbonnementsPage() {
       {/* ── Section Offres ── */}
       <div className="mb-10">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-white/40 uppercase tracking-wider">Mes offres</h2>
+          <h2 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider">Mes offres</h2>
           <button
             onClick={() => setModalOffre(true)}
             className="flex items-center gap-2 bg-[#FF6B2B] text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#e55e24] transition-colors"
@@ -150,39 +150,39 @@ export default function CoachAbonnementsPage() {
 
         {loadingOffres ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map(i => <div key={i} className="h-36 bg-[#1E1E1E] rounded-xl animate-pulse" />)}
+            {[1, 2, 3].map(i => <div key={i} className="h-36 bg-[var(--bg-card)] rounded-xl animate-pulse" />)}
           </div>
         ) : offres.length === 0 ? (
-          <div className="bg-[#1E1E1E] rounded-xl border border-dashed border-white/[0.08] p-10 text-center">
-            <CreditCard size={28} className="text-white/15 mx-auto mb-2" />
-            <p className="text-white/30 text-sm">Aucune offre créée</p>
-            <p className="text-white/20 text-xs mt-1">Créez votre première offre pour recevoir des paiements</p>
+          <div className="bg-[var(--bg-card)] rounded-xl border border-dashed border-[var(--border-base)] p-10 text-center">
+            <CreditCard size={28} className="text-[var(--text-muted)] mx-auto mb-2" />
+            <p className="text-[var(--text-muted)] text-sm">Aucune offre créée</p>
+            <p className="text-[var(--text-muted)] text-xs mt-1">Créez votre première offre pour recevoir des paiements</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {offres.map(o => (
               <div
                 key={o.id}
-                className={`bg-[#1E1E1E] border rounded-xl p-4 transition-all ${
-                  o.actif ? 'border-white/[0.08]' : 'border-white/[0.04] opacity-50'
+                className={`bg-[var(--bg-card)] border rounded-xl p-4 transition-all ${
+                  o.actif ? 'border-[var(--border-base)]' : 'border-[var(--border-subtle)] opacity-50'
                 }`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="text-[#F5F5F3] font-medium">{o.titre}</p>
-                    <span className="text-xs text-white/30">{FREQ_LABELS[o.frequence]}</span>
+                    <p className="text-[var(--text-primary)] font-medium">{o.titre}</p>
+                    <span className="text-xs text-[var(--text-muted)]">{FREQ_LABELS[o.frequence]}</span>
                   </div>
                   <p className="text-[#FF6B2B] font-bold text-lg">
                     {(o.prix / 100).toFixed(0)}€
                   </p>
                 </div>
                 {o.description && (
-                  <p className="text-white/30 text-xs mb-3 line-clamp-2">{o.description}</p>
+                  <p className="text-[var(--text-muted)] text-xs mb-3 line-clamp-2">{o.description}</p>
                 )}
-                <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+                <div className="flex items-center gap-2 pt-2 border-t border-[var(--border-base)]">
                   <button
                     onClick={() => toggleOffre(o)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-white/40 hover:text-white hover:bg-white/[0.04] transition-colors"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors"
                     title={o.actif ? 'Désactiver' : 'Activer'}
                   >
                     {o.actif ? <EyeOff size={12} /> : <Eye size={12} />}
@@ -190,7 +190,7 @@ export default function CoachAbonnementsPage() {
                   </button>
                   <button
                     onClick={() => supprimerOffre(o.id)}
-                    className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-white/[0.04] transition-colors ml-auto"
+                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-[var(--bg-surface)] transition-colors ml-auto"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -204,8 +204,8 @@ export default function CoachAbonnementsPage() {
       {/* ── Section Paiements reçus ── */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-white/40 uppercase tracking-wider">Paiements reçus</h2>
-          <div className="flex bg-[#1E1E1E] rounded-lg p-0.5 border border-white/[0.08]">
+          <h2 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider">Paiements reçus</h2>
+          <div className="flex bg-[var(--bg-card)] rounded-lg p-0.5 border border-[var(--border-base)]">
             {['tous', 'paye', 'en_attente', 'echoue'].map(s => (
               <button
                 key={s}
@@ -213,7 +213,7 @@ export default function CoachAbonnementsPage() {
                 className={`px-2.5 py-1 rounded-md text-xs transition-all ${
                   filtreStatut === s
                     ? 'bg-[#FF6B2B] text-white font-medium'
-                    : 'text-white/30 hover:text-white/60'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                 }`}
               >
                 {s === 'tous' ? 'Tous' : STATUT_CONFIG[s]?.label}
@@ -224,16 +224,16 @@ export default function CoachAbonnementsPage() {
 
         {loadingPaiements ? (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => <div key={i} className="h-16 bg-[#1E1E1E] rounded-xl animate-pulse" />)}
+            {[1, 2, 3].map(i => <div key={i} className="h-16 bg-[var(--bg-card)] rounded-xl animate-pulse" />)}
           </div>
         ) : paiementsFiltres.length === 0 ? (
-          <div className="bg-[#1E1E1E] rounded-xl border border-dashed border-white/[0.08] p-10 text-center">
-            <p className="text-white/30 text-sm">Aucun paiement{filtreStatut !== 'tous' ? ` avec le statut "${STATUT_CONFIG[filtreStatut]?.label}"` : ''}</p>
+          <div className="bg-[var(--bg-card)] rounded-xl border border-dashed border-[var(--border-base)] p-10 text-center">
+            <p className="text-[var(--text-muted)] text-sm">Aucun paiement{filtreStatut !== 'tous' ? ` avec le statut "${STATUT_CONFIG[filtreStatut]?.label}"` : ''}</p>
           </div>
         ) : (
-          <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl overflow-hidden">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
             {/* Header tableau */}
-            <div className="grid grid-cols-5 gap-4 px-5 py-3 border-b border-white/[0.06] text-white/30 text-xs font-semibold uppercase tracking-wider">
+            <div className="grid grid-cols-5 gap-4 px-5 py-3 border-b border-[var(--border-base)] text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider">
               <span>Client</span>
               <span>Offre</span>
               <span>Montant</span>
@@ -246,17 +246,17 @@ export default function CoachAbonnementsPage() {
               const cfg = STATUT_CONFIG[p.statut] || STATUT_CONFIG.en_attente
               const Icon = cfg.icon
               return (
-                <div key={p.id} className="grid grid-cols-5 gap-4 px-5 py-3 border-b border-white/[0.04] items-center hover:bg-white/[0.02]">
-                  <span className="text-[#F5F5F3] text-sm truncate">
+                <div key={p.id} className="grid grid-cols-5 gap-4 px-5 py-3 border-b border-[var(--border-subtle)] items-center hover:bg-[var(--bg-surface)]">
+                  <span className="text-[var(--text-primary)] text-sm truncate">
                     {p.clients?.profiles?.nom || p.clients?.profiles?.email || '—'}
                   </span>
-                  <span className="text-white/40 text-sm truncate">
+                  <span className="text-[var(--text-muted)] text-sm truncate">
                     {p.offres_coaching?.titre || '—'}
                   </span>
-                  <span className="text-[#F5F5F3] text-sm font-medium">
+                  <span className="text-[var(--text-primary)] text-sm font-medium">
                     {(p.montant / 100).toFixed(2)} €
                   </span>
-                  <span className="text-white/30 text-sm">
+                  <span className="text-[var(--text-muted)] text-sm">
                     {p.date_paiement
                       ? new Date(p.date_paiement).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })
                       : '—'
@@ -276,38 +276,38 @@ export default function CoachAbonnementsPage() {
       {/* ── Modal création offre ── */}
       {modalOffre && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-2xl w-full max-w-md">
-            <div className="p-5 border-b border-white/[0.08]">
-              <h3 className="text-[#F5F5F3] font-semibold">Nouvelle offre</h3>
-              <p className="text-white/40 text-xs mt-1">Créez une offre que vos clients pourront souscrire</p>
+          <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-2xl w-full max-w-md">
+            <div className="p-5 border-b border-[var(--border-base)]">
+              <h3 className="text-[var(--text-primary)] font-semibold">Nouvelle offre</h3>
+              <p className="text-[var(--text-muted)] text-xs mt-1">Créez une offre que vos clients pourront souscrire</p>
             </div>
 
             <div className="p-5 space-y-4">
               <div>
-                <label className="block text-white/50 text-xs mb-1.5">Titre *</label>
+                <label className="block text-[var(--text-secondary)] text-xs mb-1.5">Titre *</label>
                 <input
                   type="text"
                   value={offreTitre}
                   onChange={(e) => setOffreTitre(e.target.value)}
                   placeholder="Ex : Coaching mensuel Premium"
-                  className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] placeholder-white/20 focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
+                  className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-white/50 text-xs mb-1.5">Description</label>
+                <label className="block text-[var(--text-secondary)] text-xs mb-1.5">Description</label>
                 <textarea
                   value={offreDesc}
                   onChange={(e) => setOffreDesc(e.target.value)}
                   placeholder="Décrivez ce que comprend cette offre..."
                   rows={2}
-                  className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] placeholder-white/20 focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none"
+                  className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-white/50 text-xs mb-1.5">Prix (€) *</label>
+                  <label className="block text-[var(--text-secondary)] text-xs mb-1.5">Prix (€) *</label>
                   <input
                     type="number"
                     value={offrePrix}
@@ -315,15 +315,15 @@ export default function CoachAbonnementsPage() {
                     placeholder="99"
                     min="1"
                     step="0.01"
-                    className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] placeholder-white/20 focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
+                    className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-white/50 text-xs mb-1.5">Fréquence</label>
+                  <label className="block text-[var(--text-secondary)] text-xs mb-1.5">Fréquence</label>
                   <select
                     value={offreFreq}
                     onChange={(e) => setOffreFreq(e.target.value)}
-                    className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
+                    className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
                   >
                     {Object.entries(FREQ_LABELS).map(([k, v]) => (
                       <option key={k} value={k}>{v}</option>
@@ -333,10 +333,10 @@ export default function CoachAbonnementsPage() {
               </div>
             </div>
 
-            <div className="p-5 border-t border-white/[0.08] flex gap-3 justify-end">
+            <div className="p-5 border-t border-[var(--border-base)] flex gap-3 justify-end">
               <button
                 onClick={() => setModalOffre(false)}
-                className="px-4 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
+                className="px-4 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors"
               >
                 Annuler
               </button>

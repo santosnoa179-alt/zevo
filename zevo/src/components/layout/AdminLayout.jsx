@@ -19,11 +19,11 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] flex">
-      <aside className="w-56 flex-shrink-0 bg-[#1E1E1E] border-r border-white/[0.08] flex flex-col">
-        <div className="p-4 border-b border-white/[0.08]">
+    <div className="min-h-screen bg-[var(--bg-base)] flex">
+      <aside className="w-56 flex-shrink-0 bg-[var(--bg-card)] border-r border-[var(--border-base)] flex flex-col">
+        <div className="p-4 border-b border-[var(--border-base)]">
           <ZevoLogo size="md" />
-          <p className="text-white/30 text-xs mt-1.5 pl-0.5">Super Admin</p>
+          <p className="text-[var(--text-muted)] text-xs mt-1.5 pl-0.5">Super Admin</p>
         </div>
 
         <nav className="flex-1 px-3 py-4">
@@ -36,7 +36,7 @@ export function AdminLayout() {
                     `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                       isActive
                         ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
-                        : 'text-white/50 hover:text-white hover:bg-white/[0.04]'
+                        : 'text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-surface)]'
                     }`
                   }
                 >
@@ -48,10 +48,10 @@ export function AdminLayout() {
           </ul>
         </nav>
 
-        <div className="p-3 border-t border-white/[0.08]">
+        <div className="p-3 border-t border-[var(--border-base)]">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-colors w-full"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors w-full"
           >
             <LogOut size={18} />
             Se déconnecter

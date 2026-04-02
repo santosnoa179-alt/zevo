@@ -1,7 +1,7 @@
 // Badge coloré pour statuts, rôles, priorités
 export function Badge({ children, variant = 'default', className = '' }) {
   const variants = {
-    default: 'bg-white/[0.08] text-white/70',
+    default: 'bg-[var(--border-base)] text-[var(--text-secondary)]',
     orange: 'bg-[#FF6B2B]/15 text-[#FF6B2B]',
     green: 'bg-green-500/15 text-green-400',
     red: 'bg-red-500/15 text-red-400',

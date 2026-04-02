@@ -91,7 +91,7 @@ export default function InvitePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -99,25 +99,25 @@ export default function InvitePage() {
 
   if (error && !invitation) {
     return (
-      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
           <div className="text-4xl mb-4">🔗</div>
-          <h2 className="text-[#F5F5F3] text-xl font-semibold mb-2">Lien invalide</h2>
-          <p className="text-white/40 text-sm">{error}</p>
+          <h2 className="text-[var(--text-primary)] text-xl font-semibold mb-2">Lien invalide</h2>
+          <p className="text-[var(--text-muted)] text-sm">{error}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-[#FF6B2B]/10 rounded-2xl mb-4">
             <span className="text-[#FF6B2B] font-bold text-2xl">Z</span>
           </div>
-          <h1 className="text-[#F5F5F3] text-2xl font-bold">Bienvenue !</h1>
-          <p className="text-white/40 text-sm mt-1">
+          <h1 className="text-[var(--text-primary)] text-2xl font-bold">Bienvenue !</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1">
             Ton coach t'a invité sur {invitation?.coaches?.nom_app ?? 'Zevo'}
           </p>
         </div>

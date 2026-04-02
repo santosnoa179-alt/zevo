@@ -438,13 +438,13 @@ export default function CoachTutorial({ onComplete, coachName }) {
             position: 'absolute', left: -8, top: 24,
             width: 0, height: 0,
             borderTop: '8px solid transparent', borderBottom: '8px solid transparent',
-            borderRight: '8px solid #1E1E1E',
+            borderRight: '8px solid var(--bg-card)',
           }} />
         )}
 
         <div style={{
-          background: 'linear-gradient(160deg, #1E1E1E, #161616)',
-          border: '1px solid rgba(255,255,255,0.1)',
+          background: 'linear-gradient(160deg, var(--bg-card), var(--bg-base))',
+          border: '1px solid var(--border-base)',
           borderRadius: 20,
           padding: hasTarget ? '24px 24px 20px' : '32px 28px 24px',
           boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(255,107,43,0.08)',
@@ -462,13 +462,13 @@ export default function CoachTutorial({ onComplete, coachName }) {
           {/* Close */}
           <button onClick={skip} style={{
             position: 'absolute', top: 12, right: 12,
-            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--bg-surface)', border: '1px solid var(--border-base)',
             borderRadius: 8, width: 30, height: 30,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: 'rgba(255,255,255,0.35)', transition: 'all 0.2s',
+            cursor: 'pointer', color: 'var(--text-muted)', transition: 'all 0.2s',
           }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.35)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated, rgba(255,255,255,0.1))'; e.currentTarget.style.color = '#fff' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-surface)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
           >
             <X size={14} />
           </button>
@@ -476,7 +476,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
           {/* Progress bar */}
           <div style={{
             width: '100%', height: 3, borderRadius: 2,
-            background: 'rgba(255,255,255,0.06)',
+            background: 'var(--bg-surface)',
             marginBottom: 18, overflow: 'hidden',
           }}>
             <div style={{
@@ -512,7 +512,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
               </div>
               <h3 style={{
                 fontSize: hasTarget ? 18 : 20, fontWeight: 700,
-                color: '#F5F5F3', lineHeight: 1.2, margin: 0,
+                color: 'var(--text-primary)', lineHeight: 1.2, margin: 0,
               }}>
                 {current.title}
               </h3>
@@ -522,7 +522,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
           {/* ── Description ── */}
           {current.description && (
             <p style={{
-              fontSize: 14, lineHeight: 1.65, color: 'rgba(255,255,255,0.5)',
+              fontSize: 14, lineHeight: 1.65, color: 'var(--text-secondary)',
               margin: '0 0 20px 0',
             }}>
               {current.description}
@@ -549,10 +549,10 @@ export default function CoachTutorial({ onComplete, coachName }) {
                 {coachName.charAt(0).toUpperCase()}
               </div>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#F5F5F3' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
                   Salut {coachName} 👋
                 </div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                   On va explorer ton espace ensemble
                 </div>
               </div>
@@ -578,13 +578,13 @@ export default function CoachTutorial({ onComplete, coachName }) {
                     width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
                     background: i < 2
                       ? `linear-gradient(135deg, rgba(255,107,43,${0.15 + i * 0.1}), rgba(255,107,43,0.05))`
-                      : 'rgba(255,255,255,0.06)',
+                      : 'var(--bg-surface)',
                     border: i < 2
                       ? '2px solid rgba(255,107,43,0.2)'
-                      : '2px dashed rgba(255,255,255,0.15)',
+                      : '2px dashed var(--border-base)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 13, fontWeight: 700,
-                    color: i < 2 ? '#FF6B2B' : 'rgba(255,255,255,0.3)',
+                    color: i < 2 ? '#FF6B2B' : 'var(--text-muted)',
                     marginLeft: i > 0 ? -8 : 0,
                     zIndex: 3 - i,
                   }}>
@@ -593,10 +593,10 @@ export default function CoachTutorial({ onComplete, coachName }) {
                 ))}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F3' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
                   Tes futurs clients
                 </div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
                   Un lien d'invitation suffit pour démarrer
                 </div>
               </div>
@@ -612,18 +612,18 @@ export default function CoachTutorial({ onComplete, coachName }) {
               <div style={{ marginBottom: 14 }}>
                 <label style={{
                   display: 'block', fontSize: 12, fontWeight: 600,
-                  color: 'rgba(255,255,255,0.5)', marginBottom: 6,
+                  color: 'var(--text-secondary)', marginBottom: 6,
                 }}>
                   Prénom du client
                 </label>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '0 14px', height: 44, borderRadius: 12,
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-base)',
                   transition: 'border-color 0.2s',
                 }}>
-                  <Users size={16} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+                  <Users size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                   <input
                     type="text"
                     placeholder="Ex: Lucas"
@@ -632,7 +632,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                     autoFocus
                     style={{
                       flex: 1, background: 'none', border: 'none', outline: 'none',
-                      color: '#F5F5F3', fontSize: 14, fontFamily: 'inherit',
+                      color: 'var(--text-primary)', fontSize: 14, fontFamily: 'inherit',
                     }}
                   />
                 </div>
@@ -642,18 +642,18 @@ export default function CoachTutorial({ onComplete, coachName }) {
               <div style={{ marginBottom: 14 }}>
                 <label style={{
                   display: 'block', fontSize: 12, fontWeight: 600,
-                  color: 'rgba(255,255,255,0.5)', marginBottom: 6,
+                  color: 'var(--text-secondary)', marginBottom: 6,
                 }}>
                   Email du client
                 </label>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '0 14px', height: 44, borderRadius: 12,
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-base)',
                   transition: 'border-color 0.2s',
                 }}>
-                  <Mail size={16} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+                  <Mail size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                   <input
                     type="email"
                     placeholder="client@email.com"
@@ -662,7 +662,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                     onKeyDown={e => { if (e.key === 'Enter') handleSendInvite() }}
                     style={{
                       flex: 1, background: 'none', border: 'none', outline: 'none',
-                      color: '#F5F5F3', fontSize: 14, fontFamily: 'inherit',
+                      color: 'var(--text-primary)', fontSize: 14, fontFamily: 'inherit',
                     }}
                   />
                 </div>
@@ -677,7 +677,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                 marginBottom: 4,
               }}>
                 <Sparkles size={14} style={{ color: '#60A5FA', flexShrink: 0, marginTop: 1 }} />
-                <span style={{ fontSize: 12, lineHeight: 1.5, color: 'rgba(255,255,255,0.4)' }}>
+                <span style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--text-muted)' }}>
                   Ton client recevra un lien personnalisé pour créer son compte et accéder directement à son espace.
                 </span>
               </div>
@@ -735,10 +735,10 @@ export default function CoachTutorial({ onComplete, coachName }) {
                   {inviteResult.prenom.charAt(0).toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#F5F5F3' }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
                     {inviteResult.prenom}
                   </div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>
                     {inviteResult.email}
                   </div>
                 </div>
@@ -755,19 +755,19 @@ export default function CoachTutorial({ onComplete, coachName }) {
               {/* Invitation link */}
               <label style={{
                 display: 'block', fontSize: 12, fontWeight: 600,
-                color: 'rgba(255,255,255,0.5)', marginBottom: 6,
+                color: 'var(--text-secondary)', marginBottom: 6,
               }}>
                 Lien d'invitation à partager
               </label>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '10px 12px', borderRadius: 12,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-base)',
                 marginBottom: 12,
               }}>
                 <div style={{
-                  flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.45)',
+                  flex: 1, fontSize: 12, color: 'var(--text-secondary)',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   fontFamily: 'monospace',
                 }}>
@@ -794,8 +794,8 @@ export default function CoachTutorial({ onComplete, coachName }) {
                 background: 'rgba(255,107,43,0.04)', border: '1px solid rgba(255,107,43,0.08)',
               }}>
                 <Send size={13} style={{ color: '#FF6B2B', flexShrink: 0, marginTop: 1 }} />
-                <span style={{ fontSize: 12, lineHeight: 1.5, color: 'rgba(255,255,255,0.4)' }}>
-                  Envoie ce lien à <strong style={{ color: '#F5F5F3' }}>{inviteResult.prenom}</strong> par email, SMS ou WhatsApp. Il pourra créer son compte en un clic.
+                <span style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--text-muted)' }}>
+                  Envoie ce lien à <strong style={{ color: 'var(--text-primary)' }}>{inviteResult.prenom}</strong> par email, SMS ou WhatsApp. Il pourra créer son compte en un clic.
                 </span>
               </div>
             </div>
@@ -817,8 +817,8 @@ export default function CoachTutorial({ onComplete, coachName }) {
                 return (
                   <div key={i} style={{
                     flex: 1, padding: '12px 8px', borderRadius: 12,
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-base)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center',
                     gap: 6, textAlign: 'center',
                   }}>
@@ -829,7 +829,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                     }}>
                       <AIcon size={16} color={action.color} />
                     </div>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#F5F5F3' }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)' }}>
                       {action.label}
                     </span>
                   </div>
@@ -846,13 +846,13 @@ export default function CoachTutorial({ onComplete, coachName }) {
             {step > 0 && !current.isForm && !current.isSuccess && (
               <button onClick={goBack} style={{
                 padding: '10px 16px', borderRadius: 12,
-                border: '1px solid rgba(255,255,255,0.08)',
-                background: 'rgba(255,255,255,0.04)',
-                color: 'rgba(255,255,255,0.5)',
+                border: '1px solid var(--border-base)',
+                background: 'var(--bg-surface)',
+                color: 'var(--text-secondary)',
                 fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0,
               }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#fff' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-elevated, rgba(255,255,255,0.08))'; e.currentTarget.style.color = '#fff' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-surface)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
               >
                 Retour
               </button>
@@ -913,12 +913,12 @@ export default function CoachTutorial({ onComplete, coachName }) {
           {current.showSkipInvite && (
             <button onClick={skipInvite} style={{
               display: 'block', width: '100%', textAlign: 'center',
-              background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)',
+              background: 'none', border: 'none', color: 'var(--text-muted)',
               fontSize: 12, cursor: 'pointer', padding: '10px 0 0', marginTop: 4,
               transition: 'color 0.2s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)' }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)' }}
             >
               Je le ferai plus tard
             </button>
@@ -928,12 +928,12 @@ export default function CoachTutorial({ onComplete, coachName }) {
           {current.isForm && (
             <button onClick={skipInvite} style={{
               display: 'block', width: '100%', textAlign: 'center',
-              background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)',
+              background: 'none', border: 'none', color: 'var(--text-muted)',
               fontSize: 12, cursor: 'pointer', padding: '10px 0 0', marginTop: 4,
               transition: 'color 0.2s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)' }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)' }}
             >
               Passer cette étape
             </button>
@@ -943,12 +943,12 @@ export default function CoachTutorial({ onComplete, coachName }) {
           {isTourPhase && !current.isFinal && step > 0 && (
             <button onClick={skip} style={{
               display: 'block', width: '100%', textAlign: 'center',
-              background: 'none', border: 'none', color: 'rgba(255,255,255,0.15)',
+              background: 'none', border: 'none', color: 'var(--text-muted)',
               fontSize: 11, cursor: 'pointer', padding: '8px 0 0', marginTop: 2,
               transition: 'color 0.2s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)' }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.15)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-secondary)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)' }}
             >
               Passer le tour
             </button>

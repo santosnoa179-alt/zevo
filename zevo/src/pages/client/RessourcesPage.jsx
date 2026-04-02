@@ -62,20 +62,20 @@ export default function RessourcesPage() {
   return (
     <div className={`p-4 max-w-2xl space-y-4 ${pageTransition.className}`}>
       <div className="pt-4">
-        <h1 className="text-[#F5F5F3] text-xl font-bold">Ressources</h1>
-        <p className="text-white/40 text-sm mt-0.5">Fichiers et liens partagés par ton coach</p>
+        <h1 className="text-[var(--text-primary)] text-xl font-bold">Ressources</h1>
+        <p className="text-[var(--text-muted)] text-sm mt-0.5">Fichiers et liens partagés par ton coach</p>
       </div>
 
       {/* Recherche */}
       {ressources.length > 3 && (
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher..."
-            className="w-full pl-10 pr-4 py-2.5 bg-[#1E1E1E] border border-white/[0.08] rounded-xl text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[var(--color-primary,#FF6B2B)]/50"
+            className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary,#FF6B2B)]/50"
           />
         </div>
       )}
@@ -84,8 +84,8 @@ export default function RessourcesPage() {
       {ressources.length === 0 && (
         <Card>
           <CardBody className="text-center py-12">
-            <BookOpen size={36} className="text-white/10 mx-auto mb-3" />
-            <p className="text-white/40 text-sm">Ton coach n'a pas encore partagé de ressources</p>
+            <BookOpen size={36} className="text-[var(--text-muted)] mx-auto mb-3" />
+            <p className="text-[var(--text-muted)] text-sm">Ton coach n'a pas encore partagé de ressources</p>
           </CardBody>
         </Card>
       )}
@@ -104,7 +104,7 @@ export default function RessourcesPage() {
               href={res.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center gap-3 p-4 bg-[#1E1E1E] border border-white/[0.08] rounded-xl hover:border-white/[0.15] transition-colors ${si.className || ''}`}
+              className={`flex items-center gap-3 p-4 bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl hover:border-[var(--border-base)] transition-colors ${si.className || ''}`}
               style={si.style}
             >
               {/* Icône type */}
@@ -117,7 +117,7 @@ export default function RessourcesPage() {
 
               {/* Infos */}
               <div className="flex-1 min-w-0">
-                <p className="text-[#F5F5F3] text-sm font-medium truncate">{res.titre}</p>
+                <p className="text-[var(--text-primary)] text-sm font-medium truncate">{res.titre}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span
                     className="text-[10px] px-2 py-0.5 rounded-full"
@@ -126,19 +126,19 @@ export default function RessourcesPage() {
                     {config.label}
                   </span>
                   {res.categorie && (
-                    <span className="text-white/30 text-[10px]">{res.categorie}</span>
+                    <span className="text-[var(--text-muted)] text-[10px]">{res.categorie}</span>
                   )}
                 </div>
                 {res.description && (
-                  <p className="text-white/30 text-xs mt-1 line-clamp-1">{res.description}</p>
+                  <p className="text-[var(--text-muted)] text-xs mt-1 line-clamp-1">{res.description}</p>
                 )}
               </div>
 
               {/* Action */}
               {isPDF ? (
-                <Download size={16} className="text-white/30 shrink-0" />
+                <Download size={16} className="text-[var(--text-muted)] shrink-0" />
               ) : (
-                <ExternalLink size={16} className="text-white/30 shrink-0" />
+                <ExternalLink size={16} className="text-[var(--text-muted)] shrink-0" />
               )}
             </a>
           )

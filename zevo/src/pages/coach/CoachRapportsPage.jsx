@@ -533,15 +533,15 @@ export default function CoachRapportsPage() {
   return (
     <div className="p-6 w-full">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#F5F5F3]">Rapports</h1>
-        <p className="text-white/50 text-sm mt-1">Générez des rapports PDF professionnels pour vos clients</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Rapports</h1>
+        <p className="text-[var(--text-secondary)] text-sm mt-1">Générez des rapports PDF professionnels pour vos clients</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* ── Colonne gauche : configuration ── */}
         <div className="lg:col-span-1 space-y-4">
-          <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-4">
-            <label className="block text-white/50 text-xs mb-3 uppercase tracking-wider font-semibold">Type de rapport</label>
+          <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4">
+            <label className="block text-[var(--text-secondary)] text-xs mb-3 uppercase tracking-wider font-semibold">Type de rapport</label>
             <div className="space-y-2">
               {TYPES_RAPPORT.map(t => {
                 const Icon = t.icon
@@ -550,13 +550,13 @@ export default function CoachRapportsPage() {
                     key={t.id}
                     onClick={() => { setTypeRapport(t.id); setPreview(null) }}
                     className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-all ${
-                      typeRapport === t.id ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'border border-white/[0.06] hover:border-white/[0.12]'
+                      typeRapport === t.id ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'border border-[var(--border-base)] hover:border-[var(--border-base)]'
                     }`}
                   >
-                    <Icon size={18} className={typeRapport === t.id ? 'text-[#FF6B2B]' : 'text-white/30'} />
+                    <Icon size={18} className={typeRapport === t.id ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'} />
                     <div>
-                      <p className={`text-sm font-medium ${typeRapport === t.id ? 'text-[#F5F5F3]' : 'text-white/50'}`}>{t.label}</p>
-                      <p className="text-white/25 text-xs mt-0.5">{t.description}</p>
+                      <p className={`text-sm font-medium ${typeRapport === t.id ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>{t.label}</p>
+                      <p className="text-[var(--text-muted)] text-xs mt-0.5">{t.description}</p>
                     </div>
                   </button>
                 )
@@ -565,17 +565,17 @@ export default function CoachRapportsPage() {
           </div>
 
           {typeRapport !== 'financier' && (
-            <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-4">
-              <label className="block text-white/50 text-xs mb-2 uppercase tracking-wider font-semibold">Client</label>
+            <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4">
+              <label className="block text-[var(--text-secondary)] text-xs mb-2 uppercase tracking-wider font-semibold">Client</label>
               {loading ? (
-                <div className="h-10 bg-[#2A2A2A] rounded-lg animate-pulse" />
+                <div className="h-10 bg-[var(--bg-surface)] rounded-lg animate-pulse" />
               ) : clients.length === 0 ? (
-                <p className="text-white/30 text-sm">Aucun client actif</p>
+                <p className="text-[var(--text-muted)] text-sm">Aucun client actif</p>
               ) : (
                 <select
                   value={clientId}
                   onChange={(e) => { setClientId(e.target.value); setPreview(null) }}
-                  className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
+                  className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
                 >
                   {clients.map(c => (
                     <option key={c.id} value={c.id}>{c.profiles?.nom || c.profiles?.email || 'Client'}</option>
@@ -586,14 +586,14 @@ export default function CoachRapportsPage() {
           )}
 
           {typeRapport !== 'financier' && (
-            <div className="bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-4">
-              <label className="block text-white/50 text-xs mb-2 uppercase tracking-wider font-semibold">Commentaire du coach</label>
+            <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4">
+              <label className="block text-[var(--text-secondary)] text-xs mb-2 uppercase tracking-wider font-semibold">Commentaire du coach</label>
               <textarea
                 value={commentaire}
                 onChange={(e) => setCommentaire(e.target.value)}
                 placeholder="Ajoutez un message personnalisé au rapport..."
                 rows={3}
-                className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F3] placeholder-white/20 focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none"
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none"
               />
             </div>
           )}
@@ -610,10 +610,10 @@ export default function CoachRapportsPage() {
         {/* ── Colonne droite : prévisualisation ── */}
         <div className="lg:col-span-2">
           {!preview ? (
-            <div className="bg-[#1E1E1E] border border-dashed border-white/[0.08] rounded-xl p-12 flex flex-col items-center justify-center min-h-[500px]">
-              <FileText size={48} className="text-white/10 mb-4" />
-              <p className="text-white/30 text-sm">Sélectionnez un type et cliquez sur « Générer »</p>
-              <p className="text-white/15 text-xs mt-1">La prévisualisation apparaîtra ici</p>
+            <div className="bg-[var(--bg-card)] border border-dashed border-[var(--border-base)] rounded-xl p-12 flex flex-col items-center justify-center min-h-[500px]">
+              <FileText size={48} className="text-[var(--text-muted)] mb-4" />
+              <p className="text-[var(--text-muted)] text-sm">Sélectionnez un type et cliquez sur « Générer »</p>
+              <p className="text-[var(--text-muted)] text-xs mt-1">La prévisualisation apparaîtra ici</p>
             </div>
           ) : (
             <div className="bg-white rounded-xl overflow-hidden border border-[#E4E4E7] shadow-sm">

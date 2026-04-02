@@ -24,7 +24,7 @@ function ScoreGauge({ score, couleur }) {
     <div className="relative">
       <svg width="130" height="130" viewBox="0 0 130 130" className="flex-shrink-0 drop-shadow-lg">
         {/* Track */}
-        <circle cx="65" cy="65" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
+        <circle cx="65" cy="65" r={r} fill="none" stroke="var(--border-base)" strokeWidth="10" />
         {/* Glow effect */}
         <circle
           cx="65" cy="65" r={r}
@@ -37,8 +37,8 @@ function ScoreGauge({ score, couleur }) {
           transform="rotate(-90 65 65)"
           style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)', filter: `drop-shadow(0 0 8px ${couleur}40)` }}
         />
-        <text x="65" y="60" textAnchor="middle" fill="#F5F5F3" fontSize="30" fontWeight="800" fontFamily="-apple-system,BlinkMacSystemFont,sans-serif">{score}</text>
-        <text x="65" y="78" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="11" fontFamily="-apple-system,sans-serif">/100</text>
+        <text x="65" y="60" textAnchor="middle" fill="var(--text-primary)" fontSize="30" fontWeight="800" fontFamily="-apple-system,BlinkMacSystemFont,sans-serif">{score}</text>
+        <text x="65" y="78" textAnchor="middle" fill="var(--text-muted)" fontSize="11" fontFamily="-apple-system,sans-serif">/100</text>
       </svg>
     </div>
   )
@@ -48,9 +48,9 @@ function ScoreGauge({ score, couleur }) {
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-[#1E1E1E] border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm shadow-xl backdrop-blur-sm">
-      <p className="text-white/40 text-[10px] uppercase tracking-wider mb-0.5">{label}</p>
-      <p className="text-[#F5F5F3] font-bold text-base">{payload[0].value}<span className="text-white/30 text-xs font-normal">/100</span></p>
+    <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl px-3.5 py-2.5 text-sm shadow-xl backdrop-blur-sm">
+      <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider mb-0.5">{label}</p>
+      <p className="text-[var(--text-primary)] font-bold text-base">{payload[0].value}<span className="text-[var(--text-muted)] text-xs font-normal">/100</span></p>
     </div>
   )
 }
@@ -478,13 +478,13 @@ export default function DashboardPage() {
     return (
       <div className="p-5 pb-28 space-y-5 max-w-lg mx-auto animate-pulse">
         <div className="pt-2 space-y-2">
-          <div className="h-9 w-56 bg-white/[0.06] rounded-xl" />
-          <div className="h-4 w-36 bg-white/[0.04] rounded-lg" />
+          <div className="h-9 w-56 bg-[var(--bg-surface)] rounded-xl" />
+          <div className="h-4 w-36 bg-[var(--bg-surface)] rounded-lg" />
         </div>
-        <div className="h-44 bg-white/[0.06] rounded-2xl" />
-        <div className="h-56 bg-white/[0.06] rounded-2xl" />
-        <div className="h-36 bg-white/[0.06] rounded-2xl" />
-        <div className="h-48 bg-white/[0.06] rounded-2xl" />
+        <div className="h-44 bg-[var(--bg-surface)] rounded-2xl" />
+        <div className="h-56 bg-[var(--bg-surface)] rounded-2xl" />
+        <div className="h-36 bg-[var(--bg-surface)] rounded-2xl" />
+        <div className="h-48 bg-[var(--bg-surface)] rounded-2xl" />
       </div>
     )
   }
@@ -498,10 +498,10 @@ export default function DashboardPage() {
       {/* ═══════════════ HEADER CONTEXTUEL ═══════════════ */}
       <div className={`pt-2 flex items-start justify-between ${stagger[0].className}`} style={stagger[0].style}>
         <div>
-          <h1 className="text-[#F5F5F3] text-[26px] font-extrabold tracking-tight leading-tight">
+          <h1 className="text-[var(--text-primary)] text-[26px] font-extrabold tracking-tight leading-tight">
             {greeting.text} {greeting.emoji}
           </h1>
-          <p className="text-white/35 text-sm mt-1 capitalize">
+          <p className="text-[var(--text-muted)] text-sm mt-1 capitalize">
             {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
         </div>
@@ -528,21 +528,21 @@ export default function DashboardPage() {
         <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B2B]/10 to-transparent border border-[#FF6B2B]/20 active:scale-[0.98] transition-transform ${stagger[1].className}`} style={stagger[1].style}>
           <Flame size={18} className="text-[#FF6B2B]" />
           <span className="text-[#FF6B2B] font-bold text-sm"><AnimatedNumber value={streak} duration={600} /> jours</span>
-          <span className="text-white/40 text-xs">de suite — Continue comme ça !</span>
+          <span className="text-[var(--text-muted)] text-xs">de suite — Continue comme ça !</span>
         </div>
       )}
 
       {/* ═══════════════ CHECK-IN QUOTIDIEN ═══════════════ */}
       {(!sommeilSaved || !humeurSaved) && (
         <div className={`space-y-3 ${stagger[2].className}`} style={stagger[2].style}>
-          <p className="text-white/30 text-[10px] uppercase tracking-widest font-bold px-1">Check-in du jour</p>
+          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold px-1">Check-in du jour</p>
 
           <div className="grid grid-cols-2 gap-3">
             {/* ── Widget Sommeil ── */}
             <div className={`rounded-2xl border p-4 transition-all duration-500 ${
               sommeilSaved
                 ? 'bg-indigo-500/5 border-indigo-500/20'
-                : 'bg-[#1E1E1E] border-white/[0.06]'
+                : 'bg-[var(--bg-card)] border-[var(--border-base)]'
             }`}>
               {sommeilSaved ? (
                 <div className="text-center py-2">
@@ -556,22 +556,22 @@ export default function DashboardPage() {
                 <>
                   <div className="flex items-center gap-2 mb-3">
                     <Moon size={14} className="text-indigo-400" />
-                    <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Sommeil</p>
+                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-bold">Sommeil</p>
                   </div>
                   <div className="flex items-center justify-center gap-3 mb-3">
                     <button
                       onClick={() => setSommeilInput(v => Math.max(0, +(v - 0.5).toFixed(1)))}
-                      className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.1] transition-all active:scale-90"
+                      className="w-9 h-9 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all active:scale-90"
                     >
                       <Minus size={16} />
                     </button>
                     <div className="text-center min-w-[50px]">
-                      <p className="text-[#F5F5F3] text-2xl font-black leading-none">{sommeilInput}</p>
-                      <p className="text-white/25 text-[9px] mt-0.5">heures</p>
+                      <p className="text-[var(--text-primary)] text-2xl font-black leading-none">{sommeilInput}</p>
+                      <p className="text-[var(--text-muted)] text-[9px] mt-0.5">heures</p>
                     </div>
                     <button
                       onClick={() => setSommeilInput(v => Math.min(14, +(v + 0.5).toFixed(1)))}
-                      className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.1] transition-all active:scale-90"
+                      className="w-9 h-9 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all active:scale-90"
                     >
                       <Plus size={16} />
                     </button>
@@ -591,7 +591,7 @@ export default function DashboardPage() {
             <div className={`rounded-2xl border p-4 transition-all duration-500 ${
               humeurSaved
                 ? 'bg-yellow-500/5 border-yellow-500/20'
-                : 'bg-[#1E1E1E] border-white/[0.06]'
+                : 'bg-[var(--bg-card)] border-[var(--border-base)]'
             }`}>
               {humeurSaved ? (
                 <div className="text-center py-2">
@@ -607,7 +607,7 @@ export default function DashboardPage() {
                 <>
                   <div className="flex items-center gap-2 mb-3">
                     <Smile size={14} className="text-yellow-400" />
-                    <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Humeur</p>
+                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-bold">Humeur</p>
                   </div>
                   <div className="flex items-center justify-center gap-1.5 mb-3">
                     {[
@@ -624,11 +624,11 @@ export default function DashboardPage() {
                         className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all active:scale-90 ${
                           humeurInput === score
                             ? 'bg-yellow-500/20 scale-110'
-                            : 'hover:bg-white/[0.06]'
+                            : 'hover:bg-[var(--bg-surface)]'
                         }`}
                       >
                         <span className="text-xl leading-none">{emoji}</span>
-                        <span className="text-[8px] text-white/25 font-medium">{label}</span>
+                        <span className="text-[8px] text-[var(--text-muted)] font-medium">{label}</span>
                       </button>
                     ))}
                   </div>
@@ -661,13 +661,13 @@ export default function DashboardPage() {
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full animate-pulse" />
             </div>
             <div className="flex-1 text-left min-w-0">
-              <p className="text-[#F5F5F3] font-semibold text-sm truncate">
+              <p className="text-[var(--text-primary)] font-semibold text-sm truncate">
                 {formInfo.titre || 'Formulaire à remplir'}
               </p>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-amber-400/70 text-xs font-medium">{typeLabel}</span>
-                <span className="text-[rgba(245,245,243,0.2)]">·</span>
-                <span className="text-[rgba(245,245,243,0.4)] text-xs">{dateLabel}</span>
+                <span className="text-[var(--text-muted)]">·</span>
+                <span className="text-[var(--text-secondary)] text-xs">{dateLabel}</span>
               </div>
             </div>
             <div className="flex items-center gap-1.5 bg-amber-500/15 px-3 py-1.5 rounded-xl flex-shrink-0">
@@ -708,10 +708,10 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <h2 className="text-[#F5F5F3] text-xl font-bold mb-1">{seanceDuJour.titre}</h2>
+            <h2 className="text-[var(--text-primary)] text-xl font-bold mb-1">{seanceDuJour.titre}</h2>
 
             {seanceExos.length > 0 && (
-              <p className="text-white/30 text-xs mb-4">
+              <p className="text-[var(--text-muted)] text-xs mb-4">
                 {seanceExos.length} exercice{seanceExos.length > 1 ? 's' : ''}
               </p>
             )}
@@ -720,13 +720,13 @@ export default function DashboardPage() {
             {seanceExos.length > 0 && !seanceDuJour.is_completed && (
               <div className="space-y-2 mb-5">
                 {seanceExos.slice(0, 3).map((exo) => (
-                  <div key={exo.id} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-white/[0.04]">
+                  <div key={exo.id} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-[var(--bg-surface)]">
                     <div className="w-8 h-8 rounded-lg bg-[var(--color-primary,#FF6B2B)]/10 flex items-center justify-center flex-shrink-0">
                       <Dumbbell size={14} className="text-[var(--color-primary,#FF6B2B)]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[#F5F5F3] text-sm font-medium truncate">{exo.nom}</p>
-                      <p className="text-white/30 text-[11px]">
+                      <p className="text-[var(--text-primary)] text-sm font-medium truncate">{exo.nom}</p>
+                      <p className="text-[var(--text-muted)] text-[11px]">
                         {exo.series && `${exo.series}×`}{exo.repetitions && `${exo.repetitions}`}
                         {exo.poids ? ` · ${exo.poids}kg` : ''}
                       </p>
@@ -734,7 +734,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 {seanceExos.length > 3 && (
-                  <p className="text-white/25 text-xs text-center">
+                  <p className="text-[var(--text-muted)] text-xs text-center">
                     +{seanceExos.length - 3} autre{seanceExos.length - 3 > 1 ? 's' : ''}
                   </p>
                 )}
@@ -766,38 +766,38 @@ export default function DashboardPage() {
           </div>
         </div>
       ) : (
-        <div className={`rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 text-center ${stagger[4].className}`} style={stagger[4].style}>
-          <div className="w-12 h-12 rounded-full bg-white/[0.04] flex items-center justify-center mx-auto mb-3">
-            <Dumbbell size={22} className="text-white/20" />
+        <div className={`rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 text-center ${stagger[4].className}`} style={stagger[4].style}>
+          <div className="w-12 h-12 rounded-full bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
+            <Dumbbell size={22} className="text-[var(--text-muted)]" />
           </div>
-          <p className="text-white/40 text-sm font-medium">Pas de séance aujourd'hui</p>
-          <p className="text-white/20 text-xs mt-1">Profite de ta journée de repos 💪</p>
+          <p className="text-[var(--text-muted)] text-sm font-medium">Pas de séance aujourd'hui</p>
+          <p className="text-[var(--text-muted)] text-xs mt-1">Profite de ta journée de repos 💪</p>
         </div>
       )}
 
       {/* ═══════════════ SCORE BIEN-ÊTRE ═══════════════ */}
-      <div className={`rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 ${stagger[5].className}`} style={stagger[5].style}>
+      <div className={`rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 ${stagger[5].className}`} style={stagger[5].style}>
         <div className="flex items-center gap-5">
           <ScoreGauge score={score} couleur={couleur} />
           <div className="flex-1 min-w-0">
-            <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-1">Score bien-être</p>
+            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-semibold mb-1">Score bien-être</p>
             <p className="text-2xl font-extrabold" style={{ color: couleur }}>{label}</p>
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2">
                 <Moon size={13} className="text-indigo-400 flex-shrink-0" />
-                <span className="text-white/35 text-xs">
+                <span className="text-[var(--text-muted)] text-xs">
                   {sommeil ? `${sommeil.heures}h · qualité ${sommeil.qualite}/5` : 'Non renseigné'}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Smile size={13} className="text-yellow-400 flex-shrink-0" />
-                <span className="text-white/35 text-xs">
+                <span className="text-[var(--text-muted)] text-xs">
                   Humeur {humeur ? `${humeur.score}/10` : 'non renseignée'}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Zap size={13} className="text-green-400 flex-shrink-0" />
-                <span className="text-white/35 text-xs">
+                <span className="text-[var(--text-muted)] text-xs">
                   {sport ? `Activité · intensité ${sport.intensite}/5` : 'Pas d\'activité'}
                 </span>
               </div>
@@ -807,22 +807,22 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══════════════ HABITUDES DU JOUR ═══════════════ */}
-      <div className={`rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 ${stagger[6].className}`} style={stagger[6].style}>
+      <div className={`rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 ${stagger[6].className}`} style={stagger[6].style}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Sparkles size={14} className="text-[var(--color-primary,#FF6B2B)]" />
-            <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold">
+            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">
               Habitudes du jour
             </p>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04]">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--bg-surface)]">
             {cochees > 0 && cochees === totalHab && <Flame size={12} className="text-[var(--color-primary,#FF6B2B)]" />}
             <span className="text-[var(--color-primary,#FF6B2B)] text-xs font-bold"><AnimatedNumber value={cochees} duration={400} />/{totalHab}</span>
           </div>
         </div>
 
         {habitudes.length === 0 ? (
-          <p className="text-white/25 text-sm text-center py-6">Aucune habitude assignée pour l'instant.</p>
+          <p className="text-[var(--text-muted)] text-sm text-center py-6">Aucune habitude assignée pour l'instant.</p>
         ) : (
           <div className="space-y-2.5">
             {habitudes.map((h) => {
@@ -835,8 +835,8 @@ export default function DashboardPage() {
                   disabled={toggling === h.id}
                   className={`flex items-center gap-3.5 w-full text-left py-3.5 px-4 rounded-xl transition-all duration-200 active:scale-[0.97] disabled:opacity-50 border ${
                     fait
-                      ? 'bg-white/[0.03] border-white/[0.06]'
-                      : 'bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04]'
+                      ? 'bg-[var(--bg-surface)] border-[var(--border-base)]'
+                      : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]'
                   }`}
                 >
                   {fait ? (
@@ -845,11 +845,11 @@ export default function DashboardPage() {
                       <CheckCircle2 size={18} style={{ color: accentColor }} />
                     </div>
                   ) : (
-                    <div className="w-7 h-7 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0">
-                      <Circle size={18} className="text-white/20" />
+                    <div className="w-7 h-7 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center flex-shrink-0">
+                      <Circle size={18} className="text-[var(--text-muted)]" />
                     </div>
                   )}
-                  <span className={`text-sm font-medium flex-1 ${fait ? 'text-white/30 line-through' : 'text-[#F5F5F3]'}`}>
+                  <span className={`text-sm font-medium flex-1 ${fait ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
                     {h.nom}
                   </span>
                   {h.assigned_by && (
@@ -865,7 +865,7 @@ export default function DashboardPage() {
 
         {/* Progress bar */}
         {totalHab > 0 && (
-          <div className="mt-4 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+          <div className="mt-4 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-700 ease-out"
               style={{
@@ -880,7 +880,7 @@ export default function DashboardPage() {
       {/* ═══════════════ MES PROGRAMMES (Sport + Nutrition) ═══════════════ */}
       {(programme || nutritionPlan) && (
         <div className={`space-y-3 ${stagger[7].className}`} style={stagger[7].style}>
-          <p className="text-white/30 text-[10px] uppercase tracking-widest font-bold px-1">Mes programmes</p>
+          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold px-1">Mes programmes</p>
 
           <div className={`grid gap-3 ${programme && nutritionPlan ? 'grid-cols-1' : 'grid-cols-1'}`}>
 
@@ -888,7 +888,7 @@ export default function DashboardPage() {
             {programme && (
               <button
                 onClick={() => navigate('/app/programme')}
-                className="w-full rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 text-left active:scale-[0.98] transition-transform relative overflow-hidden"
+                className="w-full rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 text-left active:scale-[0.98] transition-transform relative overflow-hidden"
               >
                 {/* Gradient accent */}
                 <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[var(--color-primary,#FF6B2B)] via-[#FF9A6C] to-transparent" />
@@ -899,14 +899,14 @@ export default function DashboardPage() {
                       <Trophy size={16} className="text-[var(--color-primary,#FF6B2B)]" />
                     </div>
                     <div>
-                      <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold">Programme Sport</p>
+                      <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Programme Sport</p>
                     </div>
                   </div>
-                  <ChevronRight size={16} className="text-white/20" />
+                  <ChevronRight size={16} className="text-[var(--text-muted)]" />
                 </div>
 
-                <p className="text-[#F5F5F3] font-bold text-base mb-1">{programme.programmes?.titre}</p>
-                <p className="text-white/30 text-xs mb-3">
+                <p className="text-[var(--text-primary)] font-bold text-base mb-1">{programme.programmes?.titre}</p>
+                <p className="text-[var(--text-muted)] text-xs mb-3">
                   Phase {programme.phase_actuelle}/{programmePhases.length}
                   {programmePhases[programme.phase_actuelle - 1] && (
                     <> — {programmePhases[programme.phase_actuelle - 1].titre}</>
@@ -923,7 +923,7 @@ export default function DashboardPage() {
                         style={{
                           backgroundColor: i < programme.phase_actuelle
                             ? 'var(--color-primary, #FF6B2B)'
-                            : 'rgba(255,255,255,0.06)',
+                            : 'var(--border-base)',
                         }}
                       />
                     ))}
@@ -933,7 +933,7 @@ export default function DashboardPage() {
                 {/* Séances progression */}
                 {progSeances.total > 0 && (
                   <div className="flex items-center gap-2.5">
-                    <div className="flex-1 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all"
                         style={{
@@ -942,7 +942,7 @@ export default function DashboardPage() {
                         }}
                       />
                     </div>
-                    <span className="text-white/30 text-[10px] font-medium flex-shrink-0">
+                    <span className="text-[var(--text-muted)] text-[10px] font-medium flex-shrink-0">
                       {progSeances.done}/{progSeances.total} séances
                     </span>
                   </div>
@@ -954,7 +954,7 @@ export default function DashboardPage() {
             {nutritionPlan && (
               <button
                 onClick={() => navigate('/app/programme?tab=nutrition')}
-                className="w-full rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 text-left active:scale-[0.98] transition-transform relative overflow-hidden"
+                className="w-full rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 text-left active:scale-[0.98] transition-transform relative overflow-hidden"
               >
                 {/* Gradient accent vert */}
                 <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-emerald-500 via-emerald-400 to-transparent" />
@@ -965,14 +965,14 @@ export default function DashboardPage() {
                       <UtensilsCrossed size={16} className="text-emerald-400" />
                     </div>
                     <div>
-                      <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold">Plan Nutrition</p>
+                      <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Plan Nutrition</p>
                     </div>
                   </div>
-                  <ChevronRight size={16} className="text-white/20" />
+                  <ChevronRight size={16} className="text-[var(--text-muted)]" />
                 </div>
 
-                <p className="text-[#F5F5F3] font-bold text-base mb-1">{nutritionPlan.nom}</p>
-                <p className="text-white/30 text-xs mb-3">
+                <p className="text-[var(--text-primary)] font-bold text-base mb-1">{nutritionPlan.nom}</p>
+                <p className="text-[var(--text-muted)] text-xs mb-3">
                   {nutriRepasCount} repas{nutriRepasCount > 1 ? '' : ''}
                   {nutritionPlan.duree_semaines && ` · ${nutritionPlan.duree_semaines} semaines`}
                 </p>
@@ -980,7 +980,7 @@ export default function DashboardPage() {
                 {/* Semaines progression */}
                 {nutritionPlan.duree_semaines > 0 && (
                   <div className="flex items-center gap-2.5">
-                    <div className="flex-1 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all"
                         style={{
@@ -989,7 +989,7 @@ export default function DashboardPage() {
                         }}
                       />
                     </div>
-                    <span className="text-white/30 text-[10px] font-medium flex-shrink-0">
+                    <span className="text-[var(--text-muted)] text-[10px] font-medium flex-shrink-0">
                       {nutriWeeksDone}/{nutritionPlan.duree_semaines} sem.
                     </span>
                   </div>
@@ -1002,11 +1002,11 @@ export default function DashboardPage() {
 
       {/* ═══════════════ NUTRITION DU JOUR ═══════════════ */}
       {nutriMacros && nutriRepas.length > 0 && (
-        <div className={`rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 ${stagger[8].className}`} style={stagger[8].style}>
+        <div className={`rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 ${stagger[8].className}`} style={stagger[8].style}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <UtensilsCrossed size={14} className="text-emerald-400" />
-              <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold">Nutrition du jour</p>
+              <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Nutrition du jour</p>
             </div>
             <button
               onClick={() => navigate('/app/programme')}
@@ -1024,10 +1024,10 @@ export default function DashboardPage() {
               { label: 'Glucides', value: nutriMacros.gluc, unit: 'g', color: '#f59e0b' },
               { label: 'Lipides', value: nutriMacros.lip, unit: 'g', color: '#22c55e' },
             ].map((m, i) => (
-              <div key={i} className="text-center py-2.5 px-1 rounded-xl bg-white/[0.03] border border-white/[0.04]">
-                <p className="text-[#F5F5F3] text-sm font-bold leading-none">{m.value}</p>
+              <div key={i} className="text-center py-2.5 px-1 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                <p className="text-[var(--text-primary)] text-sm font-bold leading-none">{m.value}</p>
                 <p className="text-[9px] font-medium mt-0.5" style={{ color: `${m.color}90` }}>{m.unit}</p>
-                <p className="text-white/20 text-[8px] mt-1">{m.label}</p>
+                <p className="text-[var(--text-muted)] text-[8px] mt-1">{m.label}</p>
               </div>
             ))}
           </div>
@@ -1040,11 +1040,11 @@ export default function DashboardPage() {
               return nutriRepas.map((repas, i) => {
                 const nbAliments = repas.repas_aliments?.length || 0
                 return (
-                  <div key={repas.id || i} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                  <div key={repas.id || i} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
                     <span className="text-base">{typeEmojis[repas.type] || '🍽️'}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[#F5F5F3] text-sm font-medium">{typeLabels[repas.type] || repas.type}</p>
-                      <p className="text-white/25 text-[11px]">{nbAliments} aliment{nbAliments > 1 ? 's' : ''}</p>
+                      <p className="text-[var(--text-primary)] text-sm font-medium">{typeLabels[repas.type] || repas.type}</p>
+                      <p className="text-[var(--text-muted)] text-[11px]">{nbAliments} aliment{nbAliments > 1 ? 's' : ''}</p>
                     </div>
                   </div>
                 )
@@ -1055,12 +1055,12 @@ export default function DashboardPage() {
       )}
 
       {/* ═══════════════ GRAPHIQUE 7 JOURS — REFONDU ═══════════════ */}
-      <div className={`rounded-2xl bg-[#1E1E1E] border border-white/[0.06] p-5 ${stagger[9].className}`} style={stagger[9].style}>
+      <div className={`rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 ${stagger[9].className}`} style={stagger[9].style}>
         {/* Header avec tendance */}
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
             <TrendingUp size={14} className="text-[var(--color-primary,#FF6B2B)]" />
-            <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold">Score bien-être</p>
+            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Score bien-être</p>
           </div>
           {trendDiff !== null && trendDiff !== 0 && (
             <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold ${
@@ -1075,9 +1075,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Sous-titre */}
-        <p className="text-white/20 text-[11px] mb-4">
+        <p className="text-[var(--text-muted)] text-[11px] mb-4">
           Évolution sur les 7 derniers jours
-          {currentWeekAvg !== null && <> · Moy. <span className="text-white/40 font-semibold">{currentWeekAvg}/100</span></>}
+          {currentWeekAvg !== null && <> · Moy. <span className="text-[var(--text-muted)] font-semibold">{currentWeekAvg}/100</span></>}
         </p>
 
         {weekData.some(d => d.score > 0) ? (
@@ -1085,18 +1085,18 @@ export default function DashboardPage() {
             <BarChart data={weekData} margin={{ top: 5, right: 0, left: -28, bottom: 0 }}>
               <XAxis
                 dataKey="jour"
-                tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: 600 }}
+                tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 domain={[0, 100]}
-                tick={{ fill: 'rgba(255,255,255,0.15)', fontSize: 10 }}
+                tick={{ fill: 'var(--text-muted)', fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
                 ticks={[0, 50, 100]}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)', radius: 8 }} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--border-base)', radius: 8 }} />
               <Bar
                 dataKey="score"
                 radius={[8, 8, 2, 2]}
@@ -1114,8 +1114,8 @@ export default function DashboardPage() {
           </ResponsiveContainer>
         ) : (
           <div className="py-8 text-center">
-            <Sparkles size={24} className="text-white/10 mx-auto mb-2" />
-            <p className="text-white/25 text-sm">
+            <Sparkles size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
+            <p className="text-[var(--text-muted)] text-sm">
               Commence à renseigner tes données pour voir l'évolution
             </p>
           </div>
@@ -1144,8 +1144,8 @@ export default function DashboardPage() {
               <p className="text-[10px] uppercase tracking-widest font-bold mb-0.5" style={{ color: `${nextStep.color}90` }}>
                 Prochaine étape
               </p>
-              <p className="text-[#F5F5F3] text-sm font-bold">{nextStep.label}</p>
-              <p className="text-white/30 text-xs mt-0.5 truncate">{nextStep.sub}</p>
+              <p className="text-[var(--text-primary)] text-sm font-bold">{nextStep.label}</p>
+              <p className="text-[var(--text-muted)] text-xs mt-0.5 truncate">{nextStep.sub}</p>
             </div>
             <ChevronRight size={16} style={{ color: `${nextStep.color}50` }} />
           </div>

@@ -100,9 +100,9 @@ export default function AbonnementPage() {
   if (loading) {
     return (
       <div className="p-6 max-w-2xl mx-auto">
-        <div className="h-8 w-48 bg-[#1E1E1E] rounded-lg animate-pulse mb-8" />
+        <div className="h-8 w-48 bg-[var(--bg-card)] rounded-lg animate-pulse mb-8" />
         <div className="space-y-4">
-          {[1, 2].map(i => <div key={i} className="h-32 bg-[#1E1E1E] rounded-xl animate-pulse" />)}
+          {[1, 2].map(i => <div key={i} className="h-32 bg-[var(--bg-card)] rounded-xl animate-pulse" />)}
         </div>
       </div>
     )
@@ -110,8 +110,8 @@ export default function AbonnementPage() {
 
   return (
     <div className={`p-6 max-w-2xl mx-auto ${pageTransition.className}`}>
-      <h1 className="text-2xl font-bold text-[#F5F5F3] mb-1">Mon abonnement</h1>
-      <p className="text-white/40 text-sm mb-8">Offres de coaching et historique de paiements</p>
+      <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Mon abonnement</h1>
+      <p className="text-[var(--text-muted)] text-sm mb-8">Offres de coaching et historique de paiements</p>
 
       {/* Message de succès */}
       {paiementSuccess && (
@@ -124,30 +124,30 @@ export default function AbonnementPage() {
       {/* ── Offres disponibles ── */}
       {offres.length > 0 && (
         <div className="mb-10">
-          <h2 className="text-sm font-semibold text-white/40 uppercase tracking-wider mb-4">Offres disponibles</h2>
+          <h2 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-4">Offres disponibles</h2>
           <div className="space-y-4">
             {offres.map((o, i) => {
               const si = stagger[i] || {}
               return (
               <div
                 key={o.id}
-                className={`bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-5 flex items-center justify-between ${si.className || ''}`}
+                className={`bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5 flex items-center justify-between ${si.className || ''}`}
                 style={si.style}
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
                     <Package size={18} className="text-[#FF6B2B]" />
-                    <h3 className="text-[#F5F5F3] font-semibold">{o.titre}</h3>
+                    <h3 className="text-[var(--text-primary)] font-semibold">{o.titre}</h3>
                   </div>
                   {o.description && (
-                    <p className="text-white/40 text-sm ml-[30px] mb-2">{o.description}</p>
+                    <p className="text-[var(--text-muted)] text-sm ml-[30px] mb-2">{o.description}</p>
                   )}
-                  <p className="text-white/30 text-xs ml-[30px]">{FREQ_LABELS[o.frequence]}</p>
+                  <p className="text-[var(--text-muted)] text-xs ml-[30px]">{FREQ_LABELS[o.frequence]}</p>
                 </div>
                 <div className="flex items-center gap-4 ml-4">
                   <div className="text-right">
-                    <p className="text-[#F5F5F3] text-2xl font-bold">{(o.prix / 100).toFixed(0)}€</p>
-                    <p className="text-white/25 text-xs">{FREQ_LABELS[o.frequence]}</p>
+                    <p className="text-[var(--text-primary)] text-2xl font-bold">{(o.prix / 100).toFixed(0)}€</p>
+                    <p className="text-[var(--text-muted)] text-xs">{FREQ_LABELS[o.frequence]}</p>
                   </div>
                   <button
                     onClick={() => payer(o)}
@@ -175,12 +175,12 @@ export default function AbonnementPage() {
       )}
 
       {/* ── Historique de paiements ── */}
-      <h2 className="text-sm font-semibold text-white/40 uppercase tracking-wider mb-4">Historique</h2>
+      <h2 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-4">Historique</h2>
 
       {paiements.length === 0 ? (
-        <div className="bg-[#1E1E1E] rounded-xl border border-dashed border-white/[0.08] p-10 text-center">
-          <CreditCard size={28} className="text-white/15 mx-auto mb-2" />
-          <p className="text-white/30 text-sm">Aucun paiement effectué</p>
+        <div className="bg-[var(--bg-card)] rounded-xl border border-dashed border-[var(--border-base)] p-10 text-center">
+          <CreditCard size={28} className="text-[var(--text-muted)] mx-auto mb-2" />
+          <p className="text-[var(--text-muted)] text-sm">Aucun paiement effectué</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -189,14 +189,14 @@ export default function AbonnementPage() {
             return (
             <div
               key={p.id}
-              className={`bg-[#1E1E1E] border border-white/[0.08] rounded-xl p-4 flex items-center justify-between ${si.className || ''}`}
+              className={`bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4 flex items-center justify-between ${si.className || ''}`}
               style={si.style}
             >
               <div>
-                <p className="text-[#F5F5F3] text-sm font-medium">
+                <p className="text-[var(--text-primary)] text-sm font-medium">
                   {p.offres_coaching?.titre || 'Paiement'}
                 </p>
-                <p className="text-white/30 text-xs mt-0.5">
+                <p className="text-[var(--text-muted)] text-xs mt-0.5">
                   {p.date_paiement
                     ? new Date(p.date_paiement).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
                     : 'En attente'
@@ -204,7 +204,7 @@ export default function AbonnementPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <p className="text-[#F5F5F3] font-bold">{(p.montant / 100).toFixed(2)} €</p>
+                <p className="text-[var(--text-primary)] font-bold">{(p.montant / 100).toFixed(2)} €</p>
                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                   p.statut === 'paye' ? 'bg-green-500/10 text-green-400'
                     : p.statut === 'en_attente' ? 'bg-yellow-500/10 text-yellow-400'

@@ -159,65 +159,65 @@ export default function CoachParametresPage() {
     <div className="p-6 w-full max-w-2xl space-y-8">
       {/* Titre */}
       <div>
-        <h1 className="text-[#F5F5F3] text-2xl font-bold mb-1">Paramètres</h1>
-        <p className="text-white/40 text-sm">Gérez votre compte, modules et abonnement</p>
+        <h1 className="text-[var(--text-primary)] text-2xl font-bold mb-1">Paramètres</h1>
+        <p className="text-[var(--text-muted)] text-sm">Gérez votre compte, modules et abonnement</p>
       </div>
 
       {/* ── Section Profil Coach ── */}
-      <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-5">
+      <section className="bg-[var(--bg-card)] rounded-2xl p-6 space-y-5">
         <div className="flex items-center gap-3 mb-1">
           <div className="p-2 rounded-lg bg-[#FF6B2B]/10">
             <User size={18} className="text-[#FF6B2B]" />
           </div>
-          <h2 className="text-[#F5F5F3] font-semibold text-lg">Profil</h2>
+          <h2 className="text-[var(--text-primary)] font-semibold text-lg">Profil</h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-white/60 mb-1.5">Prénom</label>
+            <label className="block text-sm text-[var(--text-secondary)] mb-1.5">Prénom</label>
             <input
               type="text"
               value={coachPrenom}
               onChange={(e) => setCoachPrenom(e.target.value)}
               placeholder="Votre prénom"
-              className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
             />
           </div>
           <div>
-            <label className="block text-sm text-white/60 mb-1.5">Nom</label>
+            <label className="block text-sm text-[var(--text-secondary)] mb-1.5">Nom</label>
             <input
               type="text"
               value={coachNom}
               onChange={(e) => setCoachNom(e.target.value)}
               placeholder="Votre nom"
-              className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm text-white/60 mb-1.5">Email</label>
+          <label className="block text-sm text-[var(--text-secondary)] mb-1.5">Email</label>
           <div className="flex items-center gap-3">
             <input
               type="email"
               value={coachEmail}
               disabled
-              className="w-full bg-[#2A2A2A]/50 border border-white/[0.05] rounded-lg px-4 py-2.5 text-white/40 text-sm cursor-not-allowed"
+              className="w-full bg-[var(--bg-surface)]/50 border border-[var(--border-base)] rounded-lg px-4 py-2.5 text-[var(--text-muted)] text-sm cursor-not-allowed"
             />
-            <span className="text-white/20 text-xs whitespace-nowrap">via Supabase Auth</span>
+            <span className="text-[var(--text-muted)] text-xs whitespace-nowrap">via Supabase Auth</span>
           </div>
         </div>
       </section>
 
       {/* ── Section Message de bienvenue ── */}
-      <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-4">
+      <section className="bg-[var(--bg-card)] rounded-2xl p-6 space-y-4">
         <div className="flex items-center gap-3 mb-1">
           <div className="p-2 rounded-lg bg-blue-500/10">
             <Bell size={18} className="text-blue-400" />
           </div>
           <div>
-            <h2 className="text-[#F5F5F3] font-semibold text-lg">Message de bienvenue</h2>
-            <p className="text-white/40 text-xs">Affiché au 1er login de chaque nouveau client</p>
+            <h2 className="text-[var(--text-primary)] font-semibold text-lg">Message de bienvenue</h2>
+            <p className="text-[var(--text-muted)] text-xs">Affiché au 1er login de chaque nouveau client</p>
           </div>
         </div>
         <textarea
@@ -225,19 +225,19 @@ export default function CoachParametresPage() {
           onChange={(e) => setMessageBienvenue(e.target.value)}
           placeholder="Ex : Bienvenue dans ton espace coaching ! Je suis ravi de t'accompagner..."
           rows={4}
-          className="w-full bg-[#2A2A2A] border border-white/[0.08] rounded-lg px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none"
+          className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none"
         />
       </section>
 
       {/* ── Section Modules ── */}
-      <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-4">
+      <section className="bg-[var(--bg-card)] rounded-2xl p-6 space-y-4">
         <div className="flex items-center gap-3 mb-1">
           <div className="p-2 rounded-lg bg-purple-500/10">
             <Shield size={18} className="text-purple-400" />
           </div>
           <div>
-            <h2 className="text-[#F5F5F3] font-semibold text-lg">Modules activés</h2>
-            <p className="text-white/40 text-xs">Active ou désactive les modules visibles par tes clients</p>
+            <h2 className="text-[var(--text-primary)] font-semibold text-lg">Modules activés</h2>
+            <p className="text-[var(--text-muted)] text-xs">Active ou désactive les modules visibles par tes clients</p>
           </div>
         </div>
 
@@ -245,11 +245,11 @@ export default function CoachParametresPage() {
           {MODULES_CONFIG.map(({ key, label, desc }) => (
             <div
               key={key}
-              className="flex items-center justify-between py-3 px-4 rounded-xl bg-[#2A2A2A]/50"
+              className="flex items-center justify-between py-3 px-4 rounded-xl bg-[var(--bg-surface)]/50"
             >
               <div>
-                <p className="text-[#F5F5F3] text-sm font-medium">{label}</p>
-                <p className="text-white/30 text-xs">{desc}</p>
+                <p className="text-[var(--text-primary)] text-sm font-medium">{label}</p>
+                <p className="text-[var(--text-muted)] text-xs">{desc}</p>
               </div>
               <button
                 onClick={() => toggleModule(key)}
@@ -271,14 +271,14 @@ export default function CoachParametresPage() {
       </section>
 
       {/* ── Section Paiements en ligne (Stripe Connect) ── */}
-      <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-4">
+      <section className="bg-[var(--bg-card)] rounded-2xl p-6 space-y-4">
         <div className="flex items-center gap-3 mb-1">
           <div className="p-2 rounded-lg bg-[#635BFF]/10">
             <CreditCard size={18} className="text-[#635BFF]" />
           </div>
           <div>
-            <h2 className="text-[#F5F5F3] font-semibold text-lg">Paiements en ligne</h2>
-            <p className="text-white/40 text-xs">Connectez votre compte Stripe pour recevoir les paiements</p>
+            <h2 className="text-[var(--text-primary)] font-semibold text-lg">Paiements en ligne</h2>
+            <p className="text-[var(--text-muted)] text-xs">Connectez votre compte Stripe pour recevoir les paiements</p>
           </div>
         </div>
 
@@ -307,18 +307,18 @@ export default function CoachParametresPage() {
       </section>
 
       {/* ── Section Abonnement ── */}
-      <section className="bg-[#1E1E1E] rounded-2xl p-6 space-y-4">
+      <section className="bg-[var(--bg-card)] rounded-2xl p-6 space-y-4">
         <div className="flex items-center gap-3 mb-1">
           <div className="p-2 rounded-lg bg-amber-500/10">
             <CreditCard size={18} className="text-amber-400" />
           </div>
-          <h2 className="text-[#F5F5F3] font-semibold text-lg">Abonnement</h2>
+          <h2 className="text-[var(--text-primary)] font-semibold text-lg">Abonnement</h2>
         </div>
 
-        <div className="flex items-center justify-between p-4 rounded-xl bg-[#2A2A2A]/50">
+        <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-surface)]/50">
           <div>
-            <p className="text-[#F5F5F3] text-sm font-medium capitalize">Plan {plan}</p>
-            <p className="text-white/30 text-xs">
+            <p className="text-[var(--text-primary)] text-sm font-medium capitalize">Plan {plan}</p>
+            <p className="text-[var(--text-muted)] text-xs">
               {plan === 'starter' && '39€/mois · 5 clients'}
               {plan === 'pro' && '59€/mois · 20 clients'}
               {plan === 'unlimited' && '79€/mois · Illimité'}

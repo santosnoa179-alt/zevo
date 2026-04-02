@@ -117,10 +117,10 @@ export function StreakMilestone({ streak }) {
 
   return (
     <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[90] animate-bounce-in">
-      <div className="bg-[#1E1E1E] border border-[#FF6B2B]/30 rounded-2xl px-6 py-4 shadow-2xl shadow-[#FF6B2B]/10 text-center">
+      <div className="bg-[var(--bg-card)] border border-[#FF6B2B]/30 rounded-2xl px-6 py-4 shadow-2xl shadow-[#FF6B2B]/10 text-center">
         <span className="text-4xl block mb-2">{milestone.emoji}</span>
-        <p className="text-[#F5F5F3] font-bold text-lg">Streak {milestone.label} !</p>
-        <p className="text-white/40 text-xs mt-1">{streak} jours consécutifs — Continue comme ça !</p>
+        <p className="text-[var(--text-primary)] font-bold text-lg">Streak {milestone.label} !</p>
+        <p className="text-[var(--text-muted)] text-xs mt-1">{streak} jours consécutifs — Continue comme ça !</p>
       </div>
     </div>
   )

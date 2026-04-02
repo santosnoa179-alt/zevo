@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import {
-  Users, UserPlus, TrendingUp, DollarSign, Calendar,
+  Users, UserPlus, TrendingUp, Euro, Calendar,
   ChevronRight, MoreHorizontal, Flame, Eye, Target,
   BarChart3, Clock, MessageCircle, Zap, FileText,
   CheckCircle, AlertCircle, ArrowUpRight, ArrowDownRight,
@@ -47,8 +47,8 @@ const STATUT_COLORS = {
 function RevenueChart({ data }) {
   if (!data.length) return (
     <div className="flex flex-col items-center justify-center py-8">
-      <DollarSign size={28} className="text-white/10 mb-2" />
-      <p className="text-white/25 text-xs">Aucun paiement enregistré</p>
+      <Euro size={28} className="text-[var(--text-muted)] mb-2" />
+      <p className="text-[var(--text-muted)] text-xs">Aucun paiement enregistré</p>
     </div>
   )
 
@@ -62,7 +62,7 @@ function RevenueChart({ data }) {
     <div className="flex flex-col items-center w-full min-h-[230px]">
       <svg width={totalW} height={chartH + 30} className="overflow-visible">
         {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => (
-          <line key={i} x1={0} y1={chartH * (1 - pct)} x2={totalW} y2={chartH * (1 - pct)} stroke="rgba(255,255,255,0.04)" strokeWidth={1} />
+          <line key={i} x1={0} y1={chartH * (1 - pct)} x2={totalW} y2={chartH * (1 - pct)} stroke="var(--border-base)" strokeWidth={1} />
         ))}
         {data.map((d, i) => {
           const h = (d.value / max) * chartH
@@ -71,11 +71,11 @@ function RevenueChart({ data }) {
             <g key={i}>
               <rect x={x} y={chartH - h} width={barW} height={Math.max(h, 2)} rx={6} fill={d.highlight ? '#FF6B2B' : 'rgba(255,107,43,0.25)'} />
               {d.value > 0 && (
-                <text x={x + barW / 2} y={chartH - h - 6} textAnchor="middle" fill="rgba(245,245,243,0.5)" fontSize={10} fontWeight={600}>
+                <text x={x + barW / 2} y={chartH - h - 6} textAnchor="middle" fill="var(--text-secondary)" fontSize={10} fontWeight={600}>
                   {d.value >= 1000 ? `${(d.value / 1000).toFixed(1)}K` : `${d.value}€`}
                 </text>
               )}
-              <text x={x + barW / 2} y={chartH + 18} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={11}>
+              <text x={x + barW / 2} y={chartH + 18} textAnchor="middle" fill="var(--text-muted)" fontSize={11}>
                 {d.label}
               </text>
             </g>
@@ -417,13 +417,13 @@ export default function CoachDashboardPage() {
   if (loading) {
     return (
       <div className="p-6 space-y-6 w-full animate-pulse">
-        <div className="h-32 bg-[#27272a]/50 rounded-2xl" />
+        <div className="h-32 bg-[var(--bg-surface)]/50 rounded-2xl" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-[#27272a]/50 rounded-xl" />)}
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-[var(--bg-surface)]/50 rounded-xl" />)}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 h-64 bg-[#27272a]/50 rounded-xl" />
-          <div className="h-64 bg-[#27272a]/50 rounded-xl" />
+          <div className="lg:col-span-2 h-64 bg-[var(--bg-surface)]/50 rounded-xl" />
+          <div className="h-64 bg-[var(--bg-surface)]/50 rounded-xl" />
         </div>
       </div>
     )
@@ -438,7 +438,7 @@ export default function CoachDashboardPage() {
       {/* ══════════════════════════════════════ */}
       {/* HERO BANNER                            */}
       {/* ══════════════════════════════════════ */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1a1a2e] via-[#16162a] to-[#0f0f1a] border border-[#27272a] p-6 md:p-8">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--bg-card)] via-[var(--bg-surface)] to-[var(--bg-card)] border border-[var(--border-base)] p-6 md:p-8">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF6B2B]/8 rounded-full blur-[80px] pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-purple-500/5 rounded-full blur-[60px] pointer-events-none" />
 
@@ -448,10 +448,10 @@ export default function CoachDashboardPage() {
           </div>
 
           <div className="flex-1">
-            <h1 className="text-[#F5F5F3] text-xl md:text-2xl font-bold">
+            <h1 className="text-[var(--text-primary)] text-xl md:text-2xl font-bold">
               Bienvenue {prenom} <span className="inline-block">👋</span>
             </h1>
-            <p className="text-white/40 text-sm mt-1">
+            <p className="text-[var(--text-muted)] text-sm mt-1">
               {todayPlanning.length > 0
                 ? `${todayPlanning.length} tâche${todayPlanning.length > 1 ? 's' : ''} prévue${todayPlanning.length > 1 ? 's' : ''} — ${dateAffichee}`
                 : `Aucune tâche prévue — ${dateAffichee}`
@@ -461,10 +461,10 @@ export default function CoachDashboardPage() {
 
           {/* Quick stat badges */}
           <div className="hidden md:flex items-center gap-3">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] border border-[#27272a]">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)]">
               <Zap size={14} className="text-[#FF6B2B]" />
-              <span className="text-[#F5F5F3] text-sm font-semibold">{stats.actifs}</span>
-              <span className="text-white/30 text-xs">clients</span>
+              <span className="text-[var(--text-primary)] text-sm font-semibold">{stats.actifs}</span>
+              <span className="text-[var(--text-muted)] text-xs">clients</span>
             </div>
             {pendingForms > 0 && (
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/[0.06] border border-amber-500/20">
@@ -488,21 +488,21 @@ export default function CoachDashboardPage() {
           {
             label: 'Revenus ce mois',
             value: stats.mrr > 0 ? `${stats.mrr}€` : '0€',
-            icon: DollarSign,
+            icon: Euro,
             iconColor: 'text-amber-400',
             iconBg: 'bg-amber-500/10',
             evolution: revenueEvolution,
           },
         ].map((s, i) => (
-          <div key={i} className="bg-[#09090b] border border-[#27272a] rounded-xl p-4 hover:border-[#3f3f46] transition-colors">
+          <div key={i} className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-4 hover:border-[var(--border-base)] transition-colors">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-lg ${s.iconBg}`}>
                 <s.icon size={16} className={s.iconColor} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white/35 text-[11px]">{s.label}</p>
+                <p className="text-[var(--text-muted)] text-[11px]">{s.label}</p>
                 <div className="flex items-baseline gap-1.5">
-                  <p className="text-[#F5F5F3] text-xl font-bold">{s.value}</p>
+                  <p className="text-[var(--text-primary)] text-xl font-bold">{s.value}</p>
                   {s.evolution && (
                     <span className={`flex items-center gap-0.5 text-[10px] font-semibold ${s.evolution.positive ? 'text-green-400' : 'text-red-400'}`}>
                       {s.evolution.positive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
@@ -525,12 +525,12 @@ export default function CoachDashboardPage() {
         <div className="lg:col-span-2 space-y-4 md:space-y-5">
 
           {/* ── Carte Activité du jour ── */}
-          <div className="bg-[#09090b] border border-[#27272a] rounded-xl p-5">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-5">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-[#F5F5F3] text-base font-semibold">Activité du jour</h2>
+              <h2 className="text-[var(--text-primary)] text-base font-semibold">Activité du jour</h2>
               <button
                 onClick={chargerDonnees}
-                className="p-1.5 rounded-lg text-white/20 hover:text-white/40 hover:bg-white/[0.04] transition-colors"
+                className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors"
                 title="Rafraîchir"
               >
                 <RefreshCw size={14} />
@@ -539,46 +539,46 @@ export default function CoachDashboardPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Séances aujourd'hui */}
-              <div className="flex items-center gap-4 bg-[#18181b] rounded-xl p-4 border border-[#27272a]/50">
+              <div className="flex items-center gap-4 bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-base)]/50">
                 <div className="w-12 h-12 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
                   <Dumbbell size={22} className="text-[#FF6B2B]" />
                 </div>
                 <div>
-                  <p className="text-[#F5F5F3] text-2xl font-bold">{todaySeances.length}</p>
-                  <p className="text-white/30 text-xs">séance{todaySeances.length !== 1 ? 's' : ''} prévue{todaySeances.length !== 1 ? 's' : ''}</p>
+                  <p className="text-[var(--text-primary)] text-2xl font-bold">{todaySeances.length}</p>
+                  <p className="text-[var(--text-muted)] text-xs">séance{todaySeances.length !== 1 ? 's' : ''} prévue{todaySeances.length !== 1 ? 's' : ''}</p>
                 </div>
               </div>
 
               {/* Events du jour */}
-              <div className="flex items-center gap-4 bg-[#18181b] rounded-xl p-4 border border-[#27272a]/50">
+              <div className="flex items-center gap-4 bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-base)]/50">
                 <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
                   <Calendar size={22} className="text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-[#F5F5F3] text-2xl font-bold">{todayEvents.length}</p>
-                  <p className="text-white/30 text-xs">événement{todayEvents.length !== 1 ? 's' : ''}</p>
+                  <p className="text-[var(--text-primary)] text-2xl font-bold">{todayEvents.length}</p>
+                  <p className="text-[var(--text-muted)] text-xs">événement{todayEvents.length !== 1 ? 's' : ''}</p>
                 </div>
               </div>
 
               {/* Formulaires en attente */}
-              <div className="flex items-center gap-4 bg-[#18181b] rounded-xl p-4 border border-[#27272a]/50">
+              <div className="flex items-center gap-4 bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-base)]/50">
                 <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
                   <FileText size={22} className="text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-[#F5F5F3] text-2xl font-bold">{pendingForms}</p>
-                  <p className="text-white/30 text-xs">formulaire{pendingForms !== 1 ? 's' : ''} en attente</p>
+                  <p className="text-[var(--text-primary)] text-2xl font-bold">{pendingForms}</p>
+                  <p className="text-[var(--text-muted)] text-xs">formulaire{pendingForms !== 1 ? 's' : ''} en attente</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* ── Carte Suivi des Revenus ── */}
-          <div className="bg-[#09090b] border border-[#27272a] rounded-xl p-5">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-5">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-[#F5F5F3] text-base font-semibold">Suivi des Revenus</h2>
-                <p className="text-white/25 text-xs mt-0.5">6 derniers mois — Total : {totalRevenu6Mois > 0 ? `${totalRevenu6Mois.toLocaleString('fr-FR')}€` : '—'}</p>
+                <h2 className="text-[var(--text-primary)] text-base font-semibold">Suivi des Revenus</h2>
+                <p className="text-[var(--text-muted)] text-xs mt-0.5">6 derniers mois — Total : {totalRevenu6Mois > 0 ? `${totalRevenu6Mois.toLocaleString('fr-FR')}€` : '—'}</p>
               </div>
               <div className="flex items-center gap-2">
                 {revenueEvolution && (
@@ -591,7 +591,7 @@ export default function CoachDashboardPage() {
                 )}
                 <button
                   onClick={() => navigate('/coach/statistiques')}
-                  className="p-1.5 rounded-lg text-white/20 hover:text-white/40 hover:bg-white/[0.04] transition-colors"
+                  className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors"
                 >
                   <BarChart3 size={14} />
                 </button>
@@ -604,9 +604,9 @@ export default function CoachDashboardPage() {
           </div>
 
           {/* ── Carte Prospects (données réelles) ── */}
-          <div className="bg-[#09090b] border border-[#27272a] rounded-xl p-5">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[#F5F5F3] text-base font-semibold">Vos prospects</h2>
+              <h2 className="text-[var(--text-primary)] text-base font-semibold">Vos prospects</h2>
               <button
                 onClick={() => navigate('/coach/prospects')}
                 className="text-[#FF6B2B] text-xs font-medium hover:underline flex items-center gap-1"
@@ -617,8 +617,8 @@ export default function CoachDashboardPage() {
 
             {prospects.length === 0 ? (
               <div className="text-center py-8">
-                <Target size={28} className="text-white/10 mx-auto mb-2" />
-                <p className="text-white/25 text-xs">Aucun prospect pour le moment</p>
+                <Target size={28} className="text-[var(--text-muted)] mx-auto mb-2" />
+                <p className="text-[var(--text-muted)] text-xs">Aucun prospect pour le moment</p>
                 <button
                   onClick={() => navigate('/coach/prospects')}
                   className="mt-3 px-4 py-2 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-medium hover:bg-[#FF6B2B]/20 transition-colors"
@@ -630,7 +630,7 @@ export default function CoachDashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* Résumé par statut */}
                 <div className="space-y-2.5">
-                  <p className="text-white/25 text-[10px] uppercase tracking-wider font-semibold">Par statut</p>
+                  <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold">Par statut</p>
                   {Object.entries(
                     prospects.reduce((acc, p) => {
                       acc[p.statut] = (acc[p.statut] || 0) + 1
@@ -639,13 +639,13 @@ export default function CoachDashboardPage() {
                   ).map(([statut, count]) => (
                     <div key={statut} className="flex items-center gap-3">
                       <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: STATUT_COLORS[statut] || '#71717a' }} />
-                      <span className="text-white/50 text-sm flex-1 capitalize">{statut}</span>
-                      <span className="text-[#F5F5F3] text-sm font-semibold">{count}</span>
+                      <span className="text-[var(--text-secondary)] text-sm flex-1 capitalize">{statut}</span>
+                      <span className="text-[var(--text-primary)] text-sm font-semibold">{count}</span>
                     </div>
                   ))}
-                  <div className="flex items-center gap-3 pt-1 border-t border-[#27272a]">
+                  <div className="flex items-center gap-3 pt-1 border-t border-[var(--border-base)]">
                     <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0 bg-white/10" />
-                    <span className="text-white/30 text-sm flex-1">Valeur totale</span>
+                    <span className="text-[var(--text-muted)] text-sm flex-1">Valeur totale</span>
                     <span className="text-[#FF6B2B] text-sm font-bold">
                       {prospects.reduce((sum, p) => sum + (p.valeur_estimee || 0), 0)}€
                     </span>
@@ -654,14 +654,14 @@ export default function CoachDashboardPage() {
 
                 {/* Derniers prospects */}
                 <div className="space-y-2.5">
-                  <p className="text-white/25 text-[10px] uppercase tracking-wider font-semibold">Récents</p>
+                  <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold">Récents</p>
                   {prospects.slice(0, 4).map((p, i) => {
                     const color = STATUT_COLORS[p.statut] || '#71717a'
                     const fullName = [p.prenom, p.nom].filter(Boolean).join(' ') || p.email || '?'
                     return (
                       <div key={p.id} className="flex items-center gap-3">
                         <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                        <span className="text-white/50 text-sm flex-1 truncate">{fullName}</span>
+                        <span className="text-[var(--text-secondary)] text-sm flex-1 truncate">{fullName}</span>
                         <span
                           className="text-[10px] px-2 py-0.5 rounded-full font-medium capitalize"
                           style={{ backgroundColor: `${color}15`, color }}
@@ -681,11 +681,11 @@ export default function CoachDashboardPage() {
         <div className="space-y-4 md:space-y-5">
 
           {/* ── Planning d'aujourd'hui (données réelles) ── */}
-          <div className="bg-[#09090b] border border-[#27272a] rounded-xl p-5">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[#F5F5F3] text-base font-semibold">Aujourd'hui</h2>
+              <h2 className="text-[var(--text-primary)] text-base font-semibold">Aujourd'hui</h2>
               {lastRefresh && (
-                <span className="text-white/15 text-[10px]">
+                <span className="text-[var(--text-muted)] text-[10px]">
                   MàJ {lastRefresh.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                 </span>
               )}
@@ -694,8 +694,8 @@ export default function CoachDashboardPage() {
             {todayPlanning.length === 0 ? (
               <div className="text-center py-8">
                 <CheckCircle size={28} className="text-green-400/30 mx-auto mb-2" />
-                <p className="text-white/25 text-xs">Journée libre !</p>
-                <p className="text-white/15 text-[10px] mt-1">Aucune séance ni événement prévu</p>
+                <p className="text-[var(--text-muted)] text-xs">Journée libre !</p>
+                <p className="text-[var(--text-muted)] text-[10px] mt-1">Aucune séance ni événement prévu</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -706,7 +706,7 @@ export default function CoachDashboardPage() {
                     <button
                       key={`${item.type}-${item.id}`}
                       onClick={() => item.clientId ? navigate(`/coach/clients/${item.clientId}`) : null}
-                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/[0.03] transition-colors text-left group"
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-[var(--bg-surface)] transition-colors text-left group"
                     >
                       {/* Icon */}
                       <div
@@ -718,10 +718,10 @@ export default function CoachDashboardPage() {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-[#F5F5F3] text-sm font-medium truncate">
+                        <p className="text-[var(--text-primary)] text-sm font-medium truncate">
                           {item.clientName ?? item.label}
                         </p>
-                        <p className="text-white/25 text-[11px] mt-0.5">{meta.label}{item.label && item.clientName ? ` — ${item.label}` : ''}</p>
+                        <p className="text-[var(--text-muted)] text-[11px] mt-0.5">{meta.label}{item.label && item.clientName ? ` — ${item.label}` : ''}</p>
                       </div>
 
                       {/* Heure */}
@@ -729,7 +729,7 @@ export default function CoachDashboardPage() {
                         {item.isCompleted && (
                           <CheckCircle size={14} className="text-green-400" />
                         )}
-                        <span className="text-white/30 text-xs font-medium">
+                        <span className="text-[var(--text-muted)] text-xs font-medium">
                           {item.time ?? 'Journée'}
                         </span>
                       </div>
@@ -737,8 +737,8 @@ export default function CoachDashboardPage() {
                       {/* Actions au hover */}
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                         {item.clientId && (
-                          <div className="p-1 rounded-md hover:bg-white/[0.06]">
-                            <Eye size={13} className="text-white/30" />
+                          <div className="p-1 rounded-md hover:bg-[var(--bg-surface)]">
+                            <Eye size={13} className="text-[var(--text-muted)]" />
                           </div>
                         )}
                       </div>
@@ -750,7 +750,7 @@ export default function CoachDashboardPage() {
 
             <button
               onClick={() => navigate('/coach/calendar')}
-              className="w-full mt-3 py-2.5 rounded-xl border border-[#27272a] text-white/30 text-xs font-medium hover:text-white/50 hover:border-[#3f3f46] transition-colors flex items-center justify-center gap-2"
+              className="w-full mt-3 py-2.5 rounded-xl border border-[var(--border-base)] text-[var(--text-muted)] text-xs font-medium hover:text-[var(--text-secondary)] hover:border-[var(--border-base)] transition-colors flex items-center justify-center gap-2"
             >
               <Calendar size={13} />
               Voir le calendrier complet
@@ -758,8 +758,8 @@ export default function CoachDashboardPage() {
           </div>
 
           {/* ── Actions rapides ── */}
-          <div className="bg-[#09090b] border border-[#27272a] rounded-xl p-5">
-            <h2 className="text-[#F5F5F3] text-base font-semibold mb-4">Actions rapides</h2>
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-5">
+            <h2 className="text-[var(--text-primary)] text-base font-semibold mb-4">Actions rapides</h2>
             <div className="space-y-2">
               {[
                 { label: 'Nouveau client', icon: UserPlus, action: () => navigate('/coach/client-hub'), color: '#FF6B2B' },
@@ -770,7 +770,7 @@ export default function CoachDashboardPage() {
                 <button
                   key={i}
                   onClick={a.action}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.03] transition-colors text-left group"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--bg-surface)] transition-colors text-left group"
                 >
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -778,17 +778,17 @@ export default function CoachDashboardPage() {
                   >
                     <a.icon size={15} style={{ color: a.color }} />
                   </div>
-                  <span className="text-[#F5F5F3] text-sm font-medium flex-1">{a.label}</span>
-                  <ChevronRight size={13} className="text-white/15 group-hover:text-white/30 transition-colors" />
+                  <span className="text-[var(--text-primary)] text-sm font-medium flex-1">{a.label}</span>
+                  <ChevronRight size={13} className="text-[var(--text-muted)] group-hover:text-[var(--text-muted)] transition-colors" />
                 </button>
               ))}
             </div>
           </div>
 
           {/* ── Derniers clients ── */}
-          <div className="bg-[#09090b] border border-[#27272a] rounded-xl p-5">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[#F5F5F3] text-base font-semibold">Derniers clients</h2>
+              <h2 className="text-[var(--text-primary)] text-base font-semibold">Derniers clients</h2>
               <button
                 onClick={() => navigate('/coach/client-hub')}
                 className="text-[#FF6B2B] text-xs font-medium hover:underline"
@@ -799,8 +799,8 @@ export default function CoachDashboardPage() {
 
             {clients.length === 0 ? (
               <div className="text-center py-6">
-                <Users size={28} className="text-white/10 mx-auto mb-2" />
-                <p className="text-white/25 text-xs">Aucun client</p>
+                <Users size={28} className="text-[var(--text-muted)] mx-auto mb-2" />
+                <p className="text-[var(--text-muted)] text-xs">Aucun client</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -808,7 +808,7 @@ export default function CoachDashboardPage() {
                   <button
                     key={c.id}
                     onClick={() => navigate(`/coach/clients/${c.id}`)}
-                    className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/[0.03] transition-colors text-left"
+                    className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-[var(--bg-surface)] transition-colors text-left"
                   >
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
@@ -817,11 +817,11 @@ export default function CoachDashboardPage() {
                       {initialesFrom(c.profiles?.nom)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[#F5F5F3] text-sm font-medium truncate">
+                      <p className="text-[var(--text-primary)] text-sm font-medium truncate">
                         {c.profiles?.nom ?? c.profiles?.email}
                       </p>
                     </div>
-                    <span className="text-white/20 text-[10px] flex-shrink-0">
+                    <span className="text-[var(--text-muted)] text-[10px] flex-shrink-0">
                       {new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                     </span>
                   </button>

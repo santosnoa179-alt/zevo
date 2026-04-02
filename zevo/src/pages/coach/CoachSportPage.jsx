@@ -287,8 +287,8 @@ export default function CoachSportPage() {
       {/* ═══ Header ═══ */}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-[#F5F5F3] text-3xl font-bold tracking-tight">Programmes Sport</h1>
-          <p className="text-white/25 text-sm mt-1.5">Parcours multi-semaines pour tes clients</p>
+          <h1 className="text-[var(--text-primary)] text-3xl font-bold tracking-tight">Programmes Sport</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1.5">Parcours multi-semaines pour tes clients</p>
         </div>
         <button onClick={openCreate}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25 shrink-0">
@@ -298,7 +298,7 @@ export default function CoachSportPage() {
 
       {/* ═══ Tabs + Search ═══ */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-1 bg-[#1E1E1E] rounded-2xl p-1 border border-white/[0.06]">
+        <div className="flex items-center gap-1 bg-[var(--bg-card)] rounded-2xl p-1 border border-[var(--border-base)]">
           {[
             { key: 'assigned', label: 'Assignés', count: assignedCount },
             { key: 'templates', label: 'Modèles', count: templatesCount },
@@ -307,20 +307,20 @@ export default function CoachSportPage() {
               className={`py-2.5 px-5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                 activeTab === t.key
                   ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
-                  : 'text-white/40 hover:text-white/60'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}>
               {t.label}
-              <span className={`ml-1.5 text-xs ${activeTab === t.key ? 'text-white/70' : 'text-white/20'}`}>
+              <span className={`ml-1.5 text-xs ${activeTab === t.key ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}`}>
                 {t.count}
               </span>
             </button>
           ))}
         </div>
         <div className="relative">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Rechercher..."
-            className="w-56 bg-[#1E1E1E] border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all" />
+            className="w-56 bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl pl-10 pr-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all" />
         </div>
       </div>
 
@@ -328,7 +328,7 @@ export default function CoachSportPage() {
       {isLoading && (
         <div className="flex items-center justify-center py-20 gap-3">
           <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
-          <span className="text-white/25 text-sm">Chargement des programmes...</span>
+          <span className="text-[var(--text-muted)] text-sm">Chargement des programmes...</span>
         </div>
       )}
 
@@ -336,19 +336,19 @@ export default function CoachSportPage() {
       {!isLoading && activeTab === 'assigned' && (
         <>
           {filteredProgrammes.length === 0 ? (
-            <div className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] p-16 text-center">
+            <div className="bg-[var(--bg-card)] rounded-3xl border border-[var(--border-base)] p-16 text-center">
               <div className="w-16 h-16 bg-[#FF6B2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
                 <Dumbbell size={28} className="text-[#FF6B2B]" />
               </div>
-              <h3 className="text-[#F5F5F3] font-bold text-lg mb-2">
+              <h3 className="text-[var(--text-primary)] font-bold text-lg mb-2">
                 {search ? 'Aucun résultat' : 'Aucun programme assigné'}
               </h3>
-              <p className="text-white/25 text-sm mb-6 max-w-sm mx-auto">
+              <p className="text-[var(--text-muted)] text-sm mb-6 max-w-sm mx-auto">
                 {search ? `Aucun résultat pour "${search}"` : 'Crée un modèle puis assigne-le à un client.'}
               </p>
               {!search && (
                 <button onClick={() => setActiveTab('templates')}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/[0.06] text-white/60 text-sm font-medium hover:bg-white/[0.1] transition-all">
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--bg-surface)] transition-all">
                   <Layers size={14} /> Voir les modèles
                 </button>
               )}
@@ -371,7 +371,7 @@ export default function CoachSportPage() {
                       setBuilderProgramme({ ...prog, mode: 'programme' })
                       setCurrentView('builder')
                     }}
-                    className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] p-5 md:p-6 hover:border-white/[0.12] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 transition-all duration-300 cursor-pointer">
+                    className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] p-5 md:p-6 hover:border-[var(--border-base)] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 transition-all duration-300 cursor-pointer">
 
                     <div className="flex items-start gap-4">
                       <div className={`w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold shrink-0 uppercase ${
@@ -382,15 +382,15 @@ export default function CoachSportPage() {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
-                          <h3 className="text-[#F5F5F3] font-bold text-sm">{assign.client_nom}</h3>
+                          <h3 className="text-[var(--text-primary)] font-bold text-sm">{assign.client_nom}</h3>
                           <span className="w-1 h-1 rounded-full bg-white/15" />
-                          <span className="text-white/40 text-sm truncate">{prog.titre}</span>
+                          <span className="text-[var(--text-muted)] text-sm truncate">{prog.titre}</span>
                         </div>
 
                         <div className="flex items-center gap-2 mb-3.5">
                           <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
                             assign.statut === 'termine'
-                              ? 'text-white/40 bg-white/5 border-white/10'
+                              ? 'text-[var(--text-muted)] bg-white/5 border-white/10'
                               : assign.statut === 'pause'
                                 ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
                                 : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
@@ -398,17 +398,17 @@ export default function CoachSportPage() {
                             {assign.statut === 'termine' ? 'Terminé' : assign.statut === 'pause' ? 'Pause' : 'En cours'}
                           </span>
                           {prog.categorie && (
-                            <span className="text-white/20 text-xs">{prog.categorie}</span>
+                            <span className="text-[var(--text-muted)] text-xs">{prog.categorie}</span>
                           )}
                           {assign.date_debut && (
-                            <span className="text-white/20 text-xs">
+                            <span className="text-[var(--text-muted)] text-xs">
                               Depuis le {new Date(assign.date_debut).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                             </span>
                           )}
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                          <div className="flex-1 h-2 rounded-full bg-[var(--bg-surface)] overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-700 ease-out ${
                                 isComplete
@@ -436,14 +436,14 @@ export default function CoachSportPage() {
       {!isLoading && activeTab === 'templates' && (
         <>
           {filteredProgrammes.length === 0 ? (
-            <div className="bg-[#1E1E1E] rounded-3xl border border-white/[0.06] p-20 text-center">
+            <div className="bg-[var(--bg-card)] rounded-3xl border border-[var(--border-base)] p-20 text-center">
               <div className="w-20 h-20 bg-[#FF6B2B]/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <Dumbbell size={32} className="text-[#FF6B2B]" />
               </div>
-              <h3 className="text-[#F5F5F3] font-bold text-xl mb-2">
+              <h3 className="text-[var(--text-primary)] font-bold text-xl mb-2">
                 {search ? 'Aucun résultat' : 'Aucun programme'}
               </h3>
-              <p className="text-white/25 text-sm mb-8 max-w-md mx-auto">
+              <p className="text-[var(--text-muted)] text-sm mb-8 max-w-md mx-auto">
                 {search ? `Aucun modèle pour "${search}"` : 'Crée ton premier programme de coaching structuré.'}
               </p>
               {!search && (
@@ -457,7 +457,7 @@ export default function CoachSportPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {filteredProgrammes.map(prog => (
                 <div key={prog.id}
-                  className="bg-[#1E1E1E] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/[0.12] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 group">
+                  className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] overflow-hidden hover:border-[var(--border-base)] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 group">
 
                   <div className="p-6">
                     <div className="flex items-start gap-4 mb-5">
@@ -465,19 +465,19 @@ export default function CoachSportPage() {
                         <Dumbbell size={20} className="text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[#F5F5F3] font-bold text-base leading-tight truncate">{prog.titre}</h3>
+                        <h3 className="text-[var(--text-primary)] font-bold text-base leading-tight truncate">{prog.titre}</h3>
                         {prog.description && (
-                          <p className="text-white/25 text-sm mt-1 line-clamp-2">{prog.description}</p>
+                          <p className="text-[var(--text-muted)] text-sm mt-1 line-clamp-2">{prog.description}</p>
                         )}
                       </div>
                       <button onClick={e => { e.stopPropagation(); handleDeleteProgramme(prog.id) }}
-                        className="p-2 rounded-xl text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+                        className="p-2 rounded-xl text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
                         <Trash2 size={15} />
                       </button>
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap mb-6">
-                      <span className="inline-flex items-center gap-1.5 bg-[#0D0D0D] px-3 py-1.5 rounded-xl text-xs text-white/40 font-medium border border-white/[0.04]">
+                      <span className="inline-flex items-center gap-1.5 bg-[var(--bg-base)] px-3 py-1.5 rounded-xl text-xs text-[var(--text-muted)] font-medium border border-[var(--border-subtle)]">
                         <Calendar size={12} /> {prog.duree_semaines || 4} sem.
                       </span>
                       {prog.categorie && (
@@ -488,7 +488,7 @@ export default function CoachSportPage() {
                       <span className={`px-3 py-1.5 rounded-xl text-xs font-semibold border ${
                         prog.actif
                           ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/15'
-                          : 'bg-white/5 text-white/30 border-white/[0.04]'
+                          : 'bg-white/5 text-[var(--text-muted)] border-[var(--border-subtle)]'
                       }`}>
                         {prog.actif ? 'Publié' : 'Brouillon'}
                       </span>
@@ -496,7 +496,7 @@ export default function CoachSportPage() {
 
                     <div className="grid grid-cols-2 gap-3">
                       <button onClick={() => { setBuilderProgramme({ ...prog, mode: 'modele', client_id: null }); setCurrentView('builder') }}
-                        className="py-2.5 rounded-xl bg-white/[0.04] text-white/50 text-sm font-medium hover:bg-white/[0.08] hover:text-white transition-all flex items-center justify-center gap-2 border border-white/[0.04]">
+                        className="py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--bg-surface)] hover:text-white transition-all flex items-center justify-center gap-2 border border-[var(--border-subtle)]">
                         <Eye size={14} /> Modifier
                       </button>
                       <button onClick={() => { setShowAssignModal(true); setAssignModelId(prog.id); setAssignClientId('') }}
@@ -518,20 +518,20 @@ export default function CoachSportPage() {
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowCreateModal(false)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative w-full max-w-xl bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+          <div className="relative w-full max-w-xl bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}>
 
             {/* Header */}
-            <div className="px-7 pt-6 pb-4 border-b border-[#27272a]">
+            <div className="px-7 pt-6 pb-4 border-b border-[var(--border-base)]">
               <div className="flex items-start gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 mt-0.5">
                   <CalendarDays size={20} className="text-[#FF6B2B]" />
                 </div>
                 <div>
-                  <h2 className="text-[#F5F5F3] text-lg font-bold">Créer un nouveau programme</h2>
-                  <p className="text-white/25 text-sm mt-0.5">Créez un programme personnalisé pour un client</p>
+                  <h2 className="text-[var(--text-primary)] text-lg font-bold">Créer un nouveau programme</h2>
+                  <p className="text-[var(--text-muted)] text-sm mt-0.5">Créez un programme personnalisé pour un client</p>
                 </div>
-                <button onClick={() => setShowCreateModal(false)} className="ml-auto p-2 rounded-xl text-white/20 hover:text-white hover:bg-white/[0.06] transition-all">
+                <button onClick={() => setShowCreateModal(false)} className="ml-auto p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all">
                   <X size={18} />
                 </button>
               </div>
@@ -541,51 +541,51 @@ export default function CoachSportPage() {
 
               {/* ── Créer : Programme / Modèle ── */}
               <div>
-                <label className="block text-xs text-white/30 font-semibold uppercase tracking-wider mb-2.5">Créer</label>
+                <label className="block text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2.5">Créer</label>
                 <div className="grid grid-cols-2 gap-3">
                   <button onClick={() => setCreateMode('programme')}
                     className={`p-4 rounded-xl border-2 text-left transition-all ${
                       createMode === 'programme'
                         ? 'border-[#FF6B2B] bg-[#FF6B2B]/5'
-                        : 'border-[#27272a] hover:border-[#27272a]/80 bg-[#0D0D0D]'
+                        : 'border-[var(--border-base)] hover:border-[var(--border-base)]/80 bg-[var(--bg-base)]'
                     }`}>
                     <div className="flex items-center gap-2 mb-1">
-                      <CalendarDays size={16} className={createMode === 'programme' ? 'text-[#FF6B2B]' : 'text-white/30'} />
-                      <span className={`text-sm font-bold ${createMode === 'programme' ? 'text-[#F5F5F3]' : 'text-white/50'}`}>Programme</span>
+                      <CalendarDays size={16} className={createMode === 'programme' ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'} />
+                      <span className={`text-sm font-bold ${createMode === 'programme' ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>Programme</span>
                     </div>
-                    <p className="text-white/25 text-[11px]">Pour un client spécifique</p>
+                    <p className="text-[var(--text-muted)] text-[11px]">Pour un client spécifique</p>
                   </button>
                   <button onClick={() => setCreateMode('modele')}
                     className={`p-4 rounded-xl border-2 text-left transition-all ${
                       createMode === 'modele'
                         ? 'border-[#FF6B2B] bg-[#FF6B2B]/5'
-                        : 'border-[#27272a] hover:border-[#27272a]/80 bg-[#0D0D0D]'
+                        : 'border-[var(--border-base)] hover:border-[var(--border-base)]/80 bg-[var(--bg-base)]'
                     }`}>
                     <div className="flex items-center gap-2 mb-1">
-                      <Dumbbell size={16} className={createMode === 'modele' ? 'text-[#FF6B2B]' : 'text-white/30'} />
-                      <span className={`text-sm font-bold ${createMode === 'modele' ? 'text-[#F5F5F3]' : 'text-white/50'}`}>Modèle</span>
+                      <Dumbbell size={16} className={createMode === 'modele' ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'} />
+                      <span className={`text-sm font-bold ${createMode === 'modele' ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>Modèle</span>
                     </div>
-                    <p className="text-white/25 text-[11px]">Réutilisable pour plusieurs clients</p>
+                    <p className="text-[var(--text-muted)] text-[11px]">Réutilisable pour plusieurs clients</p>
                   </button>
                 </div>
               </div>
 
               {/* ── Type de programme ── */}
               <div>
-                <label className="block text-xs text-white/30 font-semibold uppercase tracking-wider mb-2.5">Type de programme <span className="text-[#FF6B2B]">*</span></label>
+                <label className="block text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2.5">Type de programme <span className="text-[#FF6B2B]">*</span></label>
                 <div className="grid grid-cols-2 gap-3">
                   {/* Calendrier */}
                   <button onClick={() => setProgramType('calendrier')}
                     className={`p-5 rounded-xl border-2 text-left transition-all relative ${
                       programType === 'calendrier'
                         ? 'border-[#FF6B2B] bg-[#FF6B2B]/5'
-                        : 'border-[#27272a] hover:border-[#27272a]/80 bg-[#0D0D0D]'
+                        : 'border-[var(--border-base)] hover:border-[var(--border-base)]/80 bg-[var(--bg-base)]'
                     }`}>
-                    <CalendarDays size={22} className={`mb-3 ${programType === 'calendrier' ? 'text-[#FF6B2B]' : 'text-white/20'}`} />
-                    <p className={`text-sm font-bold mb-1 ${programType === 'calendrier' ? 'text-[#F5F5F3]' : 'text-white/50'}`}>
+                    <CalendarDays size={22} className={`mb-3 ${programType === 'calendrier' ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`} />
+                    <p className={`text-sm font-bold mb-1 ${programType === 'calendrier' ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                       Programme Calendrier
                     </p>
-                    <p className="text-white/20 text-[11px] leading-relaxed">
+                    <p className="text-[var(--text-muted)] text-[11px] leading-relaxed">
                       Planification structurée jour par jour avec une durée définie et une date de fin calculée automatiquement
                     </p>
                     {programType === 'calendrier' && (
@@ -599,13 +599,13 @@ export default function CoachSportPage() {
                     className={`p-5 rounded-xl border-2 text-left transition-all relative ${
                       programType === 'flexible'
                         ? 'border-[#FF6B2B] bg-[#FF6B2B]/5'
-                        : 'border-[#27272a] hover:border-[#27272a]/80 bg-[#0D0D0D]'
+                        : 'border-[var(--border-base)] hover:border-[var(--border-base)]/80 bg-[var(--bg-base)]'
                     }`}>
-                    <RefreshCw size={22} className={`mb-3 ${programType === 'flexible' ? 'text-[#FF6B2B]' : 'text-white/20'}`} />
-                    <p className={`text-sm font-bold mb-1 ${programType === 'flexible' ? 'text-[#F5F5F3]' : 'text-white/50'}`}>
+                    <RefreshCw size={22} className={`mb-3 ${programType === 'flexible' ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`} />
+                    <p className={`text-sm font-bold mb-1 ${programType === 'flexible' ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                       Programme Flexible
                     </p>
-                    <p className="text-white/20 text-[11px] leading-relaxed">
+                    <p className="text-[var(--text-muted)] text-[11px] leading-relaxed">
                       Séances types flexibles que le coaché fait quand il veut, avec date de fin optionnelle
                     </p>
                     {programType === 'flexible' && (
@@ -620,16 +620,16 @@ export default function CoachSportPage() {
               {/* ── Formulaire ── */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs text-white/30 font-semibold uppercase tracking-wider mb-2">Titre du programme <span className="text-[#FF6B2B]">*</span></label>
+                  <label className="block text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2">Titre du programme <span className="text-[#FF6B2B]">*</span></label>
                   <input type="text" value={createTitle} onChange={e => setCreateTitle(e.target.value)}
                     placeholder="Ex: Programme débutant"
-                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 transition-all" />
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-all" />
                 </div>
 
                 <div>
-                  <label className="block text-xs text-white/30 font-semibold uppercase tracking-wider mb-2">Date de début <span className="text-[#FF6B2B]">*</span></label>
+                  <label className="block text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2">Date de début <span className="text-[#FF6B2B]">*</span></label>
                   <input type="date" value={createDate} onChange={e => setCreateDate(e.target.value)}
-                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all" />
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all" />
                   <div className="flex items-start gap-2 mt-2 bg-blue-500/5 border border-blue-500/10 rounded-lg px-3 py-2">
                     <Clock size={13} className="text-blue-400 mt-0.5 shrink-0" />
                     <p className="text-blue-400/70 text-[11px]">La date de fin sera calculée automatiquement en fonction du nombre de séances.</p>
@@ -637,21 +637,21 @@ export default function CoachSportPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-white/30 font-semibold uppercase tracking-wider mb-2">Tags</label>
+                  <label className="block text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2">Tags</label>
                   <input type="text" value={createTags} onChange={e => setCreateTags(e.target.value)}
                     placeholder="Ex: débutant, force, endurance"
-                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 transition-all" />
-                  <p className="text-white/15 text-[10px] mt-1">Appuyez sur Entrée ou virgule pour ajouter un tag</p>
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-all" />
+                  <p className="text-[var(--text-muted)] text-[10px] mt-1">Appuyez sur Entrée ou virgule pour ajouter un tag</p>
                 </div>
 
                 {createMode === 'programme' && (
                   <div>
-                    <label className="block text-xs text-white/30 font-semibold uppercase tracking-wider mb-2">Assigner à <span className="text-[#FF6B2B]">*</span></label>
+                    <label className="block text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2">Assigner à <span className="text-[#FF6B2B]">*</span></label>
                     <select value={createClient} onChange={e => setCreateClient(e.target.value)}
-                      className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all appearance-none">
-                      <option value="" className="bg-[#1E1E1E]">Sélectionner un client</option>
+                      className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all appearance-none">
+                      <option value="" className="bg-[var(--bg-card)]">Sélectionner un client</option>
                       {clients.map(c => (
-                        <option key={c.id} value={c.profiles?.id} className="bg-[#1E1E1E]">{getClientName(c)}</option>
+                        <option key={c.id} value={c.profiles?.id} className="bg-[var(--bg-card)]">{getClientName(c)}</option>
                       ))}
                     </select>
                   </div>
@@ -667,9 +667,9 @@ export default function CoachSportPage() {
             </div>
 
             {/* Footer */}
-            <div className="px-7 py-4 border-t border-[#27272a] flex items-center justify-end gap-3">
+            <div className="px-7 py-4 border-t border-[var(--border-base)] flex items-center justify-end gap-3">
               <button onClick={() => setShowCreateModal(false)}
-                className="px-5 py-2.5 rounded-xl text-sm text-white/30 hover:text-white/60 transition-colors font-medium">
+                className="px-5 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors font-medium">
                 Annuler
               </button>
               <button onClick={handleCreate}
@@ -689,19 +689,19 @@ export default function CoachSportPage() {
       {showAssignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowAssignModal(false)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative w-full max-w-md bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+          <div className="relative w-full max-w-md bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
             <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
 
             {/* Header */}
-            <div className="px-6 pt-5 pb-4 border-b border-[#27272a]">
+            <div className="px-6 pt-5 pb-4 border-b border-[var(--border-base)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-[#F5F5F3] text-lg font-bold">Assigner un modèle</h2>
-                  <p className="text-white/30 text-sm mt-0.5">Déployez un programme existant pour un client</p>
+                  <h2 className="text-[var(--text-primary)] text-lg font-bold">Assigner un modèle</h2>
+                  <p className="text-[var(--text-muted)] text-sm mt-0.5">Déployez un programme existant pour un client</p>
                 </div>
                 <button onClick={() => setShowAssignModal(false)}
-                  className="p-2 rounded-xl text-white/20 hover:text-white hover:bg-white/[0.06] transition-all">
+                  className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all">
                   <X size={18} />
                 </button>
               </div>
@@ -711,14 +711,14 @@ export default function CoachSportPage() {
             <div className="p-6 space-y-5">
               {/* Model select */}
               <div>
-                <label className="block text-xs text-white/30 font-semibold uppercase tracking-wider mb-2">Choisir un modèle</label>
+                <label className="block text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2">Choisir un modèle</label>
                 {modelProgrammes.length === 0 ? (
-                  <p className="text-white/20 text-sm py-3 text-center bg-[#0D0D0D] rounded-xl border border-[#27272a]">
+                  <p className="text-[var(--text-muted)] text-sm py-3 text-center bg-[var(--bg-base)] rounded-xl border border-[var(--border-base)]">
                     Aucun modèle disponible — créez-en un d'abord
                   </p>
                 ) : (
                   <select value={assignModelId} onChange={e => setAssignModelId(e.target.value)}
-                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all">
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all">
                     <option value="">Sélectionner un programme...</option>
                     {modelProgrammes.map(p => (
                       <option key={p.id} value={p.id}>{p.titre} ({p.duree_semaines || '?'} sem.)</option>
@@ -729,9 +729,9 @@ export default function CoachSportPage() {
 
               {/* Client select */}
               <div>
-                <label className="block text-xs text-white/30 font-semibold uppercase tracking-wider mb-2">À quel client ?</label>
+                <label className="block text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2">À quel client ?</label>
                 <select value={assignClientId} onChange={e => setAssignClientId(e.target.value)}
-                  className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all">
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all">
                   <option value="">Sélectionner un client...</option>
                   {clients.map(c => (
                     <option key={c.id} value={c.profiles?.id}>{getClientName(c)}</option>
@@ -741,9 +741,9 @@ export default function CoachSportPage() {
 
               {/* Summary */}
               {assignModelId && assignClientId && (
-                <div className="bg-[#0D0D0D] rounded-xl p-4 border border-white/[0.04]">
-                  <p className="text-xs text-white/30 mb-1">Résumé</p>
-                  <p className="text-sm text-[#F5F5F3]">
+                <div className="bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-subtle)]">
+                  <p className="text-xs text-[var(--text-muted)] mb-1">Résumé</p>
+                  <p className="text-sm text-[var(--text-primary)]">
                     <span className="font-semibold text-[#FF6B2B]">{programmes.find(p => p.id === assignModelId)?.titre}</span>
                     {' → '}
                     <span className="font-semibold">{clients.find(c => c.profiles?.id === assignClientId)?.profiles?.nom}</span>
@@ -755,7 +755,7 @@ export default function CoachSportPage() {
             {/* Footer */}
             <div className="px-6 pb-6 flex items-center gap-3">
               <button onClick={() => setShowAssignModal(false)}
-                className="flex-1 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.04] transition-all border border-white/[0.04]">
+                className="flex-1 py-3 rounded-xl text-sm text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all border border-[var(--border-subtle)]">
                 Annuler
               </button>
               <button onClick={handleAssignModelToClient}

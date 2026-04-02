@@ -317,10 +317,10 @@ export default function WorkoutTrackerPage() {
   // Loading
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-[#09090b] z-[100] flex items-center justify-center">
+      <div className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-[#FF6B2B] animate-spin mx-auto mb-4" />
-          <p className="text-white/40 text-sm">Chargement de la séance...</p>
+          <p className="text-[var(--text-muted)] text-sm">Chargement de la séance...</p>
         </div>
       </div>
     )
@@ -329,13 +329,13 @@ export default function WorkoutTrackerPage() {
   // Erreur
   if (error) {
     return (
-      <div className="fixed inset-0 bg-[#09090b] z-[100] flex items-center justify-center p-6">
+      <div className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] flex items-center justify-center p-6">
         <div className="text-center max-w-sm">
           <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
-          <h2 className="text-[#F5F5F3] text-xl font-bold mb-2">Oops !</h2>
-          <p className="text-white/40 text-sm mb-6">{error}</p>
+          <h2 className="text-[var(--text-primary)] text-xl font-bold mb-2">Oops !</h2>
+          <p className="text-[var(--text-muted)] text-sm mb-6">{error}</p>
           <button
             onClick={() => navigate(-1)}
             className="px-6 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors"
@@ -352,7 +352,7 @@ export default function WorkoutTrackerPage() {
   // ══════════════════════════════════════
   if (finished) {
     return (
-      <div className="fixed inset-0 bg-[#09090b] z-[100] flex items-center justify-center p-6">
+      <div className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] flex items-center justify-center p-6">
         <div className="text-center max-w-sm w-full">
           {/* Celebration */}
           <div className="relative mb-8">
@@ -363,25 +363,25 @@ export default function WorkoutTrackerPage() {
             <div className="absolute inset-0 w-24 h-24 rounded-full mx-auto animate-ping bg-[#FF6B2B]/20" style={{ animationDuration: '2s' }} />
           </div>
 
-          <h1 className="text-[#F5F5F3] text-3xl font-black mb-2">Bravo !</h1>
-          <p className="text-white/40 text-sm mb-8">Séance terminée avec succès</p>
+          <h1 className="text-[var(--text-primary)] text-3xl font-black mb-2">Bravo !</h1>
+          <p className="text-[var(--text-muted)] text-sm mb-8">Séance terminée avec succès</p>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mb-8">
-            <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4">
+            <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4">
               <Timer className="w-5 h-5 text-[#FF6B2B] mx-auto mb-2" />
-              <p className="text-[#F5F5F3] text-lg font-bold">{formatTime(globalTime)}</p>
-              <p className="text-white/30 text-[10px] mt-1">Durée</p>
+              <p className="text-[var(--text-primary)] text-lg font-bold">{formatTime(globalTime)}</p>
+              <p className="text-[var(--text-muted)] text-[10px] mt-1">Durée</p>
             </div>
-            <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4">
+            <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4">
               <Dumbbell className="w-5 h-5 text-[#FF6B2B] mx-auto mb-2" />
-              <p className="text-[#F5F5F3] text-lg font-bold">{totalExos}</p>
-              <p className="text-white/30 text-[10px] mt-1">Exercices</p>
+              <p className="text-[var(--text-primary)] text-lg font-bold">{totalExos}</p>
+              <p className="text-[var(--text-muted)] text-[10px] mt-1">Exercices</p>
             </div>
-            <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4">
+            <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4">
               <Check className="w-5 h-5 text-[#FF6B2B] mx-auto mb-2" />
-              <p className="text-[#F5F5F3] text-lg font-bold">{totalDone}/{totalSeries}</p>
-              <p className="text-white/30 text-[10px] mt-1">Séries</p>
+              <p className="text-[var(--text-primary)] text-lg font-bold">{totalDone}/{totalSeries}</p>
+              <p className="text-[var(--text-muted)] text-[10px] mt-1">Séries</p>
             </div>
           </div>
 
@@ -404,7 +404,7 @@ export default function WorkoutTrackerPage() {
   const allSeriesDone = currentExo ? completedForCurrent.size >= (currentExo.series || 0) : false
 
   return (
-    <div className="fixed inset-0 bg-[#09090b] z-[100] flex flex-col select-none overflow-hidden">
+    <div className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] flex flex-col select-none overflow-hidden">
 
       {/* ═══════ HEADER ═══════ */}
       <div className="flex-shrink-0 px-4 pt-4 pb-3 space-y-3">
@@ -412,27 +412,27 @@ export default function WorkoutTrackerPage() {
         <div className="flex items-center justify-between">
           <button
             onClick={handleQuit}
-            className="w-10 h-10 rounded-xl bg-white/[0.06] flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.1] active:scale-95 transition-all"
+            className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-surface)] active:scale-95 transition-all"
           >
             <X className="w-5 h-5" />
           </button>
 
           <div className="flex-1 mx-4 text-center min-w-0">
-            <p className="text-[#F5F5F3] text-sm font-bold truncate">{seance?.titre || 'Entraînement'}</p>
-            <p className="text-white/30 text-[10px]">Exercice {currentIdx + 1} / {totalExos}</p>
+            <p className="text-[var(--text-primary)] text-sm font-bold truncate">{seance?.titre || 'Entraînement'}</p>
+            <p className="text-[var(--text-muted)] text-[10px]">Exercice {currentIdx + 1} / {totalExos}</p>
           </div>
 
           <button
             onClick={() => setIsRunning(r => !r)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] active:scale-95 transition-all"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] active:scale-95 transition-all"
           >
             {isRunning ? <Pause className="w-3.5 h-3.5 text-[#FF6B2B]" /> : <Play className="w-3.5 h-3.5 text-[#FF6B2B]" />}
-            <span className="text-[#F5F5F3] text-sm font-bold tabular-nums">{formatTime(globalTime)}</span>
+            <span className="text-[var(--text-primary)] text-sm font-bold tabular-nums">{formatTime(globalTime)}</span>
           </button>
         </div>
 
         {/* Progress bar */}
-        <div className="w-full h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+        <div className="w-full h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progressPct}%` }}
@@ -462,7 +462,7 @@ export default function WorkoutTrackerPage() {
 
                 if (!url) {
                   return (
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl h-44 flex items-center justify-center mb-5">
+                    <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl h-44 flex items-center justify-center mb-5">
                       <div className="text-center">
                         <Dumbbell className="w-10 h-10 text-white/[0.08] mx-auto mb-2" />
                         <p className="text-white/[0.15] text-[10px] font-medium">Vidéo de démonstration</p>
@@ -482,7 +482,7 @@ export default function WorkoutTrackerPage() {
                 // 1. Image statique — PAS d'icône play, PAS de contrôles vidéo
                 if (isImageFile) {
                   return (
-                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06]">
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)]">
                       <img
                         src={url}
                         alt={currentExo.exercices?.nom}
@@ -495,7 +495,7 @@ export default function WorkoutTrackerPage() {
                 // 2. YouTube embed
                 if (youtubeMatch) {
                   return (
-                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black aspect-video">
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)] bg-black aspect-video">
                       <iframe
                         key={currentExo.id}
                         src={`https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=1&mute=1&loop=1&playlist=${youtubeMatch[1]}`}
@@ -511,7 +511,7 @@ export default function WorkoutTrackerPage() {
                 // 3. Vimeo embed
                 if (vimeoMatch) {
                   return (
-                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black aspect-video">
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)] bg-black aspect-video">
                       <iframe
                         key={currentExo.id}
                         src={`https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1&muted=1&loop=1`}
@@ -527,7 +527,7 @@ export default function WorkoutTrackerPage() {
                 // 4. Fichier vidéo direct (.mp4, .webm, .mov)
                 if (isVideoFile) {
                   return (
-                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black">
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)] bg-black">
                       <video
                         key={currentExo.id}
                         src={url}
@@ -546,7 +546,7 @@ export default function WorkoutTrackerPage() {
                 // Si ça vient de image_url → afficher comme image
                 if (url === imageUrl && url !== videoUrl) {
                   return (
-                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06]">
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)]">
                       <img
                         src={url}
                         alt={currentExo.exercices?.nom}
@@ -559,7 +559,7 @@ export default function WorkoutTrackerPage() {
                 // Si ça vient de video_url → afficher comme vidéo
                 if (url === videoUrl) {
                   return (
-                    <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black">
+                    <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)] bg-black">
                       <video
                         key={currentExo.id}
                         src={url}
@@ -576,7 +576,7 @@ export default function WorkoutTrackerPage() {
 
                 // 6. URL générique (Google Drive, etc.) — iframe
                 return (
-                  <div className="rounded-2xl overflow-hidden mb-5 border border-white/[0.06] bg-black aspect-video">
+                  <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)] bg-black aspect-video">
                     <iframe
                       key={currentExo.id}
                       src={url}
@@ -598,19 +598,19 @@ export default function WorkoutTrackerPage() {
                     </span>
                   )}
                   {currentExo.exercices?.equipment && (
-                    <span className="text-[10px] font-medium text-white/20">
+                    <span className="text-[10px] font-medium text-[var(--text-muted)]">
                       {currentExo.exercices.equipment}
                     </span>
                   )}
                 </div>
-                <h1 className="text-[#F5F5F3] text-2xl font-black leading-tight">
+                <h1 className="text-[var(--text-primary)] text-2xl font-black leading-tight">
                   {currentExo.exercices?.nom || 'Exercice'}
                 </h1>
                 {currentExo.poids && (
-                  <p className="text-white/30 text-sm mt-1">{currentExo.series} séries × {currentExo.reps} reps — {currentExo.poids} kg</p>
+                  <p className="text-[var(--text-muted)] text-sm mt-1">{currentExo.series} séries × {currentExo.reps} reps — {currentExo.poids} kg</p>
                 )}
                 {!currentExo.poids && (
-                  <p className="text-white/30 text-sm mt-1">{currentExo.series} séries × {currentExo.reps} reps</p>
+                  <p className="text-[var(--text-muted)] text-sm mt-1">{currentExo.series} séries × {currentExo.reps} reps</p>
                 )}
               </div>
 
@@ -618,8 +618,8 @@ export default function WorkoutTrackerPage() {
               {isResting && (
                 <div className="mb-5 bg-[#FF6B2B]/[0.08] border border-[#FF6B2B]/20 rounded-2xl p-5 text-center">
                   <p className="text-[#FF6B2B] text-[10px] font-bold uppercase tracking-widest mb-2">Temps de repos</p>
-                  <p className="text-[#F5F5F3] text-5xl font-black tabular-nums mb-1">{formatRestTime(restTime)}</p>
-                  <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden mt-3 mb-4">
+                  <p className="text-[var(--text-primary)] text-5xl font-black tabular-nums mb-1">{formatRestTime(restTime)}</p>
+                  <div className="w-full h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden mt-3 mb-4">
                     <div
                       className="h-full bg-[#FF6B2B] rounded-full transition-all duration-1000 ease-linear"
                       style={{ width: restTarget > 0 ? `${(restTime / restTarget) * 100}%` : '0%' }}
@@ -627,7 +627,7 @@ export default function WorkoutTrackerPage() {
                   </div>
                   <button
                     onClick={skipRest}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.06] text-white/60 text-sm font-semibold hover:bg-white/[0.1] active:scale-95 transition-all"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-semibold hover:bg-[var(--bg-surface)] active:scale-95 transition-all"
                   >
                     <RotateCcw className="w-4 h-4" /> Passer le repos
                   </button>
@@ -636,7 +636,7 @@ export default function WorkoutTrackerPage() {
 
               {/* ═══════ SÉRIES CHECKLIST ═══════ */}
               <div className="space-y-2.5">
-                <p className="text-white/25 text-[10px] font-bold uppercase tracking-widest">
+                <p className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest">
                   Séries — {completedForCurrent.size} / {currentExo.series || 0}
                 </p>
                 {Array.from({ length: currentExo.series || 0 }, (_, i) => {
@@ -648,35 +648,35 @@ export default function WorkoutTrackerPage() {
                       className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl border transition-all active:scale-[0.98] ${
                         done
                           ? 'bg-[#FF6B2B]/[0.08] border-[#FF6B2B]/25'
-                          : 'bg-white/[0.03] border-white/[0.06] hover:border-white/[0.12]'
+                          : 'bg-[var(--bg-surface)] border-[var(--border-base)] hover:border-[var(--border-base)]'
                       }`}
                     >
                       {/* Check circle */}
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
                         done
                           ? 'bg-[#FF6B2B] shadow-lg shadow-[#FF6B2B]/25'
-                          : 'bg-white/[0.06] border-2 border-white/[0.1]'
+                          : 'bg-[var(--bg-surface)] border-2 border-[var(--border-base)]'
                       }`}>
                         {done ? (
                           <Check className="w-5 h-5 text-white" />
                         ) : (
-                          <span className="text-white/25 text-sm font-bold">{i + 1}</span>
+                          <span className="text-[var(--text-muted)] text-sm font-bold">{i + 1}</span>
                         )}
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 text-left min-w-0">
-                        <p className={`text-base font-bold transition-all ${done ? 'text-white/40 line-through' : 'text-[#F5F5F3]'}`}>
+                        <p className={`text-base font-bold transition-all ${done ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
                           Série {i + 1}
                         </p>
-                        <p className={`text-sm mt-0.5 transition-all ${done ? 'text-white/20' : 'text-white/40'}`}>
+                        <p className={`text-sm mt-0.5 transition-all ${done ? 'text-[var(--text-muted)]' : 'text-[var(--text-muted)]'}`}>
                           {currentExo.reps} reps{currentExo.poids ? ` — ${currentExo.poids} kg` : ''}
                         </p>
                       </div>
 
                       {/* Repos indicator */}
                       {!done && currentExo.repos && (
-                        <div className="flex items-center gap-1 text-white/15 flex-shrink-0">
+                        <div className="flex items-center gap-1 text-[var(--text-muted)] flex-shrink-0">
                           <Timer className="w-3 h-3" />
                           <span className="text-[10px] font-medium">{currentExo.repos}s</span>
                         </div>
@@ -695,7 +695,7 @@ export default function WorkoutTrackerPage() {
       </div>
 
       {/* ═══════ BOTTOM NAV — Exercices Prev / Next ═══════ */}
-      <div className="flex-shrink-0 px-4 pb-6 pt-3 border-t border-white/[0.06] bg-[#09090b]">
+      <div className="flex-shrink-0 px-4 pb-6 pt-3 border-t border-[var(--border-base)] bg-[var(--bg-elevated)]">
         {/* Quick dots navigation */}
         <div className="flex items-center justify-center gap-1.5 mb-4">
           {exercices.map((_, i) => {
@@ -709,7 +709,7 @@ export default function WorkoutTrackerPage() {
                     ? 'w-8 h-2 bg-[#FF6B2B]'
                     : exoCompleted
                       ? 'w-2 h-2 bg-[#FF6B2B]/40'
-                      : 'w-2 h-2 bg-white/[0.1] hover:bg-white/[0.2]'
+                      : 'w-2 h-2 bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)]'
                 }`}
               />
             )
@@ -721,7 +721,7 @@ export default function WorkoutTrackerPage() {
           <button
             onClick={() => goToExercice(currentIdx - 1)}
             disabled={currentIdx === 0}
-            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-white/[0.06] text-white/50 text-sm font-bold hover:bg-white/[0.1] active:scale-[0.98] transition-all disabled:opacity-20 disabled:pointer-events-none"
+            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-bold hover:bg-[var(--bg-surface)] active:scale-[0.98] transition-all disabled:opacity-20 disabled:pointer-events-none"
           >
             <ChevronLeft className="w-5 h-5" /> Précédent
           </button>

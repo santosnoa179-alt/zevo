@@ -45,13 +45,13 @@ function StatCard({ icon: Icon, label, value, sub, accent = false }) {
   return (
     <div className="flex items-center gap-3 py-2">
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-        accent ? 'bg-[#FF6B2B]/10' : 'bg-[#27272a]'
+        accent ? 'bg-[#FF6B2B]/10' : 'bg-[var(--bg-surface)]'
       }`}>
-        <Icon size={15} className={accent ? 'text-[#FF6B2B]' : 'text-white/30'} />
+        <Icon size={15} className={accent ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-white/30 text-[11px]">{label}</p>
-        <p className="text-[#F5F5F3] text-sm font-semibold">{value || '—'}</p>
+        <p className="text-[var(--text-muted)] text-[11px]">{label}</p>
+        <p className="text-[var(--text-primary)] text-sm font-semibold">{value || '—'}</p>
       </div>
       {sub && (
         <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold flex-shrink-0">
@@ -121,21 +121,21 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
     loadAll()
   }, [clientId, coachId])
 
-  if (loading) return <div className="space-y-3"><div className="h-24 bg-[#1E1E1E] rounded-2xl animate-pulse" /><div className="h-24 bg-[#1E1E1E] rounded-2xl animate-pulse" /></div>
+  if (loading) return <div className="space-y-3"><div className="h-24 bg-[var(--bg-card)] rounded-2xl animate-pulse" /><div className="h-24 bg-[var(--bg-card)] rounded-2xl animate-pulse" /></div>
 
   return (
     <div className="space-y-4">
 
       {/* ═══ Section Entraînement Sportif ═══ */}
-      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
               <Dumbbell size={17} className="text-[#FF6B2B]" />
             </div>
             <div>
-              <h3 className="text-[#F5F5F3] text-base font-bold">Entraînement Sportif</h3>
-              <p className="text-white/25 text-[11px]">Programmes sport multi-semaines</p>
+              <h3 className="text-[var(--text-primary)] text-base font-bold">Entraînement Sportif</h3>
+              <p className="text-[var(--text-muted)] text-[11px]">Programmes sport multi-semaines</p>
             </div>
           </div>
           <a href="/coach/sport"
@@ -146,9 +146,9 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
 
         <div className="px-6 pb-5">
           {sportProgrammes.length === 0 ? (
-            <div className="bg-[#0D0D0D] rounded-xl p-5 text-center">
-              <Dumbbell size={22} className="text-white/8 mx-auto mb-2" />
-              <p className="text-white/20 text-xs">Aucun programme sportif assigné</p>
+            <div className="bg-[var(--bg-base)] rounded-xl p-5 text-center">
+              <Dumbbell size={22} className="text-[var(--text-muted)] mx-auto mb-2" />
+              <p className="text-[var(--text-muted)] text-xs">Aucun programme sportif assigné</p>
               <a href="/coach/sport"
                 className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
                 <Plus size={12} /> Assigner un programme
@@ -161,15 +161,15 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
                 const pct = prog?.pct ?? 0
                 const progressColor = pct >= 80 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#FF6B2B'
                 return (
-                  <div key={a.id} className="bg-[#0D0D0D] rounded-xl p-4">
+                  <div key={a.id} className="bg-[var(--bg-base)] rounded-xl p-4">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
                         <Dumbbell size={18} className="text-[#FF6B2B]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[#F5F5F3] text-sm font-semibold truncate">{a.programmes?.titre}</p>
+                        <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{a.programmes?.titre}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#2A2A2A] text-white/35 font-medium">{a.programmes?.duree_semaines} sem.</span>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium">{a.programmes?.duree_semaines} sem.</span>
                           {a.programmes?.categorie && (
                             <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium">{a.programmes.categorie}</span>
                           )}
@@ -178,7 +178,7 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
                       </div>
                       <button
                         onClick={() => onOpenProgramme?.(a.programmes)}
-                        className="px-3 py-2 rounded-xl bg-[#2A2A2A] text-white/50 text-[11px] font-medium hover:bg-[#3f3f46] hover:text-white transition-all flex items-center gap-1.5 shrink-0">
+                        className="px-3 py-2 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-[11px] font-medium hover:bg-[var(--bg-surface)] hover:text-white transition-all flex items-center gap-1.5 shrink-0">
                         Ouvrir <ChevronRight size={12} />
                       </button>
                     </div>
@@ -186,10 +186,10 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
                     {prog && prog.total > 0 && (
                       <div className="mt-3">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-white/25 text-[10px]">{prog.done}/{prog.total} séances complétées</span>
+                          <span className="text-[var(--text-muted)] text-[10px]">{prog.done}/{prog.total} séances complétées</span>
                           <span className="text-[10px] font-bold" style={{ color: progressColor }}>{pct}%</span>
                         </div>
-                        <div className="h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                           <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: progressColor }} />
                         </div>
                       </div>
@@ -203,15 +203,15 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
       </div>
 
       {/* ═══ Section Plan Nutritionnel ═══ */}
-      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
               <Apple size={17} className="text-emerald-400" />
             </div>
             <div>
-              <h3 className="text-[#F5F5F3] text-base font-bold">Plan Nutritionnel</h3>
-              <p className="text-white/25 text-[11px]">Plans de repas et macros</p>
+              <h3 className="text-[var(--text-primary)] text-base font-bold">Plan Nutritionnel</h3>
+              <p className="text-[var(--text-muted)] text-[11px]">Plans de repas et macros</p>
             </div>
           </div>
           <a href="/coach/nutrition"
@@ -222,9 +222,9 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
 
         <div className="px-6 pb-5">
           {nutritionPlans.length === 0 ? (
-            <div className="bg-[#0D0D0D] rounded-xl p-5 text-center">
-              <Apple size={22} className="text-white/8 mx-auto mb-2" />
-              <p className="text-white/20 text-xs">Aucun plan nutritionnel créé</p>
+            <div className="bg-[var(--bg-base)] rounded-xl p-5 text-center">
+              <Apple size={22} className="text-[var(--text-muted)] mx-auto mb-2" />
+              <p className="text-[var(--text-muted)] text-xs">Aucun plan nutritionnel créé</p>
               <a href={`/coach/nutrition/new?clientId=${clientId}`}
                 className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold hover:bg-emerald-500/20 transition-colors">
                 <Plus size={12} /> Créer un plan
@@ -234,20 +234,20 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
             <div className="space-y-2.5">
               {nutritionPlans.map(plan => (
                 <a key={plan.id} href={`/coach/nutrition/${plan.id}`}
-                  className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-4 hover:bg-[#0D0D0D]/80 transition-all block">
+                  className="bg-[var(--bg-base)] rounded-xl p-4 flex items-center gap-4 hover:bg-[var(--bg-base)]/80 transition-all block">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
                     <Apple size={18} className="text-emerald-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[#F5F5F3] text-sm font-semibold truncate">{plan.nom || 'Plan du jour'}</p>
+                    <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{plan.nom || 'Plan du jour'}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#2A2A2A] text-white/35 font-medium">
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium">
                         {new Date(plan.date_plan).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                       </span>
                       <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Actif</span>
                     </div>
                   </div>
-                  <ChevronRight size={14} className="text-white/15 shrink-0" />
+                  <ChevronRight size={14} className="text-[var(--text-muted)] shrink-0" />
                 </a>
               ))}
             </div>
@@ -282,18 +282,18 @@ function ClientSeancesSection({ clientId, onOpenCalendar }) {
       })
   }, [clientId])
 
-  if (loading) return <div className="h-24 bg-[#1E1E1E] rounded-2xl animate-pulse" />
+  if (loading) return <div className="h-24 bg-[var(--bg-card)] rounded-2xl animate-pulse" />
 
   return (
-    <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
+    <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
       <div className="px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
             <Dumbbell size={17} className="text-blue-400" />
           </div>
           <div>
-            <h3 className="text-[#F5F5F3] text-base font-bold">Prochaines séances</h3>
-            <p className="text-white/25 text-[11px]">Entraînements individuels planifiés</p>
+            <h3 className="text-[var(--text-primary)] text-base font-bold">Prochaines séances</h3>
+            <p className="text-[var(--text-muted)] text-[11px]">Entraînements individuels planifiés</p>
           </div>
         </div>
         <button onClick={onOpenCalendar}
@@ -304,26 +304,26 @@ function ClientSeancesSection({ clientId, onOpenCalendar }) {
 
       <div className="px-6 pb-5">
         {seances.length === 0 ? (
-          <div className="bg-[#0D0D0D] rounded-xl p-6 text-center">
-            <Dumbbell size={24} className="text-white/8 mx-auto mb-2" />
-            <p className="text-white/20 text-xs">Aucune séance planifiée</p>
+          <div className="bg-[var(--bg-base)] rounded-xl p-6 text-center">
+            <Dumbbell size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
+            <p className="text-[var(--text-muted)] text-xs">Aucune séance planifiée</p>
           </div>
         ) : (
           <div className="space-y-2">
             {seances.map(s => (
-              <div key={s.id} className="flex items-center gap-3.5 px-4 py-3 rounded-xl bg-[#0D0D0D]">
+              <div key={s.id} className="flex items-center gap-3.5 px-4 py-3 rounded-xl bg-[var(--bg-base)]">
                 <div className="w-10 text-center shrink-0">
                   <p className="text-[#FF6B2B] text-sm font-bold leading-none">
                     {new Date(s.date_prevue + 'T00:00:00').getDate()}
                   </p>
-                  <p className="text-white/20 text-[9px] uppercase">
+                  <p className="text-[var(--text-muted)] text-[9px] uppercase">
                     {new Date(s.date_prevue + 'T00:00:00').toLocaleDateString('fr-FR', { month: 'short' })}
                   </p>
                 </div>
                 <div className="w-[2px] h-8 bg-[#FF6B2B]/20 rounded-full shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[#F5F5F3] text-sm font-medium truncate">{s.titre}</p>
-                  <p className="text-white/20 text-[10px]">
+                  <p className="text-[var(--text-primary)] text-sm font-medium truncate">{s.titre}</p>
+                  <p className="text-[var(--text-muted)] text-[10px]">
                     {new Date(s.date_prevue + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long' })}
                   </p>
                 </div>
@@ -599,15 +599,15 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
       {/* ════════════════════════════════════ */}
       {/* PANNEAU GAUCHE — Bibliothèque       */}
       {/* ════════════════════════════════════ */}
-      <div className="w-1/3 flex-shrink-0 bg-[#18181b] border border-[#27272a] rounded-xl flex flex-col overflow-hidden">
+      <div className="w-1/3 flex-shrink-0 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl flex flex-col overflow-hidden">
 
         {/* Header bibliothèque */}
-        <div className="p-4 border-b border-[#27272a] space-y-3">
+        <div className="p-4 border-b border-[var(--border-base)] space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-[#F5F5F3] text-sm font-semibold flex items-center gap-2">
+            <h3 className="text-[var(--text-primary)] text-sm font-semibold flex items-center gap-2">
               <Dumbbell size={14} className="text-[#FF6B2B]" />
               Bibliothèque
-              <span className="text-white/15 text-[10px] font-normal ml-1">{exosFiltres.length}</span>
+              <span className="text-[var(--text-muted)] text-[10px] font-normal ml-1">{exosFiltres.length}</span>
             </h3>
             <button
               onClick={() => setModalCreer(true)}
@@ -620,12 +620,12 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
 
           {/* Recherche avancée */}
           <div className="relative">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/15" />
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
             <input
               value={searchExo}
               onChange={(e) => setSearchExo(e.target.value)}
               placeholder="Nom, muscle ou équipement..."
-              className="w-full bg-[#09090b] border border-[#27272a] rounded-lg pl-8 pr-3 py-2 text-xs text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg pl-8 pr-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
             />
           </div>
 
@@ -638,7 +638,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                 className={`px-2 py-1 rounded-md text-[10px] font-semibold transition-colors flex items-center gap-1 ${
                   filtreSource === s
                     ? 'bg-[#FF6B2B]/15 text-[#FF6B2B] border border-[#FF6B2B]/30'
-                    : 'bg-[#27272a]/50 text-white/25 hover:text-white/40 border border-transparent'
+                    : 'bg-[var(--bg-surface)]/50 text-[var(--text-muted)] hover:text-[var(--text-muted)] border border-transparent'
                 }`}
               >
                 {s === 'Favoris' && <Star size={9} className={filtreSource === s ? 'fill-[#FF6B2B]' : ''} />}
@@ -657,7 +657,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                 className={`px-2 py-0.5 rounded text-[9px] font-semibold transition-colors ${
                   filtreGroupe === g
                     ? 'bg-[#FF6B2B] text-white'
-                    : 'bg-[#27272a]/50 text-white/20 hover:text-white/40'
+                    : 'bg-[var(--bg-surface)]/50 text-[var(--text-muted)] hover:text-[var(--text-muted)]'
                 }`}
               >
                 {g}
@@ -674,8 +674,8 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
             </div>
           ) : exosFiltres.length === 0 ? (
             <div className="text-center py-8">
-              <Dumbbell size={24} className="text-white/10 mx-auto mb-2" />
-              <p className="text-white/15 text-xs">Aucun exercice trouvé</p>
+              <Dumbbell size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
+              <p className="text-[var(--text-muted)] text-xs">Aucun exercice trouvé</p>
               {filtreSource !== 'Tous' && (
                 <button onClick={() => { setFiltreSource('Tous'); setFiltreGroupe('Tous'); setSearchExo('') }}
                   className="text-[#FF6B2B] text-[10px] mt-2 hover:underline">Réinitialiser les filtres</button>
@@ -691,7 +691,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
               return (
                 <div
                   key={ex.id}
-                  className="bg-[#27272a]/30 rounded-lg p-2.5 group hover:bg-[#27272a]/60 transition-colors"
+                  className="bg-[var(--bg-surface)]/30 rounded-lg p-2.5 group hover:bg-[var(--bg-surface)]/60 transition-colors"
                 >
                   <div className="flex items-start gap-2.5">
                     {/* Icône / GIF */}
@@ -712,7 +712,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => setDrawerExercice(ex)}
-                          className="text-[#F5F5F3] text-xs font-medium hover:text-[#FF6B2B] transition-colors text-left truncate"
+                          className="text-[var(--text-primary)] text-xs font-medium hover:text-[#FF6B2B] transition-colors text-left truncate"
                         >
                           {ex.nom}
                         </button>
@@ -721,9 +721,9 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-white/15 text-[9px] bg-[#09090b] px-1.5 py-0.5 rounded">{ex.equipment || '—'}</span>
+                        <span className="text-[var(--text-muted)] text-[9px] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded">{ex.equipment || '—'}</span>
                         {ex.category && ex.category !== 'Musculation' && (
-                          <span className="text-[8px] text-white/15">{ex.category}</span>
+                          <span className="text-[8px] text-[var(--text-muted)]">{ex.category}</span>
                         )}
                       </div>
                     </div>
@@ -733,7 +733,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                       <button
                         onClick={() => toggleFavori(ex.id)}
                         className={`p-1 rounded transition-all ${
-                          isFav ? 'text-yellow-400' : 'text-white/10 opacity-0 group-hover:opacity-100 hover:text-yellow-400'
+                          isFav ? 'text-yellow-400' : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:text-yellow-400'
                         }`}
                       >
                         <Star size={12} className={isFav ? 'fill-yellow-400' : ''} />
@@ -765,7 +765,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
       {/* ════════════════════════════════════ */}
       {/* PANNEAU CENTRAL — Éditeur de séance */}
       {/* ════════════════════════════════════ */}
-      <div className="flex-1 flex flex-col ml-4 bg-[#18181b] border border-[#27272a] rounded-xl overflow-hidden">
+      <div className="flex-1 flex flex-col ml-4 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl overflow-hidden">
 
         {/* Bandeau mode édition */}
         {currentSeanceId && (
@@ -773,11 +773,11 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
             <div className="flex items-center gap-2">
               <Pencil size={12} className="text-[#FF6B2B]" />
               <span className="text-[#FF6B2B] text-[10px] font-semibold uppercase tracking-wider">Mode édition</span>
-              <span className="text-white/20 text-[10px]">— Séance liée au calendrier</span>
+              <span className="text-[var(--text-muted)] text-[10px]">— Séance liée au calendrier</span>
             </div>
             <button
               onClick={() => { setCurrentSeanceId(null); setSeanceNom(`Séance de ${clientName || 'remise en forme'}`); setSeanceExercices([]); if (onClearEditing) onClearEditing() }}
-              className="text-white/25 text-[10px] hover:text-white/50 transition-colors flex items-center gap-1"
+              className="text-[var(--text-muted)] text-[10px] hover:text-[var(--text-secondary)] transition-colors flex items-center gap-1"
             >
               <Plus size={10} /> Nouvelle séance
             </button>
@@ -785,7 +785,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
         )}
 
         {/* Header éditeur */}
-        <div className="p-4 border-b border-[#27272a] flex items-center justify-between">
+        <div className="p-4 border-b border-[var(--border-base)] flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${currentSeanceId ? 'bg-[#FF6B2B]/15' : 'bg-[#FF6B2B]/10'}`}>
               {currentSeanceId ? <Pencil size={15} className="text-[#FF6B2B]" /> : <Calendar size={15} className="text-[#FF6B2B]" />}
@@ -793,13 +793,13 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
             {loadingSeance ? (
               <div className="flex items-center gap-2">
                 <Loader2 size={14} className="animate-spin text-[#FF6B2B]" />
-                <span className="text-white/20 text-sm">Chargement...</span>
+                <span className="text-[var(--text-muted)] text-sm">Chargement...</span>
               </div>
             ) : (
               <input
                 value={seanceNom}
                 onChange={(e) => setSeanceNom(e.target.value)}
-                className="bg-transparent border-none text-[#F5F5F3] text-sm font-semibold focus:outline-none flex-1 min-w-0 placeholder:text-white/20"
+                className="bg-transparent border-none text-[var(--text-primary)] text-sm font-semibold focus:outline-none flex-1 min-w-0 placeholder:text-[var(--text-muted)]"
                 placeholder="Nom de la séance..."
               />
             )}
@@ -818,11 +818,11 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
         <div className="flex-1 overflow-y-auto p-4">
           {seanceExercices.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
-              <div className="w-20 h-20 rounded-2xl bg-[#27272a]/40 flex items-center justify-center mb-4">
-                <Plus size={28} className="text-white/10" />
+              <div className="w-20 h-20 rounded-2xl bg-[var(--bg-surface)]/40 flex items-center justify-center mb-4">
+                <Plus size={28} className="text-[var(--text-muted)]" />
               </div>
-              <p className="text-white/20 text-sm font-medium mb-1">Aucun exercice ajouté</p>
-              <p className="text-white/10 text-xs max-w-[250px] text-center">
+              <p className="text-[var(--text-muted)] text-sm font-medium mb-1">Aucun exercice ajouté</p>
+              <p className="text-[var(--text-muted)] text-xs max-w-[250px] text-center">
                 Cliquez sur <span className="text-[#FF6B2B]">+</span> dans la bibliothèque pour composer votre séance
               </p>
             </div>
@@ -832,10 +832,10 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                 const couleur = GROUP_COLORS[ex.muscle_group] || '#6b7280'
                 const hasMedia = !!ex.media_url?.trim()
                 return (
-                  <div key={ex.id} className="bg-[#09090b] border border-[#27272a] rounded-xl p-4 group hover:border-[#FF6B2B]/20 transition-colors">
+                  <div key={ex.id} className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-4 group hover:border-[#FF6B2B]/20 transition-colors">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <GripVertical size={14} className="text-white/10" />
+                        <GripVertical size={14} className="text-[var(--text-muted)]" />
                         <span className="w-6 h-6 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center">
                           {index + 1}
                         </span>
@@ -845,8 +845,8 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                           <Dumbbell size={14} style={{ color: couleur }} />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[#F5F5F3] text-sm font-medium truncate">{ex.nom}</p>
-                          <p className="text-white/15 text-[10px]">{ex.equipment || ex.equipement || '—'}</p>
+                          <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.nom}</p>
+                          <p className="text-[var(--text-muted)] text-[10px]">{ex.equipment || ex.equipement || '—'}</p>
                         </div>
                       </div>
                       <button
@@ -854,14 +854,14 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                         className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
                           hasMedia
                             ? 'text-[#FF6B2B] bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/20'
-                            : 'text-white/10 hover:text-white/30 hover:bg-white/[0.04] opacity-0 group-hover:opacity-100'
+                            : 'text-[var(--text-muted)] hover:text-[var(--text-muted)] hover:bg-[var(--bg-surface)] opacity-0 group-hover:opacity-100'
                         }`}
                         title={hasMedia ? 'Média attaché — cliquer pour modifier' : 'Ajouter un lien vidéo/image'}
                       >
                         <Video size={14} />
                       </button>
                       <button onClick={() => supprimerExercice(ex.id)}
-                        className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
+                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -871,13 +871,13 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                       <div className="mb-4 space-y-2">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 relative">
-                            <Video size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                            <Video size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                             <input
                               type="url"
                               value={ex.media_url || ''}
                               onChange={(e) => modifierExercice(ex.id, 'media_url', e.target.value)}
                               placeholder="Lien vidéo ou image (YouTube, mp4, jpg...)"
-                              className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-8 pr-3 py-2 text-[#F5F5F3] text-xs placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+                              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg pl-8 pr-3 py-2 text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
                             />
                           </div>
                           {/* Upload file button */}
@@ -885,7 +885,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                             className={`p-2 rounded-lg transition-colors flex-shrink-0 cursor-pointer ${
                               ex._uploading
                                 ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] cursor-wait'
-                                : 'bg-[#18181b] border border-[#27272a] text-white/30 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30'
+                                : 'bg-[var(--bg-base)] border border-[var(--border-base)] text-[var(--text-muted)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30'
                             }`}
                             title="Uploader un fichier vidéo ou image"
                           >
@@ -944,12 +944,12 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                         </div>
                         {/* Preview thumbnail si média attaché */}
                         {hasMedia && /\.(jpg|jpeg|png|gif|webp|svg|avif)(\?.*)?$/i.test(ex.media_url) && (
-                          <div className="rounded-lg overflow-hidden border border-[#27272a] h-20">
+                          <div className="rounded-lg overflow-hidden border border-[var(--border-base)] h-20">
                             <img src={ex.media_url} alt="" className="w-full h-full object-cover" />
                           </div>
                         )}
                         {hasMedia && /\.(mp4|webm|mov)(\?.*)?$/i.test(ex.media_url) && (
-                          <div className="rounded-lg overflow-hidden border border-[#27272a] h-20 bg-black">
+                          <div className="rounded-lg overflow-hidden border border-[var(--border-base)] h-20 bg-black">
                             <video src={ex.media_url} className="w-full h-full object-contain" muted />
                           </div>
                         )}
@@ -964,22 +964,22 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                         { key: 'repos', label: 'Repos (s)', val: ex.repos },
                       ].map(f => (
                         <div key={f.key}>
-                          <label className="block text-white/20 text-[10px] uppercase tracking-wider mb-1.5">{f.label}</label>
+                          <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider mb-1.5">{f.label}</label>
                           <input type="number" value={f.val}
                             onChange={(e) => modifierExercice(ex.id, f.key, f.key === 'poids' ? e.target.value : (parseInt(e.target.value) || 0))}
                             placeholder={f.placeholder}
-                            className="w-full bg-[#18181b] border border-[#27272a] rounded-lg px-3 py-2 text-[#F5F5F3] text-sm text-center font-medium placeholder:text-white/10 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors" />
+                            className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm text-center font-medium placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors" />
                         </div>
                       ))}
                     </div>
                   </div>
                 )
               })}
-              <div className="flex items-center justify-between py-3 px-4 bg-[#27272a]/30 rounded-lg mt-2">
-                <span className="text-white/20 text-xs">
+              <div className="flex items-center justify-between py-3 px-4 bg-[var(--bg-surface)]/30 rounded-lg mt-2">
+                <span className="text-[var(--text-muted)] text-xs">
                   {seanceExercices.length} exercice{seanceExercices.length > 1 ? 's' : ''} · {seanceExercices.reduce((a, e) => a + (e.series || 0), 0)} séries au total
                 </span>
-                <span className="text-white/10 text-[10px]">
+                <span className="text-[var(--text-muted)] text-[10px]">
                   ~{Math.round(seanceExercices.reduce((a, e) => a + (e.series || 0) * ((e.repos || 60) + 40), 0) / 60)} min estimées
                 </span>
               </div>
@@ -994,22 +994,22 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
       {drawerExercice && (
         <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setDrawerExercice(null)} />
       )}
-      <div className={`fixed top-0 right-0 z-50 h-full w-[400px] max-w-[90vw] bg-[#09090b] border-l border-[#27272a] flex flex-col transition-transform duration-300 ease-out ${drawerExercice ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 z-50 h-full w-[400px] max-w-[90vw] bg-[var(--bg-elevated)] border-l border-[var(--border-base)] flex flex-col transition-transform duration-300 ease-out ${drawerExercice ? 'translate-x-0' : 'translate-x-full'}`}>
         {drawerExercice && (() => {
           const couleur = GROUP_COLORS[drawerExercice.muscle_group] || '#6b7280'
           const muscles = drawerExercice.muscles || []
           const isFav = favorisIds.has(drawerExercice.id)
           return (
             <>
-              <div className="px-5 py-4 border-b border-[#27272a] flex items-center justify-between">
-                <h3 className="text-[#F5F5F3] font-semibold text-base">Détails de l'exercice</h3>
+              <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
+                <h3 className="text-[var(--text-primary)] font-semibold text-base">Détails de l'exercice</h3>
                 <div className="flex items-center gap-1.5">
                   <button onClick={() => toggleFavori(drawerExercice.id)}
-                    className={`p-1.5 rounded-lg transition-colors ${isFav ? 'text-yellow-400' : 'text-white/20 hover:text-yellow-400'}`}>
+                    className={`p-1.5 rounded-lg transition-colors ${isFav ? 'text-yellow-400' : 'text-[var(--text-muted)] hover:text-yellow-400'}`}>
                     <Star size={16} className={isFav ? 'fill-yellow-400' : ''} />
                   </button>
                   <button onClick={() => setDrawerExercice(null)}
-                    className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                     <X size={18} />
                   </button>
                 </div>
@@ -1027,7 +1027,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                   <div className="w-full aspect-video rounded-xl flex items-center justify-center" style={{ backgroundColor: `${couleur}10` }}>
                     <div className="text-center">
                       <Dumbbell size={48} style={{ color: couleur }} className="mx-auto mb-2 opacity-40" />
-                      <p className="text-white/15 text-xs">Démonstration</p>
+                      <p className="text-[var(--text-muted)] text-xs">Démonstration</p>
                     </div>
                   </div>
                 )}
@@ -1035,16 +1035,16 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                 {/* Nom + meta */}
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-[#F5F5F3] text-xl font-bold">{drawerExercice.nom}</h4>
+                    <h4 className="text-[var(--text-primary)] text-xl font-bold">{drawerExercice.nom}</h4>
                     {drawerExercice.coach_id === null && (
                       <span className="text-[8px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-bold">ZEVO</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <span className="text-white/30 text-xs bg-[#27272a] px-2.5 py-1 rounded-md">{drawerExercice.equipment || '—'}</span>
-                    <span className="text-white/15 text-xs">{drawerExercice.muscle_group}</span>
+                    <span className="text-[var(--text-muted)] text-xs bg-[var(--bg-surface)] px-2.5 py-1 rounded-md">{drawerExercice.equipment || '—'}</span>
+                    <span className="text-[var(--text-muted)] text-xs">{drawerExercice.muscle_group}</span>
                     {drawerExercice.category && (
-                      <span className="text-[9px] px-2 py-0.5 rounded bg-[#27272a]/60 text-white/20">{drawerExercice.category}</span>
+                      <span className="text-[9px] px-2 py-0.5 rounded bg-[var(--bg-surface)]/60 text-[var(--text-muted)]">{drawerExercice.category}</span>
                     )}
                   </div>
                 </div>
@@ -1052,7 +1052,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                 {/* Muscles ciblés */}
                 {muscles.length > 0 && (
                   <div>
-                    <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">Muscles ciblés</p>
+                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-semibold mb-2">Muscles ciblés</p>
                     <div className="flex flex-wrap gap-1.5">
                       {muscles.map((m) => (
                         <span key={m} className="text-xs px-2.5 py-1 rounded-md bg-purple-500/15 text-purple-400 font-medium">{m}</span>
@@ -1064,8 +1064,8 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
                 {/* Description */}
                 {drawerExercice.description && (
                   <div>
-                    <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">Consignes d'exécution</p>
-                    <p className="text-white/50 text-sm leading-relaxed">{drawerExercice.description}</p>
+                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-semibold mb-2">Consignes d'exécution</p>
+                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed">{drawerExercice.description}</p>
                   </div>
                 )}
 
@@ -1093,73 +1093,73 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
       <Modal isOpen={modalCreer} onClose={() => setModalCreer(false)} title="Créer un exercice">
         <form onSubmit={creerExercice} className="space-y-3">
           <div>
-            <label className="block text-sm text-white/50 mb-1">Nom de l'exercice *</label>
+            <label className="block text-sm text-[var(--text-secondary)] mb-1">Nom de l'exercice *</label>
             <input type="text" value={newExo.nom} onChange={(e) => setNewExo(p => ({ ...p, nom: e.target.value }))}
               placeholder="Ex: Squat Gobelet" required autoFocus
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-white/50 mb-1">Groupe musculaire</label>
+              <label className="block text-sm text-[var(--text-secondary)] mb-1">Groupe musculaire</label>
               <select value={newExo.muscle_group} onChange={(e) => setNewExo(p => ({ ...p, muscle_group: e.target.value }))}
-                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors">
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors">
                 <option value="">— Sélectionner —</option>
                 {MUSCLE_GROUPS.filter(g => g !== 'Tous').map(g => <option key={g} value={g}>{g}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm text-white/50 mb-1">Catégorie</label>
+              <label className="block text-sm text-[var(--text-secondary)] mb-1">Catégorie</label>
               <select value={newExo.category} onChange={(e) => setNewExo(p => ({ ...p, category: e.target.value }))}
-                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors">
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors">
                 {EXERCISE_CATEGORIES.filter(c => c !== 'Tous').map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm text-white/50 mb-1">Équipement</label>
+            <label className="block text-sm text-[var(--text-secondary)] mb-1">Équipement</label>
             <input type="text" value={newExo.equipment} onChange={(e) => setNewExo(p => ({ ...p, equipment: e.target.value }))}
               placeholder="Ex: Haltères, Barre, Poids du corps..."
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
           </div>
 
           <div>
-            <label className="block text-sm text-white/50 mb-1">Muscles ciblés <span className="text-white/20">(séparés par des virgules)</span></label>
+            <label className="block text-sm text-[var(--text-secondary)] mb-1">Muscles ciblés <span className="text-[var(--text-muted)]">(séparés par des virgules)</span></label>
             <input type="text" value={newExo.muscles} onChange={(e) => setNewExo(p => ({ ...p, muscles: e.target.value }))}
               placeholder="Quadriceps, Fessiers, Ischio-jambiers"
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
           </div>
 
           <div>
-            <label className="block text-sm text-white/50 mb-1">Description / Consignes</label>
+            <label className="block text-sm text-[var(--text-secondary)] mb-1">Description / Consignes</label>
             <textarea value={newExo.description} onChange={(e) => setNewExo(p => ({ ...p, description: e.target.value }))}
               rows={3} placeholder="Décrivez l'exécution du mouvement..."
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none" />
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-white/50 mb-1 flex items-center gap-1.5">
+              <label className="block text-sm text-[var(--text-secondary)] mb-1 flex items-center gap-1.5">
                 <Video size={13} className="text-[#FF6B2B]" /> URL Vidéo
               </label>
               <input type="url" value={newExo.video_url} onChange={(e) => setNewExo(p => ({ ...p, video_url: e.target.value }))}
                 placeholder="https://youtube.com/..."
-                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
             </div>
             <div>
-              <label className="block text-sm text-white/50 mb-1 flex items-center gap-1.5">
+              <label className="block text-sm text-[var(--text-secondary)] mb-1 flex items-center gap-1.5">
                 <PlayCircle size={13} className="text-[#FF6B2B]" /> URL GIF
               </label>
               <input type="url" value={newExo.gif_url} onChange={(e) => setNewExo(p => ({ ...p, gif_url: e.target.value }))}
                 placeholder="https://exemple.com/demo.gif"
-                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
             </div>
           </div>
 
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={() => setModalCreer(false)}
-              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">
+              className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] transition-colors">
               Annuler
             </button>
             <button type="submit" disabled={creatingExo}
@@ -1819,12 +1819,12 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="h-8 w-56 bg-[#27272a] rounded-lg animate-pulse" />
-          <div className="h-10 w-40 bg-[#27272a] rounded-lg animate-pulse" />
+          <div className="h-8 w-56 bg-[var(--bg-surface)] rounded-lg animate-pulse" />
+          <div className="h-10 w-40 bg-[var(--bg-surface)] rounded-lg animate-pulse" />
         </div>
-        <div className="grid grid-cols-7 gap-px bg-[#27272a] rounded-xl overflow-hidden">
+        <div className="grid grid-cols-7 gap-px bg-[var(--bg-surface)] rounded-xl overflow-hidden">
           {Array.from({ length: 35 }, (_, i) => (
-            <div key={i} className="bg-[#09090b] p-3 h-20 animate-pulse" />
+            <div key={i} className="bg-[var(--bg-elevated)] p-3 h-20 animate-pulse" />
           ))}
         </div>
       </div>
@@ -1837,29 +1837,29 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       {/* ═══════ TOOLBAR : Nav + Toggle + Filtres + Templates ═══════ */}
       <div className="flex flex-col md:flex-row md:items-center gap-3">
         {/* Navigation */}
-        <div className="flex items-center gap-2 bg-[#09090b] border border-[#27272a] rounded-xl px-3 py-2 flex-1 min-w-0">
-          <button onClick={goBack} className="p-1 rounded-lg hover:bg-[#27272a] text-white/40 hover:text-white transition-colors flex-shrink-0">
+        <div className="flex items-center gap-2 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 flex-1 min-w-0">
+          <button onClick={goBack} className="p-1 rounded-lg hover:bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-white transition-colors flex-shrink-0">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-sm font-medium text-[#F5F5F3] flex-1 text-center truncate capitalize">{navLabel}</span>
+          <span className="text-sm font-medium text-[var(--text-primary)] flex-1 text-center truncate capitalize">{navLabel}</span>
           {!isAtToday && (
             <button onClick={goToday} className="text-[10px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold hover:bg-[#FF6B2B]/20 transition-colors flex-shrink-0 whitespace-nowrap">
               Aujourd'hui
             </button>
           )}
-          <button onClick={goForward} className="p-1 rounded-lg hover:bg-[#27272a] text-white/40 hover:text-white transition-colors flex-shrink-0">
+          <button onClick={goForward} className="p-1 rounded-lg hover:bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-white transition-colors flex-shrink-0">
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
         {/* Toggle Mois / Semaine */}
-        <div className="flex items-center bg-[#09090b] border border-[#27272a] rounded-xl p-1 flex-shrink-0">
+        <div className="flex items-center bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-1 flex-shrink-0">
           {[{ id: 'month', label: 'Mois' }, { id: 'week', label: 'Semaine' }].map(v => (
             <button
               key={v.id}
               onClick={() => setCalView(v.id)}
               className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                calView === v.id ? 'bg-[#FF6B2B] text-white shadow-sm' : 'text-white/40 hover:text-white/70'
+                calView === v.id ? 'bg-[#FF6B2B] text-white shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
               {v.label}
@@ -1871,17 +1871,17 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="relative">
             <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-              className="appearance-none bg-[#09090b] border border-[#27272a] rounded-xl pl-8 pr-4 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer min-w-[120px]">
+              className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl pl-8 pr-4 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer min-w-[120px]">
               <option value="">Tous les types</option>
               {EVENT_TYPES_CAL.map(t => (
                 <option key={t.id} value={t.id}>{t.label}</option>
               ))}
             </select>
-            <Filter className="w-3.5 h-3.5 text-white/30 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Filter className="w-3.5 h-3.5 text-[var(--text-muted)] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
           <button onClick={() => setPanelOpen(p => !p)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-              panelOpen ? 'bg-[#FF6B2B] text-white' : 'bg-[#09090b] border border-[#27272a] text-white/40 hover:text-white/70'
+              panelOpen ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-elevated)] border border-[var(--border-base)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
             }`}
             title="Modèles de séances">
             {panelOpen ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
@@ -1900,13 +1900,13 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
           { label: 'Séances', value: allFiltered.filter(i => i._type === 'seance').length, icon: Dumbbell, color: '#3b82f6' },
           { label: "Aujourd'hui", value: itemsToday, icon: Clock, color: '#22c55e' },
         ].map((s, i) => (
-          <div key={i} className="bg-[#09090b] border border-[#27272a] rounded-xl p-3 flex items-center gap-3">
+          <div key={i} className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-3 flex items-center gap-3">
             <div className="p-1.5 rounded-lg flex-shrink-0" style={{ backgroundColor: `${s.color}15` }}>
               <s.icon className="w-4 h-4" style={{ color: s.color }} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] text-white/40 truncate">{s.label}</p>
-              <p className="text-lg font-bold text-[#F5F5F3] leading-tight">{s.value}</p>
+              <p className="text-[10px] text-[var(--text-muted)] truncate">{s.label}</p>
+              <p className="text-lg font-bold text-[var(--text-primary)] leading-tight">{s.value}</p>
             </div>
           </div>
         ))}
@@ -1919,11 +1919,11 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
 
           {calView === 'month' ? (
             /* ────────── VUE MOIS ────────── */
-            <div className="bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden">
+            <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl overflow-hidden">
               {/* Jours header */}
-              <div className="grid grid-cols-7 border-b border-[#27272a]">
+              <div className="grid grid-cols-7 border-b border-[var(--border-base)]">
                 {JOURS_COURTS.map(j => (
-                  <div key={j} className="px-2 py-2 text-center text-[10px] font-semibold text-white/30 uppercase tracking-wider">{j}</div>
+                  <div key={j} className="px-2 py-2 text-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">{j}</div>
                 ))}
               </div>
               {/* Grid */}
@@ -1938,8 +1938,8 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                     <div
                       key={idx}
                       onClick={() => handleDayClick(cell.date)}
-                      className={`relative border-b border-r border-[#27272a] min-h-[85px] p-1.5 flex flex-col cursor-pointer transition-colors hover:bg-white/[0.02] ${
-                        cell.inMonth ? '' : 'bg-[#0a0a0a] hover:bg-[#0e0e0e]'
+                      className={`relative border-b border-r border-[var(--border-base)] min-h-[85px] p-1.5 flex flex-col cursor-pointer transition-colors hover:bg-[var(--bg-surface)] ${
+                        cell.inMonth ? '' : 'bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]'
                       } ${isTo ? 'bg-[#FF6B2B]/[0.04] hover:bg-[#FF6B2B]/[0.07]' : ''}`}
                     >
                       <div className="flex items-center justify-between mb-1">
@@ -1947,13 +1947,13 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                           onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
                           className={`text-xs font-medium leading-none ${
                             isTo ? 'w-6 h-6 flex items-center justify-center rounded-full bg-[#FF6B2B] text-white text-[11px] font-bold'
-                              : cell.inMonth ? 'text-white/60' : 'text-white/20'
+                              : cell.inMonth ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
                           } ${dayItems.length > 0 ? 'hover:underline cursor-pointer' : ''}`}
                         >
                           {cell.date.getDate()}
                         </span>
                         {dayItems.length > 0 && (
-                          <span className="text-[9px] text-white/25 font-medium">{dayItems.length}</span>
+                          <span className="text-[9px] text-[var(--text-muted)] font-medium">{dayItems.length}</span>
                         )}
                       </div>
 
@@ -1969,7 +1969,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                                 }`}
                               >
                                 <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: item.is_completed ? '#22c55e' : '#FF6B2B' }} />
-                                <span className={`text-[10px] truncate ${item.is_completed ? 'text-emerald-300/70 line-through' : 'text-[#F5F5F3]'}`}>{item.titre}</span>
+                                <span className={`text-[10px] truncate ${item.is_completed ? 'text-emerald-300/70 line-through' : 'text-[var(--text-primary)]'}`}>{item.titre}</span>
                               </div>
                             )
                           } else {
@@ -1983,7 +1983,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                                 style={{ backgroundColor: `${ti.color}15` }}
                               >
                                 <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
-                                <span className="text-[10px] text-[#F5F5F3] truncate">{item.title}</span>
+                                <span className="text-[10px] text-[var(--text-primary)] truncate">{item.title}</span>
                               </div>
                             )
                           }
@@ -2004,21 +2004,21 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
             </div>
           ) : (
             /* ────────── VUE SEMAINE ────────── */
-            <div className="bg-[#09090b] border border-[#27272a] rounded-xl overflow-hidden">
+            <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl overflow-hidden">
               {/* All-day séances section */}
               {(() => {
                 const hasAllDay = weekDates.some(d => itemsForDayCal(d).some(i => i._type === 'seance'))
                 if (!hasAllDay) return null
                 return (
-                  <div className="border-b border-[#27272a]">
+                  <div className="border-b border-[var(--border-base)]">
                     <div className="grid grid-cols-[60px_repeat(7,1fr)]">
-                      <div className="p-2 border-r border-[#27272a] flex items-center justify-center">
-                        <span className="text-[9px] text-white/25 uppercase font-semibold">Séances</span>
+                      <div className="p-2 border-r border-[var(--border-base)] flex items-center justify-center">
+                        <span className="text-[9px] text-[var(--text-muted)] uppercase font-semibold">Séances</span>
                       </div>
                       {weekDates.map((date, idx) => {
                         const daySeances = itemsForDayCal(date).filter(i => i._type === 'seance')
                         return (
-                          <div key={idx} className={`p-1.5 border-r border-[#27272a] last:border-r-0 min-h-[40px] ${isSameDayCal(date, todayCal) ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
+                          <div key={idx} className={`p-1.5 border-r border-[var(--border-base)] last:border-r-0 min-h-[40px] ${isSameDayCal(date, todayCal) ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
                             <div className="flex flex-col gap-1">
                               {daySeances.map(s => (
                                 <div
@@ -2031,7 +2031,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                                   }`}
                                 >
                                   <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: s.is_completed ? '#22c55e' : '#FF6B2B' }} />
-                                  <span className={`text-[10px] font-medium truncate ${s.is_completed ? 'text-emerald-300/70 line-through' : 'text-[#F5F5F3]'}`}>{s.titre}</span>
+                                  <span className={`text-[10px] font-medium truncate ${s.is_completed ? 'text-emerald-300/70 line-through' : 'text-[var(--text-primary)]'}`}>{s.titre}</span>
                                 </div>
                               ))}
                             </div>
@@ -2044,14 +2044,14 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
               })()}
 
               {/* Header row */}
-              <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[#27272a]">
-                <div className="p-2 border-r border-[#27272a]" />
+              <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[var(--border-base)]">
+                <div className="p-2 border-r border-[var(--border-base)]" />
                 {weekDates.map((date, idx) => {
                   const isTo = isSameDayCal(date, todayCal)
                   return (
-                    <div key={idx} className={`p-2 border-r border-[#27272a] last:border-r-0 text-center ${isTo ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
-                      <p className="text-[10px] text-white/30 uppercase font-semibold">{JOURS_COURTS[idx]}</p>
-                      <p className={`text-sm font-bold mt-0.5 ${isTo ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]'}`}>{date.getDate()}</p>
+                    <div key={idx} className={`p-2 border-r border-[var(--border-base)] last:border-r-0 text-center ${isTo ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
+                      <p className="text-[10px] text-[var(--text-muted)] uppercase font-semibold">{JOURS_COURTS[idx]}</p>
+                      <p className={`text-sm font-bold mt-0.5 ${isTo ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{date.getDate()}</p>
                     </div>
                   )
                 })}
@@ -2061,8 +2061,8 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
               <div className="grid grid-cols-[60px_repeat(7,1fr)] relative" style={{ maxHeight: 480, overflowY: 'auto' }}>
                 {HOURS_CAL.map(h => (
                   <div key={h} className="contents">
-                    <div className="h-[40px] border-r border-b border-[#27272a] flex items-start justify-end pr-2 pt-0.5">
-                      <span className="text-[10px] text-white/25 font-medium tabular-nums">{String(h).padStart(2, '0')}:00</span>
+                    <div className="h-[40px] border-r border-b border-[var(--border-base)] flex items-start justify-end pr-2 pt-0.5">
+                      <span className="text-[10px] text-[var(--text-muted)] font-medium tabular-nums">{String(h).padStart(2, '0')}:00</span>
                     </div>
                     {weekDates.map((date, dIdx) => {
                       const isTo = isSameDayCal(date, todayCal)
@@ -2072,7 +2072,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                         <div
                           key={dIdx}
                           onClick={() => handleDayClick(date)}
-                          className={`h-[40px] border-r border-b border-[#27272a] last:border-r-0 relative cursor-pointer hover:bg-white/[0.02] transition-colors ${isTo ? 'bg-[#FF6B2B]/[0.02]' : ''}`}
+                          className={`h-[40px] border-r border-b border-[var(--border-base)] last:border-r-0 relative cursor-pointer hover:bg-[var(--bg-surface)] transition-colors ${isTo ? 'bg-[#FF6B2B]/[0.02]' : ''}`}
                         >
                           {hourEvts.map(evt => {
                             const ti = getEventTypeInfoCal(evt.event_type)
@@ -2086,7 +2086,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                               >
                                 <div className="flex items-center gap-1">
                                   <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
-                                  <span className="text-[10px] font-medium text-[#F5F5F3] truncate">{evt.title}</span>
+                                  <span className="text-[10px] font-medium text-[var(--text-primary)] truncate">{evt.title}</span>
                                 </div>
                               </div>
                             )
@@ -2103,41 +2103,41 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
 
         {/* ═══════ TEMPLATES DRAWER (PANNEAU DROIT) ═══════ */}
         {panelOpen && (
-          <div className="hidden md:flex w-72 flex-shrink-0 bg-[#18181b] border border-[#27272a] rounded-2xl flex-col overflow-hidden" style={{ maxHeight: 'calc(100vh - 20rem)' }}>
-            <div className="p-4 border-b border-[#27272a]">
+          <div className="hidden md:flex w-72 flex-shrink-0 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl flex-col overflow-hidden" style={{ maxHeight: 'calc(100vh - 20rem)' }}>
+            <div className="p-4 border-b border-[var(--border-base)]">
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-[#F5F5F3] text-sm font-bold">Mes modèles</h3>
+                <h3 className="text-[var(--text-primary)] text-sm font-bold">Mes modèles</h3>
                 <button onClick={ouvrirDrawerNouveau}
                   className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#FF6B2B] text-white text-[10px] font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-sm shadow-[#FF6B2B]/20">
                   <Plus size={11} /> Nouveau
                 </button>
               </div>
-              <p className="text-white/20 text-[10px]">{templates.length} modèle{templates.length !== 1 ? 's' : ''} disponible{templates.length !== 1 ? 's' : ''}</p>
+              <p className="text-[var(--text-muted)] text-[10px]">{templates.length} modèle{templates.length !== 1 ? 's' : ''} disponible{templates.length !== 1 ? 's' : ''}</p>
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {loadingTemplates ? (
-                <div className="flex items-center justify-center py-8"><Loader2 size={16} className="animate-spin text-white/10" /></div>
+                <div className="flex items-center justify-center py-8"><Loader2 size={16} className="animate-spin text-[var(--text-muted)]" /></div>
               ) : templates.length === 0 ? (
                 <div className="text-center py-8">
-                  <Layers size={28} className="text-white/8 mx-auto mb-3" />
-                  <p className="text-white/15 text-xs mb-1">Aucun modèle</p>
-                  <p className="text-white/10 text-[10px]">Créez des modèles de séances pour les réutiliser</p>
+                  <Layers size={28} className="text-[var(--text-muted)] mx-auto mb-3" />
+                  <p className="text-[var(--text-muted)] text-xs mb-1">Aucun modèle</p>
+                  <p className="text-[var(--text-muted)] text-[10px]">Créez des modèles de séances pour les réutiliser</p>
                 </div>
               ) : (
                 templates.map((tpl) => (
-                  <div key={tpl.id} className="bg-[#0D0D0D] border border-[#27272a] rounded-2xl p-3.5 group hover:border-[#FF6B2B]/20 transition-all">
+                  <div key={tpl.id} className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-3.5 group hover:border-[#FF6B2B]/20 transition-all">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
                         <Dumbbell size={16} className="text-[#FF6B2B]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <button onClick={() => ouvrirDrawer(tpl)} className="text-[#F5F5F3] text-xs font-bold hover:text-[#FF6B2B] transition-colors text-left truncate block w-full">
+                        <button onClick={() => ouvrirDrawer(tpl)} className="text-[var(--text-primary)] text-xs font-bold hover:text-[#FF6B2B] transition-colors text-left truncate block w-full">
                           {tpl.titre}
                         </button>
-                        <p className="text-white/15 text-[9px] mt-0.5">Cliquer pour modifier</p>
+                        <p className="text-[var(--text-muted)] text-[9px] mt-0.5">Cliquer pour modifier</p>
                       </div>
                       <button onClick={() => supprimerTemplate(tpl.id)}
-                        className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 shrink-0">
+                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 shrink-0">
                         <Trash2 size={11} />
                       </button>
                     </div>
@@ -2158,71 +2158,71 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         <>
           <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
-                <h2 className="text-[#F5F5F3] font-semibold text-base">
+            <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
+                <h2 className="text-[var(--text-primary)] font-semibold text-base">
                   {modalType === null ? 'Ajouter pour ' + clientName : 'Événement classique'}
                 </h2>
-                <button onClick={() => setModalOpen(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                <button onClick={() => setModalOpen(false)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                   <X size={18} />
                 </button>
               </div>
               <div className="p-6">
                 {modalType === null ? (
                   <div className="space-y-3">
-                    <p className="text-white/40 text-sm mb-4">Que souhaitez-vous ajouter ?</p>
+                    <p className="text-[var(--text-muted)] text-sm mb-4">Que souhaitez-vous ajouter ?</p>
                     <button
                       onClick={() => { openSeanceCreationModal(evtDate) }}
-                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[#27272a] hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/[0.03] transition-colors text-left"
+                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[var(--border-base)] hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/[0.03] transition-colors text-left"
                     >
                       <div className="w-11 h-11 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
                         <Dumbbell size={20} className="text-[#FF6B2B]" />
                       </div>
                       <div>
-                        <p className="text-[#F5F5F3] text-sm font-semibold">Séance de sport</p>
-                        <p className="text-white/30 text-xs mt-0.5">Planifier depuis un modèle ou créer</p>
+                        <p className="text-[var(--text-primary)] text-sm font-semibold">Séance de sport</p>
+                        <p className="text-[var(--text-muted)] text-xs mt-0.5">Planifier depuis un modèle ou créer</p>
                       </div>
-                      <ChevronRight size={16} className="text-white/15 ml-auto" />
+                      <ChevronRight size={16} className="text-[var(--text-muted)] ml-auto" />
                     </button>
                     <button
                       onClick={() => setModalType('event')}
-                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[#27272a] hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/[0.03] transition-colors text-left"
+                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[var(--border-base)] hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/[0.03] transition-colors text-left"
                     >
                       <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
                         <Calendar size={20} className="text-blue-400" />
                       </div>
                       <div>
-                        <p className="text-[#F5F5F3] text-sm font-semibold">Événement classique</p>
-                        <p className="text-white/30 text-xs mt-0.5">Bilan, appel, réunion, note...</p>
+                        <p className="text-[var(--text-primary)] text-sm font-semibold">Événement classique</p>
+                        <p className="text-[var(--text-muted)] text-xs mt-0.5">Bilan, appel, réunion, note...</p>
                       </div>
-                      <ChevronRight size={16} className="text-white/15 ml-auto" />
+                      <ChevronRight size={16} className="text-[var(--text-muted)] ml-auto" />
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-white/40 text-xs mb-1.5">Titre</label>
+                      <label className="block text-[var(--text-muted)] text-xs mb-1.5">Titre</label>
                       <input type="text" value={evtTitle} onChange={(e) => setEvtTitle(e.target.value)} placeholder="Ex: Bilan mensuel" autoFocus
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-white/40 text-xs mb-1.5">Date</label>
+                        <label className="block text-[var(--text-muted)] text-xs mb-1.5">Date</label>
                         <input type="date" value={evtDate} onChange={(e) => setEvtDate(e.target.value)}
-                          className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                          className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                       </div>
                       <div>
-                        <label className="block text-white/40 text-xs mb-1.5">Heure</label>
+                        <label className="block text-[var(--text-muted)] text-xs mb-1.5">Heure</label>
                         <input type="time" value={evtTime} onChange={(e) => setEvtTime(e.target.value)}
-                          className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                          className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-white/40 text-xs mb-1.5">Type</label>
+                      <label className="block text-[var(--text-muted)] text-xs mb-1.5">Type</label>
                       <div className="flex flex-wrap gap-2">
                         {EVENT_TYPES_CAL.filter(t => t.id !== 'seance').map((t) => (
                           <button key={t.id} onClick={() => setEvtType(t.id)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${evtType === t.id ? 'border-2' : 'border border-[#27272a] text-white/40 hover:text-white/60'}`}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${evtType === t.id ? 'border-2' : 'border border-[var(--border-base)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                             style={evtType === t.id ? { borderColor: t.color, color: t.color, backgroundColor: `${t.color}10` } : {}}>
                             <t.icon size={12} /> {t.label}
                           </button>
@@ -2230,19 +2230,19 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                       </div>
                     </div>
                     {/* Client is locked — show info */}
-                    <div className="bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 flex items-center gap-2">
+                    <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 flex items-center gap-2">
                       <User size={14} className="text-[#FF6B2B]" />
-                      <span className="text-sm text-[#F5F5F3]">{clientName}</span>
-                      <span className="text-[10px] text-white/20 ml-auto">Verrouillé</span>
+                      <span className="text-sm text-[var(--text-primary)]">{clientName}</span>
+                      <span className="text-[10px] text-[var(--text-muted)] ml-auto">Verrouillé</span>
                     </div>
                     <div>
-                      <label className="block text-white/40 text-xs mb-1.5">Notes</label>
+                      <label className="block text-[var(--text-muted)] text-xs mb-1.5">Notes</label>
                       <textarea value={evtNotes} onChange={(e) => setEvtNotes(e.target.value)} placeholder="Notes optionnelles..." rows={2}
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none" />
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none" />
                     </div>
                     <div className="flex gap-2 pt-1">
                       <button onClick={() => setModalType(null)}
-                        className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Retour</button>
+                        className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] transition-colors">Retour</button>
                       <button onClick={saveEvent} disabled={!evtTitle.trim() || !evtDate || saving}
                         className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
                         {saving ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Créer
@@ -2261,18 +2261,18 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         <>
           <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setDayDetailDate(null)} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
-                <h2 className="text-[#F5F5F3] font-semibold text-base">
+            <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
+                <h2 className="text-[var(--text-primary)] font-semibold text-base">
                   {dayDetailDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </h2>
-                <button onClick={() => setDayDetailDate(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                <button onClick={() => setDayDetailDate(null)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                   <X size={18} />
                 </button>
               </div>
               <div className="p-4 space-y-2 max-h-[400px] overflow-y-auto">
                 {itemsForDayCal(dayDetailDate).length === 0 ? (
-                  <p className="text-center text-white/25 text-sm py-8">Aucun événement ce jour</p>
+                  <p className="text-center text-[var(--text-muted)] text-sm py-8">Aucun événement ce jour</p>
                 ) : itemsForDayCal(dayDetailDate).map(item => {
                   if (item._type === 'seance') {
                     return (
@@ -2287,8 +2287,8 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                           <Dumbbell size={16} className={item.is_completed ? 'text-emerald-400' : 'text-[#FF6B2B]'} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className={`text-sm font-medium truncate ${item.is_completed ? 'text-emerald-300/70 line-through' : 'text-[#F5F5F3]'}`}>{item.titre}</p>
-                          <p className="text-[11px] text-white/35 mt-0.5">Séance{item.is_completed ? ' — Complétée' : ''}</p>
+                          <p className={`text-sm font-medium truncate ${item.is_completed ? 'text-emerald-300/70 line-through' : 'text-[var(--text-primary)]'}`}>{item.titre}</p>
+                          <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Séance{item.is_completed ? ' — Complétée' : ''}</p>
                         </div>
                       </button>
                     )
@@ -2306,8 +2306,8 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                           <TI size={16} style={{ color: ti.color }} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-[#F5F5F3] truncate">{item.title}</p>
-                          <p className="text-[11px] text-white/35 mt-0.5">{formatHHmmCal(item.event_date)}</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)] truncate">{item.title}</p>
+                          <p className="text-[11px] text-[var(--text-muted)] mt-0.5">{formatHHmmCal(item.event_date)}</p>
                         </div>
                       </button>
                     )
@@ -2317,7 +2317,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
               <div className="px-4 pb-4">
                 <button
                   onClick={() => { setDayDetailDate(null); handleDayClick(dayDetailDate) }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#27272a] text-white/40 text-xs font-medium hover:text-white/60 hover:border-[#3f3f46] transition-colors"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[var(--border-base)] text-[var(--text-muted)] text-xs font-medium hover:text-[var(--text-secondary)] hover:border-[var(--border-base)] transition-colors"
                 >
                   <Plus size={14} /> Ajouter un événement
                 </button>
@@ -2330,9 +2330,9 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       {/* ═══════ MODAL DÉTAIL SÉANCE ═══════ */}
       <Modal isOpen={!!detailSeance} onClose={() => setDetailSeance(null)} title={detailSeance?.titre || 'Séance'}>
         <div className="space-y-4">
-          <div className="flex items-center gap-3 bg-[#09090b] rounded-lg p-3">
+          <div className="flex items-center gap-3 bg-[var(--bg-elevated)] rounded-lg p-3">
             <Calendar size={14} className="text-[#FF6B2B]" />
-            <span className="text-[#F5F5F3] text-sm">
+            <span className="text-[var(--text-primary)] text-sm">
               {detailSeance?.date_prevue
                 ? new Date(detailSeance.date_prevue + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
                 : ''}
@@ -2344,26 +2344,26 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
             )}
           </div>
           {detailSeance?.notes && (
-            <p className="text-white/30 text-xs bg-[#09090b] rounded-lg p-3">{detailSeance.notes}</p>
+            <p className="text-[var(--text-muted)] text-xs bg-[var(--bg-elevated)] rounded-lg p-3">{detailSeance.notes}</p>
           )}
           <div>
-            <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">Exercices ({detailExercices.length})</p>
+            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-semibold mb-2">Exercices ({detailExercices.length})</p>
             {loadingDetail ? (
-              <div className="flex items-center justify-center py-6"><Loader2 size={18} className="animate-spin text-white/10" /></div>
+              <div className="flex items-center justify-center py-6"><Loader2 size={18} className="animate-spin text-[var(--text-muted)]" /></div>
             ) : detailExercices.length === 0 ? (
-              <div className="text-center py-6 bg-[#09090b] rounded-lg">
-                <Dumbbell size={20} className="text-white/10 mx-auto mb-2" />
-                <p className="text-white/15 text-xs">Aucun exercice ajouté</p>
-                <p className="text-white/10 text-[10px] mt-1">Ouvrez l'onglet Sport pour composer la séance</p>
+              <div className="text-center py-6 bg-[var(--bg-elevated)] rounded-lg">
+                <Dumbbell size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
+                <p className="text-[var(--text-muted)] text-xs">Aucun exercice ajouté</p>
+                <p className="text-[var(--text-muted)] text-[10px] mt-1">Ouvrez l'onglet Sport pour composer la séance</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {detailExercices.map((ex, i) => (
-                  <div key={ex.id} className="flex items-center gap-3 bg-[#09090b] rounded-lg p-3">
+                  <div key={ex.id} className="flex items-center gap-3 bg-[var(--bg-elevated)] rounded-lg p-3">
                     <span className="w-5 h-5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[#F5F5F3] text-sm font-medium truncate">{ex.exercices?.nom || 'Exercice'}</p>
-                      <p className="text-white/20 text-[10px]">{ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''} {ex.repos ? `· ${ex.repos}s repos` : ''}</p>
+                      <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.exercices?.nom || 'Exercice'}</p>
+                      <p className="text-[var(--text-muted)] text-[10px]">{ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''} {ex.repos ? `· ${ex.repos}s repos` : ''}</p>
                     </div>
                     {ex.exercices?.muscle_group && (
                       <span className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400">{ex.exercices.muscle_group}</span>
@@ -2394,42 +2394,42 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
           <>
             <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setDetailEvent(null)} />
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+              <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${ti.color}20` }}>
                       <TI size={18} style={{ color: ti.color }} />
                     </div>
                     <div>
-                      <h2 className="text-[#F5F5F3] font-semibold text-base">{detailEvent.title}</h2>
+                      <h2 className="text-[var(--text-primary)] font-semibold text-base">{detailEvent.title}</h2>
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${ti.color}15`, color: ti.color }}>
                         {ti.label}
                       </span>
                     </div>
                   </div>
-                  <button onClick={() => setDetailEvent(null)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors">
+                  <button onClick={() => setDetailEvent(null)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                     <X size={18} />
                   </button>
                 </div>
-                <div className="px-6 py-4 border-b border-[#27272a] flex flex-wrap items-center gap-4">
+                <div className="px-6 py-4 border-b border-[var(--border-base)] flex flex-wrap items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <Calendar size={14} className="text-white/30" />
-                    <span className="text-sm text-[#F5F5F3]">
+                    <Calendar size={14} className="text-[var(--text-muted)]" />
+                    <span className="text-sm text-[var(--text-primary)]">
                       {new Date(detailEvent.event_date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock size={14} className="text-white/30" />
-                    <span className="text-sm text-[#F5F5F3]">{formatHHmmCal(detailEvent.event_date)}</span>
+                    <Clock size={14} className="text-[var(--text-muted)]" />
+                    <span className="text-sm text-[var(--text-primary)]">{formatHHmmCal(detailEvent.event_date)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <User size={14} className="text-white/30" />
-                    <span className="text-sm text-[#F5F5F3]">{clientName}</span>
+                    <User size={14} className="text-[var(--text-muted)]" />
+                    <span className="text-sm text-[var(--text-primary)]">{clientName}</span>
                   </div>
                 </div>
                 <div className="px-6 py-4">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-white/40 text-[10px] uppercase tracking-wider font-semibold">Notes</p>
+                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold">Notes</p>
                     {!editingNotes && (
                       <button onClick={() => { setEditingNotes(true); setEditNotesValue(detailEvent.notes || '') }}
                         className="flex items-center gap-1 text-[10px] text-[#FF6B2B] font-medium hover:text-[#FF9A6C] transition-colors">
@@ -2440,11 +2440,11 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                   {editingNotes ? (
                     <div className="space-y-3">
                       <textarea value={editNotesValue} onChange={(e) => setEditNotesValue(e.target.value)} rows={4} autoFocus
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-3 text-sm text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none"
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors resize-none"
                         placeholder="Ajouter des notes..." />
                       <div className="flex gap-2">
                         <button onClick={() => setEditingNotes(false)}
-                          className="flex-1 py-2 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
+                          className="flex-1 py-2 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] transition-colors">Annuler</button>
                         <button onClick={saveEventNotes} disabled={savingNotes}
                           className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
                           {savingNotes ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Enregistrer
@@ -2452,11 +2452,11 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-4 min-h-[60px]">
+                    <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-4 min-h-[60px]">
                       {detailEvent.notes ? (
-                        <p className="text-sm text-[#F5F5F3] leading-relaxed whitespace-pre-wrap">{detailEvent.notes}</p>
+                        <p className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">{detailEvent.notes}</p>
                       ) : (
-                        <p className="text-sm text-white/20 italic">Aucune note pour cet événement</p>
+                        <p className="text-sm text-[var(--text-muted)] italic">Aucune note pour cet événement</p>
                       )}
                     </div>
                   )}
@@ -2481,57 +2481,57 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       {modalSeance && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => { setModalSeance(false); setSeanceStep(1); setSelectedTemplateForPlan(null) }}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative w-full max-w-lg bg-[#1E1E1E] rounded-2xl border border-white/[0.06] shadow-2xl overflow-hidden"
+          <div className="relative w-full max-w-lg bg-[var(--bg-card)] rounded-2xl border border-[var(--border-subtle)] shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
             <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
             <div className="px-6 pt-5 pb-3">
               <div className="flex items-center gap-2 mb-2">
                 {[1, 2].map(s => (
-                  <div key={s} className={`flex-1 h-1 rounded-full transition-all duration-300 ${seanceStep >= s ? 'bg-[#FF6B2B]' : 'bg-[#27272a]'}`} />
+                  <div key={s} className={`flex-1 h-1 rounded-full transition-all duration-300 ${seanceStep >= s ? 'bg-[#FF6B2B]' : 'bg-[var(--bg-surface)]'}`} />
                 ))}
               </div>
-              <p className="text-white/25 text-[10px] font-medium">Étape {seanceStep} sur 2</p>
+              <p className="text-[var(--text-muted)] text-[10px] font-medium">Étape {seanceStep} sur 2</p>
             </div>
             {seanceStep === 1 && (
               <div className="px-6 pb-6 space-y-4">
                 <div>
-                  <h2 className="text-[#F5F5F3] text-xl font-bold">Choisir une séance</h2>
-                  <p className="text-white/30 text-sm mt-1">Sélectionnez un modèle ou créez-en un nouveau.</p>
+                  <h2 className="text-[var(--text-primary)] text-xl font-bold">Choisir une séance</h2>
+                  <p className="text-[var(--text-muted)] text-sm mt-1">Sélectionnez un modèle ou créez-en un nouveau.</p>
                 </div>
                 <div className="space-y-2">
                   <button onClick={() => { setSelectedTemplateForPlan('new'); setNewSeanceTitre('') }}
                     className={`w-full flex items-center gap-3.5 px-4 py-4 rounded-xl border-2 border-dashed transition-all ${
-                      selectedTemplateForPlan === 'new' ? 'border-[#FF6B2B] bg-[#FF6B2B]/5' : 'border-[#27272a] hover:border-[#FF6B2B]/30'
+                      selectedTemplateForPlan === 'new' ? 'border-[#FF6B2B] bg-[#FF6B2B]/5' : 'border-[var(--border-base)] hover:border-[#FF6B2B]/30'
                     }`}>
                     <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
                       <Plus size={18} className="text-[#FF6B2B]" />
                     </div>
                     <div className="text-left">
-                      <p className="text-[#F5F5F3] text-sm font-semibold">Nouvelle séance</p>
-                      <p className="text-white/25 text-[11px]">Créer une séance personnalisée</p>
+                      <p className="text-[var(--text-primary)] text-sm font-semibold">Nouvelle séance</p>
+                      <p className="text-[var(--text-muted)] text-[11px]">Créer une séance personnalisée</p>
                     </div>
                   </button>
                   {selectedTemplateForPlan === 'new' && (
                     <input type="text" value={newSeanceTitre} onChange={e => setNewSeanceTitre(e.target.value)}
                       placeholder="Nom de la séance..." autoFocus
-                      className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                      className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
                   )}
                 </div>
                 {templates.length > 0 && (
                   <div className="space-y-1.5">
-                    <p className="text-white/25 text-[10px] font-semibold uppercase tracking-wider">Ou utiliser un modèle</p>
+                    <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-wider">Ou utiliser un modèle</p>
                     <div className="max-h-48 overflow-y-auto space-y-1.5">
                       {templates.map(tpl => (
                         <button key={tpl.id} onClick={() => { setSelectedTemplateForPlan(tpl); setNewSeanceTitre(tpl.titre) }}
                           className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
-                            selectedTemplateForPlan?.id === tpl.id ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'bg-[#0D0D0D] hover:bg-[#0D0D0D]/80 border border-transparent'
+                            selectedTemplateForPlan?.id === tpl.id ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'bg-[var(--bg-base)] hover:bg-[var(--bg-base)]/80 border border-transparent'
                           }`}>
                           <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
                             <Dumbbell size={14} className="text-[#FF6B2B]" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[#F5F5F3] text-xs font-semibold truncate">{tpl.titre}</p>
-                            {tpl.notes && <p className="text-white/15 text-[9px] truncate">{tpl.notes}</p>}
+                            <p className="text-[var(--text-primary)] text-xs font-semibold truncate">{tpl.titre}</p>
+                            {tpl.notes && <p className="text-[var(--text-muted)] text-[9px] truncate">{tpl.notes}</p>}
                           </div>
                         </button>
                       ))}
@@ -2540,7 +2540,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                 )}
                 <div className="flex gap-2 pt-2">
                   <button onClick={() => { setModalSeance(false); setSeanceStep(1) }}
-                    className="flex-1 py-3 rounded-xl text-sm text-white/30 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
+                    className="flex-1 py-3 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] transition-colors">Annuler</button>
                   <button onClick={() => setSeanceStep(2)}
                     disabled={!selectedTemplateForPlan || (selectedTemplateForPlan === 'new' && !newSeanceTitre.trim())}
                     className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
@@ -2552,38 +2552,38 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
             {seanceStep === 2 && (
               <div className="px-6 pb-6 space-y-5">
                 <div>
-                  <h2 className="text-[#F5F5F3] text-xl font-bold">Planifier la date</h2>
-                  <p className="text-white/30 text-sm mt-1">
+                  <h2 className="text-[var(--text-primary)] text-xl font-bold">Planifier la date</h2>
+                  <p className="text-[var(--text-muted)] text-sm mt-1">
                     {selectedTemplateForPlan === 'new' ? `"${newSeanceTitre}"` : `"${selectedTemplateForPlan?.titre}"`} pour {clientName}
                   </p>
                 </div>
-                <div className="bg-[#0D0D0D] rounded-xl p-4 flex items-center gap-3">
+                <div className="bg-[var(--bg-base)] rounded-xl p-4 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
                     <Dumbbell size={18} className="text-[#FF6B2B]" />
                   </div>
                   <div>
-                    <p className="text-[#F5F5F3] text-sm font-semibold">
+                    <p className="text-[var(--text-primary)] text-sm font-semibold">
                       {selectedTemplateForPlan === 'new' ? newSeanceTitre : selectedTemplateForPlan?.titre}
                     </p>
-                    <p className="text-white/20 text-[10px]">
+                    <p className="text-[var(--text-muted)] text-[10px]">
                       {selectedTemplateForPlan === 'new' ? 'Nouvelle séance' : 'Modèle existant (exercices copiés)'}
                     </p>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Date de la séance</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-2 font-semibold uppercase tracking-wider">Date de la séance</label>
                   <input type="date" value={modalDate || ''} onChange={e => setModalDate(e.target.value)}
-                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-xs text-white/35 mb-2 font-semibold uppercase tracking-wider">Notes (optionnel)</label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-2 font-semibold uppercase tracking-wider">Notes (optionnel)</label>
                   <textarea value={newSeanceNotes} onChange={e => setNewSeanceNotes(e.target.value)}
                     placeholder="Instructions spécifiques..." rows={2}
-                    className="w-full bg-[#0D0D0D] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-all resize-none" />
+                    className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-all resize-none" />
                 </div>
                 <div className="flex gap-2 pt-2">
                   <button onClick={() => setSeanceStep(1)}
-                    className="flex-1 py-3 rounded-xl text-sm text-white/30 bg-[#27272a] hover:bg-[#3f3f46] transition-colors flex items-center justify-center gap-1.5">
+                    className="flex-1 py-3 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] transition-colors flex items-center justify-center gap-1.5">
                     <ChevronLeft size={14} /> Retour
                   </button>
                   <button
@@ -2612,25 +2612,25 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       {/* ═══════ MODAL — Créer un modèle ═══════ */}
       <Modal isOpen={modalTemplate} onClose={() => setModalTemplate(false)} title="Nouveau modèle de séance">
         <form onSubmit={creerTemplate} className="space-y-4">
-          <div className="bg-[#09090b] rounded-lg p-3 flex items-start gap-2.5">
+          <div className="bg-[var(--bg-elevated)] rounded-lg p-3 flex items-start gap-2.5">
             <Layers size={16} className="text-[#FF6B2B] mt-0.5 flex-shrink-0" />
-            <p className="text-white/30 text-xs leading-relaxed">Un modèle est une séance type réutilisable.</p>
+            <p className="text-[var(--text-muted)] text-xs leading-relaxed">Un modèle est une séance type réutilisable.</p>
           </div>
           <div>
-            <label className="block text-sm text-white/50 mb-1.5">Titre du modèle *</label>
+            <label className="block text-sm text-[var(--text-secondary)] mb-1.5">Titre du modèle *</label>
             <input type="text" value={newTemplateTitre} onChange={(e) => setNewTemplateTitre(e.target.value)}
               placeholder="Ex: Push Day, Full Body débutant..." autoFocus required
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
           </div>
           <div>
-            <label className="block text-sm text-white/50 mb-1.5">Notes (optionnel)</label>
+            <label className="block text-sm text-[var(--text-secondary)] mb-1.5">Notes (optionnel)</label>
             <textarea value={newTemplateNotes} onChange={(e) => setNewTemplateNotes(e.target.value)}
               placeholder="Description ou objectifs..." rows={3}
-              className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none" />
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none" />
           </div>
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={() => setModalTemplate(false)}
-              className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
+              className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] transition-colors">Annuler</button>
             <button type="submit" disabled={creatingTemplate}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
               {creatingTemplate ? <Loader2 size={15} className="animate-spin" /> : <Layers size={15} />}
@@ -2644,28 +2644,28 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       <Modal isOpen={!!modalPlanifier} onClose={() => setModalPlanifier(null)} title="Ajouter au calendrier">
         {modalPlanifier && (
           <div className="space-y-4">
-            <div className="bg-[#09090b] rounded-xl p-4 flex items-center gap-3">
+            <div className="bg-[var(--bg-elevated)] rounded-xl p-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
                 <Copy size={16} className="text-[#FF6B2B]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[#F5F5F3] text-sm font-semibold truncate">{modalPlanifier.titre}</p>
-                <p className="text-white/20 text-[10px]">Ce modèle et ses exercices seront copiés</p>
+                <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{modalPlanifier.titre}</p>
+                <p className="text-[var(--text-muted)] text-[10px]">Ce modèle et ses exercices seront copiés</p>
               </div>
             </div>
-            <div className="bg-[#09090b] rounded-lg p-3 flex items-center gap-2">
+            <div className="bg-[var(--bg-elevated)] rounded-lg p-3 flex items-center gap-2">
               <User size={14} className="text-[#FF6B2B]" />
-              <span className="text-[#F5F5F3] text-sm">{clientName}</span>
-              <span className="text-white/15 text-[10px] ml-auto">Client verrouillé</span>
+              <span className="text-[var(--text-primary)] text-sm">{clientName}</span>
+              <span className="text-[var(--text-muted)] text-[10px] ml-auto">Client verrouillé</span>
             </div>
             <div>
-              <label className="block text-sm text-white/50 mb-1.5">Date de la séance *</label>
+              <label className="block text-sm text-[var(--text-secondary)] mb-1.5">Date de la séance *</label>
               <input type="date" value={planifDate} onChange={(e) => setPlanifDate(e.target.value)} required
-                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors" />
             </div>
             <div className="flex gap-2 pt-1">
               <button onClick={() => setModalPlanifier(null)}
-                className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">Annuler</button>
+                className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] transition-colors">Annuler</button>
               <button onClick={planifierTemplate} disabled={planifying || !planifDate}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
                 {planifying ? <Loader2 size={15} className="animate-spin" /> : <CalendarPlus size={15} />}
@@ -2680,27 +2680,27 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       <Modal isOpen={!!previewTemplate} onClose={() => setPreviewTemplate(null)} title={previewTemplate?.titre || 'Modèle'}>
         {previewTemplate && (
           <div className="space-y-4">
-            <div className="bg-[#09090b] rounded-lg p-3 flex items-center gap-2">
+            <div className="bg-[var(--bg-elevated)] rounded-lg p-3 flex items-center gap-2">
               <Layers size={14} className="text-[#FF6B2B]" />
               <span className="text-[#FF6B2B] text-[10px] font-bold">MODÈLE</span>
             </div>
             <div>
-              <p className="text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-2">Exercices ({previewExos.length})</p>
+              <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-semibold mb-2">Exercices ({previewExos.length})</p>
               {loadingPreview ? (
-                <div className="flex items-center justify-center py-6"><Loader2 size={18} className="animate-spin text-white/10" /></div>
+                <div className="flex items-center justify-center py-6"><Loader2 size={18} className="animate-spin text-[var(--text-muted)]" /></div>
               ) : previewExos.length === 0 ? (
-                <div className="text-center py-6 bg-[#09090b] rounded-lg">
-                  <Dumbbell size={20} className="text-white/10 mx-auto mb-2" />
-                  <p className="text-white/15 text-xs">Aucun exercice dans ce modèle</p>
+                <div className="text-center py-6 bg-[var(--bg-elevated)] rounded-lg">
+                  <Dumbbell size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
+                  <p className="text-[var(--text-muted)] text-xs">Aucun exercice dans ce modèle</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {previewExos.map((ex, i) => (
-                    <div key={ex.id} className="flex items-center gap-3 bg-[#09090b] rounded-lg p-3">
+                    <div key={ex.id} className="flex items-center gap-3 bg-[var(--bg-elevated)] rounded-lg p-3">
                       <span className="w-5 h-5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[#F5F5F3] text-sm font-medium truncate">{ex.exercices?.nom || 'Exercice'}</p>
-                        <p className="text-white/20 text-[10px]">{ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''}</p>
+                        <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.exercices?.nom || 'Exercice'}</p>
+                        <p className="text-[var(--text-muted)] text-[10px]">{ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''}</p>
                       </div>
                     </div>
                   ))}
@@ -2713,7 +2713,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                 <CalendarPlus size={15} /> Planifier
               </button>
               <button onClick={() => setPreviewTemplate(null)}
-                className="px-4 py-2.5 rounded-xl bg-[#27272a] text-white/40 text-sm hover:bg-[#3f3f46] transition-colors">Fermer</button>
+                className="px-4 py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-muted)] text-sm hover:bg-[var(--bg-surface)] transition-colors">Fermer</button>
             </div>
           </div>
         )}
@@ -2722,21 +2722,21 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       {/* ══════════════════════════════════════ */}
       {/* DRAWER — Workout Builder (Modèle)     */}
       {/* ══════════════════════════════════════ */}
-      <div className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] bg-[#09090b] border-l border-[#27272a] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${
+      <div className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] bg-[var(--bg-elevated)] border-l border-[var(--border-base)] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${
         drawerTemplate ? 'translate-x-0' : 'translate-x-full'
       }`}>
         {drawerTemplate && (
           <>
             {/* Header */}
-            <div className="px-5 py-4 border-b border-[#27272a] flex-shrink-0">
+            <div className="px-5 py-4 border-b border-[var(--border-base)] flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
                     <Dumbbell size={16} className="text-[#FF6B2B]" />
                   </div>
-                  <h3 className="text-[#F5F5F3] text-sm font-bold">Workout Builder</h3>
+                  <h3 className="text-[var(--text-primary)] text-sm font-bold">Workout Builder</h3>
                 </div>
-                <button onClick={() => setDrawerTemplate(null)} className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+                <button onClick={() => setDrawerTemplate(null)} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all">
                   <X size={18} />
                 </button>
               </div>
@@ -2746,7 +2746,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                 value={drawerTitle}
                 onChange={e => setDrawerTitle(e.target.value)}
                 placeholder="Nom du modèle..."
-                className="w-full bg-[#18181b] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm font-semibold placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm font-semibold placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
               />
             </div>
 
@@ -2754,19 +2754,19 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2.5">
               {loadingDrawerExos ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 size={20} className="animate-spin text-white/10" />
+                  <Loader2 size={20} className="animate-spin text-[var(--text-muted)]" />
                 </div>
               ) : drawerExos.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-14 h-14 rounded-2xl bg-[#18181b] border border-dashed border-[#27272a] flex items-center justify-center mx-auto mb-4">
-                    <Dumbbell size={22} className="text-white/10" />
+                  <div className="w-14 h-14 rounded-2xl bg-[var(--bg-base)] border border-dashed border-[var(--border-base)] flex items-center justify-center mx-auto mb-4">
+                    <Dumbbell size={22} className="text-[var(--text-muted)]" />
                   </div>
-                  <p className="text-white/25 text-sm font-medium mb-1">Aucun exercice</p>
-                  <p className="text-white/10 text-xs">Ajoutez des exercices pour construire votre séance</p>
+                  <p className="text-[var(--text-muted)] text-sm font-medium mb-1">Aucun exercice</p>
+                  <p className="text-[var(--text-muted)] text-xs">Ajoutez des exercices pour construire votre séance</p>
                 </div>
               ) : (
                 drawerExos.map((exo, idx) => (
-                  <div key={`${exo.exercice_id}-${idx}`} className="bg-[#18181b] border border-[#27272a] rounded-xl p-3.5 group hover:border-[#27272a]/80 transition-all">
+                  <div key={`${exo.exercice_id}-${idx}`} className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-3.5 group hover:border-[var(--border-base)]/80 transition-all">
                     {/* Titre + supprimer */}
                     <div className="flex items-center justify-between mb-2.5">
                       <div className="flex items-center gap-2.5 flex-1 min-w-0">
@@ -2774,36 +2774,36 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                           <Dumbbell size={13} className="text-[#FF6B2B]" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[#F5F5F3] text-xs font-semibold truncate">{exo.nom}</p>
+                          <p className="text-[var(--text-primary)] text-xs font-semibold truncate">{exo.nom}</p>
                           {exo.muscle_group && (
-                            <p className="text-white/20 text-[10px]">{exo.muscle_group}{exo.equipment ? ` • ${exo.equipment}` : ''}</p>
+                            <p className="text-[var(--text-muted)] text-[10px]">{exo.muscle_group}{exo.equipment ? ` • ${exo.equipment}` : ''}</p>
                           )}
                         </div>
                       </div>
                       <button onClick={() => drawerRemoveExo(idx)}
-                        className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
+                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
                         <Trash2 size={13} />
                       </button>
                     </div>
                     {/* Séries / Reps / Repos */}
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="block text-[9px] text-white/20 mb-1 font-medium">Séries</label>
+                        <label className="block text-[9px] text-[var(--text-muted)] mb-1 font-medium">Séries</label>
                         <input type="number" min={1} value={exo.series}
                           onChange={e => drawerUpdateExo(idx, 'series', e.target.value)}
-                          className="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-2.5 py-1.5 text-[#F5F5F3] text-xs font-semibold text-center focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                          className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2.5 py-1.5 text-[var(--text-primary)] text-xs font-semibold text-center focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
                       </div>
                       <div>
-                        <label className="block text-[9px] text-white/20 mb-1 font-medium">Reps</label>
+                        <label className="block text-[9px] text-[var(--text-muted)] mb-1 font-medium">Reps</label>
                         <input type="number" min={1} value={exo.reps}
                           onChange={e => drawerUpdateExo(idx, 'reps', e.target.value)}
-                          className="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-2.5 py-1.5 text-[#F5F5F3] text-xs font-semibold text-center focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                          className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2.5 py-1.5 text-[var(--text-primary)] text-xs font-semibold text-center focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
                       </div>
                       <div>
-                        <label className="block text-[9px] text-white/20 mb-1 font-medium">Repos (s)</label>
+                        <label className="block text-[9px] text-[var(--text-muted)] mb-1 font-medium">Repos (s)</label>
                         <input type="number" min={0} step={15} value={exo.repos}
                           onChange={e => drawerUpdateExo(idx, 'repos', e.target.value)}
-                          className="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-2.5 py-1.5 text-[#F5F5F3] text-xs font-semibold text-center focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                          className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2.5 py-1.5 text-[var(--text-primary)] text-xs font-semibold text-center focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
                       </div>
                     </div>
                   </div>
@@ -2812,27 +2812,27 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
             </div>
 
             {/* Ajouter un exercice — Bibliothèque intégrée */}
-            <div className="border-t border-[#27272a] flex-shrink-0 flex flex-col" style={{ maxHeight: drawerShowSearch ? '55vh' : 'auto' }}>
+            <div className="border-t border-[var(--border-base)] flex-shrink-0 flex flex-col" style={{ maxHeight: drawerShowSearch ? '55vh' : 'auto' }}>
               {drawerShowSearch ? (
                 <>
                   {/* Search header */}
-                  <div className="px-5 py-3 space-y-2.5 border-b border-[#27272a]/50">
+                  <div className="px-5 py-3 space-y-2.5 border-b border-[var(--border-base)]/50">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-[#F5F5F3] text-xs font-bold">Ma bibliothèque</h4>
+                      <h4 className="text-[var(--text-primary)] text-xs font-bold">Ma bibliothèque</h4>
                       <button onClick={() => { setDrawerShowSearch(false); setDrawerSearch(''); setDrawerCatFilter('Tous') }}
-                        className="text-[10px] text-white/25 hover:text-white/50 transition-colors">Fermer</button>
+                        className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">Fermer</button>
                     </div>
                     <div className="relative">
-                      <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
+                      <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                       <input type="text" value={drawerSearch} onChange={e => setDrawerSearch(e.target.value)}
                         placeholder="Rechercher..." autoFocus
-                        className="w-full bg-[#18181b] border border-[#27272a] rounded-xl pl-8 pr-4 py-2 text-[#F5F5F3] text-[11px] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                        className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl pl-8 pr-4 py-2 text-[var(--text-primary)] text-[11px] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
                     </div>
                     <div className="flex gap-1 flex-wrap">
                       {EXERCISE_CATEGORIES.map(cat => (
                         <button key={cat} onClick={() => setDrawerCatFilter(cat)}
                           className={`px-2 py-0.5 rounded-lg text-[9px] font-medium transition-colors ${
-                            drawerCatFilter === cat ? 'bg-[#FF6B2B] text-white' : 'bg-[#18181b] text-white/25 hover:text-white/50'
+                            drawerCatFilter === cat ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-base)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                           }`}>
                           {cat}
                         </button>
@@ -2843,7 +2843,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                   <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
                     {filteredDrawerExos.length === 0 ? (
                       <div className="text-center py-6 space-y-2">
-                        <p className="text-white/15 text-xs">Aucun exercice trouvé</p>
+                        <p className="text-[var(--text-muted)] text-xs">Aucun exercice trouvé</p>
                         {drawerSearch.trim().length > 1 && (
                           <button onClick={async () => {
                             const nom = drawerSearch.trim()
@@ -2864,7 +2864,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                     ) : (
                       filteredDrawerExos.map(exo => (
                         <button key={exo.id} onClick={() => drawerAddExercice(exo)}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#18181b] transition-colors text-left group">
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--bg-base)] transition-colors text-left group">
                           <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/8 flex items-center justify-center flex-shrink-0">
                             {exo.image_url ? (
                               <img src={exo.image_url} alt="" className="w-full h-full rounded-xl object-cover" />
@@ -2873,8 +2873,8 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[#F5F5F3] text-xs font-semibold truncate">{exo.nom}</p>
-                            <p className="text-white/20 text-[9px]">{exo.muscle_group || ''}{exo.category ? ` • ${exo.category}` : ''}</p>
+                            <p className="text-[var(--text-primary)] text-xs font-semibold truncate">{exo.nom}</p>
+                            <p className="text-[var(--text-muted)] text-[9px]">{exo.muscle_group || ''}{exo.category ? ` • ${exo.category}` : ''}</p>
                           </div>
                           <Plus size={15} className="text-[#FF6B2B] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                         </button>
@@ -2893,9 +2893,9 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
             </div>
 
             {/* Footer — Sauvegarder */}
-            <div className="px-5 py-4 border-t border-[#27272a] flex-shrink-0 flex gap-2">
+            <div className="px-5 py-4 border-t border-[var(--border-base)] flex-shrink-0 flex gap-2">
               <button onClick={() => setDrawerTemplate(null)}
-                className="flex-1 py-3 rounded-xl text-sm text-white/40 bg-[#18181b] hover:bg-[#27272a] transition-colors border border-[#27272a]">
+                className="flex-1 py-3 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-base)] hover:bg-[var(--bg-surface)] transition-colors border border-[var(--border-base)]">
                 Annuler
               </button>
               <button onClick={drawerSave} disabled={drawerSaving}
@@ -2946,11 +2946,11 @@ const NIVEAUX_ACTIVITE = ['Sédentaire', 'Légèrement actif', 'Modérément act
 const SEXE_OPTIONS = ['Homme', 'Femme', 'Autre']
 
 // Apple Settings row — defined OUTSIDE component to avoid re-creation on each render
-const INFOS_INPUT_STYLE = "bg-transparent text-[#F5F5F3] text-sm font-semibold text-right border-none focus:outline-none focus:ring-0 placeholder-zinc-600"
+const INFOS_INPUT_STYLE = "bg-transparent text-[var(--text-primary)] text-sm font-semibold text-right border-none focus:outline-none focus:ring-0 placeholder-zinc-600"
 
 function SettingsRow({ label, children, last }) {
   return (
-    <div className={`flex items-center justify-between py-3.5 ${last ? '' : 'border-b border-[#27272a]/40'}`}>
+    <div className={`flex items-center justify-between py-3.5 ${last ? '' : 'border-b border-[var(--border-base)]/40'}`}>
       <span className="text-zinc-400 text-sm font-medium">{label}</span>
       <div className="flex items-center gap-1.5">{children}</div>
     </div>
@@ -3035,9 +3035,9 @@ function InfosTab({ coachId, clientId }) {
     <div className="space-y-5 max-w-2xl">
 
       {/* ═══ Identité ═══ */}
-      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#27272a]">
-          <h3 className="text-[#F5F5F3] text-base font-bold">Identité</h3>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-[var(--border-base)]">
+          <h3 className="text-[var(--text-primary)] text-base font-bold">Identité</h3>
         </div>
         <div className="px-6">
           <SettingsRow label="Prénom">
@@ -3049,7 +3049,7 @@ function InfosTab({ coachId, clientId }) {
               placeholder="Nom" className={INFOS_INPUT_STYLE} />
           </SettingsRow>
           <SettingsRow label="Email">
-            <span className="text-white/25 text-sm">{formData.email || '—'}</span>
+            <span className="text-[var(--text-muted)] text-sm">{formData.email || '—'}</span>
           </SettingsRow>
           <SettingsRow label="Téléphone" last>
             <input type="tel" value={formData.telephone} onChange={e => set('telephone', e.target.value)}
@@ -3059,36 +3059,36 @@ function InfosTab({ coachId, clientId }) {
       </div>
 
       {/* ═══ Profil ═══ */}
-      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#27272a]">
-          <h3 className="text-[#F5F5F3] text-base font-bold">Profil</h3>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-[var(--border-base)]">
+          <h3 className="text-[var(--text-primary)] text-base font-bold">Profil</h3>
         </div>
         <div className="px-6">
           <SettingsRow label="Genre">
             <select value={formData.sexe} onChange={e => set('sexe', e.target.value)}
               className={`${INFOS_INPUT_STYLE} cursor-pointer appearance-none pr-0`}>
-              <option value="" className="bg-[#1E1E1E]">—</option>
-              {SEXE_OPTIONS.map(s => <option key={s} value={s} className="bg-[#1E1E1E]">{s}</option>)}
+              <option value="" className="bg-[var(--bg-card)]">—</option>
+              {SEXE_OPTIONS.map(s => <option key={s} value={s} className="bg-[var(--bg-card)]">{s}</option>)}
             </select>
           </SettingsRow>
           <SettingsRow label="Âge">
             <input type="number" value={formData.age} onChange={e => set('age', e.target.value)}
               placeholder="—" className={`${INFOS_INPUT_STYLE} w-12`} />
-            <span className="text-zinc-500 text-sm">ans</span>
+            <span className="text-[var(--text-secondary)] text-sm">ans</span>
           </SettingsRow>
           <SettingsRow label="Taille">
             <input type="number" value={formData.taille} onChange={e => set('taille', e.target.value)}
               placeholder="—" className={`${INFOS_INPUT_STYLE} w-14`} />
-            <span className="text-zinc-500 text-sm">cm</span>
+            <span className="text-[var(--text-secondary)] text-sm">cm</span>
           </SettingsRow>
           <SettingsRow label="Poids">
             <input type="number" step="0.1" value={formData.poids_depart} onChange={e => set('poids_depart', e.target.value)}
               placeholder="—" className={`${INFOS_INPUT_STYLE} w-16`} />
-            <span className="text-zinc-500 text-sm">kg</span>
+            <span className="text-[var(--text-secondary)] text-sm">kg</span>
           </SettingsRow>
           <SettingsRow label="IMC">
-            <span className="text-[#F5F5F3] text-sm font-semibold">{imc || '—'}</span>
-            <span className="text-zinc-500 text-sm">kg/m²</span>
+            <span className="text-[var(--text-primary)] text-sm font-semibold">{imc || '—'}</span>
+            <span className="text-[var(--text-secondary)] text-sm">kg/m²</span>
             {imcLabel && (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold ml-1">{imcLabel}</span>
             )}
@@ -3096,17 +3096,17 @@ function InfosTab({ coachId, clientId }) {
           <SettingsRow label="Activité" last>
             <select value={formData.niveau_activite} onChange={e => set('niveau_activite', e.target.value)}
               className={`${INFOS_INPUT_STYLE} cursor-pointer appearance-none pr-0`}>
-              <option value="" className="bg-[#1E1E1E]">—</option>
-              {NIVEAUX_ACTIVITE.map(n => <option key={n} value={n} className="bg-[#1E1E1E]">{n}</option>)}
+              <option value="" className="bg-[var(--bg-card)]">—</option>
+              {NIVEAUX_ACTIVITE.map(n => <option key={n} value={n} className="bg-[var(--bg-card)]">{n}</option>)}
             </select>
           </SettingsRow>
         </div>
       </div>
 
       {/* ═══ Objectifs ═══ */}
-      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#27272a]">
-          <h3 className="text-[#F5F5F3] text-base font-bold">Objectifs</h3>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-[var(--border-base)]">
+          <h3 className="text-[var(--text-primary)] text-base font-bold">Objectifs</h3>
         </div>
         <div className="px-6">
           <SettingsRow label="Type d'objectif">
@@ -3116,7 +3116,7 @@ function InfosTab({ coachId, clientId }) {
           <SettingsRow label="Poids cible">
             <input type="number" step="0.1" value={formData.poids_cible} onChange={e => set('poids_cible', e.target.value)}
               placeholder="—" className={`${INFOS_INPUT_STYLE} w-16`} />
-            <span className="text-zinc-500 text-sm">kg</span>
+            <span className="text-[var(--text-secondary)] text-sm">kg</span>
           </SettingsRow>
           <SettingsRow label="Échéance" last>
             <input type="date" value={formData.date_limite} onChange={e => set('date_limite', e.target.value)}
@@ -3127,22 +3127,22 @@ function InfosTab({ coachId, clientId }) {
 
       {/* ═══ Poids visuel ═══ */}
       {(formData.poids_depart || formData.poids_cible) && (
-        <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl p-6">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl p-6">
           <div className="flex items-center justify-around">
             <div className="text-center">
-              <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">Départ</p>
-              <p className="text-[#F5F5F3] text-2xl font-bold">{formData.poids_depart || '—'}</p>
-              <p className="text-zinc-600 text-xs">kg</p>
+              <p className="text-[var(--text-secondary)] text-[10px] uppercase tracking-widest mb-1">Départ</p>
+              <p className="text-[var(--text-primary)] text-2xl font-bold">{formData.poids_depart || '—'}</p>
+              <p className="text-[var(--text-muted)] text-xs">kg</p>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-[1.5px] bg-[#27272a]" />
+              <div className="w-8 h-[1.5px] bg-[var(--bg-surface)]" />
               <div className="w-8 h-8 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center">
                 <ChevronRight size={14} className="text-[#FF6B2B]" />
               </div>
-              <div className="w-8 h-[1.5px] bg-[#27272a]" />
+              <div className="w-8 h-[1.5px] bg-[var(--bg-surface)]" />
             </div>
             <div className="text-center">
-              <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">Cible</p>
+              <p className="text-[var(--text-secondary)] text-[10px] uppercase tracking-widest mb-1">Cible</p>
               <p className="text-[#FF6B2B] text-2xl font-bold">{formData.poids_cible || '—'}</p>
               <p className="text-[#FF6B2B]/40 text-xs">kg</p>
             </div>
@@ -3151,15 +3151,15 @@ function InfosTab({ coachId, clientId }) {
       )}
 
       {/* ═══ Notes ═══ */}
-      <div className="bg-[#1E1E1E] border border-white/[0.06] rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#27272a]">
-          <h3 className="text-[#F5F5F3] text-base font-bold">Notes du coach</h3>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-[var(--border-base)]">
+          <h3 className="text-[var(--text-primary)] text-base font-bold">Notes du coach</h3>
         </div>
         <div className="p-6">
           <textarea value={formData.notes_coach} onChange={e => set('notes_coach', e.target.value)}
             placeholder="Notes internes, restrictions alimentaires, historique médical..."
             rows={4}
-            className="w-full bg-[#0D0D0D] border border-white/[0.06] rounded-2xl px-5 py-3.5 text-[#F5F5F3] text-sm placeholder:text-zinc-600 focus:outline-none focus:border-[#FF6B2B]/40 transition-all resize-none" />
+            className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-2xl px-5 py-3.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-all resize-none" />
         </div>
       </div>
 
@@ -3315,9 +3315,9 @@ function SuiviTab({ coachId, clientId }) {
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="grid grid-cols-4 gap-3">{[1,2,3,4].map(i => <div key={i} className="h-20 bg-[#18181b] rounded-2xl" />)}</div>
-        <div className="h-48 bg-[#18181b] rounded-2xl" />
-        <div className="h-48 bg-[#18181b] rounded-2xl" />
+        <div className="grid grid-cols-4 gap-3">{[1,2,3,4].map(i => <div key={i} className="h-20 bg-[var(--bg-base)] rounded-2xl" />)}</div>
+        <div className="h-48 bg-[var(--bg-base)] rounded-2xl" />
+        <div className="h-48 bg-[var(--bg-base)] rounded-2xl" />
       </div>
     )
   }
@@ -3394,7 +3394,7 @@ function SuiviTab({ coachId, clientId }) {
         </defs>
         {[0, 0.25, 0.5, 0.75, 1].map(pct => {
           const y = cP + pct * (cH - cP * 2)
-          return <line key={pct} x1={cP} y1={y} x2={cW - cP} y2={y} stroke="rgba(255,255,255,0.04)" />
+          return <line key={pct} x1={cP} y1={y} x2={cW - cP} y2={y} stroke="var(--border-base)" />
         })}
         {objY !== null && objY >= cP && objY <= cH - cP && (
           <>
@@ -3406,14 +3406,14 @@ function SuiviTab({ coachId, clientId }) {
         <path d={pathD} fill="none" stroke="#FF6B2B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         {pts.map((p, i) => (
           <g key={i}>
-            <circle cx={p.x} cy={p.y} r="3.5" fill="#09090b" stroke="#FF6B2B" strokeWidth="1.5" />
+            <circle cx={p.x} cy={p.y} r="3.5" fill="var(--bg-base)" stroke="#FF6B2B" strokeWidth="1.5" />
             {(i === 0 || i === pts.length - 1) && (
-              <text x={p.x} y={p.y - 8} textAnchor="middle" fill="#F5F5F3" fontSize="8" fontWeight="600">{p.poids}</text>
+              <text x={p.x} y={p.y - 8} textAnchor="middle" fill="var(--text-primary)" fontSize="8" fontWeight="600">{p.poids}</text>
             )}
           </g>
         ))}
         {pts.filter((_, i) => i === 0 || i === pts.length - 1).map((p, i) => (
-          <text key={i} x={p.x} y={cH - 8} textAnchor="middle" fill="rgba(255,255,255,0.15)" fontSize="7">
+          <text key={i} x={p.x} y={cH - 8} textAnchor="middle" fill="var(--text-muted)" fontSize="7">
             {new Date(p.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
           </text>
         ))}
@@ -3427,7 +3427,7 @@ function SuiviTab({ coachId, clientId }) {
       {/* ══════════════════════════════════════════ */}
       {/* SECTION 1 — Assiduité Sportive            */}
       {/* ══════════════════════════════════════════ */}
-      <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
         {/* Header */}
         <div className="px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -3435,8 +3435,8 @@ function SuiviTab({ coachId, clientId }) {
               <BarChart3 size={17} className="text-[#FF6B2B]" />
             </div>
             <div>
-              <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Assiduité Sportive</h3>
-              <p className="text-zinc-500 text-[11px] mt-0.5">4 dernières semaines</p>
+              <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Assiduité Sportive</h3>
+              <p className="text-[var(--text-secondary)] text-[11px] mt-0.5">4 dernières semaines</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -3450,17 +3450,17 @@ function SuiviTab({ coachId, clientId }) {
                 {assiduitePct}%
               </span>
             </div>
-            <span className="text-zinc-600 text-[11px] font-medium tabular-nums">{completedSeances}/{totalSeances} séances</span>
+            <span className="text-[var(--text-muted)] text-[11px] font-medium tabular-nums">{completedSeances}/{totalSeances} séances</span>
           </div>
         </div>
 
         {/* Heatmap */}
         <div className="px-6 pb-6">
-          <div className="bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] p-4">
+          <div className="bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] p-4">
             {/* Day labels */}
             <div className="grid grid-cols-7 gap-2 mb-2">
               {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((j, i) => (
-                <div key={i} className="text-center text-[9px] text-zinc-600 font-medium">{j}</div>
+                <div key={i} className="text-center text-[9px] text-[var(--text-muted)] font-medium">{j}</div>
               ))}
             </div>
             {/* Cells */}
@@ -3474,15 +3474,15 @@ function SuiviTab({ coachId, clientId }) {
                       : day.someDone
                         ? 'bg-gradient-to-br from-amber-500/50 to-amber-600/30'
                         : day.hasSeance
-                          ? 'bg-[#1a1a1e] border border-red-500/15'
-                          : 'bg-[#111113]'
-                  } ${day.isToday ? 'ring-[1.5px] ring-[#FF6B2B] ring-offset-1 ring-offset-[#0a0a0a]' : ''}`}
+                          ? 'bg-[var(--bg-surface)] border border-red-500/15'
+                          : 'bg-[var(--bg-surface)]'
+                  } ${day.isToday ? 'ring-[1.5px] ring-[#FF6B2B] ring-offset-1 ring-offset-[var(--bg-card)]' : ''}`}
                   title={`${new Date(day.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} — ${day.allDone ? '✅ Complétée' : day.someDone ? '⚠️ Partielle' : day.hasSeance ? '❌ Manquée' : 'Repos'}`}
                 >
                   {/* Date label inside cell */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className={`text-[8px] font-medium ${
-                      day.allDone ? 'text-white/80' : day.someDone ? 'text-amber-200/60' : day.hasSeance ? 'text-red-400/40' : 'text-zinc-700'
+                      day.allDone ? 'text-[var(--text-muted)]0' : day.someDone ? 'text-amber-200/60' : day.hasSeance ? 'text-red-400/40' : 'text-[var(--text-muted)]'
                     }`}>
                       {day.day.getDate()}
                     </span>
@@ -3496,16 +3496,16 @@ function SuiviTab({ coachId, clientId }) {
             </div>
 
             {/* Légende */}
-            <div className="flex items-center justify-center gap-5 mt-4 pt-3 border-t border-[#1a1a1e]">
+            <div className="flex items-center justify-center gap-5 mt-4 pt-3 border-t border-[var(--border-base)]">
               {[
                 { color: 'bg-emerald-500/90', label: 'Complétée' },
                 { color: 'bg-gradient-to-br from-amber-500/50 to-amber-600/30', label: 'Partielle' },
-                { color: 'bg-[#1a1a1e] border border-red-500/15', label: 'Manquée' },
-                { color: 'bg-[#111113]', label: 'Repos' },
+                { color: 'bg-[var(--bg-surface)] border border-red-500/15', label: 'Manquée' },
+                { color: 'bg-[var(--bg-surface)]', label: 'Repos' },
               ].map((l, i) => (
                 <div key={i} className="flex items-center gap-1.5">
                   <div className={`w-2.5 h-2.5 rounded ${l.color}`} />
-                  <span className="text-zinc-600 text-[9px] font-medium">{l.label}</span>
+                  <span className="text-[var(--text-muted)] text-[9px] font-medium">{l.label}</span>
                 </div>
               ))}
             </div>
@@ -3516,7 +3516,7 @@ function SuiviTab({ coachId, clientId }) {
       {/* ══════════════════════════════════════════ */}
       {/* SECTION 2 — Discipline des Habitudes       */}
       {/* ══════════════════════════════════════════ */}
-      <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
         {/* Header */}
         <div className="px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -3524,8 +3524,8 @@ function SuiviTab({ coachId, clientId }) {
               <Flame size={17} className="text-[#FF6B2B]" />
             </div>
             <div>
-              <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Discipline des Habitudes</h3>
-              <p className="text-zinc-500 text-[11px] mt-0.5">30 derniers jours</p>
+              <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Discipline des Habitudes</h3>
+              <p className="text-[var(--text-secondary)] text-[11px] mt-0.5">30 derniers jours</p>
             </div>
           </div>
           {habitudes.length > 0 && (
@@ -3541,9 +3541,9 @@ function SuiviTab({ coachId, clientId }) {
 
         <div className="px-6 pb-6">
           {habitudes.length === 0 ? (
-            <div className="bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] py-10 text-center">
-              <Flame size={24} className="text-zinc-800 mx-auto mb-2" />
-              <p className="text-zinc-600 text-xs">Aucune habitude active</p>
+            <div className="bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] py-10 text-center">
+              <Flame size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
+              <p className="text-[var(--text-muted)] text-xs">Aucune habitude active</p>
             </div>
           ) : (
             <div className="space-y-1">
@@ -3554,14 +3554,14 @@ function SuiviTab({ coachId, clientId }) {
                 const IconComp = getHabitIcon(hab.icone)
 
                 return (
-                  <div key={hab.id} className={`bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] p-4 ${hi > 0 ? '' : ''}`}>
+                  <div key={hab.id} className={`bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] p-4 ${hi > 0 ? '' : ''}`}>
                     {/* Row */}
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                         style={{ backgroundColor: `${hab.couleur || '#FF6B2B'}12` }}>
                         <IconComp size={14} style={{ color: hab.couleur || '#FF6B2B' }} />
                       </div>
-                      <span className="text-[#F5F5F3] text-[13px] font-semibold flex-1 truncate">{hab.nom}</span>
+                      <span className="text-[var(--text-primary)] text-[13px] font-semibold flex-1 truncate">{hab.nom}</span>
                       {streak > 0 && (
                         <div className="flex items-center gap-1 px-2 py-0.5 rounded-md shrink-0"
                           style={{ backgroundColor: `${hab.couleur || '#FF6B2B'}12` }}>
@@ -3569,7 +3569,7 @@ function SuiviTab({ coachId, clientId }) {
                           <span className="text-[10px] font-bold tabular-nums" style={{ color: hab.couleur || '#FF6B2B' }}>{streak}j</span>
                         </div>
                       )}
-                      <span className="text-zinc-600 text-[11px] font-medium tabular-nums shrink-0">{rate}%</span>
+                      <span className="text-[var(--text-muted)] text-[11px] font-medium tabular-nums shrink-0">{rate}%</span>
                     </div>
 
                     {/* 30-day timeline */}
@@ -3586,8 +3586,8 @@ function SuiviTab({ coachId, clientId }) {
                               done
                                 ? 'shadow-sm'
                                 : isT
-                                  ? 'ring-1 ring-[#FF6B2B]/40 ring-offset-0 bg-[#111113]'
-                                  : 'bg-[#111113]'
+                                  ? 'ring-1 ring-[#FF6B2B]/40 ring-offset-0 bg-[var(--bg-surface)]'
+                                  : 'bg-[var(--bg-surface)]'
                             }`}
                             style={done ? { backgroundColor: hab.couleur || '#FF6B2B', opacity: 0.85 } : {}}
                             title={`${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} — ${done ? '✅' : '—'}`}
@@ -3606,7 +3606,7 @@ function SuiviTab({ coachId, clientId }) {
       {/* ══════════════════════════════════════════ */}
       {/* SECTION 3 — Courbe de Poids               */}
       {/* ══════════════════════════════════════════ */}
-      <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
         {/* Header */}
         <div className="px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -3614,8 +3614,8 @@ function SuiviTab({ coachId, clientId }) {
               <Activity size={17} className="text-[#FF6B2B]" />
             </div>
             <div>
-              <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Courbe de Poids</h3>
-              <p className="text-zinc-500 text-[11px] mt-0.5">{pesees.length} pesée{pesees.length > 1 ? 's' : ''} enregistrée{pesees.length > 1 ? 's' : ''}</p>
+              <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Courbe de Poids</h3>
+              <p className="text-[var(--text-secondary)] text-[11px] mt-0.5">{pesees.length} pesée{pesees.length > 1 ? 's' : ''} enregistrée{pesees.length > 1 ? 's' : ''}</p>
             </div>
           </div>
           <button onClick={() => setShowModal(true)}
@@ -3625,15 +3625,15 @@ function SuiviTab({ coachId, clientId }) {
         </div>
 
         {/* Stats ribbon */}
-        <div className="grid grid-cols-4 mx-6 mb-5 bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] overflow-hidden">
+        <div className="grid grid-cols-4 mx-6 mb-5 bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] overflow-hidden">
           {[
-            { label: 'Actuel', value: dernierPoids ? `${dernierPoids}` : '—', unit: 'kg', color: '#F5F5F3' },
+            { label: 'Actuel', value: dernierPoids ? `${dernierPoids}` : '—', unit: 'kg', color: 'var(--text-primary)' },
             { label: 'Objectif', value: poidsObjectif ? `${poidsObjectif}` : '—', unit: 'kg', color: '#22c55e' },
-            { label: 'Évolution', value: evolution ? `${parseFloat(evolution) > 0 ? '+' : ''}${evolution}` : '—', unit: 'kg', color: evolution && parseFloat(evolution) < 0 ? '#22c55e' : evolution && parseFloat(evolution) > 0 ? '#ef4444' : '#F5F5F3' },
-            { label: 'Pesées', value: `${pesees.length}`, unit: '', color: '#F5F5F3' },
+            { label: 'Évolution', value: evolution ? `${parseFloat(evolution) > 0 ? '+' : ''}${evolution}` : '—', unit: 'kg', color: evolution && parseFloat(evolution) < 0 ? '#22c55e' : evolution && parseFloat(evolution) > 0 ? '#ef4444' : 'var(--text-primary)' },
+            { label: 'Pesées', value: `${pesees.length}`, unit: '', color: 'var(--text-primary)' },
           ].map((s, i) => (
-            <div key={i} className={`px-4 py-3.5 text-center ${i < 3 ? 'border-r border-[#1a1a1e]' : ''}`}>
-              <p className="text-zinc-600 text-[9px] font-medium uppercase tracking-widest">{s.label}</p>
+            <div key={i} className={`px-4 py-3.5 text-center ${i < 3 ? 'border-r border-[var(--border-base)]' : ''}`}>
+              <p className="text-[var(--text-muted)] text-[9px] font-medium uppercase tracking-widest">{s.label}</p>
               <p className="text-xl font-bold mt-1 tabular-nums tracking-tight" style={{ color: s.color }}>
                 {s.value}
                 {s.unit && <span className="text-[10px] text-zinc-700 ml-0.5 font-medium">{s.unit}</span>}
@@ -3644,11 +3644,11 @@ function SuiviTab({ coachId, clientId }) {
 
         {/* Chart */}
         <div className="px-6 pb-6">
-          <div className="bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] p-4">
+          <div className="bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] p-4">
             {pesees.length < 2 ? (
               <div className="text-center py-12">
-                <Scale size={28} className="text-zinc-800 mx-auto mb-3" />
-                <p className="text-zinc-600 text-xs">2 pesées minimum pour afficher le graphique</p>
+                <Scale size={28} className="text-[var(--text-muted)] mx-auto mb-3" />
+                <p className="text-[var(--text-muted)] text-xs">2 pesées minimum pour afficher le graphique</p>
                 <button onClick={() => setShowModal(true)}
                   className="mt-3 text-[#FF6B2B] text-xs font-semibold hover:underline">+ Ajouter une pesée</button>
               </div>
@@ -3663,14 +3663,14 @@ function SuiviTab({ coachId, clientId }) {
       {/* SECTION 4 — Progression Objectifs          */}
       {/* ══════════════════════════════════════════ */}
       {objectifs.length > 0 && (
-        <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-5 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
               <Target size={17} className="text-[#FF6B2B]" />
             </div>
             <div>
-              <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Progression des Objectifs</h3>
-              <p className="text-zinc-500 text-[11px] mt-0.5">{objectifs.length} objectif{objectifs.length > 1 ? 's' : ''} en cours</p>
+              <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Progression des Objectifs</h3>
+              <p className="text-[var(--text-secondary)] text-[11px] mt-0.5">{objectifs.length} objectif{objectifs.length > 1 ? 's' : ''} en cours</p>
             </div>
           </div>
           <div className="px-6 pb-6 space-y-3">
@@ -3681,7 +3681,7 @@ function SuiviTab({ coachId, clientId }) {
               const jours = joursRestants(obj.date_limite)
               const typeInfo = OBJ_TYPES.find(t => t.id === obj.type_objectif) || OBJ_TYPES[3]
               return (
-                <div key={obj.id} className="bg-[#0a0a0a] rounded-xl border border-[#1a1a1e] p-4">
+                <div key={obj.id} className="bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
@@ -3689,8 +3689,8 @@ function SuiviTab({ coachId, clientId }) {
                         {isLoss ? <TrendingDown size={13} style={{ color }} /> : <TrendingUp size={13} style={{ color }} />}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[#F5F5F3] text-[13px] font-semibold truncate">{obj.titre}</p>
-                        <p className="text-zinc-600 text-[10px] mt-0.5">
+                        <p className="text-[var(--text-primary)] text-[13px] font-semibold truncate">{obj.titre}</p>
+                        <p className="text-[var(--text-muted)] text-[10px] mt-0.5">
                           {obj.valeur_actuelle ?? obj.valeur_depart} / {obj.valeur_cible} {obj.unite}
                           {jours !== null && (
                             <span className={`ml-2 ${jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : ''}`}>
@@ -3702,7 +3702,7 @@ function SuiviTab({ coachId, clientId }) {
                     </div>
                     <span className="text-sm font-bold tabular-nums shrink-0 ml-3" style={{ color }}>{pct}%</span>
                   </div>
-                  <div className="h-2.5 bg-[#111113] rounded-full overflow-hidden">
+                  <div className="h-2.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-700 relative"
                       style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}cc, ${color})` }}>
                       <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12) 50%, transparent)' }} />
@@ -3808,7 +3808,7 @@ function SuiviTab({ coachId, clientId }) {
         })
 
         return (
-          <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
             {/* Header */}
             <div className="px-6 py-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -3816,8 +3816,8 @@ function SuiviTab({ coachId, clientId }) {
                   <ClipboardList size={17} className={isAlerte ? 'text-red-400' : 'text-purple-400'} />
                 </div>
                 <div>
-                  <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Bilans & Formulaires</h3>
-                  <p className="text-zinc-600 text-xs mt-0.5">
+                  <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Bilans & Formulaires</h3>
+                  <p className="text-[var(--text-muted)] text-xs mt-0.5">
                     {allFormReponses.filter(r => r.complete).length} rempli{allFormReponses.filter(r => r.complete).length > 1 ? 's' : ''}
                     {allFormReponses.filter(r => !r.complete).length > 0 ? ` · ${allFormReponses.filter(r => !r.complete).length} en attente` : ''}
                   </p>
@@ -3826,7 +3826,7 @@ function SuiviTab({ coachId, clientId }) {
               <div className="flex items-center gap-2">
                 {trend !== null && (
                   <span className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold ${
-                    trend > 0 ? 'bg-emerald-500/10 text-emerald-400' : trend < 0 ? 'bg-red-500/10 text-red-400' : 'bg-zinc-800 text-zinc-500'
+                    trend > 0 ? 'bg-emerald-500/10 text-emerald-400' : trend < 0 ? 'bg-red-500/10 text-red-400' : 'bg-zinc-800 text-[var(--text-secondary)]'
                   }`}>
                     {trend > 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
                     {trend > 0 ? '+' : ''}{trend}
@@ -3849,7 +3849,7 @@ function SuiviTab({ coachId, clientId }) {
                   {/* Filtre "Tous" */}
                   <button onClick={() => setFormFilter('tous')}
                     className={`flex-shrink-0 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all ${
-                      formFilter === 'tous' ? 'bg-white/10 text-[#F5F5F3] border border-white/15' : 'bg-white/[0.03] text-zinc-500 border border-transparent hover:bg-white/[0.06]'
+                      formFilter === 'tous' ? 'bg-white/10 text-[var(--text-primary)] border border-white/15' : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-transparent hover:bg-[var(--bg-surface)]'
                     }`}>
                     Tous ({allFormReponses.length})
                   </button>
@@ -3860,7 +3860,7 @@ function SuiviTab({ coachId, clientId }) {
                       <button key={f.id}
                         onClick={() => setFormFilter(f.effectiveType === 'post_seance' ? 'post_seance' : f.id)}
                         className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all ${
-                          isActive ? 'border text-[#F5F5F3]' : 'bg-white/[0.03] text-zinc-500 border border-transparent hover:bg-white/[0.06]'
+                          isActive ? 'border text-[var(--text-primary)]' : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-transparent hover:bg-[var(--bg-surface)]'
                         }`}
                         style={isActive ? { backgroundColor: color + '15', borderColor: color + '30' } : {}}>
                         <span>{TYPE_ICONS_MAP[f.effectiveType] || '📝'}</span>
@@ -3904,8 +3904,8 @@ function SuiviTab({ coachId, clientId }) {
                     const y = padY + ((10 - v) / 10) * (chartH - padY * 2)
                     return (
                       <g key={v}>
-                        <line x1={padX} y1={y} x2={chartW - padX} y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth={1} />
-                        <text x={padX - 6} y={y + 3} textAnchor="end" fill="rgba(255,255,255,0.15)" fontSize={9}>{v}</text>
+                        <line x1={padX} y1={y} x2={chartW - padX} y2={y} stroke="var(--border-base)" strokeWidth={1} />
+                        <text x={padX - 6} y={y + 3} textAnchor="end" fill="var(--text-muted)" fontSize={9}>{v}</text>
                       </g>
                     )
                   })}
@@ -3913,14 +3913,14 @@ function SuiviTab({ coachId, clientId }) {
                   <path d={linePath} fill="none" stroke={activeFilterColor} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   {chartPoints.map((p, i) => (
                     <g key={i}>
-                      <circle cx={p.x} cy={p.y} r={3.5} fill="#09090b" stroke={p.score <= 4 ? '#ef4444' : p.score >= 7 ? '#22c55e' : p.color} strokeWidth={2} />
+                      <circle cx={p.x} cy={p.y} r={3.5} fill="var(--bg-base)" stroke={p.score <= 4 ? '#ef4444' : p.score >= 7 ? '#22c55e' : p.color} strokeWidth={2} />
                       {(i === chartPoints.length - 1 || i === 0) && (
-                        <text x={p.x} y={p.y - 10} textAnchor="middle" fill="rgba(245,245,243,0.5)" fontSize={10} fontWeight={600}>{p.score}</text>
+                        <text x={p.x} y={p.y - 10} textAnchor="middle" fill="var(--text-secondary)" fontSize={10} fontWeight={600}>{p.score}</text>
                       )}
                     </g>
                   ))}
                   {chartPoints.filter((_, i) => i === 0 || i === chartPoints.length - 1 || i === Math.floor(chartPoints.length / 2)).map((p, i) => (
-                    <text key={i} x={p.x} y={chartH - 2} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize={9}>
+                    <text key={i} x={p.x} y={chartH - 2} textAnchor="middle" fill="var(--text-muted)" fontSize={9}>
                       {new Date(p.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                     </text>
                   ))}
@@ -3931,7 +3931,7 @@ function SuiviTab({ coachId, clientId }) {
             {/* Moyennes par question */}
             {champMoyennes.length > 0 && (
               <div className="px-6 pb-5 pt-1">
-                <p className="text-zinc-600 text-[10px] font-semibold uppercase tracking-wider mb-3">Moyennes par question</p>
+                <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-wider mb-3">Moyennes par question</p>
                 <div className="space-y-2.5">
                   {champMoyennes.map(ch => {
                     const pct = (ch.moyenne / 10) * 100
@@ -3940,9 +3940,9 @@ function SuiviTab({ coachId, clientId }) {
                       <div key={ch.id}>
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-zinc-400 text-xs truncate flex-1 mr-3">{ch.label}</span>
-                          <span className="text-[#F5F5F3] text-xs font-bold tabular-nums" style={{ color }}>{ch.moyenne}/10</span>
+                          <span className="text-[var(--text-primary)] text-xs font-bold tabular-nums" style={{ color }}>{ch.moyenne}/10</span>
                         </div>
-                        <div className="h-1.5 bg-[#111113] rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                           <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
                         </div>
                       </div>
@@ -3954,9 +3954,9 @@ function SuiviTab({ coachId, clientId }) {
 
             {/* Historique complet (8 derniers) */}
             {completed.length > 0 && (
-              <div className="border-t border-[#1a1a1e]">
+              <div className="border-t border-[var(--border-base)]">
                 <div className="px-6 py-3">
-                  <p className="text-zinc-600 text-[10px] font-semibold uppercase tracking-wider mb-2.5">Derniers retours</p>
+                  <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-wider mb-2.5">Derniers retours</p>
                   <div className="space-y-1.5">
                     {[...completed].reverse().slice(0, 8).map(r => {
                       const sc = getScore(r)
@@ -3966,7 +3966,7 @@ function SuiviTab({ coachId, clientId }) {
                       const scoreBg = sc >= 7 ? 'bg-emerald-500/10' : sc >= 5 ? 'bg-amber-500/10' : 'bg-red-500/10'
                       return (
                         <div key={r.id} className="flex items-center gap-3 py-1.5">
-                          <span className="text-zinc-600 text-[11px] font-medium tabular-nums w-14 flex-shrink-0">
+                          <span className="text-[var(--text-muted)] text-[11px] font-medium tabular-nums w-14 flex-shrink-0">
                             {new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                           </span>
                           <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold flex-shrink-0" style={{ backgroundColor: typeColor + '15', color: typeColor }}>
@@ -3980,7 +3980,7 @@ function SuiviTab({ coachId, clientId }) {
                           {(() => {
                             const txtChamp = allFormChamps.find(c => c.type_champ === 'texte' && c.formulaire_id === r.formulaire_id && r.reponses?.[c.id])
                             return txtChamp ? (
-                              <span className="text-zinc-500 text-[11px] truncate flex-1">{r.reponses[txtChamp.id]}</span>
+                              <span className="text-[var(--text-secondary)] text-[11px] truncate flex-1">{r.reponses[txtChamp.id]}</span>
                             ) : null
                           })()}
                         </div>
@@ -3997,7 +3997,7 @@ function SuiviTab({ coachId, clientId }) {
                 <div className="w-14 h-14 rounded-2xl bg-purple-500/5 flex items-center justify-center mb-3">
                   <ClipboardList size={24} className="text-purple-400/30" />
                 </div>
-                <p className="text-zinc-500 text-sm font-medium mb-1">Aucun formulaire rempli</p>
+                <p className="text-[var(--text-secondary)] text-sm font-medium mb-1">Aucun formulaire rempli</p>
                 <p className="text-zinc-700 text-xs max-w-xs">Les bilans, évaluations et retours post-séance de ce client apparaîtront ici.</p>
               </div>
             )}
@@ -4009,21 +4009,21 @@ function SuiviTab({ coachId, clientId }) {
       {/* SECTION 6 — Historique Pesées              */}
       {/* ══════════════════════════════════════════ */}
       {pesees.length > 0 && (
-        <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-5 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white/[0.03] flex items-center justify-center">
-              <Clock size={17} className="text-zinc-500" />
+            <div className="w-9 h-9 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center">
+              <Clock size={17} className="text-[var(--text-secondary)]" />
             </div>
-            <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Historique des pesées</h3>
+            <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Historique des pesées</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-t border-b border-[#1a1a1e]">
-                  <th className="text-left px-6 py-3 text-zinc-600 text-[10px] font-semibold uppercase tracking-wider">Date</th>
-                  <th className="text-left px-6 py-3 text-zinc-600 text-[10px] font-semibold uppercase tracking-wider">Poids</th>
-                  <th className="text-left px-6 py-3 text-zinc-600 text-[10px] font-semibold uppercase tracking-wider">Évol.</th>
-                  <th className="text-left px-6 py-3 text-zinc-600 text-[10px] font-semibold uppercase tracking-wider">Notes</th>
+                <tr className="border-t border-b border-[var(--border-base)]">
+                  <th className="text-left px-6 py-3 text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-wider">Date</th>
+                  <th className="text-left px-6 py-3 text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-wider">Poids</th>
+                  <th className="text-left px-6 py-3 text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-wider">Évol.</th>
+                  <th className="text-left px-6 py-3 text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-wider">Notes</th>
                 </tr>
               </thead>
               <tbody>
@@ -4031,22 +4031,22 @@ function SuiviTab({ coachId, clientId }) {
                   const prev = arr[i + 1]
                   const diff = prev ? (p.poids - prev.poids).toFixed(1) : null
                   return (
-                    <tr key={p.id} className="border-b border-[#1a1a1e]/50 hover:bg-white/[0.015] transition-colors">
-                      <td className="px-6 py-3 text-[#F5F5F3] text-xs font-medium tabular-nums">
+                    <tr key={p.id} className="border-b border-[var(--border-base)]/50 hover:bg-[var(--bg-surface)] transition-colors">
+                      <td className="px-6 py-3 text-[var(--text-primary)] text-xs font-medium tabular-nums">
                         {new Date(p.date_pesee).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: '2-digit' })}
                       </td>
-                      <td className="px-6 py-3 text-[#F5F5F3] text-xs font-bold tabular-nums">{p.poids} kg</td>
+                      <td className="px-6 py-3 text-[var(--text-primary)] text-xs font-bold tabular-nums">{p.poids} kg</td>
                       <td className="px-6 py-3">
                         {diff !== null ? (
                           <span className={`inline-flex items-center gap-1 text-xs font-bold tabular-nums ${
-                            parseFloat(diff) < 0 ? 'text-emerald-400' : parseFloat(diff) > 0 ? 'text-red-400' : 'text-zinc-600'
+                            parseFloat(diff) < 0 ? 'text-emerald-400' : parseFloat(diff) > 0 ? 'text-red-400' : 'text-[var(--text-muted)]'
                           }`}>
                             {parseFloat(diff) < 0 ? <TrendingDown size={10} /> : parseFloat(diff) > 0 ? <TrendingUp size={10} /> : null}
                             {parseFloat(diff) > 0 ? '+' : ''}{diff}
                           </span>
                         ) : <span className="text-zinc-700 text-xs">—</span>}
                       </td>
-                      <td className="px-6 py-3 text-zinc-600 text-xs truncate max-w-[160px]">{p.notes || '—'}</td>
+                      <td className="px-6 py-3 text-[var(--text-muted)] text-xs truncate max-w-[160px]">{p.notes || '—'}</td>
                     </tr>
                   )
                 })}
@@ -4060,35 +4060,35 @@ function SuiviTab({ coachId, clientId }) {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative w-full max-w-sm bg-[#18181b] rounded-2xl border border-[#27272a] shadow-2xl overflow-hidden"
+          <div className="relative w-full max-w-sm bg-[var(--bg-base)] rounded-2xl border border-[var(--border-base)] shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
             <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-            <div className="px-6 pt-5 pb-4 border-b border-[#27272a] flex items-center justify-between">
-              <h2 className="text-[#F5F5F3] text-base font-bold">Nouvelle pesée</h2>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors"><X size={16} /></button>
+            <div className="px-6 pt-5 pb-4 border-b border-[var(--border-base)] flex items-center justify-between">
+              <h2 className="text-[var(--text-primary)] text-base font-bold">Nouvelle pesée</h2>
+              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors"><X size={16} /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs text-white/40 mb-1.5 font-medium">Poids (kg)</label>
+                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Poids (kg)</label>
                 <input type="number" step="0.1" value={newPoids} onChange={e => setNewPoids(e.target.value)}
                   placeholder="75.5" autoFocus
-                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-3 text-[#F5F5F3] text-lg font-bold text-center placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                  className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-lg font-bold text-center placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
               </div>
               <div>
-                <label className="block text-xs text-white/40 mb-1.5 font-medium">Date</label>
+                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Date</label>
                 <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
-                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all [color-scheme:dark]" />
+                  className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-all [color-scheme:dark]" />
               </div>
               <div>
-                <label className="block text-xs text-white/40 mb-1.5 font-medium">Notes (opt.)</label>
+                <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-medium">Notes (opt.)</label>
                 <input type="text" value={newNote} onChange={e => setNewNote(e.target.value)}
                   placeholder="Après le sport, à jeun..."
-                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
+                  className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-all" />
               </div>
             </div>
             <div className="px-6 pb-6 flex gap-3">
               <button onClick={() => setShowModal(false)}
-                className="flex-1 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-[#27272a] transition-all border border-[#27272a]">
+                className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all border border-[var(--border-base)]">
                 Annuler
               </button>
               <button onClick={ajouterPesee} disabled={!newPoids || saving}
@@ -4273,9 +4273,9 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="h-24 bg-[#18181b] rounded-2xl" />
-        <div className="h-20 bg-[#18181b] rounded-2xl" />
-        <div className="h-20 bg-[#18181b] rounded-2xl" />
+        <div className="h-24 bg-[var(--bg-base)] rounded-2xl" />
+        <div className="h-20 bg-[var(--bg-base)] rounded-2xl" />
+        <div className="h-20 bg-[var(--bg-base)] rounded-2xl" />
       </div>
     )
   }
@@ -4285,17 +4285,17 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
 
       {/* ── Header stats ── */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
-          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">En cours</p>
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">En cours</p>
           <p className="text-[#FF6B2B] text-2xl font-bold mt-1">{enCours.length}</p>
         </div>
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
-          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">Atteints</p>
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Atteints</p>
           <p className="text-emerald-400 text-2xl font-bold mt-1">{atteints.length}</p>
         </div>
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
-          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">Progression moy.</p>
-          <p className="text-[#F5F5F3] text-2xl font-bold mt-1">
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Progression moy.</p>
+          <p className="text-[var(--text-primary)] text-2xl font-bold mt-1">
             {enCours.length > 0
               ? Math.round(enCours.reduce((s, o) => s + calcProgress(o.valeur_depart, o.valeur_actuelle, o.valeur_cible), 0) / enCours.length)
               : 0}%
@@ -4305,7 +4305,7 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
 
       {/* ── Action bar ── */}
       <div className="flex items-center justify-between">
-        <h3 className="text-[#F5F5F3] text-sm font-bold">
+        <h3 className="text-[var(--text-primary)] text-sm font-bold">
           Objectifs de {clientName || 'ce client'}
         </h3>
         <button
@@ -4318,12 +4318,12 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
 
       {/* ── Liste objectifs en cours ── */}
       {enCours.length === 0 && atteints.length === 0 ? (
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl py-16 text-center">
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl py-16 text-center">
           <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
             <Target size={24} className="text-[#FF6B2B]" />
           </div>
-          <p className="text-white/40 text-sm">Aucun objectif défini</p>
-          <p className="text-white/20 text-xs mt-1">Cliquez sur "Nouvel objectif" pour commencer</p>
+          <p className="text-[var(--text-muted)] text-sm">Aucun objectif défini</p>
+          <p className="text-[var(--text-muted)] text-xs mt-1">Cliquez sur "Nouvel objectif" pour commencer</p>
         </div>
       ) : (
         <>
@@ -4339,7 +4339,7 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                 const isLoss = obj.valeur_cible < obj.valeur_depart
 
                 return (
-                  <div key={obj.id} className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5 hover:border-[#27272a]/80 transition-all group">
+                  <div key={obj.id} className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5 hover:border-[var(--border-base)]/80 transition-all group">
 
                     {/* Header */}
                     <div className="flex items-start gap-3.5 mb-4">
@@ -4349,19 +4349,19 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-[#F5F5F3] text-sm font-semibold truncate">{obj.titre}</p>
+                          <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{obj.titre}</p>
                           <span className="text-[9px] px-2 py-0.5 rounded-full font-bold shrink-0"
                             style={{ backgroundColor: `${typeInfo.color}15`, color: typeInfo.color }}>
                             {typeInfo.label}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 mt-1">
-                          <span className="text-white/30 text-[10px]">
+                          <span className="text-[var(--text-muted)] text-[10px]">
                             {obj.valeur_depart} → {obj.valeur_cible} {obj.unite}
                           </span>
                           {jours !== null && (
                             <span className={`text-[10px] flex items-center gap-1 ${
-                              jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : 'text-white/25'
+                              jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : 'text-[var(--text-muted)]'
                             }`}>
                               <Calendar size={9} />
                               {jours < 0 ? `${Math.abs(jours)}j en retard` : jours === 0 ? "Aujourd'hui" : `${jours}j restants`}
@@ -4373,11 +4373,11 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                       {/* Actions (hover) */}
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         <button onClick={() => handleArchive(obj.id)}
-                          className="p-1.5 rounded-lg text-white/20 hover:text-amber-400 hover:bg-amber-500/10 transition-all" title="Archiver">
+                          className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-amber-400 hover:bg-amber-500/10 transition-all" title="Archiver">
                           <FolderOpen size={13} />
                         </button>
                         <button onClick={() => handleDelete(obj.id)}
-                          className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Supprimer">
+                          className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all" title="Supprimer">
                           <Trash2 size={13} />
                         </button>
                       </div>
@@ -4394,7 +4394,7 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                         </div>
                         <span className="text-xs font-bold" style={{ color }}>{pct}%</span>
                       </div>
-                      <div className="h-2.5 bg-white/[0.04] rounded-full overflow-hidden">
+                      <div className="h-2.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all duration-700 relative"
                           style={{ width: `${pct}%`, backgroundColor: color }}>
                           {pct > 8 && (
@@ -4405,23 +4405,23 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                       </div>
                       {/* Scale markers */}
                       <div className="flex items-center justify-between mt-1">
-                        <span className="text-[9px] text-white/15">{obj.valeur_depart} {obj.unite}</span>
-                        <span className="text-[9px] text-white/15">{obj.valeur_cible} {obj.unite}</span>
+                        <span className="text-[9px] text-[var(--text-muted)]">{obj.valeur_depart} {obj.unite}</span>
+                        <span className="text-[9px] text-[var(--text-muted)]">{obj.valeur_cible} {obj.unite}</span>
                       </div>
                     </div>
 
                     {/* Update value inline */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-[#27272a]/40">
-                      <span className="text-white/25 text-[10px] shrink-0">Mise à jour :</span>
+                    <div className="flex items-center gap-2 pt-2 border-t border-[var(--border-base)]/40">
+                      <span className="text-[var(--text-muted)] text-[10px] shrink-0">Mise à jour :</span>
                       <input
                         type="number"
                         step="0.1"
                         value={editingValue[obj.id] ?? ''}
                         onChange={(e) => setEditingValue(prev => ({ ...prev, [obj.id]: e.target.value }))}
                         placeholder={`${obj.valeur_actuelle ?? obj.valeur_depart}`}
-                        className="flex-1 bg-[#0a0a0a] border border-[#27272a] rounded-lg px-3 py-1.5 text-[#F5F5F3] text-xs placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors min-w-0"
+                        className="flex-1 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-3 py-1.5 text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors min-w-0"
                       />
-                      <span className="text-white/20 text-[10px] shrink-0">{obj.unite}</span>
+                      <span className="text-[var(--text-muted)] text-[10px] shrink-0">{obj.unite}</span>
                       <button
                         onClick={() => handleUpdateValue(obj)}
                         disabled={!editingValue[obj.id] || updatingId === obj.id}
@@ -4440,7 +4440,7 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
           {/* Atteints */}
           {atteints.length > 0 && (
             <div>
-              <p className="text-white/25 text-[10px] uppercase tracking-wider font-medium mb-2">
+              <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium mb-2">
                 ✅ Objectifs atteints ({atteints.length})
               </p>
               <div className="space-y-2">
@@ -4459,7 +4459,7 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                       </div>
                       <span className="text-emerald-400 text-xs font-bold shrink-0">100%</span>
                       <button onClick={() => handleDelete(obj.id)}
-                        className="p-1.5 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" title="Supprimer">
+                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" title="Supprimer">
                         <Trash2 size={12} />
                       </button>
                     </div>
@@ -4476,15 +4476,15 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
       {/* ══════════════════════════════════ */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-          <div className="bg-[#18181b] border border-[#27272a] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
 
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
               <div>
-                <h3 className="text-[#F5F5F3] text-base font-bold">Nouvel objectif</h3>
-                <p className="text-white/20 text-xs mt-0.5">Définir un objectif SMART pour {clientName}</p>
+                <h3 className="text-[var(--text-primary)] text-base font-bold">Nouvel objectif</h3>
+                <p className="text-[var(--text-muted)] text-xs mt-0.5">Définir un objectif SMART pour {clientName}</p>
               </div>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                 <X size={16} />
               </button>
             </div>
@@ -4492,7 +4492,7 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
             <form onSubmit={handleCreate} className="p-6 space-y-4">
               {/* Titre */}
               <div>
-                <label className="block text-xs text-white/40 font-medium mb-1.5">Titre</label>
+                <label className="block text-xs text-[var(--text-muted)] font-medium mb-1.5">Titre</label>
                 <input
                   type="text"
                   value={formTitre}
@@ -4500,13 +4500,13 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                   placeholder="Ex : Perte de masse grasse"
                   required
                   autoFocus
-                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                  className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
                 />
               </div>
 
               {/* Type */}
               <div>
-                <label className="block text-xs text-white/40 font-medium mb-1.5">Type</label>
+                <label className="block text-xs text-[var(--text-muted)] font-medium mb-1.5">Type</label>
                 <div className="flex flex-wrap gap-2">
                   {OBJ_TYPES.map((t) => (
                     <button
@@ -4515,8 +4515,8 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                       onClick={() => setFormType(t.id)}
                       className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                         formType === t.id
-                          ? 'border text-[#F5F5F3]'
-                          : 'bg-[#0a0a0a] text-white/40 border border-[#27272a] hover:text-white/60'
+                          ? 'border text-[var(--text-primary)]'
+                          : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border-base)] hover:text-[var(--text-secondary)]'
                       }`}
                       style={formType === t.id ? { backgroundColor: `${t.color}15`, borderColor: `${t.color}40`, color: t.color } : {}}
                     >
@@ -4530,30 +4530,30 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
               {/* Valeurs : Départ / Cible / Actuelle */}
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs text-white/40 font-medium mb-1.5">Départ</label>
+                  <label className="block text-xs text-[var(--text-muted)] font-medium mb-1.5">Départ</label>
                   <input
                     type="number" step="0.1" value={formDepart} required
                     onChange={(e) => setFormDepart(e.target.value)}
                     placeholder="90"
-                    className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-3 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                    className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-white/40 font-medium mb-1.5">Cible</label>
+                  <label className="block text-xs text-[var(--text-muted)] font-medium mb-1.5">Cible</label>
                   <input
                     type="number" step="0.1" value={formCible} required
                     onChange={(e) => setFormCible(e.target.value)}
                     placeholder="80"
-                    className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-3 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                    className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-white/40 font-medium mb-1.5">Actuelle <span className="text-white/15">(opt.)</span></label>
+                  <label className="block text-xs text-[var(--text-muted)] font-medium mb-1.5">Actuelle <span className="text-[var(--text-muted)]">(opt.)</span></label>
                   <input
                     type="number" step="0.1" value={formActuelle}
                     onChange={(e) => setFormActuelle(e.target.value)}
                     placeholder={formDepart || '—'}
-                    className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-3 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                    className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
                   />
                 </div>
               </div>
@@ -4561,37 +4561,37 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
               {/* Unité + Date limite */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-white/40 font-medium mb-1.5">Unité</label>
+                  <label className="block text-xs text-[var(--text-muted)] font-medium mb-1.5">Unité</label>
                   <input
                     type="text" value={formUnite}
                     onChange={(e) => setFormUnite(e.target.value)}
                     placeholder="kg, cm, reps..."
-                    className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-3 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                    className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-white/40 font-medium mb-1.5">Date limite</label>
+                  <label className="block text-xs text-[var(--text-muted)] font-medium mb-1.5">Date limite</label>
                   <input
                     type="date" value={formDateLimite}
                     onChange={(e) => setFormDateLimite(e.target.value)}
-                    className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-3 py-2.5 text-[#F5F5F3] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-colors [color-scheme:dark]"
+                    className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/50 transition-colors [color-scheme:dark]"
                   />
                 </div>
               </div>
 
               {/* Preview */}
               {formDepart && formCible && (
-                <div className="bg-[#0a0a0a] border border-[#27272a]/50 rounded-xl p-3">
-                  <p className="text-white/20 text-[10px] uppercase tracking-wider mb-1.5">Aperçu</p>
+                <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)]/50 rounded-xl p-3">
+                  <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider mb-1.5">Aperçu</p>
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="text-white/40">{formDepart} {formUnite}</span>
-                    <span className="text-white/15">→</span>
+                    <span className="text-[var(--text-muted)]">{formDepart} {formUnite}</span>
+                    <span className="text-[var(--text-muted)]">→</span>
                     {parseFloat(formCible) < parseFloat(formDepart)
                       ? <TrendingDown size={12} className="text-[#FF6B2B]" />
                       : <TrendingUp size={12} className="text-emerald-400" />
                     }
-                    <span className="text-[#F5F5F3] font-bold">{formCible} {formUnite}</span>
-                    <span className="text-white/15 ml-auto">
+                    <span className="text-[var(--text-primary)] font-bold">{formCible} {formUnite}</span>
+                    <span className="text-[var(--text-muted)] ml-auto">
                       Δ {Math.abs(parseFloat(formCible) - parseFloat(formDepart)).toFixed(1)} {formUnite}
                     </span>
                   </div>
@@ -4603,7 +4603,7 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                 <button
                   type="button"
                   onClick={() => { resetForm(); setShowModal(false) }}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#27272a] text-white/60 text-sm font-medium hover:bg-[#333] transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--bg-surface)] transition-colors"
                 >
                   Annuler
                 </button>
@@ -4764,10 +4764,10 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="h-24 bg-[#18181b] rounded-2xl" />
-        <div className="h-16 bg-[#18181b] rounded-2xl" />
-        <div className="h-16 bg-[#18181b] rounded-2xl" />
-        <div className="h-16 bg-[#18181b] rounded-2xl" />
+        <div className="h-24 bg-[var(--bg-base)] rounded-2xl" />
+        <div className="h-16 bg-[var(--bg-base)] rounded-2xl" />
+        <div className="h-16 bg-[var(--bg-base)] rounded-2xl" />
+        <div className="h-16 bg-[var(--bg-base)] rounded-2xl" />
       </div>
     )
   }
@@ -4777,18 +4777,18 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
 
       {/* ── Header stats ── */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
-          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">Actives</p>
-          <p className="text-[#F5F5F3] text-2xl font-bold mt-1">{habitudes.length}</p>
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Actives</p>
+          <p className="text-[var(--text-primary)] text-2xl font-bold mt-1">{habitudes.length}</p>
         </div>
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
-          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">Aujourd'hui</p>
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Aujourd'hui</p>
           <p className="text-2xl font-bold mt-1" style={{ color: cochees === habitudes.length && habitudes.length > 0 ? '#22c55e' : '#FF6B2B' }}>
             {cochees}/{habitudes.length}
           </p>
         </div>
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 text-center">
-          <p className="text-white/30 text-[10px] uppercase tracking-wider font-medium">Meilleur streak</p>
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Meilleur streak</p>
           <p className="text-[#FF6B2B] text-2xl font-bold mt-1 flex items-center justify-center gap-1">
             <Flame size={16} />
             {Math.max(0, ...habitudes.map(h => calculerStreak(allLogs.filter(l => l.habitude_id === h.id).map(l => l.date))))}j
@@ -4798,7 +4798,7 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
 
       {/* ── Action bar ── */}
       <div className="flex items-center justify-between">
-        <h3 className="text-[#F5F5F3] text-sm font-bold">
+        <h3 className="text-[var(--text-primary)] text-sm font-bold">
           Habitudes de {clientName || 'ce client'}
         </h3>
         <button
@@ -4811,12 +4811,12 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
 
       {/* ── Liste des habitudes ── */}
       {habitudes.length === 0 ? (
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl py-16 text-center">
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl py-16 text-center">
           <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
             <Flame size={24} className="text-[#FF6B2B]" />
           </div>
-          <p className="text-white/40 text-sm">Aucune habitude assignée</p>
-          <p className="text-white/20 text-xs mt-1">Cliquez sur "Assigner" pour créer la première habitude</p>
+          <p className="text-[var(--text-muted)] text-sm">Aucune habitude assignée</p>
+          <p className="text-[var(--text-muted)] text-xs mt-1">Cliquez sur "Assigner" pour créer la première habitude</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -4829,7 +4829,7 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
 
             return (
               <div key={h.id}
-                className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 hover:border-[#27272a]/80 transition-all group">
+                className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 hover:border-[var(--border-base)]/80 transition-all group">
 
                 {/* Ligne principale */}
                 <div className="flex items-center gap-3.5">
@@ -4849,20 +4849,20 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
                   {/* Nom + description */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-[#F5F5F3] text-sm font-semibold truncate">{h.nom}</p>
+                      <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{h.nom}</p>
                       {fait && (
                         <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold shrink-0">
                           Fait
                         </span>
                       )}
                       {!fait && (
-                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-white/25 font-bold shrink-0">
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-[var(--text-muted)] font-bold shrink-0">
                           En attente
                         </span>
                       )}
                     </div>
                     {h.description && (
-                      <p className="text-white/25 text-xs mt-0.5 truncate">{h.description}</p>
+                      <p className="text-[var(--text-muted)] text-xs mt-0.5 truncate">{h.description}</p>
                     )}
                   </div>
 
@@ -4875,21 +4875,21 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
                   )}
 
                   {/* Taux */}
-                  <span className="text-white/20 text-[10px] font-medium shrink-0">{rate}%</span>
+                  <span className="text-[var(--text-muted)] text-[10px] font-medium shrink-0">{rate}%</span>
 
                   {/* Actions */}
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <button
                       onClick={() => handleDeactivate(h.id)}
                       disabled={deactivating === h.id}
-                      className="p-1.5 rounded-lg text-white/20 hover:text-amber-400 hover:bg-amber-500/10 transition-all disabled:opacity-30"
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-amber-400 hover:bg-amber-500/10 transition-all disabled:opacity-30"
                       title="Désactiver"
                     >
                       <Circle size={13} />
                     </button>
                     <button
                       onClick={() => handleDelete(h.id)}
-                      className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all"
                       title="Supprimer"
                     >
                       <Trash2 size={13} />
@@ -4898,7 +4898,7 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
                 </div>
 
                 {/* Barre de progression 30j */}
-                <div className="mt-3 h-1 bg-white/[0.04] rounded-full overflow-hidden">
+                <div className="mt-3 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{ width: `${rate}%`, backgroundColor: h.couleur || '#FF6B2B' }}
@@ -4921,12 +4921,12 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
                               ? ''
                               : isToday
                                 ? 'border border-dashed border-white/15'
-                                : 'bg-white/[0.03]'
+                                : 'bg-[var(--bg-surface)]'
                           }`}
                           style={done ? { backgroundColor: `${h.couleur || '#FF6B2B'}` } : {}}
                           title={`${['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][d.getDay()]} ${d.getDate()}`}
                         />
-                        <span className={`text-[8px] ${isToday ? 'text-white/40' : 'text-white/15'}`}>
+                        <span className={`text-[8px] ${isToday ? 'text-[var(--text-muted)]' : 'text-[var(--text-muted)]'}`}>
                           {['D', 'L', 'M', 'M', 'J', 'V', 'S'][d.getDay()]}
                         </span>
                       </div>
@@ -4944,12 +4944,12 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
       {/* ══════════════════════════════ */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-          <div className="bg-[#18181b] border border-[#27272a] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
 
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[#27272a] flex items-center justify-between">
-              <h3 className="text-[#F5F5F3] text-base font-bold">Nouvelle habitude</h3>
-              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+            <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
+              <h3 className="text-[var(--text-primary)] text-base font-bold">Nouvelle habitude</h3>
+              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                 <X size={16} />
               </button>
             </div>
@@ -4957,7 +4957,7 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
             <form onSubmit={handleAdd} className="p-6 space-y-5">
               {/* Titre */}
               <div>
-                <label className="block text-xs text-white/40 font-medium mb-2">Titre de l'habitude</label>
+                <label className="block text-xs text-[var(--text-muted)] font-medium mb-2">Titre de l'habitude</label>
                 <input
                   type="text"
                   value={formNom}
@@ -4965,25 +4965,25 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
                   placeholder="Ex : Boire 2L d'eau"
                   required
                   autoFocus
-                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                  className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
                 />
               </div>
 
               {/* Description (optionnelle) */}
               <div>
-                <label className="block text-xs text-white/40 font-medium mb-2">Description <span className="text-white/20">(optionnelle)</span></label>
+                <label className="block text-xs text-[var(--text-muted)] font-medium mb-2">Description <span className="text-[var(--text-muted)]">(optionnelle)</span></label>
                 <input
                   type="text"
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
                   placeholder="Ex : Au moins 8 verres répartis dans la journée"
-                  className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+                  className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
                 />
               </div>
 
               {/* Choix d'icône */}
               <div>
-                <label className="block text-xs text-white/40 font-medium mb-2">Icône</label>
+                <label className="block text-xs text-[var(--text-muted)] font-medium mb-2">Icône</label>
                 <div className="flex flex-wrap gap-2">
                   {HABIT_ICONS.map((ic) => {
                     const isSelected = formIcone === ic.id
@@ -4995,7 +4995,7 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                           isSelected
                             ? 'bg-[#FF6B2B]/15 text-[#FF6B2B] border border-[#FF6B2B]/30'
-                            : 'bg-[#0a0a0a] text-white/40 border border-[#27272a] hover:border-[#27272a]/80 hover:text-white/60'
+                            : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border-base)] hover:border-[var(--border-base)]/80 hover:text-[var(--text-secondary)]'
                         }`}
                       >
                         <ic.icon size={14} />
@@ -5008,7 +5008,7 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
 
               {/* Choix couleur */}
               <div>
-                <label className="block text-xs text-white/40 font-medium mb-2">Couleur</label>
+                <label className="block text-xs text-[var(--text-muted)] font-medium mb-2">Couleur</label>
                 <div className="flex gap-2">
                   {HABIT_COULEURS.map((c) => (
                     <button
@@ -5031,7 +5031,7 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#27272a] text-white/60 text-sm font-medium hover:bg-[#333] transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--bg-surface)] transition-colors"
                 >
                   Annuler
                 </button>
@@ -5297,11 +5297,11 @@ function NutritionTab({ coachId, clientId, clientName }) {
               className="transition-all duration-500" />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-[#F5F5F3] text-sm font-bold leading-none">{Math.round(value)}</p>
-            <p className="text-white/20 text-[8px]">{unit}</p>
+            <p className="text-[var(--text-primary)] text-sm font-bold leading-none">{Math.round(value)}</p>
+            <p className="text-[var(--text-muted)] text-[8px]">{unit}</p>
           </div>
         </div>
-        <p className="text-white/40 text-[10px] font-medium mt-1.5">{label}</p>
+        <p className="text-[var(--text-muted)] text-[10px] font-medium mt-1.5">{label}</p>
       </div>
     )
   }
@@ -5311,7 +5311,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
-        <h3 className="text-[#F5F5F3] text-base font-bold">Plan nutritionnel</h3>
+        <h3 className="text-[var(--text-primary)] text-base font-bold">Plan nutritionnel</h3>
         <a href="/coach/nutrition" className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
           Gérer les plans →
         </a>
@@ -5323,10 +5323,10 @@ function NutritionTab({ coachId, clientId, clientName }) {
           <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
         </div>
       ) : !assignedPlan ? (
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-10 text-center">
-          <Apple size={36} className="text-white/8 mx-auto mb-3" />
-          <h3 className="text-[#F5F5F3] text-base font-bold mb-1">Aucun plan assigné</h3>
-          <p className="text-white/25 text-xs mb-5 max-w-xs mx-auto">
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-10 text-center">
+          <Apple size={36} className="text-[var(--text-muted)] mx-auto mb-3" />
+          <h3 className="text-[var(--text-primary)] text-base font-bold mb-1">Aucun plan assigné</h3>
+          <p className="text-[var(--text-muted)] text-xs mb-5 max-w-xs mx-auto">
             Créez un plan nutritionnel et assignez-le à {clientName} pour le voir ici
           </p>
           <div className="flex items-center justify-center gap-3">
@@ -5335,7 +5335,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
               <Plus size={13} /> Créer un plan
             </a>
             <button onClick={openAssignModal}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#27272a] text-white/60 text-xs font-semibold hover:text-white hover:bg-[#27272a]/80 transition-all border border-[#27272a]">
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-xs font-semibold hover:text-white hover:bg-[var(--bg-surface)]/80 transition-all border border-[var(--border-base)]">
               <Layers size={13} /> Assigner un modèle
             </button>
           </div>
@@ -5343,11 +5343,11 @@ function NutritionTab({ coachId, clientId, clientName }) {
         ) : (
           <div className="space-y-4">
             {/* Plan header */}
-            <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+            <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-[#F5F5F3] text-base font-bold">{assignedPlan.nom || 'Plan nutritionnel'}</h3>
-                  <p className="text-white/25 text-[11px] mt-0.5">
+                  <h3 className="text-[var(--text-primary)] text-base font-bold">{assignedPlan.nom || 'Plan nutritionnel'}</h3>
+                  <p className="text-[var(--text-muted)] text-[11px] mt-0.5">
                     {assignedPlan.objectif || `Plan assigné à ${clientName}`}
                   </p>
                 </div>
@@ -5368,8 +5368,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
 
             {/* Repas du plan */}
             {assignedRepas.length === 0 ? (
-              <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-6 text-center">
-                <p className="text-white/20 text-xs">Ce plan ne contient pas encore de repas détaillés</p>
+              <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-6 text-center">
+                <p className="text-[var(--text-muted)] text-xs">Ce plan ne contient pas encore de repas détaillés</p>
               </div>
             ) : (
               assignedRepas.map((repas, ri) => {
@@ -5380,11 +5380,11 @@ function NutritionTab({ coachId, clientId, clientName }) {
                 items.forEach(ra => { if (ra.aliments) repasKcal += Math.round((ra.aliments.kcal_100g || 0) * (ra.quantite_g || 0) / 100) })
 
                 return (
-                  <div key={repas.id || ri} className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-                    <div className="px-5 py-3.5 border-b border-[#27272a] flex items-center justify-between">
+                  <div key={repas.id || ri} className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl overflow-hidden">
+                    <div className="px-5 py-3.5 border-b border-[var(--border-base)] flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
                         <TypeIcon size={15} className="text-[#FF6B2B]" />
-                        <h4 className="text-[#F5F5F3] text-sm font-bold">{typeLabel}</h4>
+                        <h4 className="text-[var(--text-primary)] text-sm font-bold">{typeLabel}</h4>
                       </div>
                       <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
                         {repasKcal} kcal
@@ -5392,7 +5392,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
                     </div>
                     {items.length === 0 ? (
                       <div className="px-5 py-4 text-center">
-                        <p className="text-white/15 text-xs italic">Aucun aliment</p>
+                        <p className="text-[var(--text-muted)] text-xs italic">Aucun aliment</p>
                       </div>
                     ) : (
                       <div className="divide-y divide-[#27272a]/30">
@@ -5406,8 +5406,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
                                 <FoodIcon categorie={a.categorie} size={14} />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[#F5F5F3] text-xs font-medium truncate">{a.nom}</p>
-                                <p className="text-white/20 text-[10px]">{ra.quantite_g}g</p>
+                                <p className="text-[var(--text-primary)] text-xs font-medium truncate">{a.nom}</p>
+                                <p className="text-[var(--text-muted)] text-[10px]">{ra.quantite_g}g</p>
                               </div>
                               <div className="flex items-center gap-3 text-[10px] shrink-0">
                                 <span className="text-[#FF6B2B] font-bold">{Math.round((a.kcal_100g || 0) * ratio)}</span>
@@ -5430,9 +5430,9 @@ function NutritionTab({ coachId, clientId, clientName }) {
 
       {/* ── Documents du plan ── */}
       {planDocuments.length > 0 && (
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-[#27272a]">
-            <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-[var(--border-base)]">
+            <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
               <Paperclip size={14} className="text-[#FF6B2B]" />
               Documents joints
               <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{planDocuments.length}</span>
@@ -5441,7 +5441,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
           <div className="p-4 space-y-2">
             {planDocuments.map(doc => (
               <a key={doc.id} href={doc.url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0D0D0D] border border-[#27272a]/50 hover:border-[#FF6B2B]/20 transition-all group cursor-pointer">
+                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)]/50 hover:border-[#FF6B2B]/20 transition-all group cursor-pointer">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                   doc.type === 'pdf' ? 'bg-red-500/10' : doc.type === 'image' ? 'bg-blue-500/10' : 'bg-[#FF6B2B]/10'
                 }`}>
@@ -5450,12 +5450,12 @@ function NutritionTab({ coachId, clientId, clientName }) {
                   } />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[#F5F5F3] text-sm font-medium truncate">{doc.nom}</p>
-                  <p className="text-white/20 text-[10px] mt-0.5">
+                  <p className="text-[var(--text-primary)] text-sm font-medium truncate">{doc.nom}</p>
+                  <p className="text-[var(--text-muted)] text-[10px] mt-0.5">
                     {doc.type?.toUpperCase()} • {new Date(doc.created_at).toLocaleDateString('fr-FR')}
                   </p>
                 </div>
-                <ExternalLink size={14} className="text-white/10 group-hover:text-[#FF6B2B] transition-all shrink-0" />
+                <ExternalLink size={14} className="text-[var(--text-muted)] group-hover:text-[#FF6B2B] transition-all shrink-0" />
               </a>
             ))}
           </div>
@@ -5464,26 +5464,26 @@ function NutritionTab({ coachId, clientId, clientName }) {
 
       {/* ── Historique des plans ── */}
       {historyPlans.length > 0 && (
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-[#27272a]">
-            <h3 className="text-[#F5F5F3] text-sm font-bold">Historique des plans</h3>
-            <p className="text-white/20 text-[10px] mt-0.5">{historyPlans.length} plan{historyPlans.length > 1 ? 's' : ''} précédent{historyPlans.length > 1 ? 's' : ''}</p>
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-[var(--border-base)]">
+            <h3 className="text-[var(--text-primary)] text-sm font-bold">Historique des plans</h3>
+            <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{historyPlans.length} plan{historyPlans.length > 1 ? 's' : ''} précédent{historyPlans.length > 1 ? 's' : ''}</p>
           </div>
           <div className="divide-y divide-[#27272a]/30">
             {historyPlans.map(plan => (
-              <div key={plan.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-white/[0.02] transition-colors">
-                <div className="w-9 h-9 rounded-xl bg-[#27272a] flex items-center justify-center shrink-0">
-                  <Apple size={15} className="text-white/25" />
+              <div key={plan.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-[var(--bg-surface)] transition-colors">
+                <div className="w-9 h-9 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center shrink-0">
+                  <Apple size={15} className="text-[var(--text-muted)]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[#F5F5F3] text-xs font-semibold truncate">{plan.nom || 'Plan sans titre'}</p>
-                  <p className="text-white/20 text-[10px] mt-0.5">
+                  <p className="text-[var(--text-primary)] text-xs font-semibold truncate">{plan.nom || 'Plan sans titre'}</p>
+                  <p className="text-[var(--text-muted)] text-[10px] mt-0.5">
                     {plan.created_at ? new Date(plan.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <a href={`/coach/nutrition/${plan.id}`}
-                    className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[#27272a] text-white/40 hover:text-white/70 transition-colors">
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-semibold bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">
                     Modifier
                   </a>
                   <button onClick={() => activatePlan(plan.id)} disabled={activating === plan.id}
@@ -5501,12 +5501,12 @@ function NutritionTab({ coachId, clientId, clientName }) {
       {showAssignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowAssignModal(false)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative w-full max-w-md bg-[#1E1E1E] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden"
+          <div className="relative w-full max-w-md bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
             <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-            <div className="px-6 pt-5 pb-4 border-b border-[#27272a] flex items-center justify-between">
-              <h2 className="text-[#F5F5F3] text-lg font-bold">Assigner un modèle</h2>
-              <button onClick={() => setShowAssignModal(false)} className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/[0.06] transition-all">
+            <div className="px-6 pt-5 pb-4 border-b border-[var(--border-base)] flex items-center justify-between">
+              <h2 className="text-[var(--text-primary)] text-lg font-bold">Assigner un modèle</h2>
+              <button onClick={() => setShowAssignModal(false)} className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all">
                 <X size={18} />
               </button>
             </div>
@@ -5517,8 +5517,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
                 </div>
               ) : templatePlans.length === 0 ? (
                 <div className="text-center py-8">
-                  <Apple size={28} className="text-white/8 mx-auto mb-2" />
-                  <p className="text-white/20 text-xs mb-3">Aucun modèle disponible</p>
+                  <Apple size={28} className="text-[var(--text-muted)] mx-auto mb-2" />
+                  <p className="text-[var(--text-muted)] text-xs mb-3">Aucun modèle disponible</p>
                   <a href="/coach/nutrition/new"
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
                     <Plus size={12} /> Créer un modèle
@@ -5527,17 +5527,17 @@ function NutritionTab({ coachId, clientId, clientName }) {
               ) : (
                 templatePlans.map(tpl => (
                   <button key={tpl.id} onClick={() => assignTemplate(tpl.id)} disabled={assigning}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[#0D0D0D] border border-[#27272a] hover:border-[#FF6B2B]/30 transition-all text-left disabled:opacity-50">
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)] hover:border-[#FF6B2B]/30 transition-all text-left disabled:opacity-50">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
                       <Apple size={16} className="text-emerald-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[#F5F5F3] text-sm font-semibold truncate">{tpl.nom || 'Plan sans titre'}</p>
-                      <p className="text-white/20 text-[10px] mt-0.5">
+                      <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{tpl.nom || 'Plan sans titre'}</p>
+                      <p className="text-[var(--text-muted)] text-[10px] mt-0.5">
                         Créé le {new Date(tpl.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                       </p>
                     </div>
-                    <ChevronRight size={14} className="text-white/15 shrink-0" />
+                    <ChevronRight size={14} className="text-[var(--text-muted)] shrink-0" />
                   </button>
                 ))
               )}
@@ -5878,12 +5878,12 @@ export default function CoachClientHub() {
       {/* ══════════════════════════════════════ */}
       {/* SIDEBAR — Liste des clients           */}
       {/* ══════════════════════════════════════ */}
-      <div className={`${selectedId ? 'hidden md:flex' : 'flex'} w-full md:w-72 flex-shrink-0 bg-[#09090b] border-r border-[#27272a] flex-col overflow-hidden`}>
+      <div className={`${selectedId ? 'hidden md:flex' : 'flex'} w-full md:w-72 flex-shrink-0 bg-[var(--bg-elevated)] border-r border-[var(--border-base)] flex-col overflow-hidden`}>
 
         {/* Header */}
-        <div className="p-4 border-b border-[#27272a]">
+        <div className="p-4 border-b border-[var(--border-base)]">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[#F5F5F3] font-semibold text-sm">Clients</h2>
+            <h2 className="text-[var(--text-primary)] font-semibold text-sm">Clients</h2>
             <button
               onClick={() => { setModalInvit(true); setInvitSuccess(null); setInvitError('') }}
               className="p-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 transition-colors"
@@ -5892,12 +5892,12 @@ export default function CoachClientHub() {
             </button>
           </div>
           <div className="relative">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/15" />
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
             <input
               value={recherche}
               onChange={(e) => setRecherche(e.target.value)}
               placeholder="Rechercher un client..."
-              className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-8 pr-3 py-2 text-xs text-[#F5F5F3] placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg pl-8 pr-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
             />
           </div>
         </div>
@@ -5906,8 +5906,8 @@ export default function CoachClientHub() {
         <div className="flex-1 overflow-y-auto">
           {clientsFiltres.length === 0 ? (
             <div className="p-6 text-center">
-              <User size={24} className="text-white/10 mx-auto mb-2" />
-              <p className="text-white/20 text-xs">Aucun client</p>
+              <User size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
+              <p className="text-[var(--text-muted)] text-xs">Aucun client</p>
             </div>
           ) : (
             clientsFiltres.map((c) => {
@@ -5921,8 +5921,8 @@ export default function CoachClientHub() {
                   onClick={() => { setSelectedId(c.id); setActiveTab('overview'); setEditingSeanceId(null); setOpenProgramme(null) }}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all ${
                     isSelected
-                      ? 'bg-[#18181b] border-l-2 border-[#FF6B2B]'
-                      : 'border-l-2 border-transparent hover:bg-[#18181b]/50'
+                      ? 'bg-[var(--bg-base)] border-l-2 border-[#FF6B2B]'
+                      : 'border-l-2 border-transparent hover:bg-[var(--bg-base)]/50'
                   }`}
                 >
                   {/* Avatar */}
@@ -5936,10 +5936,10 @@ export default function CoachClientHub() {
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium truncate ${isSelected ? 'text-[#F5F5F3]' : 'text-white/50'}`}>
+                    <p className={`text-sm font-medium truncate ${isSelected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                       {name}
                     </p>
-                    <p className="text-white/20 text-[10px] truncate">{c.profiles?.email}</p>
+                    <p className="text-[var(--text-muted)] text-[10px] truncate">{c.profiles?.email}</p>
                   </div>
 
                   {/* Pastille actif */}
@@ -5956,15 +5956,15 @@ export default function CoachClientHub() {
       {/* ══════════════════════════════════════ */}
       {/* ZONE PRINCIPALE — Dashboard client    */}
       {/* ══════════════════════════════════════ */}
-      <div className={`${selectedId ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto bg-[#18181b] flex-col`}>
+      <div className={`${selectedId ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto bg-[var(--bg-base)] flex-col`}>
         {!selectedId || loadingProfile ? (
           <div className="flex items-center justify-center h-full">
             {loadingProfile ? (
               <Loader2 size={24} className="animate-spin text-[#FF6B2B]" />
             ) : (
               <div className="text-center">
-                <User size={40} className="text-white/10 mx-auto mb-3" />
-                <p className="text-white/20 text-sm">Sélectionnez un client</p>
+                <User size={40} className="text-[var(--text-muted)] mx-auto mb-3" />
+                <p className="text-[var(--text-muted)] text-sm">Sélectionnez un client</p>
               </div>
             )}
           </div>
@@ -5974,7 +5974,7 @@ export default function CoachClientHub() {
             {/* ── Bouton retour mobile ── */}
             <button
               onClick={() => setSelectedId(null)}
-              className="md:hidden flex items-center gap-2 text-white/40 text-sm hover:text-white transition-colors -mb-2"
+              className="md:hidden flex items-center gap-2 text-[var(--text-muted)] text-sm hover:text-white transition-colors -mb-2"
             >
               <ChevronLeft size={16} /> Retour aux clients
             </button>
@@ -5991,7 +5991,7 @@ export default function CoachClientHub() {
                   </div>
                 )}
                 <div>
-                  <h2 className="text-[#F5F5F3] text-2xl font-bold">{fullName}</h2>
+                  <h2 className="text-[var(--text-primary)] text-2xl font-bold">{fullName}</h2>
                   <div className="flex items-center gap-3 mt-1">
                     {/* Badge actif + toggle */}
                     <span className="inline-flex items-center gap-1.5 text-xs">
@@ -6008,10 +6008,10 @@ export default function CoachClientHub() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+                <button className="p-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                   <MessageCircle size={17} />
                 </button>
-                <button className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-[#27272a] transition-colors">
+                <button className="p-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                   <Settings size={17} />
                 </button>
               </div>
@@ -6027,8 +6027,8 @@ export default function CoachClientHub() {
                     onClick={() => { setActiveTab(tab.id); if (tab.id !== 'sport') setOpenProgramme(null) }}
                     className={`relative px-4 py-2.5 text-xs font-medium whitespace-nowrap transition-all ${
                       isActive
-                        ? 'text-[#F5F5F3]'
-                        : 'text-white/35 hover:text-white/60'
+                        ? 'text-[var(--text-primary)]'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                     }`}
                   >
                     {tab.label}
@@ -6080,15 +6080,15 @@ export default function CoachClientHub() {
                     ]
                   })().map((card, ci) => (
                     <div key={ci} onClick={card.onClick || undefined}
-                      className={`bg-[#18181b] border border-[#27272a] rounded-2xl p-4 flex flex-col justify-between min-h-[120px] transition-all ${card.onClick ? 'cursor-pointer hover:border-[#3f3f46] hover:bg-[#1c1c1f] active:scale-[0.98]' : ''}`}>
+                      className={`bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 flex flex-col justify-between min-h-[120px] transition-all ${card.onClick ? 'cursor-pointer hover:border-[var(--border-base)] hover:bg-[var(--bg-card)] active:scale-[0.98]' : ''}`}>
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="text-white/30 text-[10px] font-medium uppercase tracking-wider">{card.label}</p>
-                          <p className="text-[#F5F5F3] text-lg font-bold mt-1">{card.value}</p>
-                          {card.sub && <p className="text-white/20 text-[10px]">{card.sub}</p>}
+                          <p className="text-[var(--text-muted)] text-[10px] font-medium uppercase tracking-wider">{card.label}</p>
+                          <p className="text-[var(--text-primary)] text-lg font-bold mt-1">{card.value}</p>
+                          {card.sub && <p className="text-[var(--text-muted)] text-[10px]">{card.sub}</p>}
                         </div>
-                        <div className="w-7 h-7 rounded-lg bg-white/[0.04] flex items-center justify-center">
-                          <card.icon size={14} className="text-white/20" />
+                        <div className="w-7 h-7 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center">
+                          <card.icon size={14} className="text-[var(--text-muted)]" />
                         </div>
                       </div>
                       {/* Mini sparkline */}
@@ -6147,16 +6147,16 @@ export default function CoachClientHub() {
                     const isLoss = cible < depart
 
                     return (
-                      <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+                      <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5">
                         <div className="flex items-center justify-between mb-5">
-                          <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+                          <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
                             <Scale size={15} className="text-[#FF6B2B]" />
                             Poids
                           </h3>
                           <div className="flex items-center gap-3">
                             {jours !== null && (
                               <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${
-                                jours < 0 ? 'bg-red-500/10 text-red-400' : jours <= 14 ? 'bg-amber-500/10 text-amber-400' : 'bg-white/5 text-white/25'
+                                jours < 0 ? 'bg-red-500/10 text-red-400' : jours <= 14 ? 'bg-amber-500/10 text-amber-400' : 'bg-white/5 text-[var(--text-muted)]'
                               }`}>
                                 {jours < 0 ? `${Math.abs(jours)}j retard` : jours === 0 ? "Auj." : `${jours}j restants`}
                               </span>
@@ -6168,18 +6168,18 @@ export default function CoachClientHub() {
                         </div>
 
                         {/* Départ → Actuel → Cible */}
-                        <div className="bg-[#09090b] rounded-xl p-4 flex items-center">
+                        <div className="bg-[var(--bg-elevated)] rounded-xl p-4 flex items-center">
                           <div className="flex-1 text-center">
-                            <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Départ</p>
-                            <p className="text-[#F5F5F3] text-2xl font-bold">{depart || '—'}<span className="text-sm text-white/20 ml-1">{unite}</span></p>
+                            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider mb-1">Départ</p>
+                            <p className="text-[var(--text-primary)] text-2xl font-bold">{depart || '—'}<span className="text-sm text-[var(--text-muted)] ml-1">{unite}</span></p>
                           </div>
                           <div className="flex flex-col items-center gap-0.5 px-2 shrink-0">
                             <div className="flex items-center gap-1">
-                              <div className="w-4 h-[1.5px] bg-[#27272a]" />
+                              <div className="w-4 h-[1.5px] bg-[var(--bg-surface)]" />
                               <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
                                 {isLoss ? <TrendingDown size={11} style={{ color }} /> : <TrendingUp size={11} style={{ color }} />}
                               </div>
-                              <div className="w-4 h-[1.5px] bg-[#27272a]" />
+                              <div className="w-4 h-[1.5px] bg-[var(--bg-surface)]" />
                             </div>
                             {delta && delta !== '0.0' && (
                               <span className="text-[9px] font-bold" style={{ color }}>
@@ -6188,7 +6188,7 @@ export default function CoachClientHub() {
                             )}
                           </div>
                           <div className="flex-1 text-center">
-                            <p className="text-white/25 text-[10px] uppercase tracking-wider mb-1">Cible</p>
+                            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider mb-1">Cible</p>
                             <p className="text-2xl font-bold" style={{ color: '#FF6B2B' }}>{cible || '—'}<span className="text-sm opacity-40 ml-1">{unite}</span></p>
                           </div>
                         </div>
@@ -6197,10 +6197,10 @@ export default function CoachClientHub() {
                         {depart && cible ? (
                           <div className="mt-4">
                             <div className="flex items-center justify-between mb-1.5">
-                              <span className="text-white/25 text-[10px]">Progression</span>
+                              <span className="text-[var(--text-muted)] text-[10px]">Progression</span>
                               <span className="text-[10px] font-bold" style={{ color }}>{pct}%</span>
                             </div>
-                            <div className="h-2.5 bg-white/[0.04] rounded-full overflow-hidden">
+                            <div className="h-2.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                               <div className="h-full rounded-full transition-all duration-700 relative"
                                 style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, ${color}cc)` }}>
                                 {pct > 8 && (
@@ -6210,11 +6210,11 @@ export default function CoachClientHub() {
                               </div>
                             </div>
                             <div className="flex items-center justify-between mt-1.5">
-                              <p className="text-white/15 text-[10px]">
-                                Actuel : <span className="text-[#F5F5F3] font-semibold">{actuel} {unite}</span>
+                              <p className="text-[var(--text-muted)] text-[10px]">
+                                Actuel : <span className="text-[var(--text-primary)] font-semibold">{actuel} {unite}</span>
                               </p>
                               {depart && cible && (
-                                <p className="text-white/10 text-[9px]">
+                                <p className="text-[var(--text-muted)] text-[9px]">
                                   Reste {Math.abs(actuel - cible).toFixed(1)} {unite}
                                 </p>
                               )}
@@ -6222,7 +6222,7 @@ export default function CoachClientHub() {
                           </div>
                         ) : (
                           <div className="mt-4 text-center py-2">
-                            <p className="text-white/15 text-xs">Aucun objectif poids défini</p>
+                            <p className="text-[var(--text-muted)] text-xs">Aucun objectif poids défini</p>
                             <button onClick={() => setActiveTab('objectifs')} className="text-[#FF6B2B] text-xs font-medium mt-1 hover:underline">
                               + Créer un objectif poids
                             </button>
@@ -6239,9 +6239,9 @@ export default function CoachClientHub() {
                     const totalEnCours = objectifs.filter(o => o.statut === 'en_cours').length
 
                     return (
-                  <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+                  <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+                      <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
                         <Target size={15} className="text-[#FF6B2B]" />
                         Objectifs
                       </h3>
@@ -6253,7 +6253,7 @@ export default function CoachClientHub() {
                         )}
                         <button
                           onClick={() => setActiveTab('objectifs')}
-                          className="text-white/20 hover:text-[#FF6B2B] transition-colors"
+                          className="text-[var(--text-muted)] hover:text-[#FF6B2B] transition-colors"
                           title="Gérer les objectifs"
                         >
                           <Settings size={13} />
@@ -6275,11 +6275,11 @@ export default function CoachClientHub() {
                                     ? <TrendingDown size={11} style={{ color }} className="shrink-0" />
                                     : <TrendingUp size={11} style={{ color }} className="shrink-0" />
                                   }
-                                  <p className="text-[#F5F5F3] text-xs font-medium truncate">{o.titre}</p>
+                                  <p className="text-[var(--text-primary)] text-xs font-medium truncate">{o.titre}</p>
                                 </div>
                                 <span className="text-xs font-bold ml-2 shrink-0" style={{ color }}>{pct}%</span>
                               </div>
-                              <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                              <div className="h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all duration-700 relative"
                                   style={{ width: `${pct}%`, backgroundColor: color }}>
                                   {pct > 8 && (
@@ -6289,11 +6289,11 @@ export default function CoachClientHub() {
                                 </div>
                               </div>
                               <div className="flex items-center justify-between mt-1">
-                                <span className="text-white/15 text-[9px]">
+                                <span className="text-[var(--text-muted)] text-[9px]">
                                   {o.valeur_actuelle ?? o.valeur_depart} / {o.valeur_cible} {o.unite}
                                 </span>
                                 {jours !== null && (
-                                  <span className={`text-[9px] ${jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : 'text-white/15'}`}>
+                                  <span className={`text-[9px] ${jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : 'text-[var(--text-muted)]'}`}>
                                     {jours < 0 ? `${Math.abs(jours)}j retard` : jours === 0 ? "Auj." : `${jours}j`}
                                   </span>
                                 )}
@@ -6314,7 +6314,7 @@ export default function CoachClientHub() {
                       </div>
                     ) : (
                       <div className="text-center py-4">
-                        <p className="text-white/15 text-xs">Aucun objectif défini</p>
+                        <p className="text-[var(--text-muted)] text-xs">Aucun objectif défini</p>
                         <button
                           onClick={() => setActiveTab('objectifs')}
                           className="text-[#FF6B2B] text-xs font-medium mt-2 hover:underline"
@@ -6332,9 +6332,9 @@ export default function CoachClientHub() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
                   {/* Carte Nutrition recap */}
-                  <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+                  <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+                      <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
                         <Apple size={15} className="text-[#FF6B2B]" />
                         Nutrition
                       </h3>
@@ -6353,8 +6353,8 @@ export default function CoachClientHub() {
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="text-center">
-                            <p className="text-[#F5F5F3] text-sm font-bold">{planCalories || p?.calories_cibles || '—'}</p>
-                            <p className="text-white/20 text-[8px]">kcal</p>
+                            <p className="text-[var(--text-primary)] text-sm font-bold">{planCalories || p?.calories_cibles || '—'}</p>
+                            <p className="text-[var(--text-muted)] text-[8px]">kcal</p>
                           </div>
                         </div>
                       </div>
@@ -6363,32 +6363,32 @@ export default function CoachClientHub() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-blue-500" />
-                            <span className="text-white/40 text-xs">Protéines</span>
+                            <span className="text-[var(--text-muted)] text-xs">Protéines</span>
                           </div>
-                          <span className="text-[#F5F5F3] text-xs font-semibold">{p?.proteines_cibles || 30}%</span>
+                          <span className="text-[var(--text-primary)] text-xs font-semibold">{p?.proteines_cibles || 30}%</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-amber-500" />
-                            <span className="text-white/40 text-xs">Glucides</span>
+                            <span className="text-[var(--text-muted)] text-xs">Glucides</span>
                           </div>
-                          <span className="text-[#F5F5F3] text-xs font-semibold">{p?.glucides_cibles || 40}%</span>
+                          <span className="text-[var(--text-primary)] text-xs font-semibold">{p?.glucides_cibles || 40}%</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-red-500" />
-                            <span className="text-white/40 text-xs">Lipides</span>
+                            <span className="text-[var(--text-muted)] text-xs">Lipides</span>
                           </div>
-                          <span className="text-[#F5F5F3] text-xs font-semibold">{p?.lipides_cibles || 30}%</span>
+                          <span className="text-[var(--text-primary)] text-xs font-semibold">{p?.lipides_cibles || 30}%</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Carte Habitudes du jour */}
-                  <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-5">
+                  <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-[#F5F5F3] text-sm font-bold flex items-center gap-2">
+                      <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
                         <Flame size={15} className="text-[#FF6B2B]" />
                         Habitudes du jour
                       </h3>
@@ -6402,7 +6402,7 @@ export default function CoachClientHub() {
                         </span>
                         <button
                           onClick={() => setActiveTab('habitudes')}
-                          className="text-white/20 hover:text-[#FF6B2B] transition-colors"
+                          className="text-[var(--text-muted)] hover:text-[#FF6B2B] transition-colors"
                           title="Gérer les habitudes"
                         >
                           <Settings size={13} />
@@ -6411,7 +6411,7 @@ export default function CoachClientHub() {
                     </div>
                     {habitudes.length === 0 ? (
                       <div className="text-center py-5">
-                        <p className="text-white/15 text-xs">Aucune habitude assignée</p>
+                        <p className="text-[var(--text-muted)] text-xs">Aucune habitude assignée</p>
                         <button
                           onClick={() => setActiveTab('habitudes')}
                           className="text-[#FF6B2B] text-xs font-medium mt-2 hover:underline"
@@ -6426,21 +6426,21 @@ export default function CoachClientHub() {
                           const IconComp = getHabitIcon(h.icone)
                           return (
                             <div key={h.id} className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 transition-all ${
-                              fait ? 'bg-emerald-500/[0.06]' : 'bg-[#09090b]'
+                              fait ? 'bg-emerald-500/[0.06]' : 'bg-[var(--bg-elevated)]'
                             }`}>
                               <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                                 style={{ backgroundColor: `${h.couleur || '#FF6B2B'}15` }}>
                                 <IconComp size={13} style={{ color: h.couleur || '#FF6B2B' }} />
                               </div>
                               <span className={`text-xs font-medium flex-1 truncate ${
-                                fait ? 'text-emerald-400 line-through' : 'text-[#F5F5F3]'
+                                fait ? 'text-emerald-400 line-through' : 'text-[var(--text-primary)]'
                               }`}>
                                 {h.nom}
                               </span>
                               {fait ? (
                                 <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
                               ) : (
-                                <Circle size={15} className="text-white/15 shrink-0" />
+                                <Circle size={15} className="text-[var(--text-muted)] shrink-0" />
                               )}
                             </div>
                           )
@@ -6541,8 +6541,8 @@ export default function CoachClientHub() {
             {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && activeTab !== 'infos' && activeTab !== 'suivi' && activeTab !== 'habitudes' && activeTab !== 'objectifs' && (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
-                  <BarChart3 size={36} className="text-white/10 mx-auto mb-3" />
-                  <p className="text-white/20 text-sm">
+                  <BarChart3 size={36} className="text-[var(--text-muted)] mx-auto mb-3" />
+                  <p className="text-[var(--text-muted)] text-sm">
                     Onglet « {TABS.find(t => t.id === activeTab)?.label} » — bientôt disponible
                   </p>
                 </div>
@@ -6559,24 +6559,24 @@ export default function CoachClientHub() {
         {!invitSuccess ? (
           <form onSubmit={envoyerInvitation} className="space-y-4">
             <div>
-              <label className="block text-sm text-white/50 mb-1.5">Prénom du client</label>
+              <label className="block text-sm text-[var(--text-secondary)] mb-1.5">Prénom du client</label>
               <input type="text" value={invitPrenom} onChange={(e) => setInvitPrenom(e.target.value)}
                 placeholder="Lucas" autoFocus
-                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
             </div>
             <div>
-              <label className="block text-sm text-white/50 mb-1.5">Email</label>
+              <label className="block text-sm text-[var(--text-secondary)] mb-1.5">Email</label>
               <input type="email" value={invitEmail} onChange={(e) => setInvitEmail(e.target.value)}
                 placeholder="lucas@exemple.com" required
-                className="w-full bg-[#0a0a0a] border border-[#27272a] rounded-xl px-4 py-2.5 text-[#F5F5F3] text-sm placeholder:text-white/15 focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
             </div>
             {invitError && (
               <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{invitError}</p>
             )}
-            <p className="text-white/20 text-xs">Un lien d'invitation valable 7 jours sera généré.</p>
+            <p className="text-[var(--text-muted)] text-xs">Un lien d'invitation valable 7 jours sera généré.</p>
             <div className="flex gap-2 pt-1">
               <button type="button" onClick={() => setModalInvit(false)}
-                className="flex-1 py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">
+                className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] transition-colors">
                 Annuler
               </button>
               <button type="submit" disabled={envoi}
@@ -6590,14 +6590,14 @@ export default function CoachClientHub() {
           <div className="space-y-4">
             <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
               <p className="text-green-400 text-sm font-medium">✓ Invitation créée !</p>
-              <p className="text-white/30 text-xs mt-1">Envoyez ce lien à {invitSuccess.prenom || invitSuccess.email} :</p>
+              <p className="text-[var(--text-muted)] text-xs mt-1">Envoyez ce lien à {invitSuccess.prenom || invitSuccess.email} :</p>
             </div>
-            <div className="bg-[#09090b] rounded-lg p-3">
+            <div className="bg-[var(--bg-elevated)] rounded-lg p-3">
               <p className="text-[#FF6B2B] text-xs font-mono break-all">{invitSuccess.lien}</p>
             </div>
             <button
               onClick={() => { navigator.clipboard.writeText(invitSuccess.lien); toast.success('Lien copie !') }}
-              className="w-full py-2.5 rounded-xl text-sm text-white/40 bg-[#27272a] hover:bg-[#3f3f46] transition-colors">
+              className="w-full py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] transition-colors">
               Copier le lien
             </button>
             <button onClick={() => { setModalInvit(false); setInvitSuccess(null) }}

@@ -30,14 +30,14 @@ export function Modal({ isOpen, onClose, title, children, className = '' }) {
       />
 
       {/* Contenu */}
-      <div className={`relative bg-[#1E1E1E] border border-white/[0.08] rounded-2xl w-full max-w-md shadow-2xl ${className}`}>
+      <div className={`relative bg-[var(--bg-card)] border border-[var(--border-base)] rounded-2xl w-full max-w-md shadow-2xl ${className}`}>
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between p-5 border-b border-white/[0.08]">
-            <h2 className="text-[#F5F5F3] font-semibold">{title}</h2>
+          <div className="flex items-center justify-between p-5 border-b border-[var(--border-base)]">
+            <h2 className="text-[var(--text-primary)] font-semibold">{title}</h2>
             <button
               onClick={onClose}
-              className="text-white/40 hover:text-white transition-colors p-1"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-1"
             >
               <X size={18} />
             </button>

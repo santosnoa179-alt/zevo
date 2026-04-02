@@ -40,7 +40,7 @@ const styles = {
     width: active ? 28 : 8,
     height: 8,
     borderRadius: 4,
-    background: active ? '#FF6B2B' : passed ? 'rgba(255,107,43,0.5)' : 'rgba(255,255,255,0.12)',
+    background: active ? '#FF6B2B' : passed ? 'rgba(255,107,43,0.5)' : 'var(--border-base)',
     transition: 'all 0.4s cubic-bezier(0.22,1,0.36,1)',
   }),
 
@@ -49,8 +49,8 @@ const styles = {
     width: '100%',
     borderRadius: 24,
     padding: '40px 28px 32px',
-    background: 'linear-gradient(145deg, rgba(30,30,30,0.95), rgba(18,18,18,0.98))',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'linear-gradient(145deg, var(--bg-card), var(--bg-base))',
+    border: '1px solid var(--border-base)',
     boxShadow: '0 0 80px rgba(255,107,43,0.06), 0 24px 48px rgba(0,0,0,0.5)',
     position: 'relative',
     overflow: 'hidden',
@@ -72,7 +72,7 @@ const styles = {
     left: 0,
     right: 0,
     height: 1,
-    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)',
+    background: 'linear-gradient(90deg, transparent, var(--border-base), transparent)',
     pointerEvents: 'none',
   },
 
@@ -93,7 +93,7 @@ const styles = {
   title: {
     fontSize: 24,
     fontWeight: 700,
-    color: '#F5F5F3',
+    color: 'var(--text-primary)',
     textAlign: 'center',
     marginBottom: 12,
     lineHeight: 1.3,
@@ -101,7 +101,7 @@ const styles = {
   subtitle: {
     fontSize: 15,
     lineHeight: 1.6,
-    color: 'rgba(255,255,255,0.5)',
+    color: 'var(--text-secondary)',
     textAlign: 'center',
     marginBottom: 28,
     maxWidth: 360,
@@ -114,8 +114,8 @@ const styles = {
     width: '100%',
     borderRadius: 16,
     padding: 20,
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(255,255,255,0.06)',
+    background: 'var(--bg-surface)',
+    border: '1px solid var(--border-base)',
     marginBottom: 8,
   },
 
@@ -141,7 +141,7 @@ const styles = {
   skipBtn: {
     background: 'none',
     border: 'none',
-    color: 'rgba(255,255,255,0.3)',
+    color: 'var(--text-muted)',
     fontSize: 13,
     cursor: 'pointer',
     padding: '12px 16px',
@@ -152,8 +152,8 @@ const styles = {
     position: 'absolute',
     top: 16,
     right: 16,
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'var(--bg-surface)',
+    border: '1px solid var(--border-base)',
     borderRadius: 10,
     width: 36,
     height: 36,
@@ -161,7 +161,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    color: 'rgba(255,255,255,0.4)',
+    color: 'var(--text-muted)',
     transition: 'all 0.2s',
     zIndex: 2,
   },
@@ -181,18 +181,18 @@ function DashboardPreview() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <Flame size={14} color="#FF6B2B" />
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Streak</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Streak</span>
           </div>
           <div style={{ fontSize: 22, fontWeight: 700, color: '#FF6B2B' }}>7j</div>
         </div>
         <div style={{
           flex: 1, borderRadius: 12, padding: '12px 14px',
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-base)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <Smile size={14} color="#4ADE80" />
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Score</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Score</span>
           </div>
           <div style={{ fontSize: 22, fontWeight: 700, color: '#4ADE80' }}>82</div>
         </div>
@@ -200,13 +200,13 @@ function DashboardPreview() {
       {/* Next session card */}
       <div style={{
         borderRadius: 12, padding: '12px 14px',
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-base)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 4 }}>Prochaine seance</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#F5F5F3' }}>Upper Body</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Prochaine seance</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Upper Body</div>
         </div>
         <div style={{
           width: 32, height: 32, borderRadius: 8,
@@ -232,11 +232,11 @@ function WorkoutPreview() {
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: 14, paddingBottom: 12,
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        borderBottom: '1px solid var(--border-base)',
       }}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#F5F5F3' }}>Upper Body</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>45 min  -  12 exercices</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Upper Body</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>45 min  -  12 exercices</div>
         </div>
         <div style={{
           padding: '4px 10px', borderRadius: 8,
@@ -256,11 +256,11 @@ function WorkoutPreview() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{
                 width: 6, height: 6, borderRadius: 3,
-                background: ex.accent ? '#FF6B2B' : 'rgba(255,255,255,0.15)',
+                background: ex.accent ? '#FF6B2B' : 'var(--text-muted)',
               }} />
-              <span style={{ fontSize: 13, color: '#F5F5F3' }}>{ex.name}</span>
+              <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{ex.name}</span>
             </div>
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>{ex.sets}</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{ex.sets}</span>
           </div>
         ))}
       </div>
@@ -280,12 +280,12 @@ function GoalsPreview() {
         {goals.map((g, i) => (
           <div key={i}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{g.label}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{g.label}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: g.color }}>{g.pct}%</span>
             </div>
             <div style={{
               height: 8, borderRadius: 4,
-              background: 'rgba(255,255,255,0.06)',
+              background: 'var(--bg-surface)',
               overflow: 'hidden',
             }}>
               <div style={{
@@ -316,14 +316,14 @@ function ChatPreview() {
           }}>C</div>
           <div style={{
             padding: '10px 14px', borderRadius: '14px 14px 14px 4px',
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-base)',
             maxWidth: '75%',
           }}>
-            <div style={{ fontSize: 13, color: '#F5F5F3', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.5 }}>
               Super seance aujourd'hui ! On augmente la charge la prochaine fois ?
             </div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 4 }}>14:32</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>14:32</div>
           </div>
         </div>
         {/* Client message */}
@@ -334,10 +334,10 @@ function ChatPreview() {
             border: '1px solid rgba(255,107,43,0.15)',
             maxWidth: '75%',
           }}>
-            <div style={{ fontSize: 13, color: '#F5F5F3', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.5 }}>
               Oui, je me sens pret !
             </div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 4, textAlign: 'right' }}>14:33</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, textAlign: 'right' }}>14:33</div>
           </div>
         </div>
       </div>
@@ -561,12 +561,12 @@ export default function AppTutorial({ onComplete }) {
             onClick={skip}
             style={styles.closeBtn}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-              e.currentTarget.style.color = 'rgba(255,255,255,0.7)'
+              e.currentTarget.style.background = 'var(--bg-elevated, rgba(255,255,255,0.1))'
+              e.currentTarget.style.color = 'var(--text-secondary)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
-              e.currentTarget.style.color = 'rgba(255,255,255,0.4)'
+              e.currentTarget.style.background = 'var(--bg-surface)'
+              e.currentTarget.style.color = 'var(--text-muted)'
             }}
             aria-label="Fermer le tutoriel"
           >
@@ -617,8 +617,8 @@ export default function AppTutorial({ onComplete }) {
           <button
             onClick={skip}
             style={styles.skipBtn}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-secondary)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)' }}
           >
             Passer le tutoriel
           </button>

@@ -183,19 +183,19 @@ export default function SeancesPage() {
 
       {/* ── Header ── */}
       <div className={`pt-2 ${stagger[0].className}`} style={stagger[0].style}>
-        <h1 className="text-[#F5F5F3] text-xl font-bold flex items-center gap-2">
+        <h1 className="text-[var(--text-primary)] text-xl font-bold flex items-center gap-2">
           <Dumbbell size={20} className="text-[#FF6B2B]" />
           Mes Séances
         </h1>
-        <p className="text-white/40 text-sm mt-0.5">Suis ta progression cette semaine</p>
+        <p className="text-[var(--text-muted)] text-sm mt-0.5">Suis ta progression cette semaine</p>
       </div>
 
       {/* ── Barre de progression de la semaine ── */}
-      <div className={`bg-[#18181b] border border-[#27272a] rounded-2xl p-5 ${stagger[1].className}`} style={stagger[1].style}>
+      <div className={`bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5 ${stagger[1].className}`} style={stagger[1].style}>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-[#F5F5F3] text-sm font-bold">Progression hebdo</p>
-            <p className="text-white/25 text-xs mt-0.5">{done}/{total} séances terminées</p>
+            <p className="text-[var(--text-primary)] text-sm font-bold">Progression hebdo</p>
+            <p className="text-[var(--text-muted)] text-xs mt-0.5">{done}/{total} séances terminées</p>
           </div>
           <div className="flex items-center gap-1">
             {done === total && total > 0 ? (
@@ -210,7 +210,7 @@ export default function SeancesPage() {
             )}
           </div>
         </div>
-        <div className="h-3 bg-white/[0.04] rounded-full overflow-hidden">
+        <div className="h-3 bg-[var(--bg-surface)] rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-700 relative"
             style={{
@@ -234,7 +234,7 @@ export default function SeancesPage() {
                 : 'bg-white/10'
             }`} />
           ))}
-          {total === 0 && <p className="text-white/15 text-xs">Aucune séance cette semaine</p>}
+          {total === 0 && <p className="text-[var(--text-muted)] text-xs">Aucune séance cette semaine</p>}
         </div>
       </div>
 
@@ -242,12 +242,12 @@ export default function SeancesPage() {
       <div className="flex items-center justify-between">
         <button
           onClick={() => setWeekOffset(o => o - 1)}
-          className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-[#27272a] transition-colors"
+          className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors"
         >
           <ChevronLeft size={18} />
         </button>
         <div className="text-center">
-          <p className="text-[#F5F5F3] text-sm font-semibold">{weekLabel}</p>
+          <p className="text-[var(--text-primary)] text-sm font-semibold">{weekLabel}</p>
           {weekOffset !== 0 && (
             <button onClick={() => setWeekOffset(0)} className="text-[#FF6B2B] text-[10px] font-medium hover:underline mt-0.5">
               Revenir à cette semaine
@@ -256,7 +256,7 @@ export default function SeancesPage() {
         </div>
         <button
           onClick={() => setWeekOffset(o => o + 1)}
-          className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-[#27272a] transition-colors"
+          className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors"
         >
           <ChevronRight size={18} />
         </button>
@@ -264,12 +264,12 @@ export default function SeancesPage() {
 
       {/* ── Liste des séances par jour ── */}
       {total === 0 ? (
-        <div className="bg-[#18181b] border border-[#27272a] rounded-2xl py-16 text-center">
+        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl py-16 text-center">
           <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
             <Calendar size={24} className="text-[#FF6B2B]" />
           </div>
-          <p className="text-white/40 text-sm">Aucune séance prévue cette semaine</p>
-          <p className="text-white/20 text-xs mt-1">Ton coach n'a pas encore planifié de séance</p>
+          <p className="text-[var(--text-muted)] text-sm">Aucune séance prévue cette semaine</p>
+          <p className="text-[var(--text-muted)] text-xs mt-1">Ton coach n'a pas encore planifié de séance</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -288,7 +288,7 @@ export default function SeancesPage() {
                 {/* Label jour */}
                 <div className="flex items-center gap-2 mb-1.5 px-1">
                   <span className={`text-[10px] uppercase tracking-wider font-bold ${
-                    isToday ? 'text-[#FF6B2B]' : 'text-white/25'
+                    isToday ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
                   }`}>
                     {jour} {dayDate.getDate()}
                   </span>
@@ -309,12 +309,12 @@ export default function SeancesPage() {
                   return (
                     <div
                       key={seance.id}
-                      className={`relative bg-[#18181b] border rounded-2xl overflow-hidden transition-all mb-2 ${
+                      className={`relative bg-[var(--bg-base)] border rounded-2xl overflow-hidden transition-all mb-2 ${
                         seance.is_completed
                           ? 'border-emerald-500/20'
                           : isToday
                             ? 'border-[#FF6B2B]/20'
-                            : 'border-[#27272a]'
+                            : 'border-[var(--border-base)]'
                       } ${isCelebrating ? 'animate-pulse ring-2 ring-emerald-400/30' : ''} ${si.className || ''}`}
                       style={si.style}
                     >
@@ -354,17 +354,17 @@ export default function SeancesPage() {
                             }}
                           >
                             <p className={`text-sm font-semibold truncate ${
-                              seance.is_completed ? 'text-emerald-300/80 line-through' : 'text-[#F5F5F3]'
+                              seance.is_completed ? 'text-emerald-300/80 line-through' : 'text-[var(--text-primary)]'
                             }`}>
                               {seance.titre}
                             </p>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-white/20 text-[10px] flex items-center gap-1">
+                              <span className="text-[var(--text-muted)] text-[10px] flex items-center gap-1">
                                 <Calendar size={9} />
                                 {formatDateFr(seance.date_prevue)}
                               </span>
                               {seance.notes && !seance.notes.startsWith('programme:') && (
-                                <span className="text-white/15 text-[10px] truncate max-w-[120px]">{seance.notes}</span>
+                                <span className="text-[var(--text-muted)] text-[10px] truncate max-w-[120px]">{seance.notes}</span>
                               )}
                             </div>
                           </div>
@@ -397,13 +397,13 @@ export default function SeancesPage() {
 
                         {/* ── Détail exercices (expandable) ── */}
                         {isExpanded && (
-                          <div className="mt-4 pt-3 border-t border-[#27272a]/40">
+                          <div className="mt-4 pt-3 border-t border-[var(--border-base)]/40">
                             {exos.length === 0 ? (
-                              <p className="text-white/15 text-xs text-center py-3">Aucun exercice détaillé</p>
+                              <p className="text-[var(--text-muted)] text-xs text-center py-3">Aucun exercice détaillé</p>
                             ) : (
                               <div className="space-y-2">
                                 {exos.map((ex, ei) => (
-                                  <div key={ei} className="flex items-center gap-3 bg-[#09090b] rounded-xl px-3.5 py-2.5">
+                                  <div key={ei} className="flex items-center gap-3 bg-[var(--bg-elevated)] rounded-xl px-3.5 py-2.5">
                                     <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 overflow-hidden">
                                       {ex.exercices?.gif_url ? (
                                         <img src={ex.exercices.gif_url} alt="" className="w-full h-full object-cover" />
@@ -412,18 +412,18 @@ export default function SeancesPage() {
                                       )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-[#F5F5F3] text-xs font-medium truncate">
+                                      <p className="text-[var(--text-primary)] text-xs font-medium truncate">
                                         {ex.exercices?.nom || 'Exercice'}
                                       </p>
-                                      <p className="text-white/20 text-[10px]">
+                                      <p className="text-[var(--text-muted)] text-[10px]">
                                         {ex.exercices?.muscle_group}
                                       </p>
                                     </div>
                                     <div className="flex items-center gap-2 text-[10px] shrink-0">
                                       {ex.series && <span className="text-[#FF6B2B] font-bold">{ex.series}×</span>}
-                                      {ex.reps && <span className="text-white/40">{ex.reps} reps</span>}
+                                      {ex.reps && <span className="text-[var(--text-muted)]">{ex.reps} reps</span>}
                                       {ex.repos && (
-                                        <span className="text-white/20 flex items-center gap-0.5">
+                                        <span className="text-[var(--text-muted)] flex items-center gap-0.5">
                                           <Clock size={8} />{ex.repos}s
                                         </span>
                                       )}

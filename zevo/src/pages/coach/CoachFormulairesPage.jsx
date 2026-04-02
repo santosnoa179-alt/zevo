@@ -478,8 +478,8 @@ export default function CoachFormulairesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div>
-            <h1 className="text-2xl font-bold text-[#F5F5F3] tracking-tight">Formulaires</h1>
-            <p className="text-white/35 text-sm mt-1">Créez et envoyez des questionnaires à vos clients</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">Formulaires</h1>
+            <p className="text-[var(--text-secondary)] text-sm mt-1">Créez et envoyez des questionnaires à vos clients</p>
           </div>
           <button onClick={creerVide}
             className="flex items-center gap-2 bg-[#FF6B2B] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-all duration-200 hover:shadow-lg hover:shadow-[#FF6B2B]/20">
@@ -489,18 +489,18 @@ export default function CoachFormulairesPage() {
 
         {/* Templates (#1 — cartes premium) */}
         <div className="mb-10">
-          <h2 className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.15em] mb-4">Templates</h2>
+          <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-4">Templates</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {TEMPLATES.map(t => {
               const Icon = t.icon
               return (
                 <button key={t.type} onClick={() => creerDepuisTemplate(t)}
-                  className="group relative bg-white/[0.02] border border-white/[0.08] rounded-2xl p-5 text-left transition-all duration-200 hover:border-[#FF6B2B]/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#FF6B2B]/[0.06]">
+                  className="group relative bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl p-5 text-left transition-all duration-200 hover:border-[#FF6B2B]/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#FF6B2B]/[0.06]">
                   <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center mb-3">
                     <Icon size={20} className="text-[#FF6B2B]" />
                   </div>
-                  <p className="text-[#F5F5F3] font-semibold text-sm">{t.titre}</p>
-                  <p className="text-white/35 text-xs mt-1.5 leading-relaxed line-clamp-2">{t.description}</p>
+                  <p className="text-[var(--text-primary)] font-semibold text-sm">{t.titre}</p>
+                  <p className="text-[var(--text-secondary)] text-xs mt-1.5 leading-relaxed line-clamp-2">{t.description}</p>
                   <p className="text-[#FF6B2B] text-[11px] font-medium mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     Utiliser ce template
                   </p>
@@ -512,21 +512,21 @@ export default function CoachFormulairesPage() {
 
         {/* Filters bar (#4) */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
-          <h2 className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.15em]">Mes formulaires</h2>
+          <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em]">Mes formulaires</h2>
           <div className="flex-1" />
           <div className="flex items-center gap-2">
             {/* Search */}
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-white/25 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Rechercher..."
-                className="bg-[#09090b] border border-white/[0.08] rounded-xl pl-9 pr-3 py-2 text-xs text-[#F5F5F3] placeholder:text-white/20 focus:outline-none focus:border-[#FF6B2B]/40 transition-colors w-40"
+                className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl pl-9 pr-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors w-40"
               />
             </div>
             {/* Type filter */}
             <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-              className="appearance-none bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
+              className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
               <option value="">Tous types</option>
               {Object.entries(TYPE_LABELS).filter(([k]) => !['texte','nombre','note_1_10','choix_multiple','oui_non','date'].includes(k)).map(([k, v]) => (
                 <option key={k} value={k}>{v}</option>
@@ -534,7 +534,7 @@ export default function CoachFormulairesPage() {
             </select>
             {/* Status filter (#5) */}
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-              className="appearance-none bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
+              className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
               <option value="">Tous statuts</option>
               <option value="actif">Actifs</option>
               <option value="brouillon">Brouillons</option>
@@ -544,14 +544,14 @@ export default function CoachFormulairesPage() {
 
         {/* Liste (#2, #3, #5, #6) */}
         {loading ? (
-          <div className="bg-[#1E1E1E]/40 border border-white/[0.06] rounded-2xl overflow-hidden">
+          <div className="bg-[var(--bg-card)]/40 border border-[var(--border-base)] rounded-2xl overflow-hidden">
             {[1, 2, 3].map(i => (
-              <div key={i} className="px-5 py-4 border-b border-white/[0.06] last:border-b-0">
+              <div key={i} className="px-5 py-4 border-b border-[var(--border-base)] last:border-b-0">
                 <div className="flex items-center gap-4">
-                  <div className="w-9 h-9 rounded-xl bg-[#27272a] animate-pulse" />
+                  <div className="w-9 h-9 rounded-xl bg-[var(--bg-surface)] animate-pulse" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-40 bg-[#27272a] rounded animate-pulse" />
-                    <div className="h-3 w-64 bg-[#27272a] rounded animate-pulse" />
+                    <div className="h-4 w-40 bg-[var(--bg-surface)] rounded animate-pulse" />
+                    <div className="h-3 w-64 bg-[var(--bg-surface)] rounded animate-pulse" />
                   </div>
                 </div>
               </div>
@@ -559,14 +559,14 @@ export default function CoachFormulairesPage() {
           </div>
         ) : filteredFormulaires.length === 0 ? (
           /* Empty state (#3) */
-          <div className="bg-white/[0.02] rounded-2xl border border-dashed border-white/[0.08] p-14 text-center">
+          <div className="bg-[var(--bg-surface)] rounded-2xl border border-dashed border-[var(--border-base)] p-14 text-center">
             <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/[0.06] flex items-center justify-center mx-auto mb-5">
               <FileText size={28} className="text-[#FF6B2B]/40" />
             </div>
-            <p className="text-white/50 text-sm font-medium mb-1">
+            <p className="text-[var(--text-secondary)] text-sm font-medium mb-1">
               {formulaires.length === 0 ? 'Aucun formulaire créé' : 'Aucun résultat'}
             </p>
-            <p className="text-white/20 text-xs mb-5">
+            <p className="text-[var(--text-muted)] text-xs mb-5">
               {formulaires.length === 0 ? 'Commencez avec un template ou créez-en un de zéro' : 'Essayez de modifier vos filtres'}
             </p>
             {formulaires.length === 0 && (
@@ -577,7 +577,7 @@ export default function CoachFormulairesPage() {
             )}
           </div>
         ) : (
-          <div className="bg-[#1E1E1E]/40 border border-white/[0.06] rounded-2xl overflow-hidden">
+          <div className="bg-[var(--bg-card)]/40 border border-[var(--border-base)] rounded-2xl overflow-hidden">
             {filteredFormulaires.map((f, idx) => {
               const nbRep = f.formulaire_reponses?.[0]?.count || 0
               const isActif = (f.statut || 'actif') === 'actif'
@@ -586,8 +586,8 @@ export default function CoachFormulairesPage() {
 
               return (
                 <div key={f.id}
-                  className={`group flex items-center gap-4 px-5 py-4 transition-colors duration-150 hover:bg-white/[0.04] ${
-                    idx < filteredFormulaires.length - 1 ? 'border-b border-white/[0.06]' : ''
+                  className={`group flex items-center gap-4 px-5 py-4 transition-colors duration-150 hover:bg-[var(--bg-surface)] ${
+                    idx < filteredFormulaires.length - 1 ? 'border-b border-[var(--border-base)]' : ''
                   }`}>
 
                   {/* Status dot + icon */}
@@ -597,36 +597,36 @@ export default function CoachFormulairesPage() {
                     </div>
                     {/* Status dot */}
                     <div className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#1E1E1E] ${
-                      isActif ? 'bg-green-400' : 'bg-white/30'
+                      isActif ? 'bg-green-400' : 'bg-[var(--text-muted)]'
                     }`} />
                   </div>
 
                   {/* Infos */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-[#F5F5F3] font-semibold text-sm truncate">{f.titre}</p>
+                      <p className="text-[var(--text-primary)] font-medium text-sm truncate">{f.titre}</p>
                       {!isActif && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/30 font-medium uppercase">Brouillon</span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium uppercase">Brouillon</span>
                       )}
                       {hasRecurrence && (
                         f.recurrence?.intervalle === 'post_seance'
                           ? <span className="inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B]/70 font-semibold flex-shrink-0"><Dumbbell size={10} />Post-séance</span>
                           : <Repeat size={12} className="text-[#FF6B2B]/60 flex-shrink-0" />
                       )}
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] text-white/30 flex-shrink-0 font-medium">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] flex-shrink-0 font-medium">
                         {TYPE_LABELS[f.type] || f.type}
                       </span>
                     </div>
                     <div className="flex items-center gap-3 mt-0.5">
-                      {f.description && <p className="text-white/25 text-xs truncate max-w-sm">{f.description}</p>}
-                      {lastDate && <span className="text-white/20 text-[10px] flex-shrink-0">{timeAgo(lastDate)}</span>}
+                      {f.description && <p className="text-[var(--text-muted)] text-xs truncate max-w-sm">{f.description}</p>}
+                      {lastDate && <span className="text-[var(--text-muted)] text-[10px] flex-shrink-0">{timeAgo(lastDate)}</span>}
                     </div>
                   </div>
 
                   {/* Badge réponses (#3) */}
                   <div className="flex-shrink-0">
                     {nbRep === 0 ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-white/[0.06] text-white/30 font-medium">
+                      <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium">
                         0 réponse
                       </span>
                     ) : (
@@ -637,22 +637,22 @@ export default function CoachFormulairesPage() {
                   </div>
 
                   {/* Actions (#4 hover colors) */}
-                  <div className="flex items-center gap-1 ml-1 flex-shrink-0 opacity-40 group-hover:opacity-100 transition-opacity duration-150">
+                  <div className="flex items-center gap-1 ml-1 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity duration-150">
                     <button onClick={() => voirReponses(f)} title="Voir les réponses"
-                      className="p-2 rounded-lg text-white/50 hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors"><Eye size={18} /></button>
+                      className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors"><Eye size={18} /></button>
                     <button onClick={() => ouvrirEnvoi(f)} title="Envoyer"
-                      className={`p-2 rounded-lg transition-colors ${isActif ? 'text-white/50 hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10' : 'text-white/15 cursor-not-allowed'}`}
+                      className={`p-2 rounded-lg transition-colors ${isActif ? 'text-[var(--text-secondary)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10' : 'text-[var(--text-muted)] cursor-not-allowed'}`}
                       disabled={!isActif}><Send size={18} /></button>
                     <button onClick={() => dupliquerFormulaire(f)} title="Dupliquer"
-                      className="p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors"><Copy size={18} /></button>
+                      className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"><Copy size={18} /></button>
                     <button onClick={() => editerFormulaire(f)} title="Éditer"
-                      className="p-2 rounded-lg text-white/50 hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors"><Edit3 size={18} /></button>
+                      className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors"><Edit3 size={18} /></button>
                     <button onClick={() => toggleStatut(f)} title={isActif ? 'Mettre en brouillon' : 'Activer'}
-                      className="p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors">
+                      className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
                       {isActif ? <ToggleRight size={18} className="text-green-400" /> : <ToggleLeft size={18} />}
                     </button>
                     <button onClick={() => supprimerFormulaire(f.id)} title="Supprimer"
-                      className="p-2 rounded-lg text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={18} /></button>
+                      className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={18} /></button>
                   </div>
                 </div>
               )
@@ -665,31 +665,31 @@ export default function CoachFormulairesPage() {
           <>
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => { setModalEnvoi(false); setFormEnvoi(null) }} />
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="bg-[#09090b] border border-[#27272a] rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl">
+              <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl">
                 {/* Header */}
-                <div className="px-5 py-4 border-b border-[#27272a] flex items-center justify-between">
+                <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
                   <div>
-                    <h3 className="text-[#F5F5F3] font-semibold text-sm">Envoyer « {formEnvoi?.titre} »</h3>
-                    <p className="text-white/30 text-xs mt-0.5">Sélectionnez les destinataires</p>
+                    <h3 className="text-[var(--text-primary)] font-semibold text-sm">Envoyer « {formEnvoi?.titre} »</h3>
+                    <p className="text-[var(--text-muted)] text-xs mt-0.5">Sélectionnez les destinataires</p>
                   </div>
                   <button onClick={() => { setModalEnvoi(false); setFormEnvoi(null) }}
-                    className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/[0.06] transition-colors"><X size={18} /></button>
+                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"><X size={18} /></button>
                 </div>
 
                 {/* Bulk actions */}
                 {!loadingClients && clients.length > 0 && (
-                  <div className="px-5 py-3 border-b border-[#27272a] flex items-center gap-2">
+                  <div className="px-5 py-3 border-b border-[var(--border-base)] flex items-center gap-2">
                     <button onClick={envoyerATous}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#e55e24] transition-colors">
                       <Users size={12} /> Envoyer à tous
                     </button>
                     {selectedClients.size > 0 && (
                       <button onClick={envoyerBulk}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.08] text-white text-xs font-medium hover:bg-white/[0.12] transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] text-[var(--text-primary)] text-xs font-medium hover:bg-[var(--border-base)] transition-colors">
                         <Send size={12} /> Envoyer ({selectedClients.size})
                       </button>
                     )}
-                    <span className="text-white/20 text-[10px] ml-auto">
+                    <span className="text-[var(--text-muted)] text-[10px] ml-auto">
                       {clients.filter(c => !c.repStatus).length} non envoyé(s)
                     </span>
                   </div>
@@ -699,29 +699,29 @@ export default function CoachFormulairesPage() {
                 <div className="p-4 overflow-y-auto max-h-[50vh]">
                   {loadingClients ? (
                     <div className="space-y-2">
-                      {[1, 2, 3].map(i => <div key={i} className="h-14 bg-[#27272a] rounded-xl animate-pulse" />)}
+                      {[1, 2, 3].map(i => <div key={i} className="h-14 bg-[var(--bg-surface)] rounded-xl animate-pulse" />)}
                     </div>
                   ) : clients.length === 0 ? (
-                    <p className="text-white/30 text-sm text-center py-8">Aucun client actif</p>
+                    <p className="text-[var(--text-muted)] text-sm text-center py-8">Aucun client actif</p>
                   ) : (
                     <div className="space-y-1.5">
                       {clients.map(c => {
                         const nom = c.profiles?.nom || c.profiles?.email || 'Client'
                         return (
                           <div key={c.id}
-                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] transition-colors">
+                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--bg-surface)] transition-colors">
                             {/* Checkbox for bulk */}
                             {!c.repStatus && (
                               <button onClick={() => toggleSelectClient(c.id)} className="flex-shrink-0">
                                 {selectedClients.has(c.id)
                                   ? <CheckCircle2 size={18} className="text-[#FF6B2B]" />
-                                  : <Circle size={18} className="text-white/20" />
+                                  : <Circle size={18} className="text-[var(--text-muted)]" />
                                 }
                               </button>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-[#F5F5F3] text-sm font-medium truncate">{nom}</p>
-                              <p className="text-white/25 text-[11px]">{c.profiles?.email}</p>
+                              <p className="text-[var(--text-primary)] text-sm font-medium truncate">{nom}</p>
+                              <p className="text-[var(--text-muted)] text-[11px]">{c.profiles?.email}</p>
                             </div>
                             {c.repStatus === 'complete' ? (
                               <span className="text-[11px] text-green-400 font-medium flex items-center gap-1">
@@ -731,7 +731,7 @@ export default function CoachFormulairesPage() {
                               <div className="flex items-center gap-2">
                                 <span className="text-[11px] text-yellow-400/70">En attente</span>
                                 <button onClick={() => relancerClient(c.id)}
-                                  className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/[0.06] text-white/50 text-[10px] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors">
+                                  className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--bg-surface)] text-[var(--text-secondary)] text-[10px] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors">
                                   <RefreshCw size={10} /> Relancer
                                 </button>
                               </div>
@@ -750,9 +750,9 @@ export default function CoachFormulairesPage() {
                   )}
                 </div>
 
-                <div className="px-5 py-3 border-t border-[#27272a]">
+                <div className="px-5 py-3 border-t border-[var(--border-base)]">
                   <button onClick={() => { setModalEnvoi(false); setFormEnvoi(null) }}
-                    className="w-full py-2 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors">Fermer</button>
+                    className="w-full py-2 rounded-xl text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">Fermer</button>
                 </div>
               </div>
             </div>
@@ -769,37 +769,37 @@ export default function CoachFormulairesPage() {
     return (
       <div className="p-6 w-full max-w-4xl">
         <button onClick={() => setVue('liste')}
-          className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-6 transition-colors">
+          className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] text-sm mb-6 transition-colors">
           <ArrowLeft size={16} /> Retour aux formulaires
         </button>
 
-        <h1 className="text-2xl font-bold text-[#F5F5F3] mb-1 tracking-tight">Réponses — {repFormulaire?.titre}</h1>
-        <p className="text-white/35 text-sm mb-6">{reponses.length} réponse{reponses.length !== 1 ? 's' : ''}</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1 tracking-tight">Réponses — {repFormulaire?.titre}</h1>
+        <p className="text-[var(--text-secondary)] text-sm mb-6">{reponses.length} réponse{reponses.length !== 1 ? 's' : ''}</p>
 
         {/* Stats summary (#2, #10) */}
         {repStats && reponses.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-            <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
-              <p className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">Complétées</p>
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl p-4">
+              <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Complétées</p>
               <p className="text-xl font-bold text-green-400 mt-1">{repStats.completed}</p>
             </div>
-            <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
-              <p className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">En attente</p>
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl p-4">
+              <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">En attente</p>
               <p className="text-xl font-bold text-yellow-400 mt-1">{repStats.pending}</p>
             </div>
             {repStats.avgScore !== null && (() => {
               const sc = scoreColor(repStats.avgScore)
               return (
                 <div className={`${sc.bg} border ${sc.border} rounded-xl p-4`}>
-                  <p className="text-[9px] text-white/30 uppercase tracking-wider font-semibold flex items-center gap-1">
+                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold flex items-center gap-1">
                     <Zap size={10} /> Score moyen
                   </p>
                   <p className={`text-xl font-bold ${sc.text} mt-1`}>{repStats.avgScore}/10</p>
                 </div>
               )
             })()}
-            <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
-              <p className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">Taux complétion</p>
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl p-4">
+              <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Taux complétion</p>
               <p className="text-xl font-bold text-[#FF6B2B] mt-1">
                 {reponses.length > 0 ? Math.round((repStats.completed / reponses.length) * 100) : 0}%
               </p>
@@ -809,20 +809,20 @@ export default function CoachFormulairesPage() {
 
         {/* Per-field stats (#2) */}
         {repStats?.champStats && repStats.completed > 0 && (
-          <div className="bg-[#1E1E1E]/40 border border-white/[0.06] rounded-2xl p-5 mb-8">
-            <h3 className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.15em] mb-4">Synthèse par question</h3>
+          <div className="bg-[var(--bg-card)]/40 border border-[var(--border-base)] rounded-2xl p-5 mb-8">
+            <h3 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-4">Synthèse par question</h3>
             <div className="space-y-4">
               {repStats.champStats.filter(cs => cs.count > 0).map(cs => (
                 <div key={cs.id}>
-                  <p className="text-xs text-white/50 mb-1.5">{cs.label}</p>
+                  <p className="text-xs text-[var(--text-secondary)] mb-1.5">{cs.label}</p>
 
                   {cs.type_champ === 'note_1_10' && cs.moyenne !== null && (
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all duration-500"
                           style={{ width: `${cs.moyenne * 10}%`, backgroundColor: cs.moyenne >= 7 ? '#22c55e' : cs.moyenne >= 4 ? '#eab308' : '#ef4444' }} />
                       </div>
-                      <span className="text-sm font-bold text-[#F5F5F3] tabular-nums w-12 text-right">{cs.moyenne}/10</span>
+                      <span className="text-sm font-bold text-[var(--text-primary)] tabular-nums w-12 text-right">{cs.moyenne}/10</span>
                     </div>
                   )}
 
@@ -835,7 +835,7 @@ export default function CoachFormulairesPage() {
                         Non {cs.non}
                       </span>
                       {cs.count > 0 && (
-                        <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden ml-2">
+                        <div className="flex-1 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden ml-2">
                           <div className="h-full rounded-full bg-green-400" style={{ width: `${(cs.oui / cs.count) * 100}%` }} />
                         </div>
                       )}
@@ -859,12 +859,12 @@ export default function CoachFormulairesPage() {
 
         {/* Individual responses */}
         {reponses.length === 0 ? (
-          <div className="bg-white/[0.02] rounded-2xl border border-dashed border-white/[0.08] p-14 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-white/[0.04] flex items-center justify-center mx-auto mb-4">
-              <ClipboardCheck size={24} className="text-white/15" />
+          <div className="bg-[var(--bg-surface)] rounded-2xl border border-dashed border-[var(--border-base)] p-14 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-4">
+              <ClipboardCheck size={24} className="text-[var(--text-muted)]" />
             </div>
-            <p className="text-white/40 text-sm font-medium">Aucune réponse pour ce formulaire</p>
-            <p className="text-white/20 text-xs mt-1">Envoyez-le à vos clients pour commencer</p>
+            <p className="text-[var(--text-muted)] text-sm font-medium">Aucune réponse pour ce formulaire</p>
+            <p className="text-[var(--text-muted)] text-xs mt-1">Envoyez-le à vos clients pour commencer</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -873,15 +873,15 @@ export default function CoachFormulairesPage() {
               const score = r.complete ? computeScore(r.reponses, repChamps) : null
 
               return (
-                <div key={r.id} className="bg-[#1E1E1E]/40 border border-white/[0.06] rounded-2xl overflow-hidden">
+                <div key={r.id} className="bg-[var(--bg-card)]/40 border border-[var(--border-base)] rounded-2xl overflow-hidden">
                   {/* Response header */}
                   <div className="px-5 py-4 flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center text-[#FF6B2B] text-xs font-bold flex-shrink-0">
                       {nom.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[#F5F5F3] font-semibold text-sm">{nom}</p>
-                      <p className="text-white/25 text-[11px]">
+                      <p className="text-[var(--text-primary)] font-semibold text-sm">{nom}</p>
+                      <p className="text-[var(--text-muted)] text-[11px]">
                         {new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -902,26 +902,26 @@ export default function CoachFormulairesPage() {
 
                   {/* Response details — data viz (#2) */}
                   {r.complete && repChamps.length > 0 && (
-                    <div className="px-5 pb-5 space-y-3 border-t border-white/[0.04] pt-4">
+                    <div className="px-5 pb-5 space-y-3 border-t border-[var(--border-subtle)] pt-4">
                       {repChamps.map(ch => {
                         const val = r.reponses?.[ch.id]
                         const isEmpty = val === undefined || val === null || val === ''
 
                         return (
                           <div key={ch.id} className="flex flex-col gap-1">
-                            <p className="text-white/35 text-[11px]">{ch.label}</p>
+                            <p className="text-[var(--text-secondary)] text-[11px]">{ch.label}</p>
 
                             {isEmpty ? (
-                              <p className="text-white/20 text-sm italic">--</p>
+                              <p className="text-[var(--text-muted)] text-sm italic">--</p>
                             ) : ch.type_champ === 'note_1_10' ? (
                               <div className="flex items-center gap-3">
-                                <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden max-w-[200px]">
+                                <div className="flex-1 h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden max-w-[200px]">
                                   <div className="h-full rounded-full transition-all" style={{
                                     width: `${Number(val) * 10}%`,
                                     backgroundColor: Number(val) >= 7 ? '#22c55e' : Number(val) >= 4 ? '#eab308' : '#ef4444',
                                   }} />
                                 </div>
-                                <span className="text-sm font-bold text-[#F5F5F3] tabular-nums">{val}/10</span>
+                                <span className="text-sm font-bold text-[var(--text-primary)] tabular-nums">{val}/10</span>
                               </div>
                             ) : ch.type_champ === 'oui_non' ? (
                               <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium w-fit ${
@@ -940,7 +940,7 @@ export default function CoachFormulairesPage() {
                                 ))}
                               </div>
                             ) : (
-                              <p className="text-[#F5F5F3] text-sm">{String(val)}</p>
+                              <p className="text-[var(--text-primary)] text-sm">{String(val)}</p>
                             )}
                           </div>
                         )
@@ -962,19 +962,19 @@ export default function CoachFormulairesPage() {
   return (
     <div className="p-6 w-full max-w-4xl">
       <button onClick={() => setVue('liste')}
-        className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-6 transition-colors">
+        className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] text-sm mb-6 transition-colors">
         <ArrowLeft size={16} /> Retour
       </button>
 
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[#F5F5F3] tracking-tight">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
           {formId ? 'Modifier le formulaire' : 'Nouveau formulaire'}
         </h1>
         <div className="flex items-center gap-2">
           {/* Preview button (#8) */}
           {champs.length > 0 && (
             <button onClick={() => setPreviewOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-white/50 bg-white/[0.04] border border-white/[0.08] hover:text-white hover:bg-white/[0.08] transition-colors">
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-surface)] border border-[var(--border-base)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
               <Play size={14} /> Aperçu
             </button>
           )}
@@ -983,7 +983,7 @@ export default function CoachFormulairesPage() {
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
               formStatut === 'actif'
                 ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                : 'bg-white/[0.04] text-white/40 border border-white/[0.08]'
+                : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-base)]'
             }`}>
             {formStatut === 'actif' ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
             {formStatut === 'actif' ? 'Actif' : 'Brouillon'}
@@ -992,17 +992,17 @@ export default function CoachFormulairesPage() {
       </div>
 
       {/* Infos */}
-      <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 mb-6">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl p-5 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Titre *</label>
+            <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Titre *</label>
             <input type="text" value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex : Bilan de démarrage"
-              className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder-white/15 focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
           </div>
           <div>
-            <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Type</label>
+            <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Type</label>
             <select value={typeForm} onChange={(e) => setTypeForm(e.target.value)}
-              className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors">
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors">
               <option value="custom">Personnalisé</option>
               <option value="bilan_initial">Bilan initial</option>
               <option value="check_in">Check-in hebdo</option>
@@ -1012,31 +1012,31 @@ export default function CoachFormulairesPage() {
           </div>
         </div>
         <div className="mt-4">
-          <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Description</label>
+          <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Description</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description visible par le client..." rows={2}
-            className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder-white/15 focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none" />
+            className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none" />
         </div>
       </div>
 
       {/* Récurrence (#11) */}
-      <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 mb-6">
+      <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl p-5 mb-6">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Repeat size={16} className={recurrenceActif ? 'text-[#FF6B2B]' : 'text-white/25'} />
-            <h3 className="text-sm font-semibold text-[#F5F5F3]">Envoi récurrent</h3>
+            <Repeat size={16} className={recurrenceActif ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'} />
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">Envoi récurrent</h3>
           </div>
           <button onClick={() => setRecurrenceActif(!recurrenceActif)}
-            className={`p-1.5 rounded-lg transition-colors ${recurrenceActif ? 'text-[#FF6B2B]' : 'text-white/25'}`}>
+            className={`p-1.5 rounded-lg transition-colors ${recurrenceActif ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
             {recurrenceActif ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
           </button>
         </div>
         {recurrenceActif && (
-          <div className="mt-3 pt-3 border-t border-white/[0.06]">
+          <div className="mt-3 pt-3 border-t border-[var(--border-base)]">
             <div className={`grid gap-3 ${recurrenceInterval === 'post_seance' ? 'grid-cols-1' : 'grid-cols-3'}`}>
               <div>
-                <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Fréquence</label>
+                <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Fréquence</label>
                 <select value={recurrenceInterval} onChange={(e) => setRecurrenceInterval(e.target.value)}
-                  className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                  className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
                   <option value="hebdomadaire">Hebdomadaire</option>
                   <option value="mensuel">Mensuel</option>
                   <option value="post_seance">Après chaque séance</option>
@@ -1045,25 +1045,25 @@ export default function CoachFormulairesPage() {
               {recurrenceInterval !== 'post_seance' && (
                 <>
                   <div>
-                    <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">
+                    <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">
                       {recurrenceInterval === 'hebdomadaire' ? 'Jour' : 'Jour du mois'}
                     </label>
                     {recurrenceInterval === 'hebdomadaire' ? (
                       <select value={recurrenceJour} onChange={(e) => setRecurrenceJour(Number(e.target.value))}
-                        className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                        className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
                         {['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'].map((j, i) => (
                           <option key={i} value={i + 1}>{j}</option>
                         ))}
                       </select>
                     ) : (
                       <input type="number" min="1" max="28" value={recurrenceJour} onChange={(e) => setRecurrenceJour(Number(e.target.value))}
-                        className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                        className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                     )}
                   </div>
                   <div>
-                    <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Heure</label>
+                    <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Heure</label>
                     <input type="time" value={recurrenceHeure} onChange={(e) => setRecurrenceHeure(e.target.value)}
-                      className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                      className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                   </div>
                 </>
               )}
@@ -1079,23 +1079,23 @@ export default function CoachFormulairesPage() {
       </div>
 
       {/* ── Champs (#1 — numéros, #9 — conditions) ── */}
-      <h2 className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.15em] mb-4">
+      <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-4">
         Questions ({champs.length})
       </h2>
 
       <div className="space-y-3 mb-5">
         {champs.map((champ, idx) => (
-          <div key={champ.id} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 hover:border-white/[0.12] transition-colors">
+          <div key={champ.id} className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl p-4 hover:border-[var(--border-base)] transition-colors">
             <div className="flex items-start gap-3">
               {/* Number + reorder (#1) */}
               <div className="flex flex-col items-center gap-0.5 pt-0.5 flex-shrink-0">
                 <button onClick={() => deplacerChamp(idx, -1)} disabled={idx === 0}
-                  className="text-white/15 hover:text-white/50 transition-colors disabled:opacity-30"><ChevronUp size={14} /></button>
+                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors disabled:opacity-30"><ChevronUp size={14} /></button>
                 <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
                   <span className="text-[#FF6B2B] text-xs font-bold">{idx + 1}</span>
                 </div>
                 <button onClick={() => deplacerChamp(idx, 1)} disabled={idx === champs.length - 1}
-                  className="text-white/15 hover:text-white/50 transition-colors disabled:opacity-30"><ChevronDown size={14} /></button>
+                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors disabled:opacity-30"><ChevronDown size={14} /></button>
               </div>
 
               {/* Field content */}
@@ -1103,9 +1103,9 @@ export default function CoachFormulairesPage() {
                 <div className="flex gap-3">
                   <input type="text" value={champ.label} onChange={(e) => modifierChamp(idx, 'label', e.target.value)}
                     placeholder="Intitulé de la question..."
-                    className="flex-1 bg-[#09090b] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-[#F5F5F3] placeholder-white/15 focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
+                    className="flex-1 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
                   <select value={champ.type_champ} onChange={(e) => modifierChamp(idx, 'type_champ', e.target.value)}
-                    className="bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2.5 text-xs text-[#F5F5F3] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors">
+                    className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors">
                     {Object.entries(TYPE_LABELS).filter(([k]) => ['texte','nombre','note_1_10','choix_multiple','oui_non','date'].includes(k)).map(([k, v]) => (
                       <option key={k} value={k}>{v}</option>
                     ))}
@@ -1119,9 +1119,9 @@ export default function CoachFormulairesPage() {
                       <div key={optIdx} className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-sm border border-white/20 flex-shrink-0" />
                         <input type="text" value={opt} onChange={(e) => modifierOption(idx, optIdx, e.target.value)}
-                          className="flex-1 bg-[#09090b] border border-white/[0.06] rounded-lg px-2.5 py-1.5 text-xs text-[#F5F5F3] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
+                          className="flex-1 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
                         <button onClick={() => supprimerOption(idx, optIdx)}
-                          className="text-white/15 hover:text-red-400 transition-colors"><Trash2 size={12} /></button>
+                          className="text-[var(--text-muted)] hover:text-red-400 transition-colors"><Trash2 size={12} /></button>
                       </div>
                     ))}
                     <button onClick={() => ajouterOption(idx)}
@@ -1133,10 +1133,10 @@ export default function CoachFormulairesPage() {
                 {champ.type_champ === 'note_1_10' && (
                   <div className="flex items-center gap-2">
                     <Zap size={12} className="text-yellow-400/60" />
-                    <label className="text-white/30 text-[11px]">Poids dans le score :</label>
+                    <label className="text-[var(--text-muted)] text-[11px]">Poids dans le score :</label>
                     <input type="number" min="1" max="10" value={champ.poids_score || 1}
                       onChange={(e) => modifierChamp(idx, 'poids_score', Number(e.target.value))}
-                      className="w-14 bg-[#09090b] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-[#F5F5F3] text-center focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
+                      className="w-14 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2 py-1 text-xs text-[var(--text-primary)] text-center focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
                   </div>
                 )}
 
@@ -1144,7 +1144,7 @@ export default function CoachFormulairesPage() {
                 {idx > 0 && (
                   <div className="flex items-center gap-2 flex-wrap">
                     <GitBranch size={12} className="text-purple-400/60 flex-shrink-0" />
-                    <label className="text-white/30 text-[11px] flex-shrink-0">Afficher si :</label>
+                    <label className="text-[var(--text-muted)] text-[11px] flex-shrink-0">Afficher si :</label>
                     <select
                       value={champ.condition_affichage?.champ_id || ''}
                       onChange={(e) => {
@@ -1153,7 +1153,7 @@ export default function CoachFormulairesPage() {
                           ...(champ.condition_affichage || {}), champ_id: e.target.value, operateur: 'equals', valeur: '',
                         })
                       }}
-                      className="bg-[#09090b] border border-white/[0.08] rounded-lg px-2 py-1 text-[11px] text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                      className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
                       <option value="">Toujours visible</option>
                       {champs.slice(0, idx).map(c => (
                         <option key={c.id} value={c.id}>Q{champs.indexOf(c) + 1}: {c.label?.substring(0, 30) || 'Sans titre'}...</option>
@@ -1167,7 +1167,7 @@ export default function CoachFormulairesPage() {
                           <select
                             value={champ.condition_affichage.valeur || ''}
                             onChange={(e) => modifierChamp(idx, 'condition_affichage', { ...champ.condition_affichage, valeur: e.target.value })}
-                            className="bg-[#09090b] border border-white/[0.08] rounded-lg px-2 py-1 text-[11px] text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                            className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
                             <option value="">= ?</option>
                             <option value="true">= Oui</option>
                             <option value="false">= Non</option>
@@ -1179,7 +1179,7 @@ export default function CoachFormulairesPage() {
                           <select
                             value={champ.condition_affichage.valeur || ''}
                             onChange={(e) => modifierChamp(idx, 'condition_affichage', { ...champ.condition_affichage, valeur: e.target.value })}
-                            className="bg-[#09090b] border border-white/[0.08] rounded-lg px-2 py-1 text-[11px] text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                            className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
                             <option value="">= ?</option>
                             {(parentChamp.options || []).map(o => <option key={o} value={o}>contient "{o}"</option>)}
                           </select>
@@ -1188,7 +1188,7 @@ export default function CoachFormulairesPage() {
                       return (
                         <input type="text" placeholder="= valeur" value={champ.condition_affichage.valeur || ''}
                           onChange={(e) => modifierChamp(idx, 'condition_affichage', { ...champ.condition_affichage, valeur: e.target.value })}
-                          className="w-24 bg-[#09090b] border border-white/[0.08] rounded-lg px-2 py-1 text-[11px] text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                          className="w-24 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
                       )
                     })()}
                   </div>
@@ -1198,13 +1198,13 @@ export default function CoachFormulairesPage() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={champ.obligatoire} onChange={(e) => modifierChamp(idx, 'obligatoire', e.target.checked)}
                     className="accent-[#FF6B2B] w-3.5 h-3.5" />
-                  <span className="text-white/30 text-xs">Obligatoire</span>
+                  <span className="text-[var(--text-muted)] text-xs">Obligatoire</span>
                 </label>
               </div>
 
               {/* Delete */}
               <button onClick={() => supprimerChamp(idx)}
-                className="p-1.5 text-white/15 hover:text-red-400 transition-colors flex-shrink-0"><Trash2 size={16} /></button>
+                className="p-1.5 text-[var(--text-muted)] hover:text-red-400 transition-colors flex-shrink-0"><Trash2 size={16} /></button>
             </div>
           </div>
         ))}
@@ -1214,7 +1214,7 @@ export default function CoachFormulairesPage() {
       <div className="flex flex-wrap gap-2 mb-8">
         {Object.entries(TYPE_LABELS).filter(([k]) => ['texte','nombre','note_1_10','choix_multiple','oui_non','date'].includes(k)).map(([key, label]) => (
           <button key={key} onClick={() => ajouterChamp(key)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-white/[0.1] text-white/30 text-xs hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-colors">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-[var(--border-base)] text-[var(--text-muted)] text-xs hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-colors">
             <Plus size={14} /> {label}
           </button>
         ))}
@@ -1227,7 +1227,7 @@ export default function CoachFormulairesPage() {
           {saving ? 'Enregistrement...' : formId ? 'Mettre à jour' : 'Créer le formulaire'}
         </button>
         <button onClick={() => setVue('liste')}
-          className="px-4 py-2.5 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors">Annuler</button>
+          className="px-4 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">Annuler</button>
       </div>
 
       {/* ── Modal preview (#8) ── */}
@@ -1239,11 +1239,11 @@ export default function CoachFormulairesPage() {
               {/* Phone-like header */}
               <div className="bg-[#FF6B2B] px-6 py-5">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-white/70 text-[10px] font-semibold uppercase tracking-wider">Aperçu client</span>
-                  <button onClick={() => setPreviewOpen(false)} className="text-white/60 hover:text-white"><X size={18} /></button>
+                  <span className="text-[var(--text-secondary)] text-[10px] font-semibold uppercase tracking-wider">Aperçu client</span>
+                  <button onClick={() => setPreviewOpen(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={18} /></button>
                 </div>
-                <h3 className="text-white text-lg font-bold">{titre || 'Sans titre'}</h3>
-                {description && <p className="text-white/70 text-sm mt-1">{description}</p>}
+                <h3 className="text-[var(--text-primary)] text-lg font-bold">{titre || 'Sans titre'}</h3>
+                {description && <p className="text-[var(--text-secondary)] text-sm mt-1">{description}</p>}
               </div>
 
               {/* Form preview */}

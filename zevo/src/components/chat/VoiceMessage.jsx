@@ -158,13 +158,13 @@ export function VoiceRecorder({ onSend, disabled }) {
           type="button"
           onClick={cancelRecording}
           disabled={uploading}
-          className="w-9 h-9 rounded-xl bg-[#2A2A2A] border border-white/[0.08] flex items-center justify-center text-white/40 hover:text-white/70 transition-colors disabled:opacity-40"
+          className="w-9 h-9 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors disabled:opacity-40"
         >
           <X size={16} />
         </button>
 
         {/* Bandeau animé */}
-        <div className="flex-1 bg-[#2A2A2A] border border-white/[0.08] rounded-xl px-4 py-2.5 flex items-center gap-3">
+        <div className="flex-1 bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 flex items-center gap-3">
           {/* Dot pulsant */}
           <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
 
@@ -183,7 +183,7 @@ export function VoiceRecorder({ onSend, disabled }) {
           </div>
 
           {/* Timer */}
-          <span className="text-white/60 text-xs font-mono tabular-nums min-w-[36px] text-right">
+          <span className="text-[var(--text-secondary)] text-xs font-mono tabular-nums min-w-[36px] text-right">
             {uploading ? 'Envoi…' : formatTime(duration)}
           </span>
         </div>
@@ -211,7 +211,7 @@ export function VoiceRecorder({ onSend, disabled }) {
       type="button"
       onClick={startRecording}
       disabled={disabled}
-      className="w-10 h-10 rounded-xl bg-[#2A2A2A] border border-white/[0.08] flex items-center justify-center text-white/40 hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all disabled:opacity-40 flex-shrink-0"
+      className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all disabled:opacity-40 flex-shrink-0"
       title="Note vocale"
     >
       <Mic size={16} />
@@ -342,7 +342,7 @@ export function AudioBubble({ audioUrl, audioDuration, estMoi, createdAt }) {
       <div className={`max-w-[80%] min-w-[240px] sm:min-w-[280px] rounded-2xl overflow-hidden ${
         estMoi
           ? 'bg-[#FF6B2B] rounded-br-sm'
-          : 'bg-[#2A2A2A] rounded-bl-sm'
+          : 'bg-[var(--bg-surface)] rounded-bl-sm'
       }`}>
         <audio ref={audioRef} src={audioUrl} preload="metadata" />
 
@@ -353,7 +353,7 @@ export function AudioBubble({ audioUrl, audioDuration, estMoi, createdAt }) {
             className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
               estMoi
                 ? 'bg-white/20 hover:bg-white/30 text-white'
-                : 'bg-white/[0.08] hover:bg-white/[0.14] text-[#F5F5F3]'
+                : 'bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] text-[var(--text-primary)]'
             }`}
           >
             {playing ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" className="ml-0.5" />}
@@ -377,7 +377,7 @@ export function AudioBubble({ audioUrl, audioDuration, estMoi, createdAt }) {
                       minWidth: '2px',
                       backgroundColor: estMoi
                         ? isPlayed ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)'
-                        : isPlayed ? '#FF6B2B' : 'rgba(255,255,255,0.12)',
+                        : isPlayed ? '#FF6B2B' : 'var(--border-base)',
                     }}
                   />
                 )
@@ -387,7 +387,7 @@ export function AudioBubble({ audioUrl, audioDuration, estMoi, createdAt }) {
             {/* Durée + vitesse */}
             <div className="flex items-center justify-between mt-1">
               <span className={`text-[10px] font-mono tabular-nums ${
-                estMoi ? 'text-white/60' : 'text-white/30'
+                estMoi ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
               }`}>
                 {timeStr}
               </span>
@@ -398,15 +398,15 @@ export function AudioBubble({ audioUrl, audioDuration, estMoi, createdAt }) {
                   onClick={cycleSpeed}
                   className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md transition-colors ${
                     estMoi
-                      ? speed === 1 ? 'text-white/50' : 'bg-white/20 text-white'
-                      : speed === 1 ? 'text-white/30' : 'bg-white/[0.08] text-white/60'
+                      ? speed === 1 ? 'text-[var(--text-secondary)]' : 'bg-white/20 text-white'
+                      : speed === 1 ? 'text-[var(--text-muted)]' : 'bg-[var(--bg-surface)] text-[var(--text-secondary)]'
                   }`}
                 >
                   x{speed}
                 </button>
 
                 {/* Heure */}
-                <span className={`text-[10px] ${estMoi ? 'text-white/50' : 'text-white/25'}`}>
+                <span className={`text-[10px] ${estMoi ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}`}>
                   {createdAt ? new Date(createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
                 </span>
               </div>
