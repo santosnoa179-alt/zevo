@@ -6,7 +6,6 @@ import { createClient } from '@supabase/supabase-js'
 
 // ── Vérification des variables d'environnement au démarrage ──
 const REQUIRED_ENV = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'SUPABASE_SERVICE_ROLE_KEY']
-// Accepter soit SUPABASE_URL soit VITE_SUPABASE_URL
 const hasSupabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const missingEnv = REQUIRED_ENV.filter(key => !process.env[key])
 if (!hasSupabaseUrl) missingEnv.push('SUPABASE_URL ou VITE_SUPABASE_URL')
@@ -16,21 +15,37 @@ if (missingEnv.length > 0) {
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
-// Client Supabase avec service_role — bypass RLS
-// IMPORTANT: désactiver persistSession sinon le client cherche une session navigateur inexistante
+// ── Client Supabase ADMIN (service_role) — bypass RLS ──
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+// Décoder le JWT pour vérifier le rôle de la clé utilisée
+function detectKeyRole(key) {
+  if (!key) return 'MISSING'
+  try {
+    const payload = JSON.parse(Buffer.from(key.split('.')[1], 'base64').toString())
+    return payload.role || 'unknown'
+  } catch {
+    return 'invalid_jwt'
+  }
+}
+
+const keyRole = detectKeyRole(supabaseServiceKey)
+console.log(`[stripe-webhook] Supabase URL: ${supabaseUrl ? supabaseUrl.substring(0, 40) + '...' : 'MANQUANTE'}`)
+console.log(`[stripe-webhook] Clé Supabase rôle détecté: "${keyRole}"`)
+
+if (keyRole !== 'service_role') {
+  console.error(`[stripe-webhook] ⚠️  ERREUR CRITIQUE: La clé SUPABASE_SERVICE_ROLE_KEY a le rôle "${keyRole}" au lieu de "service_role"`)
+  console.error(`[stripe-webhook] Vérifiez Vercel > Settings > Environment Variables > SUPABASE_SERVICE_ROLE_KEY`)
+  console.error(`[stripe-webhook] La clé service_role se trouve dans Supabase > Settings > API > service_role (secret)`)
+}
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
   },
 })
-
-// Log de diagnostic au cold start
-console.log(`[stripe-webhook] Supabase URL: ${supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'MANQUANTE'}`)
-console.log(`[stripe-webhook] Service key: ${supabaseServiceKey ? supabaseServiceKey.substring(0, 10) + '...' : 'MANQUANTE'}`)
 
 // Désactiver le body parser de Vercel pour recevoir le raw body
 export const config = {
@@ -62,7 +77,7 @@ async function findCoachProfile(session) {
   const supabaseId = clientRefId || metadataId
   if (supabaseId) {
     console.log(`[webhook] Lookup par ID Supabase: ${supabaseId}`)
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('profiles')
       .select('id, email')
       .eq('id', supabaseId)
@@ -92,7 +107,7 @@ async function findCoachProfile(session) {
   }
 
   console.log(`[webhook] Fallback lookup par email: ${email}`)
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('profiles')
     .select('id, email')
     .eq('email', email)
@@ -113,7 +128,7 @@ async function findCoachProfile(session) {
 async function upsertCoachSafe(profileId, updates) {
   console.log(`[webhook] upsertCoachSafe pour ${profileId}:`, JSON.stringify(updates))
 
-  const { data: existing, error: selectError } = await supabase
+  const { data: existing, error: selectError } = await supabaseAdmin
     .from('coaches')
     .select('id')
     .eq('id', profileId)
@@ -124,7 +139,7 @@ async function upsertCoachSafe(profileId, updates) {
   }
 
   if (existing) {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('coaches')
       .update(updates)
       .eq('id', profileId)
@@ -134,7 +149,7 @@ async function upsertCoachSafe(profileId, updates) {
     }
     console.log(`[webhook] Coach ${profileId} mis à jour avec succès`)
   } else {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('coaches')
       .insert({ id: profileId, ...updates })
     if (error) {
@@ -156,7 +171,7 @@ export default async function handler(req, res) {
   }
 
   console.log('[webhook] ── Requête reçue ──')
-  console.log(`[webhook] Supabase client initialisé: URL=${supabaseUrl ? 'OK' : 'MISSING'}, KEY=${supabaseServiceKey ? 'OK' : 'MISSING'}`)
+  console.log(`[webhook] Supabase admin client: URL=${supabaseUrl ? 'OK' : 'MISSING'}, KEY=${supabaseServiceKey ? 'OK' : 'MISSING'}, role=${keyRole}`)
 
   // ── Vérification env vars ──
   if (missingEnv.length > 0) {
@@ -249,7 +264,7 @@ export default async function handler(req, res) {
 
         if (success) {
           // S'assurer que le rôle est bien "coach"
-          const { error: roleError } = await supabase
+          const { error: roleError } = await supabaseAdmin
             .from('profiles')
             .update({ role: 'coach' })
             .eq('id', profile.id)
@@ -279,7 +294,7 @@ export default async function handler(req, res) {
 
         const isActive = ['active', 'trialing'].includes(subscription.status)
 
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
           .from('coaches')
           .update({
             plan: newPlan,
@@ -302,7 +317,7 @@ export default async function handler(req, res) {
         const subscription = stripeEvent.data.object
         console.log(`[webhook] subscription.deleted — id: ${subscription.id}`)
 
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
           .from('coaches')
           .update({ abonnement_actif: false, plan: 'starter' })
           .eq('stripe_subscription_id', subscription.id)
@@ -323,7 +338,7 @@ export default async function handler(req, res) {
         console.log(`[webhook] invoice.payment_failed — customer: ${invoice.customer}, subscription: ${invoice.subscription}`)
 
         if (invoice.subscription) {
-          const { error } = await supabase
+          const { error } = await supabaseAdmin
             .from('coaches')
             .update({ abonnement_actif: false })
             .eq('stripe_subscription_id', invoice.subscription)
