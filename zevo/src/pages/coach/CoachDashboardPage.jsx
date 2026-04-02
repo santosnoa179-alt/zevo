@@ -53,13 +53,13 @@ function RevenueChart({ data }) {
   )
 
   const max = Math.max(...data.map(d => d.value), 1)
-  const barW = 36
-  const gap = 16
-  const chartH = 120
+  const barW = 40
+  const gap = 18
+  const chartH = 180
   const totalW = data.length * (barW + gap) - gap
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center w-full min-h-[230px]">
       <svg width={totalW} height={chartH + 30} className="overflow-visible">
         {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => (
           <line key={i} x1={0} y1={chartH * (1 - pct)} x2={totalW} y2={chartH * (1 - pct)} stroke="rgba(255,255,255,0.04)" strokeWidth={1} />
@@ -598,7 +598,7 @@ export default function CoachDashboardPage() {
               </div>
             </div>
 
-            <div className="flex justify-center py-2 overflow-x-auto">
+            <div className="flex justify-center py-4 overflow-x-auto min-h-[250px]">
               <RevenueChart data={revenueData} />
             </div>
           </div>
