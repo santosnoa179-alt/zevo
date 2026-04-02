@@ -1,5 +1,5 @@
 // Vercel Serverless Function — Crée une session Stripe Checkout
-// Installation unique 249€ + abonnement mensuel selon le plan choisi
+// Abonnement mensuel selon le plan choisi (starter / pro / unlimited)
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -16,10 +16,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { plan, email } = req.body
+    const { plan, email, userId } = req.body
 
     if (!['starter', 'pro', 'unlimited'].includes(plan)) {
       return res.status(400).json({ error: 'Plan invalide' })
+    }
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId requis pour associer l\'abonnement' })
     }
 
     const subscriptionPriceId = PRICE_IDS[plan]
@@ -39,9 +43,10 @@ export default async function handler(req, res) {
         { price: subscriptionPriceId, quantity: 1 },
       ],
       subscription_data: {
-        metadata: { plan },
+        metadata: { plan, user_id: userId },
       },
-      success_url: `${siteUrl}/login?checkout=success&plan=${plan}`,
+      client_reference_id: userId,
+      success_url: `${siteUrl}/coach/parametres?checkout=success&plan=${plan}`,
       cancel_url: `${siteUrl}/pricing`,
       allow_promotion_codes: true,
     }

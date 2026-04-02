@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
-import { Save, Loader2, Check, Link2, CheckCircle, ExternalLink, User, Shield, CreditCard, Bell } from 'lucide-react'
+import { Save, Loader2, Check, Link2, CheckCircle, ExternalLink, User, Shield, CreditCard, Bell, PartyPopper } from 'lucide-react'
 
 // Modules activables par le coach
 const MODULES_CONFIG = [
@@ -15,6 +16,21 @@ const MODULES_CONFIG = [
 export default function CoachParametresPage() {
   const { user } = useAuth()
   const toast = useToast()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Retour Stripe Checkout
+  const checkoutSuccess = searchParams.get('checkout') === 'success'
+  const checkoutPlan = searchParams.get('plan')
+
+  // Nettoyer les params après affichage (éviter re-affichage au refresh)
+  useEffect(() => {
+    if (checkoutSuccess) {
+      const timer = setTimeout(() => {
+        setSearchParams({}, { replace: true })
+      }, 8000)
+      return () => clearTimeout(timer)
+    }
+  }, [checkoutSuccess, setSearchParams])
 
   // État du formulaire — plus de nomApp, logoUrl, couleur ici
   const [messageBienvenue, setMessageBienvenue] = useState('')
@@ -157,6 +173,23 @@ export default function CoachParametresPage() {
 
   return (
     <div className="p-6 w-full max-w-2xl space-y-8">
+      {/* Banner succès Stripe Checkout */}
+      {checkoutSuccess && (
+        <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-5 flex items-start gap-4 animate-in fade-in">
+          <div className="p-2 rounded-xl bg-green-500/20 flex-shrink-0">
+            <PartyPopper size={22} className="text-green-400" />
+          </div>
+          <div>
+            <p className="text-green-400 font-semibold text-sm">
+              Paiement confirmé — Bienvenue sur le plan {checkoutPlan ? checkoutPlan.charAt(0).toUpperCase() + checkoutPlan.slice(1) : ''} !
+            </p>
+            <p className="text-[var(--text-muted)] text-xs mt-1">
+              Ton abonnement est actif. Tu peux commencer à utiliser toutes les fonctionnalités de ton plan.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Titre */}
       <div>
         <h1 className="text-[var(--text-primary)] text-2xl font-bold mb-1">Paramètres</h1>
