@@ -5,17 +5,32 @@ import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 
 // ── Vérification des variables d'environnement au démarrage ──
-const REQUIRED_ENV = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'VITE_SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']
+const REQUIRED_ENV = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'SUPABASE_SERVICE_ROLE_KEY']
+// Accepter soit SUPABASE_URL soit VITE_SUPABASE_URL
+const hasSupabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const missingEnv = REQUIRED_ENV.filter(key => !process.env[key])
+if (!hasSupabaseUrl) missingEnv.push('SUPABASE_URL ou VITE_SUPABASE_URL')
 if (missingEnv.length > 0) {
   console.error(`[stripe-webhook] FATAL: Variables d'environnement manquantes: ${missingEnv.join(', ')}`)
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+
+// Client Supabase avec service_role — bypass RLS
+// IMPORTANT: désactiver persistSession sinon le client cherche une session navigateur inexistante
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+})
+
+// Log de diagnostic au cold start
+console.log(`[stripe-webhook] Supabase URL: ${supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'MANQUANTE'}`)
+console.log(`[stripe-webhook] Service key: ${supabaseServiceKey ? supabaseServiceKey.substring(0, 10) + '...' : 'MANQUANTE'}`)
 
 // Désactiver le body parser de Vercel pour recevoir le raw body
 export const config = {
@@ -141,6 +156,7 @@ export default async function handler(req, res) {
   }
 
   console.log('[webhook] ── Requête reçue ──')
+  console.log(`[webhook] Supabase client initialisé: URL=${supabaseUrl ? 'OK' : 'MISSING'}, KEY=${supabaseServiceKey ? 'OK' : 'MISSING'}`)
 
   // ── Vérification env vars ──
   if (missingEnv.length > 0) {
