@@ -18,7 +18,8 @@ import {
   Wheat, Beef, Fish, Egg, Carrot, Grape, Droplets, TrendingUp, TrendingDown,
   Ruler, Weight, ChevronUp, ChevronDown as ChevronDownIcon,
   FolderOpen, Paperclip, FileText,
-  CheckCircle2, Circle, Footprints, BookOpen, Smile, Upload
+  CheckCircle2, Circle, Footprints, BookOpen, Smile, Upload,
+  ClipboardList, AlertTriangle
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -3200,6 +3201,12 @@ function SuiviTab({ coachId, clientId }) {
   // ── Objectifs ──
   const [objectifs, setObjectifs] = useState([])
 
+  // ── Formulaires (tous les retours client) ──
+  const [allFormReponses, setAllFormReponses] = useState([])
+  const [allFormChamps, setAllFormChamps] = useState([])
+  const [allFormulaires, setAllFormulaires] = useState([])
+  const [formFilter, setFormFilter] = useState('tous') // 'tous' | 'post_seance' | formulaire_id
+
   const [loading, setLoading] = useState(true)
 
   const today = new Date().toISOString().split('T')[0]
@@ -3253,6 +3260,35 @@ function SuiviTab({ coachId, clientId }) {
       setHabitudes(habsRes.data || [])
       setHabLogs(logsRes.data || [])
       setObjectifs(objsRes.data || [])
+
+      // ── Tous les formulaires du coach pour ce client ──
+      const { data: coachForms } = await supabase
+        .from('formulaires')
+        .select('id, titre, type, recurrence')
+        .eq('coach_id', coachId)
+
+      const formIds = (coachForms || []).map(f => f.id)
+      setAllFormulaires(coachForms || [])
+
+      if (formIds.length > 0) {
+        const [repRes, champsRes] = await Promise.all([
+          supabase.from('formulaire_reponses')
+            .select('id, formulaire_id, reponses, complete, created_at')
+            .eq('client_id', clientId)
+            .in('formulaire_id', formIds)
+            .order('created_at', { ascending: true }),
+          supabase.from('formulaire_champs')
+            .select('id, label, type_champ, formulaire_id, poids_score, ordre')
+            .in('formulaire_id', formIds)
+            .order('ordre'),
+        ])
+        setAllFormReponses(repRes.data || [])
+        setAllFormChamps(champsRes.data || [])
+      } else {
+        setAllFormReponses([])
+        setAllFormChamps([])
+      }
+
       setLoading(false)
     }
     load()
@@ -3680,7 +3716,297 @@ function SuiviTab({ coachId, clientId }) {
       )}
 
       {/* ══════════════════════════════════════════ */}
-      {/* SECTION 5 — Historique Pesées              */}
+      {/* SECTION 5 — Bilans & Formulaires           */}
+      {/* ══════════════════════════════════════════ */}
+      {(() => {
+        const TYPE_COLORS = { bilan: '#a855f7', satisfaction: '#f59e0b', evaluation: '#3b82f6', feedback: '#22c55e', custom: '#FF6B2B', post_seance: '#ec4899' }
+        const TYPE_LABELS = { bilan: 'Bilan', satisfaction: 'Satisfaction', evaluation: 'Évaluation', feedback: 'Feedback', custom: 'Custom', post_seance: 'Post-séance' }
+        const TYPE_ICONS_MAP = { bilan: '📋', satisfaction: '⭐', evaluation: '📊', feedback: '💬', custom: '📝', post_seance: '🏋️' }
+
+        // Enrichir chaque formulaire avec son type effectif (post_seance si recurrence)
+        const enrichedForms = allFormulaires.map(f => {
+          const rec = typeof f.recurrence === 'string' ? JSON.parse(f.recurrence) : f.recurrence
+          const isPostSeance = rec?.intervalle === 'post_seance' && rec?.actif === true
+          return { ...f, effectiveType: isPostSeance ? 'post_seance' : (f.type || 'custom') }
+        })
+
+        // Filtrer les réponses selon le filtre actif
+        const filteredReponses = formFilter === 'tous'
+          ? allFormReponses
+          : formFilter === 'post_seance'
+            ? allFormReponses.filter(r => enrichedForms.find(f => f.id === r.formulaire_id)?.effectiveType === 'post_seance')
+            : allFormReponses.filter(r => r.formulaire_id === formFilter)
+
+        const completed = filteredReponses.filter(r => r.complete)
+        const pending = filteredReponses.filter(r => !r.complete)
+
+        // Formulaires qui ont des réponses pour ce client
+        const formsWithData = enrichedForms.filter(f => allFormReponses.some(r => r.formulaire_id === f.id))
+
+        // Score calculator (notes /10)
+        const getScore = (rep) => {
+          const formChamps = allFormChamps.filter(c => c.formulaire_id === rep.formulaire_id && c.type_champ === 'note_1_10')
+          if (!formChamps.length || !rep.reponses) return null
+          const vals = formChamps.map(c => Number(rep.reponses[c.id])).filter(v => !isNaN(v) && v > 0)
+          return vals.length > 0 ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : null
+        }
+
+        const scoredEntries = completed.map(r => ({ ...r, score: getScore(r) })).filter(r => r.score !== null)
+        const avgScore = scoredEntries.length > 0 ? Math.round((scoredEntries.reduce((a, b) => a + b.score, 0) / scoredEntries.length) * 10) / 10 : null
+
+        // Trend
+        let trend = null
+        if (scoredEntries.length >= 4) {
+          const last3 = scoredEntries.slice(-3)
+          const prev3 = scoredEntries.slice(-6, -3)
+          if (prev3.length >= 2) {
+            const avgLast = last3.reduce((a, b) => a + b.score, 0) / last3.length
+            const avgPrev = prev3.reduce((a, b) => a + b.score, 0) / prev3.length
+            trend = Math.round((avgLast - avgPrev) * 10) / 10
+          }
+        }
+
+        // Alerte
+        const lastScored = scoredEntries.length > 0 ? scoredEntries[scoredEntries.length - 1] : null
+        const isAlerte = lastScored && lastScored.score <= 4
+
+        // Moyennes par champ note (filtrées)
+        const filteredFormIds = [...new Set(filteredReponses.map(r => r.formulaire_id))]
+        const noteChamps = allFormChamps.filter(c => c.type_champ === 'note_1_10' && filteredFormIds.includes(c.formulaire_id))
+        const champMoyennes = noteChamps.map(ch => {
+          const vals = completed.filter(r => r.formulaire_id === ch.formulaire_id).map(r => Number(r.reponses?.[ch.id])).filter(v => !isNaN(v) && v > 0)
+          const moy = vals.length > 0 ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : null
+          return { ...ch, moyenne: moy, count: vals.length }
+        }).filter(c => c.moyenne !== null)
+
+        // Couleur active du filtre
+        const activeFilterColor = formFilter === 'tous'
+          ? '#a855f7'
+          : TYPE_COLORS[formFilter] || TYPE_COLORS[enrichedForms.find(f => f.id === formFilter)?.effectiveType] || '#a855f7'
+
+        // SVG chart
+        const chartW = 560, chartH = 120, padX = 30, padY = 15
+        const chartPoints = scoredEntries.map((r, i) => {
+          const x = scoredEntries.length === 1 ? chartW / 2 : padX + (i / (scoredEntries.length - 1)) * (chartW - padX * 2)
+          const y = padY + ((10 - r.score) / 10) * (chartH - padY * 2)
+          const form = enrichedForms.find(f => f.id === r.formulaire_id)
+          return { x, y, score: r.score, date: r.created_at, color: TYPE_COLORS[form?.effectiveType] || '#a855f7' }
+        })
+        const linePath = chartPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ')
+        const areaPath = chartPoints.length > 1
+          ? `${linePath} L${chartPoints[chartPoints.length - 1].x},${chartH - padY} L${chartPoints[0].x},${chartH - padY} Z`
+          : ''
+
+        // Résumé par formulaire (mini stats cards)
+        const formSummaries = formsWithData.map(f => {
+          const reps = allFormReponses.filter(r => r.formulaire_id === f.id)
+          const done = reps.filter(r => r.complete).length
+          const total = reps.length
+          const scores = reps.filter(r => r.complete).map(r => getScore(r)).filter(s => s !== null)
+          const avg = scores.length > 0 ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : null
+          return { ...f, done, total, avg }
+        })
+
+        return (
+          <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isAlerte ? 'bg-red-500/15' : 'bg-purple-500/10'}`}>
+                  <ClipboardList size={17} className={isAlerte ? 'text-red-400' : 'text-purple-400'} />
+                </div>
+                <div>
+                  <h3 className="text-[#F5F5F3] text-[15px] font-bold tracking-tight">Bilans & Formulaires</h3>
+                  <p className="text-zinc-600 text-xs mt-0.5">
+                    {allFormReponses.filter(r => r.complete).length} rempli{allFormReponses.filter(r => r.complete).length > 1 ? 's' : ''}
+                    {allFormReponses.filter(r => !r.complete).length > 0 ? ` · ${allFormReponses.filter(r => !r.complete).length} en attente` : ''}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {trend !== null && (
+                  <span className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold ${
+                    trend > 0 ? 'bg-emerald-500/10 text-emerald-400' : trend < 0 ? 'bg-red-500/10 text-red-400' : 'bg-zinc-800 text-zinc-500'
+                  }`}>
+                    {trend > 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                    {trend > 0 ? '+' : ''}{trend}
+                  </span>
+                )}
+                {avgScore !== null && (
+                  <span className={`px-3 py-1.5 rounded-xl text-sm font-bold ${
+                    avgScore >= 7 ? 'bg-emerald-500/10 text-emerald-400' : avgScore >= 5 ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'
+                  }`}>
+                    {avgScore}/10
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Mini-cards résumé par formulaire */}
+            {formSummaries.length > 0 && (
+              <div className="px-6 pb-4">
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                  {/* Filtre "Tous" */}
+                  <button onClick={() => setFormFilter('tous')}
+                    className={`flex-shrink-0 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all ${
+                      formFilter === 'tous' ? 'bg-white/10 text-[#F5F5F3] border border-white/15' : 'bg-white/[0.03] text-zinc-500 border border-transparent hover:bg-white/[0.06]'
+                    }`}>
+                    Tous ({allFormReponses.length})
+                  </button>
+                  {formSummaries.map(f => {
+                    const color = TYPE_COLORS[f.effectiveType] || '#FF6B2B'
+                    const isActive = formFilter === f.id || (formFilter === 'post_seance' && f.effectiveType === 'post_seance')
+                    return (
+                      <button key={f.id}
+                        onClick={() => setFormFilter(f.effectiveType === 'post_seance' ? 'post_seance' : f.id)}
+                        className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all ${
+                          isActive ? 'border text-[#F5F5F3]' : 'bg-white/[0.03] text-zinc-500 border border-transparent hover:bg-white/[0.06]'
+                        }`}
+                        style={isActive ? { backgroundColor: color + '15', borderColor: color + '30' } : {}}>
+                        <span>{TYPE_ICONS_MAP[f.effectiveType] || '📝'}</span>
+                        <span style={isActive ? { color } : {}}>{f.titre}</span>
+                        {f.avg !== null && (
+                          <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ backgroundColor: color + '15', color }}>{f.avg}</span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Alerte score critique */}
+            {isAlerte && (
+              <div className="mx-6 mb-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-red-500/5 border border-red-500/15">
+                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle size={15} className="text-red-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-red-300 text-xs font-semibold">Score bas détecté : {lastScored.score}/10</p>
+                  <p className="text-red-400/50 text-[11px] mt-0.5">
+                    Dernier retour le {new Date(lastScored.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} — pensez à prendre des nouvelles
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Graphe évolution */}
+            {scoredEntries.length >= 2 && (
+              <div className="px-6 pb-2">
+                <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-32">
+                  <defs>
+                    <linearGradient id="formSuiviGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={activeFilterColor} stopOpacity="0.25" />
+                      <stop offset="100%" stopColor={activeFilterColor} stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {[3, 5, 7].map(v => {
+                    const y = padY + ((10 - v) / 10) * (chartH - padY * 2)
+                    return (
+                      <g key={v}>
+                        <line x1={padX} y1={y} x2={chartW - padX} y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth={1} />
+                        <text x={padX - 6} y={y + 3} textAnchor="end" fill="rgba(255,255,255,0.15)" fontSize={9}>{v}</text>
+                      </g>
+                    )
+                  })}
+                  {areaPath && <path d={areaPath} fill="url(#formSuiviGrad)" />}
+                  <path d={linePath} fill="none" stroke={activeFilterColor} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  {chartPoints.map((p, i) => (
+                    <g key={i}>
+                      <circle cx={p.x} cy={p.y} r={3.5} fill="#09090b" stroke={p.score <= 4 ? '#ef4444' : p.score >= 7 ? '#22c55e' : p.color} strokeWidth={2} />
+                      {(i === chartPoints.length - 1 || i === 0) && (
+                        <text x={p.x} y={p.y - 10} textAnchor="middle" fill="rgba(245,245,243,0.5)" fontSize={10} fontWeight={600}>{p.score}</text>
+                      )}
+                    </g>
+                  ))}
+                  {chartPoints.filter((_, i) => i === 0 || i === chartPoints.length - 1 || i === Math.floor(chartPoints.length / 2)).map((p, i) => (
+                    <text key={i} x={p.x} y={chartH - 2} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize={9}>
+                      {new Date(p.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                    </text>
+                  ))}
+                </svg>
+              </div>
+            )}
+
+            {/* Moyennes par question */}
+            {champMoyennes.length > 0 && (
+              <div className="px-6 pb-5 pt-1">
+                <p className="text-zinc-600 text-[10px] font-semibold uppercase tracking-wider mb-3">Moyennes par question</p>
+                <div className="space-y-2.5">
+                  {champMoyennes.map(ch => {
+                    const pct = (ch.moyenne / 10) * 100
+                    const color = ch.moyenne >= 7 ? '#22c55e' : ch.moyenne >= 5 ? '#f59e0b' : '#ef4444'
+                    return (
+                      <div key={ch.id}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-zinc-400 text-xs truncate flex-1 mr-3">{ch.label}</span>
+                          <span className="text-[#F5F5F3] text-xs font-bold tabular-nums" style={{ color }}>{ch.moyenne}/10</span>
+                        </div>
+                        <div className="h-1.5 bg-[#111113] rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Historique complet (8 derniers) */}
+            {completed.length > 0 && (
+              <div className="border-t border-[#1a1a1e]">
+                <div className="px-6 py-3">
+                  <p className="text-zinc-600 text-[10px] font-semibold uppercase tracking-wider mb-2.5">Derniers retours</p>
+                  <div className="space-y-1.5">
+                    {[...completed].reverse().slice(0, 8).map(r => {
+                      const sc = getScore(r)
+                      const form = enrichedForms.find(f => f.id === r.formulaire_id)
+                      const typeColor = TYPE_COLORS[form?.effectiveType] || '#a855f7'
+                      const scoreColor = sc >= 7 ? 'text-emerald-400' : sc >= 5 ? 'text-amber-400' : 'text-red-400'
+                      const scoreBg = sc >= 7 ? 'bg-emerald-500/10' : sc >= 5 ? 'bg-amber-500/10' : 'bg-red-500/10'
+                      return (
+                        <div key={r.id} className="flex items-center gap-3 py-1.5">
+                          <span className="text-zinc-600 text-[11px] font-medium tabular-nums w-14 flex-shrink-0">
+                            {new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold flex-shrink-0" style={{ backgroundColor: typeColor + '15', color: typeColor }}>
+                            {TYPE_ICONS_MAP[form?.effectiveType] || '📝'} {form?.titre ? (form.titre.length > 18 ? form.titre.slice(0, 18) + '…' : form.titre) : 'Formulaire'}
+                          </span>
+                          {sc !== null ? (
+                            <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${scoreBg} ${scoreColor}`}>{sc}/10</span>
+                          ) : (
+                            <span className="text-zinc-700 text-[11px]">—</span>
+                          )}
+                          {(() => {
+                            const txtChamp = allFormChamps.find(c => c.type_champ === 'texte' && c.formulaire_id === r.formulaire_id && r.reponses?.[c.id])
+                            return txtChamp ? (
+                              <span className="text-zinc-500 text-[11px] truncate flex-1">{r.reponses[txtChamp.id]}</span>
+                            ) : null
+                          })()}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* État vide */}
+            {allFormReponses.length === 0 && (
+              <div className="px-6 pb-6 flex flex-col items-center text-center py-6">
+                <div className="w-14 h-14 rounded-2xl bg-purple-500/5 flex items-center justify-center mb-3">
+                  <ClipboardList size={24} className="text-purple-400/30" />
+                </div>
+                <p className="text-zinc-500 text-sm font-medium mb-1">Aucun formulaire rempli</p>
+                <p className="text-zinc-700 text-xs max-w-xs">Les bilans, évaluations et retours post-séance de ce client apparaîtront ici.</p>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* ══════════════════════════════════════════ */}
+      {/* SECTION 6 — Historique Pesées              */}
       {/* ══════════════════════════════════════════ */}
       {pesees.length > 0 && (
         <div className="bg-[#09090b] border border-[#1c1c1f] rounded-2xl shadow-sm overflow-hidden">

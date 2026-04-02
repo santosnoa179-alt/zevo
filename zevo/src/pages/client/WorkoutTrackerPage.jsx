@@ -244,6 +244,61 @@ export default function WorkoutTrackerPage() {
         .update({ is_completed: true })
         .eq('id', seance.id)
       if (error) console.error('[Workout] Erreur update is_completed:', error.message)
+
+      // ── Formulaires post-séance : créer automatiquement les réponses ──
+      if (user?.id) {
+        try {
+          // 1. Trouver le coach_id du client
+          const { data: clientData } = await supabase
+            .from('clients')
+            .select('coach_id')
+            .eq('id', user.id)
+            .single()
+
+          if (clientData?.coach_id) {
+            // 2. Chercher les formulaires actifs avec récurrence post_seance
+            const { data: postSeanceForms } = await supabase
+              .from('formulaires')
+              .select('id, recurrence')
+              .eq('coach_id', clientData.coach_id)
+              .eq('statut', 'actif')
+              .not('recurrence', 'is', null)
+
+            // 3. Filtrer ceux qui ont intervalle === 'post_seance'
+            const formsToSend = (postSeanceForms || []).filter(f => {
+              const rec = typeof f.recurrence === 'string' ? JSON.parse(f.recurrence) : f.recurrence
+              return rec?.intervalle === 'post_seance' && rec?.actif === true
+            })
+
+            if (formsToSend.length > 0) {
+              // 4. Vérifier les formulaires déjà en attente (éviter les doublons)
+              const { data: existing } = await supabase
+                .from('formulaire_reponses')
+                .select('formulaire_id')
+                .eq('client_id', user.id)
+                .eq('complete', false)
+                .in('formulaire_id', formsToSend.map(f => f.id))
+
+              const existingIds = new Set((existing || []).map(e => e.formulaire_id))
+              const newForms = formsToSend.filter(f => !existingIds.has(f.id))
+
+              // 5. Insérer uniquement les formulaires sans doublon en attente
+              if (newForms.length > 0) {
+                await supabase.from('formulaire_reponses').insert(
+                  newForms.map(f => ({
+                    formulaire_id: f.id,
+                    client_id: user.id,
+                    reponses: {},
+                    complete: false,
+                  }))
+                )
+              }
+            }
+          }
+        } catch (err) {
+          console.error('[Workout] Erreur formulaires post-séance:', err.message)
+        }
+      }
     }
   }
 

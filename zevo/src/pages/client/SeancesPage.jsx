@@ -97,6 +97,54 @@ export default function SeancesPage() {
       if (newVal) {
         setCelebration(seance.id)
         setTimeout(() => setCelebration(null), 1500)
+
+        // ── Formulaires post-séance ──
+        if (user?.id) {
+          try {
+            const { data: clientData } = await supabase
+              .from('clients').select('coach_id').eq('id', user.id).single()
+
+            if (clientData?.coach_id) {
+              const { data: postSeanceForms } = await supabase
+                .from('formulaires')
+                .select('id, recurrence')
+                .eq('coach_id', clientData.coach_id)
+                .eq('statut', 'actif')
+                .not('recurrence', 'is', null)
+
+              const formsToSend = (postSeanceForms || []).filter(f => {
+                const rec = typeof f.recurrence === 'string' ? JSON.parse(f.recurrence) : f.recurrence
+                return rec?.intervalle === 'post_seance' && rec?.actif === true
+              })
+
+              if (formsToSend.length > 0) {
+                // Vérifier les formulaires déjà en attente (éviter les doublons)
+                const { data: existing } = await supabase
+                  .from('formulaire_reponses')
+                  .select('formulaire_id')
+                  .eq('client_id', user.id)
+                  .eq('complete', false)
+                  .in('formulaire_id', formsToSend.map(f => f.id))
+
+                const existingIds = new Set((existing || []).map(e => e.formulaire_id))
+                const newForms = formsToSend.filter(f => !existingIds.has(f.id))
+
+                if (newForms.length > 0) {
+                  await supabase.from('formulaire_reponses').insert(
+                    newForms.map(f => ({
+                      formulaire_id: f.id,
+                      client_id: user.id,
+                      reponses: {},
+                      complete: false,
+                    }))
+                  )
+                }
+              }
+            }
+          } catch (err) {
+            console.error('[Séances] Erreur formulaires post-séance:', err.message)
+          }
+        }
       }
     }
     setToggling(null)

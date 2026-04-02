@@ -6,7 +6,7 @@ import {
   FileText, ClipboardCheck, Heart, Star, ChevronDown, ChevronUp, Eye,
   Search, Filter, ToggleLeft, ToggleRight, CheckCircle2, Circle,
   BarChart3, Clock, RefreshCw, X, Zap, GitBranch, Play,
-  Calendar, Repeat, Users
+  Calendar, Repeat, Users, Dumbbell
 } from 'lucide-react'
 
 // ── Templates prédéfinis ──
@@ -609,7 +609,9 @@ export default function CoachFormulairesPage() {
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/30 font-medium uppercase">Brouillon</span>
                       )}
                       {hasRecurrence && (
-                        <Repeat size={12} className="text-[#FF6B2B]/60 flex-shrink-0" />
+                        f.recurrence?.intervalle === 'post_seance'
+                          ? <span className="inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B]/70 font-semibold flex-shrink-0"><Dumbbell size={10} />Post-séance</span>
+                          : <Repeat size={12} className="text-[#FF6B2B]/60 flex-shrink-0" />
                       )}
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] text-white/30 flex-shrink-0 font-medium">
                         {TYPE_LABELS[f.type] || f.type}
@@ -1029,36 +1031,49 @@ export default function CoachFormulairesPage() {
           </button>
         </div>
         {recurrenceActif && (
-          <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-white/[0.06]">
-            <div>
-              <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Fréquence</label>
-              <select value={recurrenceInterval} onChange={(e) => setRecurrenceInterval(e.target.value)}
-                className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
-                <option value="hebdomadaire">Hebdomadaire</option>
-                <option value="mensuel">Mensuel</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">
-                {recurrenceInterval === 'hebdomadaire' ? 'Jour' : 'Jour du mois'}
-              </label>
-              {recurrenceInterval === 'hebdomadaire' ? (
-                <select value={recurrenceJour} onChange={(e) => setRecurrenceJour(Number(e.target.value))}
+          <div className="mt-3 pt-3 border-t border-white/[0.06]">
+            <div className={`grid gap-3 ${recurrenceInterval === 'post_seance' ? 'grid-cols-1' : 'grid-cols-3'}`}>
+              <div>
+                <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Fréquence</label>
+                <select value={recurrenceInterval} onChange={(e) => setRecurrenceInterval(e.target.value)}
                   className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
-                  {['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'].map((j, i) => (
-                    <option key={i} value={i + 1}>{j}</option>
-                  ))}
+                  <option value="hebdomadaire">Hebdomadaire</option>
+                  <option value="mensuel">Mensuel</option>
+                  <option value="post_seance">Après chaque séance</option>
                 </select>
-              ) : (
-                <input type="number" min="1" max="28" value={recurrenceJour} onChange={(e) => setRecurrenceJour(Number(e.target.value))}
-                  className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+              </div>
+              {recurrenceInterval !== 'post_seance' && (
+                <>
+                  <div>
+                    <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">
+                      {recurrenceInterval === 'hebdomadaire' ? 'Jour' : 'Jour du mois'}
+                    </label>
+                    {recurrenceInterval === 'hebdomadaire' ? (
+                      <select value={recurrenceJour} onChange={(e) => setRecurrenceJour(Number(e.target.value))}
+                        className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                        {['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'].map((j, i) => (
+                          <option key={i} value={i + 1}>{j}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input type="number" min="1" max="28" value={recurrenceJour} onChange={(e) => setRecurrenceJour(Number(e.target.value))}
+                        className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Heure</label>
+                    <input type="time" value={recurrenceHeure} onChange={(e) => setRecurrenceHeure(e.target.value)}
+                      className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                  </div>
+                </>
               )}
             </div>
-            <div>
-              <label className="block text-white/40 text-[10px] uppercase tracking-wider font-semibold mb-1.5">Heure</label>
-              <input type="time" value={recurrenceHeure} onChange={(e) => setRecurrenceHeure(e.target.value)}
-                className="w-full bg-[#09090b] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-[#F5F5F3] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
-            </div>
+            {recurrenceInterval === 'post_seance' && (
+              <div className="mt-3 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#FF6B2B]/5 border border-[#FF6B2B]/10">
+                <Dumbbell size={14} className="text-[#FF6B2B] flex-shrink-0" />
+                <p className="text-[#FF6B2B]/70 text-xs">Ce formulaire sera envoyé automatiquement au client dès qu'il termine une séance.</p>
+              </div>
+            )}
           </div>
         )}
       </div>
