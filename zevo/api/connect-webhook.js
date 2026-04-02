@@ -1,7 +1,6 @@
 // Vercel Serverless Function — Webhook Stripe Connect
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
-import { buffer } from 'micro'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const supabase = createClient(
@@ -16,23 +15,39 @@ export const config = {
   },
 }
 
+// Helper : lire le raw body (remplace le package `micro`)
+function getRawBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = []
+    req.on('data', (chunk) => chunks.push(chunk))
+    req.on('end', () => resolve(Buffer.concat(chunks)))
+    req.on('error', reject)
+  })
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   const sig = req.headers['stripe-signature']
+  if (!sig) {
+    return res.status(400).json({ error: 'Header stripe-signature manquant' })
+  }
+
   let stripeEvent
 
   try {
-    const rawBody = await buffer(req)
+    const rawBody = await getRawBody(req)
+    console.log(`[connect-webhook] Raw body reçu: ${rawBody.length} bytes`)
     stripeEvent = stripe.webhooks.constructEvent(
       rawBody,
       sig,
       process.env.STRIPE_CONNECT_WEBHOOK_SECRET
     )
+    console.log(`[connect-webhook] Event: ${stripeEvent.type} (${stripeEvent.id})`)
   } catch (err) {
-    console.error('Erreur signature webhook Connect:', err.message)
+    console.error('[connect-webhook] Signature invalide:', err.message)
     return res.status(400).json({ error: `Webhook Error: ${err.message}` })
   }
 
