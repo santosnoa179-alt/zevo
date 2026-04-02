@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart3, Users, LogOut } from 'lucide-react'
+import { BarChart3, Users, CreditCard, LogOut } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { ZevoLogo } from '../ui/ZevoLogo'
 
@@ -7,6 +7,7 @@ import { ZevoLogo } from '../ui/ZevoLogo'
 const navItems = [
   { to: '/admin/dashboard', icon: BarChart3, label: 'Dashboard' },
   { to: '/admin/coachs', icon: Users, label: 'Coachs' },
+  { to: '/admin/abonnements', icon: CreditCard, label: 'Abonnements' },
 ]
 
 export function AdminLayout() {

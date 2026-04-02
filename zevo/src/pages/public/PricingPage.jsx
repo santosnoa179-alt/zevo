@@ -3,24 +3,26 @@ import { useNavigate } from 'react-router-dom'
 import { Check, Zap, Star, Crown, ArrowLeft, Loader2 } from 'lucide-react'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
 import { useAuth } from '../../hooks/useAuth'
-import { supabase } from '../../lib/supabase'
+import { getStripe } from '../../lib/stripe'
 import { useToast } from '../../components/ui/Toast'
 
-// Définition des 3 plans — tarification mise à jour
+// Définition des 3 plans
 const PLANS = [
   {
     id: 'starter',
     name: 'Starter',
-    price: 39,
+    price: 29,
     icon: Zap,
-    description: '5 clients, branding inclus',
+    description: '5 clients, idéal pour démarrer',
     features: [
       'Jusqu\'à 5 clients',
       'Dashboard coach complet',
       'Messagerie temps réel',
-      'Branding (logo, couleurs)',
       'Score bien-être & alertes',
-      'Habitudes & objectifs',
+      'Formulaires personnalisés',
+      'Programmes multi-semaines',
+      'Drive / Bibliothèque',
+      'CRM intégrée',
       'Support par email',
     ],
     cta: 'Commencer',
@@ -28,17 +30,15 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: 59,
+    price: 49,
     icon: Star,
     popular: true,
-    description: '20 clients, rapports auto, programmes 30j',
+    description: '50 clients, App Builder, rapports auto',
     features: [
-      'Jusqu\'à 20 clients',
+      'Jusqu\'à 50 clients',
       'Tout le plan Starter',
+      'App Builder (branding)',
       'Rapports PDF automatiques',
-      'Programmes multi-semaines',
-      'Formulaires personnalisés',
-      'Bibliothèque de ressources',
       'Statistiques avancées',
       'Support prioritaire',
     ],
@@ -49,15 +49,11 @@ const PLANS = [
     name: 'Unlimited',
     price: 79,
     icon: Crown,
-    description: 'Illimité, API, domaine perso, App Builder',
+    description: 'Clients illimités, tout inclus',
     features: [
       'Clients illimités',
       'Tout le plan Pro',
-      'App Builder premium',
-      'Prévisualisation temps réel',
-      'API & webhooks',
-      'Domaine personnalisé',
-      'Coach IA intégré',
+      'Automatisation avancée',
       'Support dédié',
     ],
     cta: 'Commencer',
@@ -70,9 +66,8 @@ export default function PricingPage() {
   const toast = useToast()
   const [loadingPlan, setLoadingPlan] = useState(null)
 
-  // Met à jour le plan du coach dans la DB et redirige
+  // Crée une session Stripe Checkout et redirige vers la page de paiement
   const handleSelectPlan = async (planId) => {
-    // Si pas connecté, redirige vers login
     if (!user) {
       navigate('/login')
       return
@@ -81,18 +76,27 @@ export default function PricingPage() {
     setLoadingPlan(planId)
 
     try {
-      const { error } = await supabase
-        .from('coaches')
-        .update({ plan: planId })
-        .eq('id', user.id)
+      // Appel à l'API Vercel pour créer la session Stripe
+      const res = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: planId, email: user.email }),
+      })
 
-      if (error) throw error
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur serveur')
 
-      toast.success(`Plan ${planId.charAt(0).toUpperCase() + planId.slice(1)} active !`)
-      navigate('/coach/dashboard')
+      // Redirection vers Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url
+      } else if (data.sessionId) {
+        const stripe = await getStripe()
+        const { error } = await stripe.redirectToCheckout({ sessionId: data.sessionId })
+        if (error) throw error
+      }
     } catch (err) {
-      console.error('Erreur plan:', err)
-      toast.error('Erreur lors de la mise a jour du plan.')
+      console.error('Erreur Stripe Checkout:', err)
+      toast.error('Erreur lors de la redirection vers le paiement.')
       setLoadingPlan(null)
     }
   }
@@ -118,18 +122,8 @@ export default function PricingPage() {
           <span className="text-[#FF6B2B]">scaler ton coaching</span>
         </h1>
         <p className="text-[var(--text-secondary)] text-lg max-w-xl mx-auto">
-          Installation unique de 249€ (setup + formation 1h) puis un abonnement mensuel adapté à ton activité.
+          Un abonnement mensuel adapté à ton activité. Sans engagement, annulable à tout moment.
         </p>
-      </div>
-
-      {/* Badge installation */}
-      <div className="flex justify-center mb-10">
-        <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FF6B2B]/10 border border-[#FF6B2B]/20">
-          <Zap size={16} className="text-[#FF6B2B]" />
-          <span className="text-sm font-medium text-[#FF6B2B]">
-            Installation unique : 249€ — setup complet + formation 1h
-          </span>
-        </div>
       </div>
 
       {/* Cards pricing */}

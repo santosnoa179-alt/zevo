@@ -63,35 +63,30 @@ export default function AbonnementPage() {
     setLoading(false)
   }
 
-  // ── Payer une offre (paiement simulé) ──
+  // ── Payer une offre via Stripe Connect ──
   const payer = async (offre) => {
     setProcessing(offre.id)
 
-    // Simule un délai de traitement bancaire
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
     try {
-      // Insère le paiement dans la DB avec statut payé
-      const { error } = await supabase.from('paiements_clients').insert({
-        client_id: user.id,
-        coach_id: offre.coach_id,
-        offre_id: offre.id,
-        montant: offre.prix,
-        statut: 'paye',
-        date_paiement: new Date().toISOString(),
+      // Appel à l'API Vercel pour créer une session Stripe Connect
+      const res = await fetch('/api/client-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offreId: offre.id, clientId: user.id }),
       })
 
-      if (error) throw error
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur serveur')
 
-      toast.success('Paiement effectue avec succes !')
-      // Recharger les données pour afficher le paiement dans l'historique
-      await chargerDonnees()
+      // Redirection vers Stripe Checkout (sur le compte Connect du coach)
+      if (data.url) {
+        window.location.href = data.url
+      }
     } catch (err) {
       console.error('Erreur paiement:', err)
-      toast.error('Erreur lors du paiement. Reessayez.')
+      toast.error(err.message || 'Erreur lors de la redirection vers le paiement.')
+      setProcessing(null)
     }
-
-    setProcessing(null)
   }
 
   const pageTransition = usePageTransition()

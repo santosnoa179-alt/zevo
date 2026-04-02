@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { Users, UserCheck, Euro, TrendingUp, Activity } from 'lucide-react'
 
 // Prix mensuels par plan (en €)
-const PLAN_PRICES = { starter: 39, pro: 59, unlimited: 79 }
+const PLAN_PRICES = { starter: 29, pro: 49, unlimited: 79 }
 
 export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true)

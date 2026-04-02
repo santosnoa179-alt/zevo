@@ -62,15 +62,34 @@ export default async function handler(req, res) {
         .single()
 
       if (profile) {
-        await supabase
+        // Update seulement les champs Stripe — ne pas écraser les données existantes du coach
+        const { data: existingCoach } = await supabase
           .from('coaches')
-          .upsert({
-            id: profile.id,
-            plan,
-            stripe_customer_id: customerId,
-            stripe_subscription_id: subscriptionId,
-            abonnement_actif: true,
-          }, { onConflict: 'id' })
+          .select('id')
+          .eq('id', profile.id)
+          .single()
+
+        if (existingCoach) {
+          await supabase
+            .from('coaches')
+            .update({
+              plan,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              abonnement_actif: true,
+            })
+            .eq('id', profile.id)
+        } else {
+          await supabase
+            .from('coaches')
+            .insert({
+              id: profile.id,
+              plan,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              abonnement_actif: true,
+            })
+        }
 
         await supabase
           .from('profiles')
@@ -86,8 +105,8 @@ export default async function handler(req, res) {
       const subscription = stripeEvent.data.object
       await supabase
         .from('coaches')
-        .update({ abonnement_actif: false })
-        .eq('stripe_customer_id', subscription.customer)
+        .update({ abonnement_actif: false, plan: 'starter' })
+        .eq('stripe_subscription_id', subscription.id)
       break
     }
 

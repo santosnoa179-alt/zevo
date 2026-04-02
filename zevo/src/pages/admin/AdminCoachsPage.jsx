@@ -5,7 +5,7 @@ import {
   CheckCircle, XCircle, Filter
 } from 'lucide-react'
 
-const PLAN_PRICES = { starter: 39, pro: 59, unlimited: 79 }
+const PLAN_PRICES = { starter: 29, pro: 49, unlimited: 79 }
 
 export default function AdminCoachsPage() {
   const [loading, setLoading] = useState(true)

@@ -2,12 +2,18 @@
   command = "npm run build"
   publish = "dist"
 
-# Redirige toutes les routes vers index.html pour React Router
+# Dossier pour les Netlify Functions (Stripe webhooks — Phase 7)
+[functions]
+  directory = "netlify/functions"
+
+# Proxy /api/* vers les Netlify Functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Redirige toutes les routes vers index.html pour React Router (doit être en dernier)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-# Dossier pour les Netlify Functions (Stripe webhooks — Phase 7)
-[functions]
-  directory = "netlify/functions"

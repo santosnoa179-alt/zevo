@@ -79,8 +79,8 @@ export default async function handler(req, res) {
       { stripeAccount: stripeAccountId }
     )
 
-    // Créer un paiement en attente
-    await supabase
+    // Créer un paiement en attente (utiliser payment_intent si disponible, sinon session.id)
+    const { error: insertError } = await supabase
       .from('paiements_clients')
       .insert({
         client_id: clientId,
@@ -88,8 +88,12 @@ export default async function handler(req, res) {
         offre_id: offreId,
         montant: offre.prix,
         statut: 'en_attente',
-        stripe_payment_intent_id: session.id,
+        stripe_payment_intent_id: session.payment_intent || session.id,
       })
+
+    if (insertError) {
+      console.error('Erreur insert paiement:', insertError)
+    }
 
     return res.status(200).json({ url: session.url })
   } catch (error) {

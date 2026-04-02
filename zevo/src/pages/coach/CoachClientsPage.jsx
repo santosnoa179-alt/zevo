@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { usePlanLimits } from '../../hooks/usePlanLimits'
 import { supabase } from '../../lib/supabase'
 import { sendInvitation } from '../../lib/invitations'
 import { calculerScoreBienEtre, couleurScore } from '../../utils/wellbeing'
@@ -9,7 +10,7 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
-import { UserPlus, Search, ChevronRight, Mail, Users } from 'lucide-react'
+import { UserPlus, Search, ChevronRight, Mail, Users, Lock, ArrowUpRight } from 'lucide-react'
 
 // Avatar avec fallback initiales
 function Avatar({ nom, prenom, avatarUrl, couleur }) {
@@ -36,6 +37,7 @@ export default function CoachClientsPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
+  const { canAddClient, maxClients, clientCount, plan } = usePlanLimits()
   const [loading, setLoading] = useState(true)
   const [clients, setClients] = useState([])
   const [recherche, setRecherche] = useState('')
@@ -162,11 +164,27 @@ export default function CoachClientsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[var(--text-primary)] text-2xl font-bold">Clients</h1>
-          <p className="text-[var(--text-muted)] text-sm mt-0.5">{clients.length} client{clients.length !== 1 ? 's' : ''}</p>
+          <p className="text-[var(--text-muted)] text-sm mt-0.5">
+            {clients.length} client{clients.length !== 1 ? 's' : ''}
+            {maxClients !== Infinity && (
+              <span className="text-[var(--text-muted)]"> / {maxClients} max</span>
+            )}
+          </p>
         </div>
-        <Button onClick={() => { setModalInvit(true); setInvitSuccess(null); setInvitError('') }}>
-          <UserPlus size={15} /> Inviter
-        </Button>
+        {canAddClient ? (
+          <Button onClick={() => { setModalInvit(true); setInvitSuccess(null); setInvitError('') }}>
+            <UserPlus size={15} /> Inviter
+          </Button>
+        ) : (
+          <button
+            onClick={() => navigate('/pricing')}
+            className="flex items-center gap-2 bg-[var(--bg-surface)] border border-[var(--border-base)] text-[var(--text-secondary)] px-4 py-2.5 rounded-xl text-sm font-medium hover:border-[#FF6B2B]/50 transition-colors"
+          >
+            <Lock size={14} className="text-[#FF6B2B]" />
+            Limite atteinte — Upgrader
+            <ArrowUpRight size={14} className="text-[#FF6B2B]" />
+          </button>
+        )}
       </div>
 
       {/* ── Recherche ── */}

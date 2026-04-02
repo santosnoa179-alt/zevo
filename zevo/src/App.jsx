@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './hooks/useAuth'
 import { ProtectedRoute } from './components/layout/ProtectedRoute'
+import { PlanGate } from './components/PlanGate'
 
 // Layouts — chargés immédiatement (nécessaires au rendu initial)
 import { ClientLayout } from './components/layout/ClientLayout'
@@ -68,6 +69,7 @@ const CoachGlobalCalendarPage = lazy(() => import('./pages/coach/CoachGlobalCale
 // ── Pages admin (lazy) ──
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'))
 const AdminCoachsPage = lazy(() => import('./pages/admin/AdminCoachsPage'))
+const AdminAbonnementsPage = lazy(() => import('./pages/admin/AdminAbonnementsPage'))
 
 export default function App() {
   return (
@@ -149,10 +151,10 @@ export default function App() {
               <Route path="nutrition/:planId" element={<NutritionBuilder />} />
               <Route path="bibliotheque" element={<CoachBibliothequePage />} />
               <Route path="formulaires" element={<CoachFormulairesPage />} />
-              <Route path="rapports" element={<CoachRapportsPage />} />
-              <Route path="statistiques" element={<CoachStatistiquesPage />} />
+              <Route path="rapports" element={<PlanGate feature="rapports"><CoachRapportsPage /></PlanGate>} />
+              <Route path="statistiques" element={<PlanGate feature="statistiques"><CoachStatistiquesPage /></PlanGate>} />
               <Route path="abonnements" element={<CoachAbonnementsPage />} />
-              <Route path="app-builder" element={<CoachAppBuilderPage />} />
+              <Route path="app-builder" element={<PlanGate feature="appBuilder"><CoachAppBuilderPage /></PlanGate>} />
               <Route path="messages" element={<CoachMessagesPage />} />
               <Route path="parametres" element={<CoachParametresPage />} />
               <Route path="prospects" element={<CoachProspectsPage />} />
@@ -172,6 +174,7 @@ export default function App() {
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboardPage />} />
               <Route path="coachs" element={<AdminCoachsPage />} />
+              <Route path="abonnements" element={<AdminAbonnementsPage />} />
             </Route>
 
             {/* 404 */}

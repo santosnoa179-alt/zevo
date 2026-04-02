@@ -1,79 +1,80 @@
-// Netlify Function — Crée une session Stripe Checkout
-// Installation unique 249€ + abonnement mensuel selon le plan choisi
+// Netlify Function — Crée une session Stripe Checkout (abonnement mensuel)
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
-// IDs des produits Stripe — à remplacer par les vrais IDs du Stripe Dashboard
-// Pour l'instant : IDs de test (à configurer dans Stripe > Produits)
 const PRICE_IDS = {
-  // Prix one-shot : installation 249€
-  installation: process.env.STRIPE_PRICE_INSTALLATION,
-  // Abonnements mensuels récurrents
   starter: process.env.STRIPE_PRICE_STARTER,
   pro: process.env.STRIPE_PRICE_PRO,
   unlimited: process.env.STRIPE_PRICE_UNLIMITED,
 }
 
+const VALID_PLANS = ['starter', 'pro', 'unlimited']
+
 exports.handler = async (event) => {
-  // Seules les requêtes POST sont acceptées
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' }
+  }
+
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) }
+    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) }
   }
 
   try {
-    const { plan } = JSON.parse(event.body)
+    const { plan, email } = JSON.parse(event.body)
 
-    // Validation du plan
-    if (!['starter', 'pro', 'unlimited'].includes(plan)) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Plan invalide' }) }
+    if (!VALID_PLANS.includes(plan)) {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Plan invalide' }) }
     }
 
     const subscriptionPriceId = PRICE_IDS[plan]
-    const installationPriceId = PRICE_IDS.installation
 
-    if (!subscriptionPriceId || !installationPriceId) {
+    if (!subscriptionPriceId) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Prix Stripe non configurés. Vérifiez les variables d\'environnement.' }),
+        headers,
+        body: JSON.stringify({ error: 'Prix Stripe non configuré. Vérifiez les variables d\'environnement.' }),
       }
     }
 
-    // Crée la session Checkout avec 2 line_items :
-    // 1. Installation unique 249€ (one-shot)
-    // 2. Abonnement mensuel (récurrent)
-    const session = await stripe.checkout.sessions.create({
+    const siteUrl = process.env.URL || 'http://localhost:5173'
+
+    const sessionParams = {
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
-        // Installation unique — ajoutée comme frais one-shot à la première facture
-        {
-          price: installationPriceId,
-          quantity: 1,
-        },
-        // Abonnement récurrent
-        {
-          price: subscriptionPriceId,
-          quantity: 1,
-        },
+        { price: subscriptionPriceId, quantity: 1 },
       ],
-      // Métadonnées pour identifier le plan dans le webhook
       subscription_data: {
         metadata: { plan },
       },
-      success_url: `${process.env.URL}/login?checkout=success&plan=${plan}`,
-      cancel_url: `${process.env.URL}/pricing`,
+      success_url: `${siteUrl}/login?checkout=success&plan=${plan}`,
+      cancel_url: `${siteUrl}/pricing`,
       allow_promotion_codes: true,
-    })
+    }
+
+    // Pré-remplir l'email si disponible
+    if (email) {
+      sessionParams.customer_email = email
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams)
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId: session.id }),
+      headers,
+      body: JSON.stringify({ sessionId: session.id, url: session.url }),
     }
   } catch (err) {
     console.error('Erreur Stripe Checkout:', err)
     return {
       statusCode: 500,
+      headers,
       body: JSON.stringify({ error: err.message }),
     }
   }

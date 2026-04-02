@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useRole } from '../../hooks/useRole'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
+import { CheckCircle } from 'lucide-react'
 
 // Page de connexion — design Zevo noir/orange
 export default function LoginPage() {
@@ -17,6 +18,11 @@ export default function LoginPage() {
   const { user, loading: authLoading, login, resetPassword } = useAuth()
   const { role, loading: roleLoading } = useRole()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  // Retour Stripe Checkout — afficher un message de succès
+  const checkoutSuccess = searchParams.get('checkout') === 'success'
+  const checkoutPlan = searchParams.get('plan')
 
   // Si l'utilisateur est déjà connecté, redirige vers sa section
   // Ceci évite la boucle : user arrive sur /login alors qu'il est déjà auth
@@ -81,6 +87,21 @@ export default function LoginPage() {
             {forgotMode ? 'Réinitialiser le mot de passe' : 'Connexion à votre espace'}
           </p>
         </div>
+
+        {/* Message succès checkout Stripe */}
+        {checkoutSuccess && (
+          <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 mb-6 flex items-center gap-3">
+            <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+            <div>
+              <p className="text-green-400 text-sm font-medium">
+                Paiement réussi{checkoutPlan ? ` — Plan ${checkoutPlan.charAt(0).toUpperCase() + checkoutPlan.slice(1)}` : ''} !
+              </p>
+              <p className="text-green-400/60 text-xs mt-0.5">
+                Connectez-vous pour accéder à votre espace coach.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Formulaire login */}
         {!forgotMode && (

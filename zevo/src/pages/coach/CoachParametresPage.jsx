@@ -319,8 +319,8 @@ export default function CoachParametresPage() {
           <div>
             <p className="text-[var(--text-primary)] text-sm font-medium capitalize">Plan {plan}</p>
             <p className="text-[var(--text-muted)] text-xs">
-              {plan === 'starter' && '39€/mois · 5 clients'}
-              {plan === 'pro' && '59€/mois · 20 clients'}
+              {plan === 'starter' && '29€/mois · 5 clients'}
+              {plan === 'pro' && '49€/mois · 50 clients'}
               {plan === 'unlimited' && '79€/mois · Illimité'}
             </p>
           </div>

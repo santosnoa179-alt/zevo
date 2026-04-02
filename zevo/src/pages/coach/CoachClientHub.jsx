@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { usePlanLimits } from '../../hooks/usePlanLimits'
 import { supabase } from '../../lib/supabase'
 import { sendInvitation } from '../../lib/invitations'
 import { useToast } from '../../components/ui/Toast'
@@ -19,7 +21,7 @@ import {
   Ruler, Weight, ChevronUp, ChevronDown as ChevronDownIcon,
   FolderOpen, Paperclip, FileText,
   CheckCircle2, Circle, Footprints, BookOpen, Smile, Upload,
-  ClipboardList, AlertTriangle
+  ClipboardList, AlertTriangle, Lock
 } from 'lucide-react'
 
 // ── Couleurs avatar ──
@@ -5556,6 +5558,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
 export default function CoachClientHub() {
   const { user } = useAuth()
   const toast = useToast()
+  const navigate = useNavigate()
+  const { canAddClient, maxClients } = usePlanLimits()
 
   const [loading, setLoading] = useState(true)
   const [clients, setClients] = useState([])
@@ -5884,12 +5888,22 @@ export default function CoachClientHub() {
         <div className="p-4 border-b border-[var(--border-base)]">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[var(--text-primary)] font-semibold text-sm">Clients</h2>
-            <button
-              onClick={() => { setModalInvit(true); setInvitSuccess(null); setInvitError('') }}
-              className="p-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 transition-colors"
-            >
-              <UserPlus size={14} />
-            </button>
+            {canAddClient ? (
+              <button
+                onClick={() => { setModalInvit(true); setInvitSuccess(null); setInvitError('') }}
+                className="p-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 transition-colors"
+              >
+                <UserPlus size={14} />
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate('/pricing')}
+                className="p-1.5 rounded-lg bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[#FF6B2B] transition-colors"
+                title={`Limite de ${maxClients} clients atteinte`}
+              >
+                <Lock size={14} />
+              </button>
+            )}
           </div>
           <div className="relative">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />

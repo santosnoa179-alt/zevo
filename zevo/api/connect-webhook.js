@@ -59,7 +59,19 @@ export default async function handler(req, res) {
       // Paiement d'abonnement récurrent réussi
       case 'invoice.payment_succeeded': {
         const invoice = stripeEvent.data.object
-        if (invoice.subscription) {
+        if (invoice.subscription && invoice.payment_intent) {
+          // Idempotence : vérifier si ce paiement existe déjà
+          const { data: existing } = await supabase
+            .from('paiements_clients')
+            .select('id')
+            .eq('stripe_payment_intent_id', invoice.payment_intent)
+            .maybeSingle()
+
+          if (existing) {
+            console.log(`Paiement déjà enregistré: ${invoice.payment_intent}`)
+            break
+          }
+
           const subscription = await stripe.subscriptions.retrieve(
             invoice.subscription,
             { stripeAccount: stripeEvent.account }

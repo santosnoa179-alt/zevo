@@ -73,7 +73,7 @@ export default function CoachAbonnementsPage() {
     if (!offreTitre.trim() || !offrePrix) return
     setSavingOffre(true)
 
-    await supabase
+    const { error } = await supabase
       .from('offres_coaching')
       .insert({
         coach_id: user.id,
@@ -82,6 +82,12 @@ export default function CoachAbonnementsPage() {
         prix: Math.round(parseFloat(offrePrix) * 100), // Convertir en centimes
         frequence: offreFreq,
       })
+
+    if (error) {
+      console.error('Erreur création offre:', error)
+      setSavingOffre(false)
+      return
+    }
 
     setModalOffre(false)
     setOffreTitre('')
@@ -98,13 +104,14 @@ export default function CoachAbonnementsPage() {
       .from('offres_coaching')
       .update({ actif: !offre.actif })
       .eq('id', offre.id)
+      .eq('coach_id', user.id)
     await chargerOffres()
   }
 
   // ── Supprimer une offre ──
   const supprimerOffre = async (id) => {
     if (!confirm('Supprimer cette offre ?')) return
-    await supabase.from('offres_coaching').delete().eq('id', id)
+    await supabase.from('offres_coaching').delete().eq('id', id).eq('coach_id', user.id)
     await chargerOffres()
   }
 

@@ -3,13 +3,14 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Users, UserPlus, CalendarDays,
   Dumbbell, Apple, Activity, Video,
-  Receipt, UsersRound, Zap, Bell,
+  Receipt, UsersRound, Zap, Bell, Lock,
   Search, MessageCircle, Rocket, LogOut, Menu, X,
   Settings, ChevronDown, ChevronLeft, BookOpen, Layers, ClipboardList,
   FileText, BarChart3, CreditCard, Paintbrush, Send, Mic,
   CheckCircle, Flame, TrendingDown, FolderOpen, Trophy, UtensilsCrossed
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { usePlanLimits } from '../../hooks/usePlanLimits'
 import { supabase } from '../../lib/supabase'
 import CoachTutorial from '../CoachTutorial'
 import ThemeToggle from '../ui/ThemeToggle'
@@ -37,15 +38,15 @@ const NAV_SECTIONS = [
       { to: '/coach/nutrition', icon: UtensilsCrossed, label: 'Nutrition' },
       { to: '/coach/bibliotheque', icon: BookOpen, label: 'Bibliothèque' },
       { to: '/coach/formulaires', icon: ClipboardList, label: 'Formulaires' },
-      { to: '/coach/rapports', icon: FileText, label: 'Rapports' },
-      { to: '/coach/statistiques', icon: BarChart3, label: 'Statistiques' },
+      { to: '/coach/rapports', icon: FileText, label: 'Rapports', planRequired: 'pro' },
+      { to: '/coach/statistiques', icon: BarChart3, label: 'Statistiques', planRequired: 'pro' },
     ],
   },
   {
     title: 'GESTION',
     items: [
       { to: '/coach/abonnements', icon: CreditCard, label: 'Abonnements' },
-      { to: '/coach/app-builder', icon: Paintbrush, label: 'App Builder', badge: 'PRO' },
+      { to: '/coach/app-builder', icon: Paintbrush, label: 'App Builder', planRequired: 'pro' },
       { to: '/coach/parametres', icon: Settings, label: 'Paramètres' },
     ],
   },
@@ -83,8 +84,12 @@ const PAGE_TITLES = {
 // MAIN LAYOUT
 // ══════════════════════════════════════
 
+// Mapping planRequired → plan hierarchy
+const PLAN_RANK = { starter: 1, pro: 2, unlimited: 3 }
+
 export function CoachLayout() {
   const { user, logout } = useAuth()
+  const { plan: coachPlan } = usePlanLimits()
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -241,7 +246,9 @@ export function CoachLayout() {
                   </p>
                 )}
                 <ul className="space-y-0.5">
-                  {section.items.map(({ to, icon: Icon, label }) => (
+                  {section.items.map(({ to, icon: Icon, label, planRequired }) => {
+                    const isLocked = planRequired && (PLAN_RANK[coachPlan] || 1) < (PLAN_RANK[planRequired] || 1)
+                    return (
                     <li key={to}>
                       <NavLink
                         to={to}
@@ -250,15 +257,23 @@ export function CoachLayout() {
                           `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
                             isActive
                               ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
+                              : isLocked
+                              ? 'text-[var(--text-muted)] opacity-50'
                               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]'
                           }`
                         }
                       >
                         <Icon size={18} />
-                        {label}
+                        <span className="flex-1">{label}</span>
+                        {isLocked && (
+                          <span className="text-[9px] bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-base)] px-1.5 py-0.5 rounded-full font-bold uppercase">
+                            {planRequired === 'unlimited' ? 'Unlimited' : 'Pro'}
+                          </span>
+                        )}
                       </NavLink>
                     </li>
-                  ))}
+                    )
+                  })}
                 </ul>
               </div>
             ))}
@@ -296,7 +311,9 @@ export function CoachLayout() {
                 </p>
               )}
               <ul className="space-y-0.5">
-                {section.items.map(({ to, icon: Icon, label, badge, msgBadge }) => (
+                {section.items.map(({ to, icon: Icon, label, badge, msgBadge, planRequired }) => {
+                  const isLocked = planRequired && (PLAN_RANK[coachPlan] || 1) < (PLAN_RANK[planRequired] || 1)
+                  return (
                   <li key={to}>
                     <NavLink
                       to={to}
@@ -304,6 +321,8 @@ export function CoachLayout() {
                         `flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all group ${
                           isActive
                             ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]'
+                            : isLocked
+                            ? 'text-[var(--text-muted)] opacity-50 hover:opacity-70 hover:bg-[var(--bg-surface)]'
                             : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
                         }`
                       }
@@ -317,7 +336,12 @@ export function CoachLayout() {
                               {unreadMsgCount > 9 ? '9+' : unreadMsgCount}
                             </span>
                           )}
-                          {badge && (
+                          {isLocked && (
+                            <span className="text-[9px] bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-base)] px-1.5 py-0.5 rounded-full font-bold uppercase">
+                              {planRequired === 'unlimited' ? 'Unlimited' : 'Pro'}
+                            </span>
+                          )}
+                          {!isLocked && badge && (
                             <span className="text-[9px] bg-[#FF6B2B] text-white px-1.5 py-0.5 rounded-full font-bold">
                               {badge}
                             </span>
@@ -326,7 +350,8 @@ export function CoachLayout() {
                       )}
                     </NavLink>
                   </li>
-                ))}
+                  )
+                })}
               </ul>
             </div>
           ))}

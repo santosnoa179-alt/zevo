@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { sendInvitation } from '../lib/invitations'
 import { useAuth } from '../hooks/useAuth'
+import { usePlanLimits } from '../hooks/usePlanLimits'
 import { useToast } from './ui/Toast'
 import {
   ArrowRight, X, ChevronRight, Check, Copy, ExternalLink,
@@ -203,6 +204,7 @@ function injectKeyframes() {
 
 export default function CoachTutorial({ onComplete, coachName }) {
   const { user } = useAuth()
+  const { canAddClient, maxClients, clientCount } = usePlanLimits()
   const toast = useToast()
   const [step, setStep] = useState(0)
   const [animState, setAnimState] = useState('in')
@@ -294,6 +296,11 @@ export default function CoachTutorial({ onComplete, coachName }) {
       setInviteError('Vérifie le format de l\'email.')
       return
     }
+    if (!canAddClient) {
+      setInviteError(`Tu as atteint la limite de ${maxClients} client${maxClients > 1 ? 's' : ''} pour ton plan. Passe à un plan supérieur pour inviter plus de clients.`)
+      return
+    }
+
     setInviteSending(true)
     setInviteError('')
 
@@ -326,7 +333,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
     }, 250)
 
     setInviteSending(false)
-  }, [user, inviteEmail, invitePrenom, coachName, toast])
+  }, [user, inviteEmail, invitePrenom, coachName, toast, canAddClient, maxClients])
 
   // ── Copy link ──
   const copyLink = useCallback(() => {

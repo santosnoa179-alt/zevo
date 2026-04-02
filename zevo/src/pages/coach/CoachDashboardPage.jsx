@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { usePlanLimits } from '../../hooks/usePlanLimits'
 import { supabase } from '../../lib/supabase'
 import {
   Users, UserPlus, TrendingUp, Euro, Calendar,
   ChevronRight, MoreHorizontal, Flame, Eye, Target,
-  BarChart3, Clock, MessageCircle, Zap, FileText,
+  BarChart3, Clock, MessageCircle, Zap, FileText, Lock,
   CheckCircle, AlertCircle, ArrowUpRight, ArrowDownRight,
   Activity, Dumbbell, Phone, ClipboardList, Star, RefreshCw
 } from 'lucide-react'
@@ -92,6 +93,7 @@ function RevenueChart({ data }) {
 export default function CoachDashboardPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { hasFeature } = usePlanLimits()
 
   const [loading, setLoading] = useState(true)
   const [coachProfile, setCoachProfile] = useState(null)
@@ -590,10 +592,11 @@ export default function CoachDashboardPage() {
                   </span>
                 )}
                 <button
-                  onClick={() => navigate('/coach/statistiques')}
+                  onClick={() => navigate(hasFeature('statistiques') ? '/coach/statistiques' : '/pricing')}
                   className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors"
+                  title={hasFeature('statistiques') ? 'Voir les statistiques' : 'Disponible avec le plan Pro'}
                 >
-                  <BarChart3 size={14} />
+                  {hasFeature('statistiques') ? <BarChart3 size={14} /> : <Lock size={14} />}
                 </button>
               </div>
             </div>
@@ -765,7 +768,7 @@ export default function CoachDashboardPage() {
                 { label: 'Nouveau client', icon: UserPlus, action: () => navigate('/coach/client-hub'), color: '#FF6B2B' },
                 { label: 'Créer un programme', icon: Dumbbell, action: () => navigate('/coach/sport'), color: '#3b82f6' },
                 { label: 'Envoyer un formulaire', icon: FileText, action: () => navigate('/coach/formulaires'), color: '#a855f7' },
-                { label: 'Voir les stats', icon: TrendingUp, action: () => navigate('/coach/statistiques'), color: '#22c55e' },
+                { label: hasFeature('statistiques') ? 'Voir les stats' : 'Stats (Pro)', icon: hasFeature('statistiques') ? TrendingUp : Lock, action: () => navigate(hasFeature('statistiques') ? '/coach/statistiques' : '/pricing'), color: hasFeature('statistiques') ? '#22c55e' : '#9ca3af' },
               ].map((a, i) => (
                 <button
                   key={i}
