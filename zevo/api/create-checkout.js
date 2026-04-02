@@ -37,15 +37,21 @@ export default async function handler(req, res) {
     const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '')
     const siteUrl = origin || process.env.NEXT_PUBLIC_SITE_URL || 'https://zevo-one.vercel.app'
 
+    console.log(`[create-checkout] userId: ${userId}, plan: ${plan}, email: ${email || 'N/A'}`)
+
     const sessionParams = {
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
         { price: subscriptionPriceId, quantity: 1 },
       ],
+      // Metadata sur la subscription (pour subscription.updated / deleted)
       subscription_data: {
-        metadata: { plan, user_id: userId },
+        metadata: { plan, supabase_user_id: userId },
       },
+      // Metadata sur la session elle-même (pour checkout.session.completed)
+      metadata: { plan, supabase_user_id: userId },
+      // ID de référence client (lisible directement sur l'objet session)
       client_reference_id: userId,
       success_url: `${siteUrl}/coach/parametres?checkout=success&plan=${plan}`,
       cancel_url: `${siteUrl}/pricing`,

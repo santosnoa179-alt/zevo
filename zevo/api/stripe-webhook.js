@@ -34,29 +34,45 @@ function getRawBody(req) {
   })
 }
 
-// ── Helper : trouver le profil coach par client_reference_id ou email ──
+// ── Helper : trouver le profil coach — 3 stratégies de lookup ──
 async function findCoachProfile(session) {
-  // 1. Lookup fiable par client_reference_id (= user.id Supabase)
-  if (session.client_reference_id) {
-    console.log(`[webhook] Lookup par client_reference_id: ${session.client_reference_id}`)
+  // Extraire tous les IDs possibles
+  const clientRefId = session.client_reference_id
+  const metadataId = session.metadata?.supabase_user_id
+  const email = session.customer_details?.email
+
+  console.log(`[webhook] findCoachProfile — client_reference_id: ${clientRefId || 'ABSENT'}, metadata.supabase_user_id: ${metadataId || 'ABSENT'}, email: ${email || 'ABSENT'}`)
+
+  // 1. Lookup par client_reference_id
+  const supabaseId = clientRefId || metadataId
+  if (supabaseId) {
+    console.log(`[webhook] Lookup par ID Supabase: ${supabaseId}`)
     const { data, error } = await supabase
       .from('profiles')
       .select('id, email')
-      .eq('id', session.client_reference_id)
-      .single()
+      .eq('id', supabaseId)
+      .maybeSingle()
 
     if (error) {
-      console.error(`[webhook] Erreur lookup client_reference_id:`, error)
+      console.error(`[webhook] Erreur lookup ID:`, JSON.stringify(error))
     }
-    if (data) return data
-    console.warn(`[webhook] client_reference_id ${session.client_reference_id} non trouvé dans profiles`)
+    if (data) {
+      console.log(`[webhook] Profil trouvé par ID: ${data.id} (${data.email})`)
+      return data
+    }
+    console.warn(`[webhook] ID ${supabaseId} non trouvé dans profiles`)
   }
 
   // 2. Fallback par email Stripe
-  const email = session.customer_details?.email
   if (!email) {
-    console.error('[webhook] Pas d\'email ni de client_reference_id dans la session checkout')
-    console.error('[webhook] Session metadata:', JSON.stringify(session.metadata || {}))
+    console.error('[webhook] AUCUN identifiant disponible (ni ID, ni email)')
+    console.error('[webhook] Session complète:', JSON.stringify({
+      id: session.id,
+      client_reference_id: clientRefId,
+      metadata: session.metadata,
+      customer_details: session.customer_details,
+      customer: session.customer,
+    }))
     return null
   }
 
@@ -65,13 +81,15 @@ async function findCoachProfile(session) {
     .from('profiles')
     .select('id, email')
     .eq('email', email)
-    .single()
+    .maybeSingle()
 
   if (error) {
-    console.error(`[webhook] Erreur lookup email:`, error)
+    console.error(`[webhook] Erreur lookup email:`, JSON.stringify(error))
   }
   if (!data) {
     console.error(`[webhook] Profil non trouvé pour email: ${email}`)
+  } else {
+    console.log(`[webhook] Profil trouvé par email: ${data.id} (${data.email})`)
   }
   return data
 }
@@ -178,17 +196,23 @@ export default async function handler(req, res) {
         console.log(`[webhook] client_reference_id: ${session.client_reference_id || 'ABSENT'}`)
         console.log(`[webhook] customer_email: ${session.customer_details?.email || 'ABSENT'}`)
 
-        // Récupérer le plan depuis les metadata de la subscription
-        let plan = 'starter'
+        // Récupérer le plan : session.metadata > subscription.metadata > 'starter'
+        let plan = session.metadata?.plan || 'starter'
+        console.log(`[webhook] Plan depuis session metadata: ${session.metadata?.plan || 'ABSENT'}`)
+
         if (subscriptionId) {
           try {
             const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-            plan = subscription.metadata?.plan || 'starter'
-            console.log(`[webhook] Plan récupéré depuis subscription metadata: ${plan}`)
+            const subPlan = subscription.metadata?.plan || subscription.metadata?.supabase_user_id ? subscription.metadata?.plan : null
+            if (subPlan) {
+              plan = subPlan
+              console.log(`[webhook] Plan depuis subscription metadata: ${plan}`)
+            }
           } catch (subErr) {
             console.error('[webhook] Erreur récupération subscription:', subErr.message)
           }
         }
+        console.log(`[webhook] Plan final: ${plan}`)
 
         // Trouver le profil coach
         const profile = await findCoachProfile(session)
