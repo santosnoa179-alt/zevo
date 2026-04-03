@@ -474,110 +474,132 @@ export default function CoachFormulairesPage() {
   // ══════════════════════════════════════════
   if (vue === 'liste') {
     return (
-      <div className="p-6 w-full">
+      <div className="p-4 md:p-6 w-full">
         {/* Header */}
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">Formulaires</h1>
-            <p className="text-[var(--text-secondary)] text-sm mt-1">Créez et envoyez des questionnaires à vos clients</p>
+        <div className="flex items-center justify-between mb-8 md:mb-10">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+              <FileText size={20} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight">Formulaires</h1>
+              <p className="text-[var(--text-secondary)] text-xs md:text-sm mt-0.5">Créez et envoyez des questionnaires à vos clients</p>
+            </div>
           </div>
           <button onClick={creerVide}
-            className="flex items-center gap-2 bg-[#FF6B2B] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-all duration-200 hover:shadow-lg hover:shadow-[#FF6B2B]/20">
-            <Plus size={18} /> Nouveau formulaire
+            className="flex items-center gap-2 text-white px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-[#FF6B2B]/25 hover:shadow-xl hover:shadow-[#FF6B2B]/30 hover:-translate-y-0.5"
+            style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+            <Plus size={18} /> <span className="hidden md:inline">Nouveau formulaire</span><span className="md:hidden">Nouveau</span>
           </button>
         </div>
 
-        {/* Templates (#1 — cartes premium) */}
-        <div className="mb-10">
-          <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-4">Templates</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Gradient accent bar */}
+        <div className="h-[2px] rounded-full mb-8 md:mb-10 opacity-20"
+          style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E, transparent)' }} />
+
+        {/* Templates */}
+        <div className="mb-8 md:mb-10">
+          <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-3 md:mb-4">Templates</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
             {TEMPLATES.map(t => {
               const Icon = t.icon
               return (
                 <button key={t.type} onClick={() => creerDepuisTemplate(t)}
-                  className="group relative bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl p-5 text-left transition-all duration-200 hover:border-[#FF6B2B]/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#FF6B2B]/[0.06]">
-                  <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center mb-3">
-                    <Icon size={20} className="text-[#FF6B2B]" />
+                  className="glass-card group relative bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden text-left transition-all duration-200 hover:border-[#FF6B2B]/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#FF6B2B]/[0.06]">
+                  {/* Gradient accent bar */}
+                  <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }} />
+                  <div className="p-3 md:p-4">
+                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center mb-2 md:mb-3"
+                      style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.15), rgba(255,143,94,0.08))' }}>
+                      <Icon size={18} className="text-[#FF6B2B]" />
+                    </div>
+                    <p className="text-[var(--text-primary)] font-semibold text-xs md:text-sm">{t.titre}</p>
+                    <p className="text-[var(--text-secondary)] text-[10px] md:text-xs mt-1 md:mt-1.5 leading-relaxed line-clamp-2">{t.description}</p>
+                    <p className="text-[#FF6B2B] text-[10px] md:text-[11px] font-medium mt-2 md:mt-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
+                      Utiliser ce template
+                    </p>
                   </div>
-                  <p className="text-[var(--text-primary)] font-semibold text-sm">{t.titre}</p>
-                  <p className="text-[var(--text-secondary)] text-xs mt-1.5 leading-relaxed line-clamp-2">{t.description}</p>
-                  <p className="text-[#FF6B2B] text-[11px] font-medium mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    Utiliser ce template
-                  </p>
                 </button>
               )
             })}
           </div>
         </div>
 
-        {/* Filters bar (#4) */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
-          <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em]">Mes formulaires</h2>
-          <div className="flex-1" />
-          <div className="flex items-center gap-2">
-            {/* Search */}
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher..."
-                className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl pl-9 pr-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors w-40"
-              />
+        {/* Filters bar */}
+        <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden mb-4 md:mb-5">
+          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 p-3 md:p-4">
+            <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em]">Mes formulaires</h2>
+            <div className="flex-1" />
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Search */}
+              <div className="relative flex-1 md:flex-none">
+                <Search className="w-3.5 h-3.5 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher..."
+                  className="w-full md:w-40 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg pl-9 pr-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+                />
+              </div>
+              {/* Type filter */}
+              <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
+                className="appearance-none bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
+                <option value="">Tous types</option>
+                {Object.entries(TYPE_LABELS).filter(([k]) => !['texte','nombre','note_1_10','choix_multiple','oui_non','date'].includes(k)).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+              {/* Status filter */}
+              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+                className="appearance-none bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
+                <option value="">Tous statuts</option>
+                <option value="actif">Actifs</option>
+                <option value="brouillon">Brouillons</option>
+              </select>
             </div>
-            {/* Type filter */}
-            <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-              className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
-              <option value="">Tous types</option>
-              {Object.entries(TYPE_LABELS).filter(([k]) => !['texte','nombre','note_1_10','choix_multiple','oui_non','date'].includes(k)).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
-            {/* Status filter (#5) */}
-            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-              className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
-              <option value="">Tous statuts</option>
-              <option value="actif">Actifs</option>
-              <option value="brouillon">Brouillons</option>
-            </select>
           </div>
         </div>
 
-        {/* Liste (#2, #3, #5, #6) */}
+        {/* Liste */}
         {loading ? (
-          <div className="bg-[var(--bg-card)]/40 border border-[var(--border-base)] rounded-2xl overflow-hidden">
+          <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
             {[1, 2, 3].map(i => (
-              <div key={i} className="px-5 py-4 border-b border-[var(--border-base)] last:border-b-0">
-                <div className="flex items-center gap-4">
-                  <div className="w-9 h-9 rounded-xl bg-[var(--bg-surface)] animate-pulse" />
+              <div key={i} className="px-4 md:px-5 py-4 border-b border-[var(--border-base)] last:border-b-0">
+                <div className="flex items-center gap-3 md:gap-4">
+                  <div className="w-9 h-9 rounded-xl skel-block flex-shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-40 bg-[var(--bg-surface)] rounded animate-pulse" />
-                    <div className="h-3 w-64 bg-[var(--bg-surface)] rounded animate-pulse" />
+                    <div className="h-4 w-32 md:w-40 rounded skel-block" />
+                    <div className="h-3 w-48 md:w-64 rounded skel-block" />
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : filteredFormulaires.length === 0 ? (
-          /* Empty state (#3) */
-          <div className="bg-[var(--bg-surface)] rounded-2xl border border-dashed border-[var(--border-base)] p-14 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/[0.06] flex items-center justify-center mx-auto mb-5">
-              <FileText size={28} className="text-[#FF6B2B]/40" />
+          /* Empty state */
+          <div className="glass-card bg-[var(--bg-card)] rounded-xl border border-dashed border-[var(--border-base)] overflow-hidden">
+            <div className="p-10 md:p-14 text-center">
+              <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-5 animate-breathe"
+                style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.08), rgba(255,143,94,0.04))' }}>
+                <FileText size={24} className="text-[#FF6B2B]/40 md:w-7 md:h-7" />
+              </div>
+              <p className="text-[var(--text-secondary)] text-sm font-medium mb-1">
+                {formulaires.length === 0 ? 'Aucun formulaire créé' : 'Aucun résultat'}
+              </p>
+              <p className="text-[var(--text-muted)] text-xs mb-5">
+                {formulaires.length === 0 ? 'Commencez avec un template ou créez-en un de zéro' : 'Essayez de modifier vos filtres'}
+              </p>
+              {formulaires.length === 0 && (
+                <button onClick={creerVide}
+                  className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#FF6B2B]/25"
+                  style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+                  <Plus size={16} /> Créer mon premier formulaire
+                </button>
+              )}
             </div>
-            <p className="text-[var(--text-secondary)] text-sm font-medium mb-1">
-              {formulaires.length === 0 ? 'Aucun formulaire créé' : 'Aucun résultat'}
-            </p>
-            <p className="text-[var(--text-muted)] text-xs mb-5">
-              {formulaires.length === 0 ? 'Commencez avec un template ou créez-en un de zéro' : 'Essayez de modifier vos filtres'}
-            </p>
-            {formulaires.length === 0 && (
-              <button onClick={creerVide}
-                className="inline-flex items-center gap-2 bg-[#FF6B2B] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-colors">
-                <Plus size={16} /> Créer mon premier formulaire
-              </button>
-            )}
           </div>
         ) : (
-          <div className="bg-[var(--bg-card)]/40 border border-[var(--border-base)] rounded-2xl overflow-hidden">
+          <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
             {filteredFormulaires.map((f, idx) => {
               const nbRep = f.formulaire_reponses?.[0]?.count || 0
               const isActif = (f.statut || 'actif') === 'actif'
@@ -586,24 +608,27 @@ export default function CoachFormulairesPage() {
 
               return (
                 <div key={f.id}
-                  className={`group flex items-center gap-4 px-5 py-4 transition-colors duration-150 hover:bg-[var(--bg-surface)] ${
+                  className={`group flex items-center gap-3 md:gap-4 px-4 md:px-5 py-3 md:py-4 transition-colors duration-150 hover:bg-[var(--bg-surface)]/50 ${
                     idx < filteredFormulaires.length - 1 ? 'border-b border-[var(--border-base)]' : ''
                   }`}>
 
-                  {/* Status dot + icon */}
+                  {/* Status dot + icon with left accent */}
                   <div className="relative flex-shrink-0">
-                    <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+                    <div className="absolute -left-4 md:-left-5 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full"
+                      style={{ background: isActif ? 'linear-gradient(180deg, #FF6B2B, #FF8F5E)' : 'var(--text-muted)', opacity: isActif ? 1 : 0.3 }} />
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                      style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.15), rgba(255,143,94,0.08))' }}>
                       <FileText size={16} className="text-[#FF6B2B]" />
                     </div>
-                    {/* Status dot */}
-                    <div className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#1E1E1E] ${
+                    {/* Status dot overlay */}
+                    <div className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--bg-card)] ${
                       isActif ? 'bg-green-400' : 'bg-[var(--text-muted)]'
                     }`} />
                   </div>
 
                   {/* Infos */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
                       <p className="text-[var(--text-primary)] font-medium text-sm truncate">{f.titre}</p>
                       {!isActif && (
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium uppercase">Brouillon</span>
@@ -613,18 +638,18 @@ export default function CoachFormulairesPage() {
                           ? <span className="inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B]/70 font-semibold flex-shrink-0"><Dumbbell size={10} />Post-séance</span>
                           : <Repeat size={12} className="text-[#FF6B2B]/60 flex-shrink-0" />
                       )}
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] flex-shrink-0 font-medium">
+                      <span className="hidden md:inline-flex text-[10px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] flex-shrink-0 font-medium">
                         {TYPE_LABELS[f.type] || f.type}
                       </span>
                     </div>
                     <div className="flex items-center gap-3 mt-0.5">
-                      {f.description && <p className="text-[var(--text-muted)] text-xs truncate max-w-sm">{f.description}</p>}
+                      {f.description && <p className="text-[var(--text-muted)] text-[11px] md:text-xs truncate max-w-[200px] md:max-w-sm">{f.description}</p>}
                       {lastDate && <span className="text-[var(--text-muted)] text-[10px] flex-shrink-0">{timeAgo(lastDate)}</span>}
                     </div>
                   </div>
 
-                  {/* Badge réponses (#3) */}
-                  <div className="flex-shrink-0">
+                  {/* Badge réponses */}
+                  <div className="flex-shrink-0 hidden md:block">
                     {nbRep === 0 ? (
                       <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium">
                         0 réponse
@@ -636,23 +661,23 @@ export default function CoachFormulairesPage() {
                     )}
                   </div>
 
-                  {/* Actions (#4 hover colors) */}
-                  <div className="flex items-center gap-1 ml-1 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity duration-150">
+                  {/* Actions — reveal on hover desktop */}
+                  <div className="flex items-center gap-0.5 md:gap-1 ml-1 flex-shrink-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150">
                     <button onClick={() => voirReponses(f)} title="Voir les réponses"
                       className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors"><Eye size={18} /></button>
                     <button onClick={() => ouvrirEnvoi(f)} title="Envoyer"
                       className={`p-2 rounded-lg transition-colors ${isActif ? 'text-[var(--text-secondary)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10' : 'text-[var(--text-muted)] cursor-not-allowed'}`}
                       disabled={!isActif}><Send size={18} /></button>
                     <button onClick={() => dupliquerFormulaire(f)} title="Dupliquer"
-                      className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"><Copy size={18} /></button>
+                      className="hidden md:flex p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"><Copy size={18} /></button>
                     <button onClick={() => editerFormulaire(f)} title="Éditer"
                       className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors"><Edit3 size={18} /></button>
                     <button onClick={() => toggleStatut(f)} title={isActif ? 'Mettre en brouillon' : 'Activer'}
-                      className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
+                      className="hidden md:flex p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
                       {isActif ? <ToggleRight size={18} className="text-green-400" /> : <ToggleLeft size={18} />}
                     </button>
                     <button onClick={() => supprimerFormulaire(f.id)} title="Supprimer"
-                      className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={18} /></button>
+                      className="hidden md:flex p-2 rounded-lg text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={18} /></button>
                   </div>
                 </div>
               )
@@ -660,27 +685,30 @@ export default function CoachFormulairesPage() {
           </div>
         )}
 
-        {/* ── Modal envoi (#7 — bulk + relance) ── */}
+        {/* ── Modal envoi ── */}
         {modalEnvoi && (
           <>
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => { setModalEnvoi(false); setFormEnvoi(null) }} />
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden shadow-2xl">
+            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+              <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-t-2xl md:rounded-xl w-full max-w-md max-h-[85vh] md:max-h-[80vh] overflow-hidden shadow-2xl">
+                {/* Gradient accent bar */}
+                <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }} />
                 {/* Header */}
-                <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
+                <div className="px-4 md:px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
                   <div>
                     <h3 className="text-[var(--text-primary)] font-semibold text-sm">Envoyer « {formEnvoi?.titre} »</h3>
                     <p className="text-[var(--text-muted)] text-xs mt-0.5">Sélectionnez les destinataires</p>
                   </div>
                   <button onClick={() => { setModalEnvoi(false); setFormEnvoi(null) }}
-                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"><X size={18} /></button>
+                    className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"><X size={18} /></button>
                 </div>
 
                 {/* Bulk actions */}
                 {!loadingClients && clients.length > 0 && (
-                  <div className="px-5 py-3 border-b border-[var(--border-base)] flex items-center gap-2">
+                  <div className="px-4 md:px-5 py-3 border-b border-[var(--border-base)] flex items-center gap-2">
                     <button onClick={envoyerATous}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#e55e24] transition-colors">
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold transition-all shadow-lg shadow-[#FF6B2B]/25"
+                      style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
                       <Users size={12} /> Envoyer à tous
                     </button>
                     {selectedClients.size > 0 && (
@@ -696,13 +724,16 @@ export default function CoachFormulairesPage() {
                 )}
 
                 {/* Client list */}
-                <div className="p-4 overflow-y-auto max-h-[50vh]">
+                <div className="p-3 md:p-4 overflow-y-auto max-h-[50vh]">
                   {loadingClients ? (
                     <div className="space-y-2">
-                      {[1, 2, 3].map(i => <div key={i} className="h-14 bg-[var(--bg-surface)] rounded-xl animate-pulse" />)}
+                      {[1, 2, 3].map(i => <div key={i} className="h-14 rounded-xl skel-block" />)}
                     </div>
                   ) : clients.length === 0 ? (
-                    <p className="text-[var(--text-muted)] text-sm text-center py-8">Aucun client actif</p>
+                    <div className="py-8 text-center">
+                      <Users size={20} className="text-[var(--text-muted)] mx-auto mb-2 animate-breathe" />
+                      <p className="text-[var(--text-muted)] text-sm">Aucun client actif</p>
+                    </div>
                   ) : (
                     <div className="space-y-1.5">
                       {clients.map(c => {
@@ -712,7 +743,7 @@ export default function CoachFormulairesPage() {
                             className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--bg-surface)] transition-colors">
                             {/* Checkbox for bulk */}
                             {!c.repStatus && (
-                              <button onClick={() => toggleSelectClient(c.id)} className="flex-shrink-0">
+                              <button onClick={() => toggleSelectClient(c.id)} className="flex-shrink-0 p-0.5">
                                 {selectedClients.has(c.id)
                                   ? <CheckCircle2 size={18} className="text-[#FF6B2B]" />
                                   : <Circle size={18} className="text-[var(--text-muted)]" />
@@ -729,7 +760,7 @@ export default function CoachFormulairesPage() {
                               </span>
                             ) : c.repStatus === 'pending' ? (
                               <div className="flex items-center gap-2">
-                                <span className="text-[11px] text-yellow-400/70">En attente</span>
+                                <span className="text-[11px] text-yellow-400/70 hidden md:inline">En attente</span>
                                 <button onClick={() => relancerClient(c.id)}
                                   className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--bg-surface)] text-[var(--text-secondary)] text-[10px] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors">
                                   <RefreshCw size={10} /> Relancer
@@ -739,7 +770,8 @@ export default function CoachFormulairesPage() {
                               <span className="text-[11px] text-[#FF6B2B] font-medium">Relancé</span>
                             ) : (
                               <button onClick={() => envoyerAuClient(c.id)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#e55e24] transition-colors">
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold transition-all shadow-lg shadow-[#FF6B2B]/25"
+                                style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
                                 <Send size={12} /> Envoyer
                               </button>
                             )}
@@ -750,9 +782,9 @@ export default function CoachFormulairesPage() {
                   )}
                 </div>
 
-                <div className="px-5 py-3 border-t border-[var(--border-base)]">
+                <div className="px-4 md:px-5 py-3 border-t border-[var(--border-base)]">
                   <button onClick={() => { setModalEnvoi(false); setFormEnvoi(null) }}
-                    className="w-full py-2 rounded-xl text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">Fermer</button>
+                    className="w-full py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">Fermer</button>
                 </div>
               </div>
             </div>
@@ -763,120 +795,151 @@ export default function CoachFormulairesPage() {
   }
 
   // ══════════════════════════════════════════
-  // RENDER — Vue réponses (#2, #10)
+  // RENDER — Vue réponses
   // ══════════════════════════════════════════
   if (vue === 'reponses') {
     return (
-      <div className="p-6 w-full max-w-4xl">
+      <div className="p-4 md:p-6 w-full max-w-4xl">
         <button onClick={() => setVue('liste')}
-          className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] text-sm mb-6 transition-colors">
+          className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[#FF6B2B] text-sm mb-5 md:mb-6 transition-colors p-2 -ml-2 rounded-lg hover:bg-[#FF6B2B]/5">
           <ArrowLeft size={16} /> Retour aux formulaires
         </button>
 
-        <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1 tracking-tight">Réponses — {repFormulaire?.titre}</h1>
-        <p className="text-[var(--text-secondary)] text-sm mb-6">{reponses.length} réponse{reponses.length !== 1 ? 's' : ''}</p>
+        <div className="flex items-center gap-3 md:gap-4 mb-6">
+          <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+            <BarChart3 size={20} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight">Réponses — {repFormulaire?.titre}</h1>
+            <p className="text-[var(--text-secondary)] text-xs md:text-sm">{reponses.length} réponse{reponses.length !== 1 ? 's' : ''}</p>
+          </div>
+        </div>
 
-        {/* Stats summary (#2, #10) */}
+        {/* Gradient accent bar */}
+        <div className="h-[2px] rounded-full mb-6 opacity-20"
+          style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E, transparent)' }} />
+
+        {/* Stats summary */}
         {repStats && reponses.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-            <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl p-4">
-              <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Complétées</p>
-              <p className="text-xl font-bold text-green-400 mt-1">{repStats.completed}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-6 md:mb-8">
+            <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
+              <div className="h-[2px] w-full bg-green-400/50" />
+              <div className="p-3 md:p-4">
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Complétées</p>
+                <p className="text-lg md:text-xl font-bold text-green-400 mt-1">{repStats.completed}</p>
+              </div>
             </div>
-            <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl p-4">
-              <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">En attente</p>
-              <p className="text-xl font-bold text-yellow-400 mt-1">{repStats.pending}</p>
+            <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
+              <div className="h-[2px] w-full bg-yellow-400/50" />
+              <div className="p-3 md:p-4">
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">En attente</p>
+                <p className="text-lg md:text-xl font-bold text-yellow-400 mt-1">{repStats.pending}</p>
+              </div>
             </div>
             {repStats.avgScore !== null && (() => {
               const sc = scoreColor(repStats.avgScore)
               return (
-                <div className={`${sc.bg} border ${sc.border} rounded-xl p-4`}>
-                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold flex items-center gap-1">
-                    <Zap size={10} /> Score moyen
-                  </p>
-                  <p className={`text-xl font-bold ${sc.text} mt-1`}>{repStats.avgScore}/10</p>
+                <div className={`glass-card ${sc.bg} border ${sc.border} rounded-xl overflow-hidden`}>
+                  <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }} />
+                  <div className="p-3 md:p-4">
+                    <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold flex items-center gap-1">
+                      <Zap size={10} /> Score moyen
+                    </p>
+                    <p className={`text-lg md:text-xl font-bold ${sc.text} mt-1`}>{repStats.avgScore}/10</p>
+                  </div>
                 </div>
               )
             })()}
-            <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl p-4">
-              <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Taux complétion</p>
-              <p className="text-xl font-bold text-[#FF6B2B] mt-1">
-                {reponses.length > 0 ? Math.round((repStats.completed / reponses.length) * 100) : 0}%
-              </p>
+            <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
+              <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }} />
+              <div className="p-3 md:p-4">
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Taux complétion</p>
+                <p className="text-lg md:text-xl font-bold text-[#FF6B2B] mt-1">
+                  {reponses.length > 0 ? Math.round((repStats.completed / reponses.length) * 100) : 0}%
+                </p>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Per-field stats (#2) */}
+        {/* Per-field stats */}
         {repStats?.champStats && repStats.completed > 0 && (
-          <div className="bg-[var(--bg-card)]/40 border border-[var(--border-base)] rounded-2xl p-5 mb-8">
-            <h3 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-4">Synthèse par question</h3>
-            <div className="space-y-4">
-              {repStats.champStats.filter(cs => cs.count > 0).map(cs => (
-                <div key={cs.id}>
-                  <p className="text-xs text-[var(--text-secondary)] mb-1.5">{cs.label}</p>
+          <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden mb-6 md:mb-8">
+            <div className="h-[2px] w-full opacity-50" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E, transparent)' }} />
+            <div className="p-4 md:p-5">
+              <h3 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-4">Synthèse par question</h3>
+              <div className="space-y-4">
+                {repStats.champStats.filter(cs => cs.count > 0).map(cs => (
+                  <div key={cs.id}>
+                    <p className="text-xs text-[var(--text-secondary)] mb-1.5">{cs.label}</p>
 
-                  {cs.type_champ === 'note_1_10' && cs.moyenne !== null && (
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-500"
-                          style={{ width: `${cs.moyenne * 10}%`, backgroundColor: cs.moyenne >= 7 ? '#22c55e' : cs.moyenne >= 4 ? '#eab308' : '#ef4444' }} />
-                      </div>
-                      <span className="text-sm font-bold text-[var(--text-primary)] tabular-nums w-12 text-right">{cs.moyenne}/10</span>
-                    </div>
-                  )}
-
-                  {cs.type_champ === 'oui_non' && (
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">
-                        Oui {cs.oui}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 font-medium">
-                        Non {cs.non}
-                      </span>
-                      {cs.count > 0 && (
-                        <div className="flex-1 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden ml-2">
-                          <div className="h-full rounded-full bg-green-400" style={{ width: `${(cs.oui / cs.count) * 100}%` }} />
+                    {cs.type_champ === 'note_1_10' && cs.moyenne !== null && (
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${cs.moyenne * 10}%`, backgroundColor: cs.moyenne >= 7 ? '#22c55e' : cs.moyenne >= 4 ? '#eab308' : '#ef4444' }} />
                         </div>
-                      )}
-                    </div>
-                  )}
+                        <span className="text-sm font-bold text-[var(--text-primary)] tabular-nums w-12 text-right">{cs.moyenne}/10</span>
+                      </div>
+                    )}
 
-                  {cs.type_champ === 'choix_multiple' && cs.freq && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {Object.entries(cs.freq).sort((a, b) => b[1] - a[1]).map(([opt, count]) => (
-                        <span key={opt} className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/15 font-medium">
-                          {opt} <span className="text-[#FF6B2B]/60">{count}</span>
+                    {cs.type_champ === 'oui_non' && (
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">
+                          Oui {cs.oui}
                         </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                        <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 font-medium">
+                          Non {cs.non}
+                        </span>
+                        {cs.count > 0 && (
+                          <div className="flex-1 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden ml-2">
+                            <div className="h-full rounded-full bg-green-400" style={{ width: `${(cs.oui / cs.count) * 100}%` }} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {cs.type_champ === 'choix_multiple' && cs.freq && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {Object.entries(cs.freq).sort((a, b) => b[1] - a[1]).map(([opt, count]) => (
+                          <span key={opt} className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/15 font-medium">
+                            {opt} <span className="text-[#FF6B2B]/60">{count}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
         {/* Individual responses */}
         {reponses.length === 0 ? (
-          <div className="bg-[var(--bg-surface)] rounded-2xl border border-dashed border-[var(--border-base)] p-14 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-4">
-              <ClipboardCheck size={24} className="text-[var(--text-muted)]" />
+          <div className="glass-card bg-[var(--bg-card)] rounded-xl border border-dashed border-[var(--border-base)] overflow-hidden">
+            <div className="p-10 md:p-14 text-center">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-breathe"
+                style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.08), rgba(255,143,94,0.04))' }}>
+                <ClipboardCheck size={24} className="text-[var(--text-muted)]" />
+              </div>
+              <p className="text-[var(--text-muted)] text-sm font-medium">Aucune réponse pour ce formulaire</p>
+              <p className="text-[var(--text-muted)] text-xs mt-1">Envoyez-le à vos clients pour commencer</p>
             </div>
-            <p className="text-[var(--text-muted)] text-sm font-medium">Aucune réponse pour ce formulaire</p>
-            <p className="text-[var(--text-muted)] text-xs mt-1">Envoyez-le à vos clients pour commencer</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {reponses.map(r => {
               const nom = r.clients?.profiles?.nom || r.clients?.profiles?.email || 'Client'
               const score = r.complete ? computeScore(r.reponses, repChamps) : null
 
               return (
-                <div key={r.id} className="bg-[var(--bg-card)]/40 border border-[var(--border-base)] rounded-2xl overflow-hidden">
+                <div key={r.id} className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
                   {/* Response header */}
-                  <div className="px-5 py-4 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center text-[#FF6B2B] text-xs font-bold flex-shrink-0">
+                  <div className="px-4 md:px-5 py-3 md:py-4 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                      style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
                       {nom.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -900,9 +963,9 @@ export default function CoachFormulairesPage() {
                     </span>
                   </div>
 
-                  {/* Response details — data viz (#2) */}
+                  {/* Response details */}
                   {r.complete && repChamps.length > 0 && (
-                    <div className="px-5 pb-5 space-y-3 border-t border-[var(--border-subtle)] pt-4">
+                    <div className="px-4 md:px-5 pb-4 md:pb-5 space-y-3 border-t border-[var(--border-subtle)] pt-4">
                       {repChamps.map(ch => {
                         const val = r.reponses?.[ch.id]
                         const isEmpty = val === undefined || val === null || val === ''
@@ -957,28 +1020,34 @@ export default function CoachFormulairesPage() {
   }
 
   // ══════════════════════════════════════════
-  // RENDER — Vue éditeur (#1, #8, #9, #11)
+  // RENDER — Vue éditeur
   // ══════════════════════════════════════════
   return (
-    <div className="p-6 w-full max-w-4xl">
+    <div className="p-4 md:p-6 w-full max-w-4xl">
       <button onClick={() => setVue('liste')}
-        className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] text-sm mb-6 transition-colors">
+        className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[#FF6B2B] text-sm mb-5 md:mb-6 transition-colors p-2 -ml-2 rounded-lg hover:bg-[#FF6B2B]/5">
         <ArrowLeft size={16} /> Retour
       </button>
 
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-          {formId ? 'Modifier le formulaire' : 'Nouveau formulaire'}
-        </h1>
+      <div className="flex items-center justify-between mb-5 md:mb-6">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+            <Edit3 size={20} className="text-white" />
+          </div>
+          <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
+            {formId ? 'Modifier le formulaire' : 'Nouveau formulaire'}
+          </h1>
+        </div>
         <div className="flex items-center gap-2">
-          {/* Preview button (#8) */}
+          {/* Preview button */}
           {champs.length > 0 && (
             <button onClick={() => setPreviewOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-surface)] border border-[var(--border-base)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
-              <Play size={14} /> Aperçu
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-surface)] border border-[var(--border-base)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-colors">
+              <Play size={14} /> <span className="hidden md:inline">Aperçu</span>
             </button>
           )}
-          {/* Status toggle (#5) */}
+          {/* Status toggle */}
           <button onClick={() => setFormStatut(s => s === 'actif' ? 'brouillon' : 'actif')}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
               formStatut === 'actif'
@@ -991,230 +1060,251 @@ export default function CoachFormulairesPage() {
         </div>
       </div>
 
+      {/* Gradient accent bar */}
+      <div className="h-[2px] rounded-full mb-5 md:mb-6 opacity-20"
+        style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E, transparent)' }} />
+
       {/* Infos */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl p-5 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Titre *</label>
-            <input type="text" value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex : Bilan de démarrage"
-              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
+      <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden mb-4 md:mb-6">
+        <div className="h-[2px] w-full opacity-40" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E, transparent)' }} />
+        <div className="p-4 md:p-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            <div>
+              <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Titre *</label>
+              <input type="text" value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex : Bilan de démarrage"
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
+            </div>
+            <div>
+              <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Type</label>
+              <select value={typeForm} onChange={(e) => setTypeForm(e.target.value)}
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors">
+                <option value="custom">Personnalisé</option>
+                <option value="bilan_initial">Bilan initial</option>
+                <option value="check_in">Check-in hebdo</option>
+                <option value="sante">Santé</option>
+                <option value="satisfaction">Satisfaction</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Type</label>
-            <select value={typeForm} onChange={(e) => setTypeForm(e.target.value)}
-              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors">
-              <option value="custom">Personnalisé</option>
-              <option value="bilan_initial">Bilan initial</option>
-              <option value="check_in">Check-in hebdo</option>
-              <option value="sante">Santé</option>
-              <option value="satisfaction">Satisfaction</option>
-            </select>
+          <div className="mt-3 md:mt-4">
+            <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Description</label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description visible par le client..." rows={2}
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none" />
           </div>
-        </div>
-        <div className="mt-4">
-          <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Description</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description visible par le client..." rows={2}
-            className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none" />
         </div>
       </div>
 
-      {/* Récurrence (#11) */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl p-5 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Repeat size={16} className={recurrenceActif ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'} />
-            <h3 className="text-sm font-semibold text-[var(--text-primary)]">Envoi récurrent</h3>
-          </div>
-          <button onClick={() => setRecurrenceActif(!recurrenceActif)}
-            className={`p-1.5 rounded-lg transition-colors ${recurrenceActif ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
-            {recurrenceActif ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-          </button>
-        </div>
-        {recurrenceActif && (
-          <div className="mt-3 pt-3 border-t border-[var(--border-base)]">
-            <div className={`grid gap-3 ${recurrenceInterval === 'post_seance' ? 'grid-cols-1' : 'grid-cols-3'}`}>
-              <div>
-                <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Fréquence</label>
-                <select value={recurrenceInterval} onChange={(e) => setRecurrenceInterval(e.target.value)}
-                  className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
-                  <option value="hebdomadaire">Hebdomadaire</option>
-                  <option value="mensuel">Mensuel</option>
-                  <option value="post_seance">Après chaque séance</option>
-                </select>
+      {/* Récurrence */}
+      <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden mb-4 md:mb-6">
+        <div className="h-[2px] w-full opacity-30" style={{ background: recurrenceActif ? 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' : 'transparent' }} />
+        <div className="p-4 md:p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${recurrenceActif ? '' : 'bg-[var(--bg-surface)]'}`}
+                style={recurrenceActif ? { background: 'linear-gradient(135deg, rgba(255,107,43,0.15), rgba(255,143,94,0.08))' } : {}}>
+                <Repeat size={14} className={recurrenceActif ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'} />
               </div>
-              {recurrenceInterval !== 'post_seance' && (
-                <>
-                  <div>
-                    <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">
-                      {recurrenceInterval === 'hebdomadaire' ? 'Jour' : 'Jour du mois'}
-                    </label>
-                    {recurrenceInterval === 'hebdomadaire' ? (
-                      <select value={recurrenceJour} onChange={(e) => setRecurrenceJour(Number(e.target.value))}
-                        className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
-                        {['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'].map((j, i) => (
-                          <option key={i} value={i + 1}>{j}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input type="number" min="1" max="28" value={recurrenceJour} onChange={(e) => setRecurrenceJour(Number(e.target.value))}
-                        className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Heure</label>
-                    <input type="time" value={recurrenceHeure} onChange={(e) => setRecurrenceHeure(e.target.value)}
-                      className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
-                  </div>
-                </>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">Envoi récurrent</h3>
+            </div>
+            <button onClick={() => setRecurrenceActif(!recurrenceActif)}
+              className={`p-2 rounded-lg transition-colors ${recurrenceActif ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
+              {recurrenceActif ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
+            </button>
+          </div>
+          {recurrenceActif && (
+            <div className="mt-3 pt-3 border-t border-[var(--border-base)]">
+              <div className={`grid gap-2 md:gap-3 ${recurrenceInterval === 'post_seance' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'}`}>
+                <div>
+                  <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Fréquence</label>
+                  <select value={recurrenceInterval} onChange={(e) => setRecurrenceInterval(e.target.value)}
+                    className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                    <option value="hebdomadaire">Hebdomadaire</option>
+                    <option value="mensuel">Mensuel</option>
+                    <option value="post_seance">Après chaque séance</option>
+                  </select>
+                </div>
+                {recurrenceInterval !== 'post_seance' && (
+                  <>
+                    <div>
+                      <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">
+                        {recurrenceInterval === 'hebdomadaire' ? 'Jour' : 'Jour du mois'}
+                      </label>
+                      {recurrenceInterval === 'hebdomadaire' ? (
+                        <select value={recurrenceJour} onChange={(e) => setRecurrenceJour(Number(e.target.value))}
+                          className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                          {['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'].map((j, i) => (
+                            <option key={i} value={i + 1}>{j}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input type="number" min="1" max="28" value={recurrenceJour} onChange={(e) => setRecurrenceJour(Number(e.target.value))}
+                          className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-1.5">Heure</label>
+                      <input type="time" value={recurrenceHeure} onChange={(e) => setRecurrenceHeure(e.target.value)}
+                        className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                    </div>
+                  </>
+                )}
+              </div>
+              {recurrenceInterval === 'post_seance' && (
+                <div className="mt-3 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#FF6B2B]/5 border border-[#FF6B2B]/10">
+                  <Dumbbell size={14} className="text-[#FF6B2B] flex-shrink-0" />
+                  <p className="text-[#FF6B2B]/70 text-xs">Ce formulaire sera envoyé automatiquement au client dès qu'il termine une séance.</p>
+                </div>
               )}
             </div>
-            {recurrenceInterval === 'post_seance' && (
-              <div className="mt-3 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#FF6B2B]/5 border border-[#FF6B2B]/10">
-                <Dumbbell size={14} className="text-[#FF6B2B] flex-shrink-0" />
-                <p className="text-[#FF6B2B]/70 text-xs">Ce formulaire sera envoyé automatiquement au client dès qu'il termine une séance.</p>
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* ── Champs (#1 — numéros, #9 — conditions) ── */}
-      <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-4">
+      {/* ── Champs ── */}
+      <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-3 md:mb-4">
         Questions ({champs.length})
       </h2>
 
-      <div className="space-y-3 mb-5">
+      <div className="space-y-2 md:space-y-3 mb-4 md:mb-5">
         {champs.map((champ, idx) => (
-          <div key={champ.id} className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl p-4 hover:border-[var(--border-base)] transition-colors">
-            <div className="flex items-start gap-3">
-              {/* Number + reorder (#1) */}
-              <div className="flex flex-col items-center gap-0.5 pt-0.5 flex-shrink-0">
-                <button onClick={() => deplacerChamp(idx, -1)} disabled={idx === 0}
-                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors disabled:opacity-30"><ChevronUp size={14} /></button>
-                <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
-                  <span className="text-[#FF6B2B] text-xs font-bold">{idx + 1}</span>
-                </div>
-                <button onClick={() => deplacerChamp(idx, 1)} disabled={idx === champs.length - 1}
-                  className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors disabled:opacity-30"><ChevronDown size={14} /></button>
-              </div>
+          <div key={champ.id} className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden hover:border-[var(--border-base)] transition-colors">
+            {/* Numbered accent bar */}
+            <div className="flex items-stretch">
+              <div className="w-1 md:w-1.5 flex-shrink-0 rounded-l-xl"
+                style={{ background: 'linear-gradient(180deg, #FF6B2B, #FF8F5E)' }} />
+              <div className="flex-1 p-3 md:p-4">
+                <div className="flex items-start gap-2 md:gap-3">
+                  {/* Number + reorder */}
+                  <div className="flex flex-col items-center gap-0.5 pt-0.5 flex-shrink-0">
+                    <button onClick={() => deplacerChamp(idx, -1)} disabled={idx === 0}
+                      className="p-0.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors disabled:opacity-30"><ChevronUp size={14} /></button>
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                      style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.15), rgba(255,143,94,0.08))' }}>
+                      <span className="text-[#FF6B2B] text-xs font-bold">{idx + 1}</span>
+                    </div>
+                    <button onClick={() => deplacerChamp(idx, 1)} disabled={idx === champs.length - 1}
+                      className="p-0.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors disabled:opacity-30"><ChevronDown size={14} /></button>
+                  </div>
 
-              {/* Field content */}
-              <div className="flex-1 space-y-3">
-                <div className="flex gap-3">
-                  <input type="text" value={champ.label} onChange={(e) => modifierChamp(idx, 'label', e.target.value)}
-                    placeholder="Intitulé de la question..."
-                    className="flex-1 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
-                  <select value={champ.type_champ} onChange={(e) => modifierChamp(idx, 'type_champ', e.target.value)}
-                    className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors">
-                    {Object.entries(TYPE_LABELS).filter(([k]) => ['texte','nombre','note_1_10','choix_multiple','oui_non','date'].includes(k)).map(([k, v]) => (
-                      <option key={k} value={k}>{v}</option>
-                    ))}
-                  </select>
-                </div>
+                  {/* Field content */}
+                  <div className="flex-1 space-y-2 md:space-y-3 min-w-0">
+                    <div className="flex flex-col md:flex-row gap-2 md:gap-3">
+                      <input type="text" value={champ.label} onChange={(e) => modifierChamp(idx, 'label', e.target.value)}
+                        placeholder="Intitulé de la question..."
+                        className="flex-1 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl px-3 md:px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
+                      <select value={champ.type_champ} onChange={(e) => modifierChamp(idx, 'type_champ', e.target.value)}
+                        className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl px-3 py-2.5 text-xs text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors">
+                        {Object.entries(TYPE_LABELS).filter(([k]) => ['texte','nombre','note_1_10','choix_multiple','oui_non','date'].includes(k)).map(([k, v]) => (
+                          <option key={k} value={k}>{v}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                {/* Options (choix multiple) */}
-                {champ.type_champ === 'choix_multiple' && (
-                  <div className="pl-2 space-y-2">
-                    {(champ.options || []).map((opt, optIdx) => (
-                      <div key={optIdx} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-sm border border-white/20 flex-shrink-0" />
-                        <input type="text" value={opt} onChange={(e) => modifierOption(idx, optIdx, e.target.value)}
-                          className="flex-1 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
-                        <button onClick={() => supprimerOption(idx, optIdx)}
-                          className="text-[var(--text-muted)] hover:text-red-400 transition-colors"><Trash2 size={12} /></button>
+                    {/* Options (choix multiple) */}
+                    {champ.type_champ === 'choix_multiple' && (
+                      <div className="pl-1 md:pl-2 space-y-2">
+                        {(champ.options || []).map((opt, optIdx) => (
+                          <div key={optIdx} className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-sm border border-white/20 flex-shrink-0" />
+                            <input type="text" value={opt} onChange={(e) => modifierOption(idx, optIdx, e.target.value)}
+                              className="flex-1 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
+                            <button onClick={() => supprimerOption(idx, optIdx)}
+                              className="p-1 text-[var(--text-muted)] hover:text-red-400 transition-colors"><Trash2 size={12} /></button>
+                          </div>
+                        ))}
+                        <button onClick={() => ajouterOption(idx)}
+                          className="text-[#FF6B2B] text-xs hover:underline">+ Ajouter une option</button>
                       </div>
-                    ))}
-                    <button onClick={() => ajouterOption(idx)}
-                      className="text-[#FF6B2B] text-xs hover:underline">+ Ajouter une option</button>
-                  </div>
-                )}
+                    )}
 
-                {/* Scoring weight for note_1_10 (#10) */}
-                {champ.type_champ === 'note_1_10' && (
-                  <div className="flex items-center gap-2">
-                    <Zap size={12} className="text-yellow-400/60" />
-                    <label className="text-[var(--text-muted)] text-[11px]">Poids dans le score :</label>
-                    <input type="number" min="1" max="10" value={champ.poids_score || 1}
-                      onChange={(e) => modifierChamp(idx, 'poids_score', Number(e.target.value))}
-                      className="w-14 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2 py-1 text-xs text-[var(--text-primary)] text-center focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
-                  </div>
-                )}
+                    {/* Scoring weight for note_1_10 */}
+                    {champ.type_champ === 'note_1_10' && (
+                      <div className="flex items-center gap-2">
+                        <Zap size={12} className="text-yellow-400/60" />
+                        <label className="text-[var(--text-muted)] text-[11px]">Poids dans le score :</label>
+                        <input type="number" min="1" max="10" value={champ.poids_score || 1}
+                          onChange={(e) => modifierChamp(idx, 'poids_score', Number(e.target.value))}
+                          className="w-14 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-xs text-[var(--text-primary)] text-center focus:border-[#FF6B2B]/50 focus:outline-none transition-colors" />
+                      </div>
+                    )}
 
-                {/* Condition d'affichage (#9) */}
-                {idx > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <GitBranch size={12} className="text-purple-400/60 flex-shrink-0" />
-                    <label className="text-[var(--text-muted)] text-[11px] flex-shrink-0">Afficher si :</label>
-                    <select
-                      value={champ.condition_affichage?.champ_id || ''}
-                      onChange={(e) => {
-                        if (!e.target.value) return modifierChamp(idx, 'condition_affichage', null)
-                        modifierChamp(idx, 'condition_affichage', {
-                          ...(champ.condition_affichage || {}), champ_id: e.target.value, operateur: 'equals', valeur: '',
-                        })
-                      }}
-                      className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
-                      <option value="">Toujours visible</option>
-                      {champs.slice(0, idx).map(c => (
-                        <option key={c.id} value={c.id}>Q{champs.indexOf(c) + 1}: {c.label?.substring(0, 30) || 'Sans titre'}...</option>
-                      ))}
-                    </select>
-                    {champ.condition_affichage?.champ_id && (() => {
-                      const parentChamp = champs.find(c => c.id === champ.condition_affichage.champ_id)
-                      if (!parentChamp) return null
-                      if (parentChamp.type_champ === 'oui_non') {
-                        return (
-                          <select
-                            value={champ.condition_affichage.valeur || ''}
-                            onChange={(e) => modifierChamp(idx, 'condition_affichage', { ...champ.condition_affichage, valeur: e.target.value })}
-                            className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
-                            <option value="">= ?</option>
-                            <option value="true">= Oui</option>
-                            <option value="false">= Non</option>
-                          </select>
-                        )
-                      }
-                      if (parentChamp.type_champ === 'choix_multiple') {
-                        return (
-                          <select
-                            value={champ.condition_affichage.valeur || ''}
-                            onChange={(e) => modifierChamp(idx, 'condition_affichage', { ...champ.condition_affichage, valeur: e.target.value })}
-                            className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
-                            <option value="">= ?</option>
-                            {(parentChamp.options || []).map(o => <option key={o} value={o}>contient "{o}"</option>)}
-                          </select>
-                        )
-                      }
-                      return (
-                        <input type="text" placeholder="= valeur" value={champ.condition_affichage.valeur || ''}
-                          onChange={(e) => modifierChamp(idx, 'condition_affichage', { ...champ.condition_affichage, valeur: e.target.value })}
-                          className="w-24 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
-                      )
-                    })()}
-                  </div>
-                )}
+                    {/* Condition d'affichage */}
+                    {idx > 0 && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <GitBranch size={12} className="text-purple-400/60 flex-shrink-0" />
+                        <label className="text-[var(--text-muted)] text-[11px] flex-shrink-0">Afficher si :</label>
+                        <select
+                          value={champ.condition_affichage?.champ_id || ''}
+                          onChange={(e) => {
+                            if (!e.target.value) return modifierChamp(idx, 'condition_affichage', null)
+                            modifierChamp(idx, 'condition_affichage', {
+                              ...(champ.condition_affichage || {}), champ_id: e.target.value, operateur: 'equals', valeur: '',
+                            })
+                          }}
+                          className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                          <option value="">Toujours visible</option>
+                          {champs.slice(0, idx).map(c => (
+                            <option key={c.id} value={c.id}>Q{champs.indexOf(c) + 1}: {c.label?.substring(0, 30) || 'Sans titre'}...</option>
+                          ))}
+                        </select>
+                        {champ.condition_affichage?.champ_id && (() => {
+                          const parentChamp = champs.find(c => c.id === champ.condition_affichage.champ_id)
+                          if (!parentChamp) return null
+                          if (parentChamp.type_champ === 'oui_non') {
+                            return (
+                              <select
+                                value={champ.condition_affichage.valeur || ''}
+                                onChange={(e) => modifierChamp(idx, 'condition_affichage', { ...champ.condition_affichage, valeur: e.target.value })}
+                                className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                                <option value="">= ?</option>
+                                <option value="true">= Oui</option>
+                                <option value="false">= Non</option>
+                              </select>
+                            )
+                          }
+                          if (parentChamp.type_champ === 'choix_multiple') {
+                            return (
+                              <select
+                                value={champ.condition_affichage.valeur || ''}
+                                onChange={(e) => modifierChamp(idx, 'condition_affichage', { ...champ.condition_affichage, valeur: e.target.value })}
+                                className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors">
+                                <option value="">= ?</option>
+                                {(parentChamp.options || []).map(o => <option key={o} value={o}>contient "{o}"</option>)}
+                              </select>
+                            )
+                          }
+                          return (
+                            <input type="text" placeholder="= valeur" value={champ.condition_affichage.valeur || ''}
+                              onChange={(e) => modifierChamp(idx, 'condition_affichage', { ...champ.condition_affichage, valeur: e.target.value })}
+                              className="w-24 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-2 py-1 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors" />
+                          )
+                        })()}
+                      </div>
+                    )}
 
-                {/* Obligatoire toggle */}
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={champ.obligatoire} onChange={(e) => modifierChamp(idx, 'obligatoire', e.target.checked)}
-                    className="accent-[#FF6B2B] w-3.5 h-3.5" />
-                  <span className="text-[var(--text-muted)] text-xs">Obligatoire</span>
-                </label>
+                    {/* Obligatoire toggle */}
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={champ.obligatoire} onChange={(e) => modifierChamp(idx, 'obligatoire', e.target.checked)}
+                        className="accent-[#FF6B2B] w-3.5 h-3.5" />
+                      <span className="text-[var(--text-muted)] text-xs">Obligatoire</span>
+                    </label>
+                  </div>
+
+                  {/* Delete */}
+                  <button onClick={() => supprimerChamp(idx)}
+                    className="p-2 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"><Trash2 size={16} /></button>
+                </div>
               </div>
-
-              {/* Delete */}
-              <button onClick={() => supprimerChamp(idx)}
-                className="p-1.5 text-[var(--text-muted)] hover:text-red-400 transition-colors flex-shrink-0"><Trash2 size={16} /></button>
             </div>
           </div>
         ))}
       </div>
 
       {/* Add field buttons */}
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="flex flex-wrap gap-2 mb-6 md:mb-8">
         {Object.entries(TYPE_LABELS).filter(([k]) => ['texte','nombre','note_1_10','choix_multiple','oui_non','date'].includes(k)).map(([key, label]) => (
           <button key={key} onClick={() => ajouterChamp(key)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-[var(--border-base)] text-[var(--text-muted)] text-xs hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-colors">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-[var(--border-base)] text-[var(--text-muted)] text-xs hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/5 transition-colors">
             <Plus size={14} /> {label}
           </button>
         ))}
@@ -1223,35 +1313,36 @@ export default function CoachFormulairesPage() {
       {/* Actions */}
       <div className="flex items-center gap-3">
         <button onClick={sauvegarder} disabled={saving || !titre.trim() || champs.length === 0}
-          className="flex items-center gap-2 bg-[#FF6B2B] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-all hover:shadow-lg hover:shadow-[#FF6B2B]/20 disabled:opacity-40 disabled:cursor-not-allowed">
+          className="flex items-center gap-2 text-white px-5 md:px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#FF6B2B]/25 hover:shadow-xl hover:shadow-[#FF6B2B]/30 hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
+          style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
           {saving ? 'Enregistrement...' : formId ? 'Mettre à jour' : 'Créer le formulaire'}
         </button>
         <button onClick={() => setVue('liste')}
           className="px-4 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">Annuler</button>
       </div>
 
-      {/* ── Modal preview (#8) ── */}
+      {/* ── Modal preview ── */}
       {previewOpen && (
         <>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setPreviewOpen(false)} />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl">
-              {/* Phone-like header */}
-              <div className="bg-[#FF6B2B] px-6 py-5">
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+            <div className="bg-white rounded-t-2xl md:rounded-xl w-full max-w-md max-h-[90vh] md:max-h-[85vh] overflow-hidden shadow-2xl">
+              {/* Phone-like header with gradient */}
+              <div className="px-5 md:px-6 py-5" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-[var(--text-secondary)] text-[10px] font-semibold uppercase tracking-wider">Aperçu client</span>
-                  <button onClick={() => setPreviewOpen(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X size={18} /></button>
+                  <span className="text-white/70 text-[10px] font-semibold uppercase tracking-wider">Aperçu client</span>
+                  <button onClick={() => setPreviewOpen(false)} className="p-2 text-white/70 hover:text-white transition-colors"><X size={18} /></button>
                 </div>
-                <h3 className="text-[var(--text-primary)] text-lg font-bold">{titre || 'Sans titre'}</h3>
-                {description && <p className="text-[var(--text-secondary)] text-sm mt-1">{description}</p>}
+                <h3 className="text-white text-lg font-bold">{titre || 'Sans titre'}</h3>
+                {description && <p className="text-white/70 text-sm mt-1">{description}</p>}
               </div>
 
               {/* Form preview */}
-              <div className="p-6 overflow-y-auto max-h-[60vh] space-y-5">
+              <div className="p-4 md:p-6 overflow-y-auto max-h-[60vh] space-y-5">
                 {champs.length === 0 ? (
                   <p className="text-gray-400 text-sm text-center py-8">Aucune question ajoutée</p>
                 ) : champs.map((champ, idx) => {
-                  // Show condition badge (#9)
+                  // Show condition badge
                   const hasCondition = champ.condition_affichage?.champ_id
                   return (
                     <div key={champ.id} className="space-y-2">
@@ -1276,11 +1367,11 @@ export default function CoachFormulairesPage() {
                         </div>
                       )}
                       {champ.type_champ === 'note_1_10' && (
-                        <div className="flex gap-1.5">
+                        <div className="flex gap-1.5 flex-wrap">
                           {Array.from({ length: 10 }, (_, i) => (
                             <div key={i} className={`w-8 h-8 rounded-lg border text-xs font-bold flex items-center justify-center ${
-                              i === 6 ? 'bg-[#FF6B2B] text-white border-[#FF6B2B]' : 'bg-gray-50 text-gray-400 border-gray-200'
-                            }`}>{i + 1}</div>
+                              i === 6 ? 'text-white border-transparent' : 'bg-gray-50 text-gray-400 border-gray-200'
+                            }`} style={i === 6 ? { background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', borderColor: 'transparent' } : {}}>{i + 1}</div>
                           ))}
                         </div>
                       )}
@@ -1310,7 +1401,8 @@ export default function CoachFormulairesPage() {
                 })}
 
                 {champs.length > 0 && (
-                  <button className="w-full py-3 rounded-xl bg-[#FF6B2B] text-white font-semibold text-sm mt-4" disabled>
+                  <button className="w-full py-3 rounded-xl text-white font-semibold text-sm mt-4 shadow-lg shadow-[#FF6B2B]/25"
+                    style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }} disabled>
                     Envoyer mes réponses
                   </button>
                 )}

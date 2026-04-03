@@ -614,7 +614,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
       {/* ════════════════════════════════════ */}
       {/* PANNEAU GAUCHE — Bibliothèque       */}
       {/* ════════════════════════════════════ */}
-      <div className="w-1/3 flex-shrink-0 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl flex flex-col overflow-hidden">
+      <div className="w-full md:w-1/3 flex-shrink-0 glass-card !rounded-xl flex flex-col overflow-hidden max-h-[50vh] md:max-h-none">
 
         {/* Header bibliothèque */}
         <div className="p-4 border-b border-[var(--border-base)] space-y-3">
@@ -780,7 +780,7 @@ function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSave
       {/* ════════════════════════════════════ */}
       {/* PANNEAU CENTRAL — Éditeur de séance */}
       {/* ════════════════════════════════════ */}
-      <div className="flex-1 flex flex-col ml-4 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl overflow-hidden">
+      <div className="flex-1 flex flex-col mt-3 md:mt-0 md:ml-4 glass-card !rounded-xl overflow-hidden">
 
         {/* Bandeau mode édition */}
         {currentSeanceId && (
@@ -3680,10 +3680,10 @@ function SuiviTab({ coachId, clientId }) {
 
   if (loading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="grid grid-cols-4 gap-3">{[1,2,3,4].map(i => <div key={i} className="h-20 bg-[var(--bg-base)] rounded-2xl" />)}</div>
-        <div className="h-48 bg-[var(--bg-base)] rounded-2xl" />
-        <div className="h-48 bg-[var(--bg-base)] rounded-2xl" />
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">{[1,2,3,4].map(i => <div key={i} className="h-20 skel-block !rounded-xl" />)}</div>
+        <div className="h-48 skel-block !rounded-xl" />
+        <div className="h-48 skel-block !rounded-xl" />
       </div>
     )
   }
@@ -3793,12 +3793,13 @@ function SuiviTab({ coachId, clientId }) {
       {/* ══════════════════════════════════════════ */}
       {/* SECTION 1 — Assiduité Sportive            */}
       {/* ══════════════════════════════════════════ */}
-      <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
+      <div className="glass-card relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
         {/* Header */}
         <div className="px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
-              <BarChart3 size={17} className="text-[#FF6B2B]" />
+            <div className="w-8 h-8 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <BarChart3 size={15} className="text-[#FF6B2B]" />
             </div>
             <div>
               <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Assiduité Sportive</h3>
@@ -3822,7 +3823,7 @@ function SuiviTab({ coachId, clientId }) {
 
         {/* Heatmap */}
         <div className="px-6 pb-6">
-          <div className="bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] p-4">
+          <div className="glass-card !rounded-xl p-4">
             {/* Day labels */}
             <div className="grid grid-cols-7 gap-2 mb-2">
               {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((j, i) => (
@@ -3882,12 +3883,13 @@ function SuiviTab({ coachId, clientId }) {
       {/* ══════════════════════════════════════════ */}
       {/* SECTION 2 — Discipline des Habitudes       */}
       {/* ══════════════════════════════════════════ */}
-      <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
+      <div className="glass-card relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
         {/* Header */}
         <div className="px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
-              <Flame size={17} className="text-[#FF6B2B]" />
+            <div className="w-8 h-8 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <Flame size={15} className="text-[#FF6B2B]" />
             </div>
             <div>
               <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Discipline des Habitudes</h3>
@@ -3907,7 +3909,7 @@ function SuiviTab({ coachId, clientId }) {
 
         <div className="px-6 pb-6">
           {habitudes.length === 0 ? (
-            <div className="bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] py-10 text-center">
+            <div className="glass-card !rounded-xl py-10 text-center">
               <Flame size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
               <p className="text-[var(--text-muted)] text-xs">Aucune habitude active</p>
             </div>
@@ -3920,7 +3922,7 @@ function SuiviTab({ coachId, clientId }) {
                 const IconComp = getHabitIcon(hab.icone)
 
                 return (
-                  <div key={hab.id} className={`bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] p-4 ${hi > 0 ? '' : ''}`}>
+                  <div key={hab.id} className={`glass-card !rounded-xl p-4 ${hi > 0 ? '' : ''}`}>
                     {/* Row */}
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
@@ -3972,12 +3974,13 @@ function SuiviTab({ coachId, clientId }) {
       {/* ══════════════════════════════════════════ */}
       {/* SECTION 3 — Courbe de Poids               */}
       {/* ══════════════════════════════════════════ */}
-      <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
+      <div className="glass-card relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
         {/* Header */}
         <div className="px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
-              <Activity size={17} className="text-[#FF6B2B]" />
+            <div className="w-8 h-8 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <Activity size={15} className="text-[#FF6B2B]" />
             </div>
             <div>
               <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Courbe de Poids</h3>
@@ -3991,14 +3994,14 @@ function SuiviTab({ coachId, clientId }) {
         </div>
 
         {/* Stats ribbon */}
-        <div className="grid grid-cols-4 mx-6 mb-5 bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] overflow-hidden">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mx-6 mb-5">
           {[
             { label: 'Actuel', value: dernierPoids ? `${dernierPoids}` : '—', unit: 'kg', color: 'var(--text-primary)' },
             { label: 'Objectif', value: poidsObjectif ? `${poidsObjectif}` : '—', unit: 'kg', color: '#22c55e' },
             { label: 'Évolution', value: evolution ? `${parseFloat(evolution) > 0 ? '+' : ''}${evolution}` : '—', unit: 'kg', color: evolution && parseFloat(evolution) < 0 ? '#22c55e' : evolution && parseFloat(evolution) > 0 ? '#ef4444' : 'var(--text-primary)' },
             { label: 'Pesées', value: `${pesees.length}`, unit: '', color: 'var(--text-primary)' },
           ].map((s, i) => (
-            <div key={i} className={`px-4 py-3.5 text-center ${i < 3 ? 'border-r border-[var(--border-base)]' : ''}`}>
+            <div key={i} className="glass-card !rounded-xl px-4 py-3.5 text-center">
               <p className="text-[var(--text-muted)] text-[9px] font-medium uppercase tracking-widest">{s.label}</p>
               <p className="text-xl font-bold mt-1 tabular-nums tracking-tight" style={{ color: s.color }}>
                 {s.value}
@@ -4010,7 +4013,7 @@ function SuiviTab({ coachId, clientId }) {
 
         {/* Chart */}
         <div className="px-6 pb-6">
-          <div className="bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] p-4">
+          <div className="glass-card !rounded-xl p-4">
             {pesees.length < 2 ? (
               <div className="text-center py-12">
                 <Scale size={28} className="text-[var(--text-muted)] mx-auto mb-3" />
@@ -4029,10 +4032,11 @@ function SuiviTab({ coachId, clientId }) {
       {/* SECTION 4 — Progression Objectifs          */}
       {/* ══════════════════════════════════════════ */}
       {objectifs.length > 0 && (
-        <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
+        <div className="glass-card relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
           <div className="px-6 py-5 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
-              <Target size={17} className="text-[#FF6B2B]" />
+            <div className="w-8 h-8 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <Target size={15} className="text-[#FF6B2B]" />
             </div>
             <div>
               <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Progression des Objectifs</h3>
@@ -4047,7 +4051,7 @@ function SuiviTab({ coachId, clientId }) {
               const jours = joursRestants(obj.date_limite)
               const typeInfo = OBJ_TYPES.find(t => t.id === obj.type_objectif) || OBJ_TYPES[3]
               return (
-                <div key={obj.id} className="bg-[var(--bg-elevated)] rounded-xl border border-[var(--border-base)] p-4">
+                <div key={obj.id} className="glass-card !rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
@@ -4174,12 +4178,13 @@ function SuiviTab({ coachId, clientId }) {
         })
 
         return (
-          <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
+          <div className="glass-card relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
             {/* Header */}
             <div className="px-6 py-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isAlerte ? 'bg-red-500/15' : 'bg-purple-500/10'}`}>
-                  <ClipboardList size={17} className={isAlerte ? 'text-red-400' : 'text-purple-400'} />
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isAlerte ? 'bg-red-500/15' : 'bg-purple-500/10'}`}>
+                  <ClipboardList size={15} className={isAlerte ? 'text-red-400' : 'text-purple-400'} />
                 </div>
                 <div>
                   <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Bilans & Formulaires</h3>
@@ -4375,10 +4380,11 @@ function SuiviTab({ coachId, clientId }) {
       {/* SECTION 6 — Historique Pesées              */}
       {/* ══════════════════════════════════════════ */}
       {pesees.length > 0 && (
-        <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl shadow-sm overflow-hidden">
+        <div className="glass-card relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
           <div className="px-6 py-5 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center">
-              <Clock size={17} className="text-[var(--text-secondary)]" />
+            <div className="w-8 h-8 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <Clock size={15} className="text-[#FF6B2B]" />
             </div>
             <h3 className="text-[var(--text-primary)] text-[15px] font-bold tracking-tight">Historique des pesées</h3>
           </div>
@@ -4639,9 +4645,9 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="h-24 bg-[var(--bg-base)] rounded-2xl" />
-        <div className="h-20 bg-[var(--bg-base)] rounded-2xl" />
-        <div className="h-20 bg-[var(--bg-base)] rounded-2xl" />
+        <div className="h-24 skel-block rounded-2xl" />
+        <div className="h-20 skel-block rounded-2xl" />
+        <div className="h-20 skel-block rounded-2xl" />
       </div>
     )
   }
@@ -4650,18 +4656,21 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
     <div className="space-y-5">
 
       {/* ── Header stats ── */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+      <div className="grid grid-cols-3 gap-2 md:gap-3">
+        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
           <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">En cours</p>
-          <p className="text-[#FF6B2B] text-2xl font-bold mt-1">{enCours.length}</p>
+          <p className="text-[#FF6B2B] text-xl md:text-2xl font-bold mt-1">{enCours.length}</p>
         </div>
-        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-emerald-300" />
           <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Atteints</p>
-          <p className="text-emerald-400 text-2xl font-bold mt-1">{atteints.length}</p>
+          <p className="text-emerald-400 text-xl md:text-2xl font-bold mt-1">{atteints.length}</p>
         </div>
-        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[var(--text-muted)] to-[var(--text-primary)]" />
           <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Progression moy.</p>
-          <p className="text-[var(--text-primary)] text-2xl font-bold mt-1">
+          <p className="text-[var(--text-primary)] text-xl md:text-2xl font-bold mt-1">
             {enCours.length > 0
               ? Math.round(enCours.reduce((s, o) => s + calcProgress(o.valeur_depart, o.valeur_actuelle, o.valeur_cible), 0) / enCours.length)
               : 0}%
@@ -4671,9 +4680,14 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
 
       {/* ── Action bar ── */}
       <div className="flex items-center justify-between">
-        <h3 className="text-[var(--text-primary)] text-sm font-bold">
-          Objectifs de {clientName || 'ce client'}
-        </h3>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center">
+            <Target size={15} className="text-[#FF6B2B]" />
+          </div>
+          <h3 className="text-[var(--text-primary)] text-sm font-bold">
+            Objectifs de {clientName || 'ce client'}
+          </h3>
+        </div>
         <button
           onClick={() => setShowModal(true)}
           className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF6B2B] hover:bg-[#e55a1b] text-white text-xs font-semibold transition-all active:scale-95"
@@ -4684,8 +4698,8 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
 
       {/* ── Liste objectifs en cours ── */}
       {enCours.length === 0 && atteints.length === 0 ? (
-        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl py-16 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
+        <div className="glass-card rounded-2xl py-16 text-center">
+          <div className="w-14 h-14 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-4">
             <Target size={24} className="text-[#FF6B2B]" />
           </div>
           <p className="text-[var(--text-muted)] text-sm">Aucun objectif défini</p>
@@ -4705,7 +4719,7 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                 const isLoss = obj.valeur_cible < obj.valeur_depart
 
                 return (
-                  <div key={obj.id} className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5 hover:border-[var(--border-base)]/80 transition-all group">
+                  <div key={obj.id} className="glass-card rounded-2xl p-5 hover:border-[var(--border-base)]/80 transition-all group relative overflow-hidden" style={{ borderLeft: `3px solid ${typeInfo.color}` }}>
 
                     {/* Header */}
                     <div className="flex items-start gap-3.5 mb-4">
@@ -4736,15 +4750,15 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                         </div>
                       </div>
 
-                      {/* Actions (hover) */}
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      {/* Actions — always visible on mobile */}
+                      <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
                         <button onClick={() => handleArchive(obj.id)}
-                          className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-amber-400 hover:bg-amber-500/10 transition-all" title="Archiver">
-                          <FolderOpen size={13} />
+                          className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-amber-400 hover:bg-amber-500/10 transition-all" title="Archiver">
+                          <FolderOpen size={14} />
                         </button>
                         <button onClick={() => handleDelete(obj.id)}
-                          className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all" title="Supprimer">
-                          <Trash2 size={13} />
+                          className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all" title="Supprimer">
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
@@ -4806,14 +4820,19 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
           {/* Atteints */}
           {atteints.length > 0 && (
             <div>
-              <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium mb-2">
-                ✅ Objectifs atteints ({atteints.length})
-              </p>
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                  <CheckCircle2 size={13} className="text-emerald-400" />
+                </div>
+                <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">
+                  Objectifs atteints ({atteints.length})
+                </p>
+              </div>
               <div className="space-y-2">
                 {atteints.map((obj) => {
                   const typeInfo = OBJ_TYPES.find(t => t.id === obj.type_objectif) || OBJ_TYPES[3]
                   return (
-                    <div key={obj.id} className="bg-emerald-500/[0.04] border border-emerald-500/10 rounded-2xl px-5 py-3.5 flex items-center gap-3.5 group">
+                    <div key={obj.id} className="glass-card rounded-2xl px-5 py-3.5 flex items-center gap-3.5 group" style={{ borderLeft: '3px solid #22c55e' }}>
                       <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0">
                         <CheckCircle2 size={16} className="text-emerald-400" />
                       </div>
@@ -4825,8 +4844,8 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                       </div>
                       <span className="text-emerald-400 text-xs font-bold shrink-0">100%</span>
                       <button onClick={() => handleDelete(obj.id)}
-                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" title="Supprimer">
-                        <Trash2 size={12} />
+                        className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all md:opacity-0 md:group-hover:opacity-100 shrink-0" title="Supprimer">
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   )
@@ -4842,13 +4861,19 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
       {/* ══════════════════════════════════ */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-          <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="glass-card rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
 
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
-              <div>
-                <h3 className="text-[var(--text-primary)] text-base font-bold">Nouvel objectif</h3>
-                <p className="text-[var(--text-muted)] text-xs mt-0.5">Définir un objectif SMART pour {clientName}</p>
+            <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between relative">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center">
+                  <Target size={16} className="text-[#FF6B2B]" />
+                </div>
+                <div>
+                  <h3 className="text-[var(--text-primary)] text-base font-bold">Nouvel objectif</h3>
+                  <p className="text-[var(--text-muted)] text-xs mt-0.5">Définir un objectif SMART pour {clientName}</p>
+                </div>
               </div>
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                 <X size={16} />
@@ -5129,11 +5154,11 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
 
   if (loading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="h-24 bg-[var(--bg-base)] rounded-2xl" />
-        <div className="h-16 bg-[var(--bg-base)] rounded-2xl" />
-        <div className="h-16 bg-[var(--bg-base)] rounded-2xl" />
-        <div className="h-16 bg-[var(--bg-base)] rounded-2xl" />
+      <div className="space-y-4">
+        <div className="h-24 skel-block rounded-2xl" />
+        <div className="h-16 skel-block rounded-2xl" />
+        <div className="h-16 skel-block rounded-2xl" />
+        <div className="h-16 skel-block rounded-2xl" />
       </div>
     )
   }
@@ -5142,20 +5167,23 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
     <div className="space-y-5">
 
       {/* ── Header stats ── */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+      <div className="grid grid-cols-3 gap-2 md:gap-3">
+        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-500 to-amber-300" />
           <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Actives</p>
-          <p className="text-[var(--text-primary)] text-2xl font-bold mt-1">{habitudes.length}</p>
+          <p className="text-[var(--text-primary)] text-xl md:text-2xl font-bold mt-1">{habitudes.length}</p>
         </div>
-        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-emerald-300" />
           <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Aujourd'hui</p>
-          <p className="text-2xl font-bold mt-1" style={{ color: cochees === habitudes.length && habitudes.length > 0 ? '#22c55e' : '#FF6B2B' }}>
+          <p className="text-xl md:text-2xl font-bold mt-1" style={{ color: cochees === habitudes.length && habitudes.length > 0 ? '#22c55e' : '#FF6B2B' }}>
             {cochees}/{habitudes.length}
           </p>
         </div>
-        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
           <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Meilleur streak</p>
-          <p className="text-[#FF6B2B] text-2xl font-bold mt-1 flex items-center justify-center gap-1">
+          <p className="text-[#FF6B2B] text-xl md:text-2xl font-bold mt-1 flex items-center justify-center gap-1">
             <Flame size={16} />
             {Math.max(0, ...habitudes.map(h => calculerStreak(allLogs.filter(l => l.habitude_id === h.id).map(l => l.date))))}j
           </p>
@@ -5164,9 +5192,14 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
 
       {/* ── Action bar ── */}
       <div className="flex items-center justify-between">
-        <h3 className="text-[var(--text-primary)] text-sm font-bold">
-          Habitudes de {clientName || 'ce client'}
-        </h3>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+            <Flame size={15} className="text-amber-500" />
+          </div>
+          <h3 className="text-[var(--text-primary)] text-sm font-bold">
+            Habitudes de {clientName || 'ce client'}
+          </h3>
+        </div>
         <button
           onClick={() => setShowModal(true)}
           className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF6B2B] hover:bg-[#e55a1b] text-white text-xs font-semibold transition-all active:scale-95"
@@ -5177,15 +5210,15 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
 
       {/* ── Liste des habitudes ── */}
       {habitudes.length === 0 ? (
-        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl py-16 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
-            <Flame size={24} className="text-[#FF6B2B]" />
+        <div className="glass-card rounded-2xl py-16 text-center">
+          <div className="w-14 h-14 rounded-xl bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
+            <Flame size={24} className="text-amber-500" />
           </div>
           <p className="text-[var(--text-muted)] text-sm">Aucune habitude assignée</p>
-          <p className="text-[var(--text-muted)] text-xs mt-1">Cliquez sur "Assigner" pour créer la première habitude</p>
+          <p className="text-[var(--text-muted)] text-xs mt-1">Cliquez sur "Assigner" pour créer la premiere habitude</p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {habitudes.map((h) => {
             const fait = todayLogs.includes(h.id)
             const logsDates = allLogs.filter(l => l.habitude_id === h.id).map(l => l.date)
@@ -5195,7 +5228,8 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
 
             return (
               <div key={h.id}
-                className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 hover:border-[var(--border-base)]/80 transition-all group">
+                className="glass-card rounded-2xl p-4 hover:border-[var(--border-base)]/80 transition-all group relative overflow-hidden"
+                style={{ borderLeft: `3px solid ${h.couleur || '#FF6B2B'}` }}>
 
                 {/* Ligne principale */}
                 <div className="flex items-center gap-3.5">
@@ -5243,22 +5277,22 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
                   {/* Taux */}
                   <span className="text-[var(--text-muted)] text-[10px] font-medium shrink-0">{rate}%</span>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  {/* Actions — always visible on mobile */}
+                  <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
                     <button
                       onClick={() => handleDeactivate(h.id)}
                       disabled={deactivating === h.id}
-                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-amber-400 hover:bg-amber-500/10 transition-all disabled:opacity-30"
+                      className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-amber-400 hover:bg-amber-500/10 transition-all disabled:opacity-30"
                       title="Désactiver"
                     >
-                      <Circle size={13} />
+                      <Circle size={14} />
                     </button>
                     <button
                       onClick={() => handleDelete(h.id)}
-                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all"
+                      className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all"
                       title="Supprimer"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
@@ -5310,11 +5344,17 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
       {/* ══════════════════════════════ */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-          <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="glass-card rounded-2xl w-full max-w-md overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
 
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
-              <h3 className="text-[var(--text-primary)] text-base font-bold">Nouvelle habitude</h3>
+            <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between relative">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-500 to-amber-300" />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <Flame size={16} className="text-amber-500" />
+                </div>
+                <h3 className="text-[var(--text-primary)] text-base font-bold">Nouvelle habitude</h3>
+              </div>
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
                 <X size={16} />
               </button>
@@ -5677,7 +5717,12 @@ function NutritionTab({ coachId, clientId, clientName }) {
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
-        <h3 className="text-[var(--text-primary)] text-base font-bold">Plan nutritionnel</h3>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+            <Apple size={15} className="text-emerald-400" />
+          </div>
+          <h3 className="text-[var(--text-primary)] text-base font-bold">Plan nutritionnel</h3>
+        </div>
         <a href="/coach/nutrition" className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
           Gérer les plans →
         </a>
@@ -5689,7 +5734,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
           <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
         </div>
       ) : !assignedPlan ? (
-        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-10 text-center">
+        <div className="glass-card rounded-2xl p-10 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-emerald-300" />
           <Apple size={36} className="text-[var(--text-muted)] mx-auto mb-3" />
           <h3 className="text-[var(--text-primary)] text-base font-bold mb-1">Aucun plan assigné</h3>
           <p className="text-[var(--text-muted)] text-xs mb-5 max-w-xs mx-auto">
@@ -5709,7 +5755,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
         ) : (
           <div className="space-y-4">
             {/* Plan header */}
-            <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5">
+            <div className="glass-card rounded-2xl p-4 md:p-5 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-emerald-300" />
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-[var(--text-primary)] text-base font-bold">{assignedPlan.nom || 'Plan nutritionnel'}</h3>
@@ -5724,17 +5771,17 @@ function NutritionTab({ coachId, clientId, clientName }) {
               </div>
 
               {/* Macro summary rings */}
-              <div className="flex items-center justify-around">
-                <MacroRing value={assignedMacros.kcal} max={2500} color="#FF6B2B" label="Calories" unit="kcal" size={95} />
-                <MacroRing value={assignedMacros.prot} max={150} color="#3b82f6" label="Protéines" unit="g" size={75} />
-                <MacroRing value={assignedMacros.gluc} max={250} color="#f59e0b" label="Glucides" unit="g" size={75} />
-                <MacroRing value={assignedMacros.lip} max={80} color="#ef4444" label="Lipides" unit="g" size={75} />
+              <div className="flex items-center justify-around flex-wrap gap-3 md:gap-0">
+                <MacroRing value={assignedMacros.kcal} max={2500} color="#FF6B2B" label="Calories" unit="kcal" size={80} />
+                <MacroRing value={assignedMacros.prot} max={150} color="#3b82f6" label="Protéines" unit="g" size={65} />
+                <MacroRing value={assignedMacros.gluc} max={250} color="#f59e0b" label="Glucides" unit="g" size={65} />
+                <MacroRing value={assignedMacros.lip} max={80} color="#ef4444" label="Lipides" unit="g" size={65} />
               </div>
             </div>
 
             {/* Repas du plan */}
             {assignedRepas.length === 0 ? (
-              <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-6 text-center">
+              <div className="glass-card rounded-2xl p-6 text-center">
                 <p className="text-[var(--text-muted)] text-xs">Ce plan ne contient pas encore de repas détaillés</p>
               </div>
             ) : (
@@ -5746,7 +5793,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
                 items.forEach(ra => { if (ra.aliments) repasKcal += Math.round((ra.aliments.kcal_100g || 0) * (ra.quantite_g || 0) / 100) })
 
                 return (
-                  <div key={repas.id || ri} className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl overflow-hidden">
+                  <div key={repas.id || ri} className="glass-card rounded-2xl overflow-hidden">
                     <div className="px-5 py-3.5 border-b border-[var(--border-base)] flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
                         <TypeIcon size={15} className="text-[#FF6B2B]" />
@@ -5796,10 +5843,10 @@ function NutritionTab({ coachId, clientId, clientName }) {
 
       {/* ── Documents du plan ── */}
       {planDocuments.length > 0 && (
-        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl overflow-hidden">
+        <div className="glass-card rounded-2xl overflow-hidden">
           <div className="px-5 py-3.5 border-b border-[var(--border-base)]">
             <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
-              <Paperclip size={14} className="text-[#FF6B2B]" />
+              <Paperclip size={14} className="text-emerald-400" />
               Documents joints
               <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">{planDocuments.length}</span>
             </h3>
@@ -5830,7 +5877,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
 
       {/* ── Historique des plans ── */}
       {historyPlans.length > 0 && (
-        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl overflow-hidden">
+        <div className="glass-card rounded-2xl overflow-hidden">
           <div className="px-5 py-3.5 border-b border-[var(--border-base)]">
             <h3 className="text-[var(--text-primary)] text-sm font-bold">Historique des plans</h3>
             <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{historyPlans.length} plan{historyPlans.length > 1 ? 's' : ''} précédent{historyPlans.length > 1 ? 's' : ''}</p>

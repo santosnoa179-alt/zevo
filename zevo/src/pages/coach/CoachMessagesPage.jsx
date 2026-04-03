@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
-import { Send, MessageSquare, Mic, PenSquare, X, Search, Check, CheckCheck, Users, Loader2, ChevronDown } from 'lucide-react'
+import { Send, MessageSquare, Mic, PenSquare, X, Search, Check, CheckCheck, Users, Loader2, ChevronDown, ArrowLeft, Phone } from 'lucide-react'
 import { AudioBubble, VoiceRecorder } from '../../components/chat/VoiceMessage'
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -38,9 +38,13 @@ function Initiales({ nom, couleur, size = 'md' }) {
   const parts = (nom ?? '?').trim().split(' ')
   const initiales = parts.length >= 2 ? `${parts[0][0]}${parts[parts.length - 1][0]}` : (nom ?? '?')[0]
   const sz = size === 'sm' ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm'
+  const c = couleur ?? '#FF6B2B'
   return (
-    <div className={`${sz} rounded-full flex items-center justify-center flex-shrink-0 font-bold text-white`}
-      style={{ backgroundColor: couleur ?? '#FF6B2B' }}>
+    <div className={`${sz} rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-white ring-2 ring-white/5`}
+      style={{
+        background: `linear-gradient(135deg, ${c} 0%, ${c}cc 100%)`,
+        boxShadow: `0 2px 8px ${c}30`,
+      }}>
       {initiales.toUpperCase()}
     </div>
   )
@@ -76,23 +80,27 @@ function Bulle({ message, estMoi, showTail, clientInitials, clientColor }) {
         </div>
       )}
 
-      <div className="max-w-[75%] relative group">
+      <div className="max-w-[78%] relative group">
         <div
           className={`px-3.5 py-2.5 text-[15px] leading-relaxed ${
             estMoi
-              ? `bg-[#FF6B2B] text-white ${showTail ? 'rounded-2xl rounded-br-md' : 'rounded-2xl'}`
-              : `bg-[var(--bg-surface)] text-[var(--text-primary)] ${showTail ? 'rounded-2xl rounded-bl-md' : 'rounded-2xl'}`
+              ? `text-white ${showTail ? 'rounded-[20px] rounded-br-[6px]' : 'rounded-[20px]'}`
+              : `bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] ${showTail ? 'rounded-[20px] rounded-bl-[6px]' : 'rounded-[20px]'}`
           }`}
+          style={estMoi ? {
+            background: 'linear-gradient(135deg, #FF6B2B 0%, #FF8F5E 100%)',
+            boxShadow: '0 2px 12px rgba(255,107,43,0.2)',
+          } : undefined}
         >
           <p className="whitespace-pre-wrap break-words">{message.contenu}</p>
         </div>
-        {/* Heure + statut de lecture — visible sous le dernier message du groupe */}
+        {/* Timestamp + read status */}
         {showTail && (
-          <div className={`flex items-center gap-1 mt-1 ${estMoi ? 'justify-end pr-1' : 'justify-start pl-1'}`}>
-            <span className="text-[var(--text-muted)] text-[10px]">{formatHeure(message.created_at)}</span>
+          <div className={`flex items-center gap-1 mt-1 px-1 ${estMoi ? 'justify-end' : 'justify-start'}`}>
+            <span className="text-[var(--text-muted)] text-[10px] tabular-nums">{formatHeure(message.created_at)}</span>
             {estMoi && (
               message.lu
-                ? <CheckCheck size={12} className="text-[#FF6B2B]/60" />
+                ? <CheckCheck size={12} className="text-[#FF6B2B]/70" />
                 : <Check size={12} className="text-[var(--text-muted)]" />
             )}
           </div>
@@ -159,7 +167,7 @@ export default function CoachMessagesPage() {
 
     const { data: clientsData } = await supabase
       .from('clients')
-      .select('id, prenom, profiles(nom, email)')
+      .select('id, prenom, profiles(nom, email, telephone)')
       .eq('coach_id', user.id)
       .eq('actif', true)
       .order('created_at', { ascending: false })
@@ -423,7 +431,7 @@ export default function CoachMessagesPage() {
 
     const { data } = await supabase
       .from('clients')
-      .select('id, prenom, profiles(nom, email)')
+      .select('id, prenom, profiles(nom, email, telephone)')
       .eq('coach_id', user.id)
       .eq('actif', true)
       .order('created_at', { ascending: false })
@@ -570,62 +578,86 @@ export default function CoachMessagesPage() {
     <div className="flex h-screen overflow-hidden">
 
       {/* ── Sidebar — liste clients ── */}
-      <div className={`flex flex-col w-full md:w-72 border-r border-[var(--border-subtle)] flex-shrink-0 ${clientSelectionne ? 'hidden md:flex' : 'flex'}`}>
-        <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
-          <div>
-            <h1 className="text-[var(--text-primary)] font-bold text-lg">Messages</h1>
-            <p className="text-[var(--text-muted)] text-xs mt-0.5">{clients.length} conversation{clients.length !== 1 ? 's' : ''}</p>
+      <div className={`flex flex-col w-full md:w-80 md:border-r md:border-[var(--border-base)] flex-shrink-0 bg-[var(--bg-base)] ${clientSelectionne ? 'hidden md:flex' : 'flex'}`}>
+        {/* Sidebar header */}
+        <div className="relative z-10">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#FF6B2B]/[0.03] to-transparent pointer-events-none" />
+          <div className="relative p-4 border-b border-[var(--border-base)]">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h1 className="text-[var(--text-primary)] font-bold text-lg tracking-tight">Messages</h1>
+                <p className="text-[var(--text-muted)] text-[11px] mt-0.5">{clients.length} conversation{clients.length !== 1 ? 's' : ''}</p>
+              </div>
+              <button
+                onClick={ouvrirModaleNouveauMsg}
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-[#FF6B2B] transition-all active:scale-90"
+                style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.1), rgba(255,143,94,0.05))' }}
+                title="Nouveau message"
+              >
+                <PenSquare size={17} />
+              </button>
+            </div>
           </div>
-          <button
-            onClick={ouvrirModaleNouveauMsg}
-            className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center text-[#FF6B2B] hover:bg-[#FF6B2B]/20 transition-colors"
-            title="Nouveau message"
-          >
-            <PenSquare size={16} />
-          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           {clients.length === 0 ? (
-            <div className="p-6 text-center">
-              <MessageSquare size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
-              <p className="text-[var(--text-muted)] text-sm">Aucun client actif.</p>
+            <div className="p-8 text-center">
+              <div className="relative inline-flex items-center justify-center mb-4">
+                <div className="absolute w-20 h-20 rounded-full bg-[#FF6B2B]/5 animate-breathe" />
+                <div className="relative w-14 h-14 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center">
+                  <MessageSquare size={22} className="text-[var(--text-muted)]" />
+                </div>
+              </div>
+              <p className="text-[var(--text-primary)] font-semibold text-sm mb-1">Aucun client actif</p>
               <button
                 onClick={ouvrirModaleNouveauMsg}
-                className="mt-3 text-[#FF6B2B] text-xs font-semibold hover:underline"
+                className="mt-2 text-[#FF6B2B] text-xs font-semibold hover:text-[#FF9A6C] transition-colors"
               >
-                Démarrer une conversation
+                Demarrer une conversation
               </button>
             </div>
           ) : (
-            clients.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => ouvrirConversation(c)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-[var(--border-subtle)] transition-colors hover:bg-[var(--bg-surface)] ${
-                  clientSelectionne?.id === c.id ? 'bg-[#FF6B2B]/8' : ''
-                }`}
-              >
-                <Initiales nom={c.profiles?.nom} couleur={c.couleur} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className={`text-sm truncate ${c.nonLus > 0 ? 'text-[var(--text-primary)] font-semibold' : 'text-[var(--text-primary)]'}`}>
-                      {c.profiles?.nom ?? c.profiles?.email}
-                    </p>
+            clients.map((c) => {
+              const isActive = clientSelectionne?.id === c.id
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => ouvrirConversation(c)}
+                  className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all ${
+                    isActive
+                      ? 'bg-[#FF6B2B]/[0.06] border-l-[3px] border-l-[#FF6B2B]'
+                      : 'border-l-[3px] border-l-transparent hover:bg-[var(--bg-surface)]/50'
+                  }`}
+                >
+                  <div className="relative">
+                    <Initiales nom={c.profiles?.nom} couleur={c.couleur} />
                     {c.nonLus > 0 && (
-                      <span className="w-5 h-5 bg-[#FF6B2B] text-white text-[10px] rounded-full flex items-center justify-center flex-shrink-0 font-bold">
-                        {c.nonLus}
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF6B2B] text-white text-[9px] rounded-full flex items-center justify-center font-bold shadow-lg shadow-[#FF6B2B]/30">
+                        {c.nonLus > 9 ? '9+' : c.nonLus}
                       </span>
                     )}
                   </div>
-                  {c.dernierMsg && (
-                    <p className="text-[var(--text-muted)] text-xs truncate mt-0.5">
-                      {c.dernierMsg.expediteur === 'coach' ? 'Vous : ' : ''}{c.dernierMsg.audio_url ? '🎤 Note vocale' : c.dernierMsg.contenu}
-                    </p>
-                  )}
-                </div>
-              </button>
-            ))
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className={`text-sm truncate ${c.nonLus > 0 ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-primary)] font-medium'}`}>
+                        {c.profiles?.nom ?? c.profiles?.email}
+                      </p>
+                      {c.dernierMsg && (
+                        <span className="text-[var(--text-muted)] text-[9px] tabular-nums shrink-0 ml-2">
+                          {formatHeure(c.dernierMsg.created_at)}
+                        </span>
+                      )}
+                    </div>
+                    {c.dernierMsg && (
+                      <p className={`text-xs truncate mt-0.5 ${c.nonLus > 0 ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}`}>
+                        {c.dernierMsg.expediteur === 'coach' ? 'Vous : ' : ''}{c.dernierMsg.audio_url ? 'Note vocale' : c.dernierMsg.contenu}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              )
+            })
           )}
         </div>
       </div>
@@ -634,64 +666,111 @@ export default function CoachMessagesPage() {
       {clientSelectionne ? (
         <div className={`flex flex-col flex-1 ${clientSelectionne ? 'flex' : 'hidden md:flex'}`}>
           {/* Header chat */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-subtle)] flex-shrink-0 bg-[var(--bg-base)]/95 backdrop-blur-xl">
-            <button onClick={() => setClientSelectionne(null)} className="md:hidden text-[var(--text-muted)] hover:text-white p-1">
-              ←
-            </button>
-            <div className="relative">
-              <Initiales nom={clientSelectionne.profiles?.nom} couleur={clientSelectionne.couleur} size="sm" />
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#0D0D0D]" />
+          <header className="shrink-0 relative z-10">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#FF6B2B]/[0.03] to-transparent pointer-events-none" />
+            <div className="relative px-4 py-3 border-b border-[var(--border-base)] bg-[var(--bg-base)]/95 backdrop-blur-xl">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setClientSelectionne(null)}
+                  className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-colors active:scale-90 flex-shrink-0 -ml-1"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+                <div className="relative">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white ring-2 ring-white/5"
+                    style={{
+                      background: `linear-gradient(135deg, ${clientSelectionne.couleur || '#FF6B2B'} 0%, ${clientSelectionne.couleur || '#FF6B2B'}99 100%)`,
+                      boxShadow: `0 2px 12px ${clientSelectionne.couleur || '#FF6B2B'}40`,
+                    }}
+                  >
+                    {clientInitials}
+                  </div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[var(--bg-base)]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-[var(--text-primary)] font-semibold text-[15px] truncate leading-tight">
+                    {clientSelectionne.profiles?.nom ?? clientSelectionne.profiles?.email}
+                  </h1>
+                  <p className="text-emerald-400/70 text-[11px] font-medium mt-0.5">En ligne</p>
+                </div>
+
+                {/* Call button */}
+                {clientSelectionne.profiles?.telephone ? (
+                  <a
+                    href={`tel:${clientSelectionne.profiles.telephone}`}
+                    title={`Appeler ${clientSelectionne.profiles.telephone}`}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all active:scale-90 flex-shrink-0"
+                  >
+                    <Phone size={17} />
+                  </a>
+                ) : (
+                  <button
+                    title="Aucun numero renseigne"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--text-muted)] opacity-30 cursor-not-allowed flex-shrink-0"
+                    disabled
+                  >
+                    <Phone size={17} />
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[var(--text-primary)] font-semibold text-[15px] truncate">
-                {clientSelectionne.profiles?.nom ?? clientSelectionne.profiles?.email}
-              </p>
-              <p className="text-[var(--text-muted)] text-[11px]">{clientSelectionne.profiles?.email}</p>
-            </div>
-          </div>
+          </header>
 
           {/* Messages area */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 relative">
-            {messages.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
-                  <Send size={24} className="text-[#FF6B2B]" />
+          <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain relative">
+            {/* Subtle pattern overlay */}
+            <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{
+              backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 0.5px, transparent 0.5px)',
+              backgroundSize: '24px 24px',
+            }} />
+
+            <div className="relative px-4 py-4">
+              {messages.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="relative inline-flex items-center justify-center mb-5">
+                    <div className="absolute w-24 h-24 rounded-full bg-[#FF6B2B]/5 animate-breathe" />
+                    <div className="relative w-16 h-16 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center">
+                      <Send size={24} className="text-[#FF6B2B]" />
+                    </div>
+                  </div>
+                  <p className="text-[var(--text-primary)] font-semibold text-base mb-1">Demarrez la conversation</p>
+                  <p className="text-[var(--text-muted)] text-sm">Envoyez un message a {clientName}</p>
                 </div>
-                <p className="text-[var(--text-primary)] font-semibold text-base mb-1">Démarrez la conversation</p>
-                <p className="text-[var(--text-muted)] text-sm">Envoyez un message à {clientName}</p>
-              </div>
-            ) : (
-              <>
-                {groupedMessages.map((item) => {
-                  if (item.type === 'date') {
+              ) : (
+                <>
+                  {groupedMessages.map((item) => {
+                    if (item.type === 'date') {
+                      return (
+                        <div key={item.key} className="flex justify-center my-5">
+                          <span className="px-3.5 py-1 rounded-full bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-muted)] text-[10px] font-medium uppercase tracking-widest">
+                            {formatDateSeparator(item.date)}
+                          </span>
+                        </div>
+                      )
+                    }
                     return (
-                      <div key={item.key} className="flex justify-center my-4">
-                        <span className="px-3 py-1 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] text-[10px] font-medium uppercase tracking-wider">
-                          {formatDateSeparator(item.date)}
-                        </span>
-                      </div>
+                      <Bulle
+                        key={item.key}
+                        message={item.msg}
+                        estMoi={item.msg.expediteur === 'coach'}
+                        showTail={item.showTail}
+                        clientInitials={clientInitials}
+                        clientColor={clientSelectionne.couleur}
+                      />
                     )
-                  }
-                  return (
-                    <Bulle
-                      key={item.key}
-                      message={item.msg}
-                      estMoi={item.msg.expediteur === 'coach'}
-                      showTail={item.showTail}
-                      clientInitials={clientInitials}
-                      clientColor={clientSelectionne.couleur}
-                    />
-                  )
-                })}
-              </>
-            )}
-            <div ref={bottomRef} />
+                  })}
+                </>
+              )}
+              <div ref={bottomRef} />
+            </div>
 
             {/* Scroll-to-bottom FAB */}
             {showScrollBtn && (
               <button
                 onClick={scrollToBottom}
-                className="sticky bottom-3 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center shadow-xl z-10 hover:bg-[var(--bg-surface)] active:scale-90 transition-all"
+                className="sticky bottom-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-[var(--bg-card)]/95 backdrop-blur-lg border border-[var(--border-base)] flex items-center justify-center shadow-xl z-10 hover:bg-[var(--bg-surface)] active:scale-90 transition-all"
+                style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
               >
                 <ChevronDown size={18} className="text-[var(--text-secondary)]" />
               </button>
@@ -699,66 +778,83 @@ export default function CoachMessagesPage() {
           </div>
 
           {/* Quick Replies */}
-          <div className="flex gap-2 px-4 pb-2 overflow-x-auto scrollbar-hide">
-            {['Bravo cette semaine 💪', 'Continue comme ça !', 'Tu es sur la bonne voie 🚀', 'N\'hésite pas à me contacter 😊'].map((m) => (
+          <div className="flex gap-2 px-4 pb-2 overflow-x-auto" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+            {['Bravo cette semaine', 'Continue comme ca !', 'Tu es sur la bonne voie', 'N\'hesite pas a me contacter'].map((m) => (
               <button key={m} onClick={() => setTexte(m)}
-                className="flex-shrink-0 text-xs bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] border border-[var(--border-subtle)] rounded-full px-3 py-1.5 transition-colors hover:border-[var(--border-base)]">
+                className="flex-shrink-0 text-[11px] bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[#FF6B2B] border border-[var(--border-subtle)] rounded-full px-3.5 py-1.5 transition-all hover:border-[#FF6B2B]/20 active:scale-95">
                 {m}
               </button>
             ))}
           </div>
 
           {/* Input zone */}
-          <form
-            onSubmit={envoyerMessage}
-            className="flex items-end gap-2 px-3 py-2.5 border-t border-[var(--border-subtle)] flex-shrink-0"
-          >
-            {isRecording ? (
-              <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />
-            ) : (
-              <>
-                <div className="flex-1 relative">
-                  <input
-                    ref={inputRef}
-                    value={texte}
-                    onChange={(e) => setTexte(e.target.value)}
-                    placeholder="Écrire un message..."
-                    className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-2xl px-4 py-2.5 pr-10 text-[16px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/30 transition-colors"
-                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e) }}
-                  />
-                </div>
+          <div className="shrink-0 relative z-20">
+            <div className="absolute -top-6 left-0 right-0 h-6 bg-gradient-to-t from-[var(--bg-base)] to-transparent pointer-events-none" />
+            <form
+              onSubmit={envoyerMessage}
+              className="relative bg-[var(--bg-base)] border-t border-[var(--border-subtle)] px-3 py-2.5"
+              style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}
+            >
+              {isRecording ? (
+                <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />
+              ) : (
+                <div className="flex items-end gap-2">
+                  <div className="flex-1 relative">
+                    <input
+                      ref={inputRef}
+                      value={texte}
+                      onChange={(e) => setTexte(e.target.value)}
+                      placeholder="Ecrire un message..."
+                      className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-2xl px-4 py-2.5 pr-10 text-[16px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e) }}
+                    />
+                  </div>
 
-                {!texte.trim() ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsRecording(true)}
-                    className="w-10 h-10 rounded-full bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center flex-shrink-0 text-[var(--text-muted)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all active:scale-90"
-                    title="Note vocale"
-                  >
-                    <Mic size={18} />
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={!texte.trim() || envoi}
-                    className="w-10 h-10 rounded-full bg-[#FF6B2B] flex items-center justify-center flex-shrink-0 transition-all active:scale-90 disabled:opacity-40"
-                    style={{ boxShadow: '0 2px 12px rgba(255,107,43,0.3)' }}
-                  >
-                    <Send size={16} className="text-white translate-x-[1px]" />
-                  </button>
-                )}
-              </>
-            )}
-          </form>
+                  {!texte.trim() ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsRecording(true)}
+                      className="w-11 h-11 rounded-full bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center flex-shrink-0 text-[var(--text-muted)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all active:scale-90"
+                      title="Note vocale"
+                    >
+                      <Mic size={19} />
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={!texte.trim() || envoi}
+                      className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 disabled:opacity-40"
+                      style={{
+                        background: 'linear-gradient(135deg, #FF6B2B 0%, #FF8F5E 100%)',
+                        boxShadow: '0 4px 16px rgba(255,107,43,0.35)',
+                      }}
+                    >
+                      <Send size={17} className="text-white translate-x-[1px]" />
+                    </button>
+                  )}
+                </div>
+              )}
+            </form>
+          </div>
         </div>
       ) : (
-        <div className="hidden md:flex flex-1 items-center justify-center">
+        <div className="hidden md:flex flex-1 items-center justify-center bg-[var(--bg-base)]">
           <div className="text-center">
-            <MessageSquare size={40} className="text-[var(--text-muted)] mx-auto mb-3" />
-            <p className="text-[var(--text-muted)] text-sm">Sélectionne un client pour démarrer</p>
+            <div className="relative inline-flex items-center justify-center mb-5">
+              <div className="absolute w-28 h-28 rounded-full bg-[#FF6B2B]/5 animate-breathe" />
+              <div className="relative w-18 h-18 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center p-5">
+                <MessageSquare size={32} className="text-[var(--text-muted)]" />
+              </div>
+            </div>
+            <p className="text-[var(--text-primary)] font-semibold text-base mb-1">Selectionnez un client</p>
+            <p className="text-[var(--text-muted)] text-sm mb-5">Choisissez une conversation pour commencer</p>
             <button
               onClick={ouvrirModaleNouveauMsg}
-              className="mt-4 px-4 py-2 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55a1b] transition-colors inline-flex items-center gap-2"
+              className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold transition-all active:scale-95 inline-flex items-center gap-2"
+              style={{
+                background: 'linear-gradient(135deg, #FF6B2B 0%, #FF8F5E 100%)',
+                boxShadow: '0 4px 16px rgba(255,107,43,0.3)',
+              }}
             >
               <PenSquare size={14} />
               Nouveau message
@@ -774,6 +870,7 @@ export default function CoachMessagesPage() {
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowNewMsg(false)} />
           <div className="relative z-[101] bg-[var(--bg-base)] border border-[var(--border-base)] w-full sm:w-[460px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
 
             {/* Header */}
             <div className="px-4 py-3 border-b border-[var(--border-base)] flex items-center justify-between flex-shrink-0">

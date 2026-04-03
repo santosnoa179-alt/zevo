@@ -44,7 +44,7 @@ const STATUT_COLORS = {
 function RevenueChart({ data }) {
   if (!data.length) return (
     <div className="flex flex-col items-center justify-center py-10">
-      <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-3">
+      <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-3 animate-breathe">
         <Euro size={22} className="text-amber-400/50" />
       </div>
       <p className="text-[var(--text-muted)] text-xs">Aucun paiement enregistre</p>
@@ -55,14 +55,15 @@ function RevenueChart({ data }) {
   const barW = 40
   const gap = 18
   const chartH = 170
+  const topPad = 24
   const totalW = data.length * (barW + gap) - gap
 
   return (
     <div className="flex flex-col items-center w-full">
-      <svg width={totalW} height={chartH + 30} className="overflow-visible">
+      <svg width={totalW} height={chartH + 30 + topPad} className="overflow-visible">
         {/* Grid lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => (
-          <line key={i} x1={0} y1={chartH * (1 - pct)} x2={totalW} y2={chartH * (1 - pct)}
+          <line key={i} x1={0} y1={topPad + chartH * (1 - pct)} x2={totalW} y2={topPad + chartH * (1 - pct)}
             stroke="var(--border-subtle)" strokeWidth={1} strokeDasharray={pct > 0 && pct < 1 ? '4 4' : '0'} />
         ))}
         {data.map((d, i) => {
@@ -77,20 +78,20 @@ function RevenueChart({ data }) {
                   <stop offset="100%" stopColor={d.highlight ? '#FF8F5E' : 'rgba(255,107,43,0.15)'} />
                 </linearGradient>
               </defs>
-              <rect x={x} y={chartH - h} width={barW} height={Math.max(h, 2)} rx={6}
+              <rect x={x} y={topPad + chartH - h} width={barW} height={Math.max(h, 2)} rx={6}
                 fill={`url(#bar-grad-${i})`} />
               {/* Glow for current month */}
               {d.highlight && h > 10 && (
-                <rect x={x - 2} y={chartH - h - 2} width={barW + 4} height={h + 4} rx={8}
+                <rect x={x - 2} y={topPad + chartH - h - 2} width={barW + 4} height={h + 4} rx={8}
                   fill="none" stroke="#FF6B2B" strokeWidth={1} opacity={0.15} />
               )}
               {d.value > 0 && (
-                <text x={x + barW / 2} y={chartH - h - 8} textAnchor="middle"
-                  fill={d.highlight ? '#FF6B2B' : 'var(--text-secondary)'} fontSize={10} fontWeight={700}>
-                  {d.value >= 1000 ? `${(d.value / 1000).toFixed(1)}K` : `${d.value}`}
+                <text x={x + barW / 2} y={topPad + chartH - h - 8} textAnchor="middle"
+                  fill={d.highlight ? '#FF6B2B' : 'var(--text-secondary)'} fontSize={12} fontWeight={700}>
+                  {d.value >= 1000 ? `${(d.value / 1000).toFixed(1)}K` : `${d.value}€`}
                 </text>
               )}
-              <text x={x + barW / 2} y={chartH + 18} textAnchor="middle"
+              <text x={x + barW / 2} y={topPad + chartH + 18} textAnchor="middle"
                 fill={d.highlight ? 'var(--text-primary)' : 'var(--text-muted)'} fontSize={10}
                 fontWeight={d.highlight ? 600 : 400}>
                 {d.label}
@@ -354,9 +355,9 @@ export default function CoachDashboardPage() {
   if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-5 w-full max-w-[1400px]">
-        <div className="skel-block h-28 md:h-32 w-full rounded-2xl" />
+        <div className="skel-block h-36 md:h-40 w-full rounded-2xl" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map(i => <div key={i} className="skel-block h-24 rounded-xl" />)}
+          {[1, 2, 3, 4].map(i => <div key={i} className="skel-block h-28 rounded-xl" />)}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">
@@ -381,33 +382,75 @@ export default function CoachDashboardPage() {
       {/* ══════════════════════════════════════ */}
       {/* HERO BANNER                            */}
       {/* ══════════════════════════════════════ */}
-      <div className="glass-card overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-[#FF6B2B] via-[#FF9A6C] to-transparent" />
-        <div className="relative p-5 md:p-7">
-          {/* Ambient glow */}
-          <div className="absolute top-0 right-0 w-56 h-56 bg-[#FF6B2B]/[0.04] rounded-full blur-[80px] pointer-events-none" />
-          <div className="absolute bottom-0 left-1/4 w-40 h-40 bg-purple-500/[0.03] rounded-full blur-[60px] pointer-events-none" />
+      <div className="glass-card overflow-hidden relative">
+        {/* Top gradient accent */}
+        <div className="h-1.5 bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
 
-          <div className="relative flex items-center gap-4 md:gap-5">
-            <div className="hidden md:flex w-14 h-14 rounded-2xl items-center justify-center flex-shrink-0 shadow-lg"
-              style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 4px 20px rgba(255,107,43,0.25)' }}>
-              <Flame size={28} className="text-white" />
+        {/* Subtle dot pattern overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.03]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
+            backgroundSize: '20px 20px',
+          }}
+        />
+
+        <div className="relative p-5 md:p-7">
+          {/* Decorative gradient circle */}
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(255,107,43,0.08) 0%, transparent 70%)' }} />
+          <div className="absolute -bottom-12 left-1/4 w-48 h-48 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.05) 0%, transparent 70%)' }} />
+
+          <div className="relative flex flex-col md:flex-row md:items-center gap-4 md:gap-5">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg"
+                style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 4px 24px rgba(255,107,43,0.3)' }}>
+                <Flame size={26} className="text-white" />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <h1 className="text-[var(--text-primary)] text-2xl md:text-[28px] font-extrabold tracking-tight leading-tight">
+                  Bonjour, {prenom}
+                </h1>
+                <p className="text-[var(--text-muted)] text-sm mt-1">
+                  {todayPlanning.length > 0
+                    ? <><span className="text-[var(--color-primary,#FF6B2B)] font-semibold">{todayPlanning.length}</span> tache{todayPlanning.length > 1 ? 's' : ''} prevue{todayPlanning.length > 1 ? 's' : ''} — {dateAffichee}</>
+                    : <>Aucune tache prevue — {dateAffichee}</>
+                  }
+                </p>
+              </div>
             </div>
 
-            <div className="flex-1 min-w-0">
-              <h1 className="text-[var(--text-primary)] text-xl md:text-2xl font-bold">
-                Bienvenue {prenom}
-              </h1>
-              <p className="text-[var(--text-muted)] text-sm mt-0.5">
-                {todayPlanning.length > 0
-                  ? <><span className="text-[var(--color-primary,#FF6B2B)] font-semibold">{todayPlanning.length}</span> tache{todayPlanning.length > 1 ? 's' : ''} prevue{todayPlanning.length > 1 ? 's' : ''} — {dateAffichee}</>
-                  : <>Aucune tache prevue — {dateAffichee}</>
-                }
-              </p>
+            {/* Mobile compact stats row */}
+            <div className="flex md:hidden items-center gap-2 -mt-1">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                <Users size={12} className="text-[#FF6B2B]" />
+                <span className="text-[var(--text-primary)] text-xs font-bold">{stats.actifs}</span>
+                <span className="text-[var(--text-muted)] text-[10px]">clients</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                <Calendar size={12} className="text-emerald-400" />
+                <span className="text-[var(--text-primary)] text-xs font-bold">{stats.seancesAujourdhui}</span>
+                <span className="text-[var(--text-muted)] text-[10px]">seances</span>
+              </div>
+              {pendingForms > 0 && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/[0.06] border border-amber-500/15">
+                  <FileText size={12} className="text-amber-400" />
+                  <span className="text-amber-300 text-xs font-bold">{pendingForms}</span>
+                </div>
+              )}
+              <button
+                onClick={() => chargerDonnees()}
+                className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors ml-auto"
+                title="Rafraichir"
+              >
+                <RefreshCw size={13} />
+              </button>
             </div>
 
             {/* Desktop badges */}
-            <div className="hidden md:flex items-center gap-2.5">
+            <div className="hidden md:flex items-center gap-2.5 ml-auto flex-shrink-0">
               <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
                 <Zap size={13} className="text-[#FF6B2B]" />
                 <span className="text-[var(--text-primary)] text-sm font-bold">{stats.actifs}</span>
@@ -442,11 +485,13 @@ export default function CoachDashboardPage() {
           { label: 'Prospects', value: stats.prospects, icon: Target, color: '#3b82f6' },
           { label: 'Revenus ce mois', value: stats.mrr > 0 ? `${stats.mrr}` : '0', suffix: '\u20AC', icon: Euro, color: '#f59e0b', evolution: revenueEvolution },
         ].map((s, i) => (
-          <DashCard key={i}>
+          <DashCard key={i} className={`group transition-colors duration-200`}>
+            {/* Colored accent bar */}
+            <div className="h-[2px]" style={{ background: `linear-gradient(to right, ${s.color}, ${s.color}66, transparent)` }} />
             <div className="p-4">
               <div className="flex items-start justify-between mb-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${s.color}12` }}>
-                  <s.icon size={16} style={{ color: s.color }} />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-105" style={{ backgroundColor: `${s.color}14` }}>
+                  <s.icon size={18} style={{ color: s.color }} />
                 </div>
                 {s.evolution && (
                   <span className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
@@ -460,7 +505,7 @@ export default function CoachDashboardPage() {
               <p className="text-[var(--text-primary)] text-2xl font-bold tabular-nums leading-none">
                 {s.value}{s.suffix && <span className="text-base font-semibold text-[var(--text-muted)] ml-0.5">{s.suffix}</span>}
               </p>
-              <p className="text-[var(--text-muted)] text-[11px] mt-1">{s.label}</p>
+              <p className="text-[var(--text-muted)] text-[11px] mt-1.5">{s.label}</p>
             </div>
           </DashCard>
         ))}
@@ -479,14 +524,14 @@ export default function CoachDashboardPage() {
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
-                    <Activity size={14} className="text-[#FF6B2B]" />
+                  <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
+                    <Activity size={16} className="text-[#FF6B2B]" />
                   </div>
                   <h2 className="text-[var(--text-primary)] text-[15px] font-semibold">Activite du jour</h2>
                 </div>
                 <button
                   onClick={() => chargerDonnees()}
-                  className="md:hidden p-1.5 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors"
+                  className="md:hidden p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors"
                 >
                   <RefreshCw size={13} />
                 </button>
@@ -498,8 +543,13 @@ export default function CoachDashboardPage() {
                   { label: 'evenement', labelPlural: 'evenements', sublabel: '', value: todayEvents.length, icon: Calendar, color: '#3b82f6' },
                   { label: 'formulaire', labelPlural: 'formulaires', sublabel: 'en attente', value: pendingForms, icon: FileText, color: '#f59e0b' },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3.5 bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-subtle)]">
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${item.color}12` }}>
+                  <div
+                    key={i}
+                    className="flex items-center gap-3.5 bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-subtle)] relative overflow-hidden"
+                  >
+                    {/* Colored left accent border */}
+                    <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full" style={{ backgroundColor: item.color }} />
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ml-1" style={{ backgroundColor: `${item.color}14` }}>
                       <item.icon size={20} style={{ color: item.color }} />
                     </div>
                     <div>
@@ -516,17 +566,19 @@ export default function CoachDashboardPage() {
 
           {/* ── Revenus ── */}
           <DashCard>
+            {/* Gradient accent bar at top */}
+            <div className="h-[2px] bg-gradient-to-r from-amber-500/60 via-[#FF6B2B]/40 to-transparent" />
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                      <Euro size={14} className="text-amber-400" />
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <Euro size={16} className="text-amber-400" />
                     </div>
                     <h2 className="text-[var(--text-primary)] text-[15px] font-semibold">Suivi des Revenus</h2>
                   </div>
-                  <p className="text-[var(--text-muted)] text-[11px] mt-1.5 ml-[38px]">
-                    6 derniers mois — Total : {totalRevenu6Mois > 0 ? `${totalRevenu6Mois.toLocaleString('fr-FR')}\u20AC` : '--'}
+                  <p className="text-[var(--text-muted)] text-[11px] mt-1.5 ml-[42px]">
+                    6 derniers mois — Total : {totalRevenu6Mois > 0 ? `${totalRevenu6Mois.toLocaleString('fr-FR')}€` : '--'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -540,7 +592,7 @@ export default function CoachDashboardPage() {
                   )}
                   <button
                     onClick={() => navigate(hasFeature('statistiques') ? '/coach/statistiques' : '/pricing')}
-                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors"
+                    className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors"
                   >
                     {hasFeature('statistiques') ? <BarChart3 size={14} /> : <Lock size={14} />}
                   </button>
@@ -558,14 +610,14 @@ export default function CoachDashboardPage() {
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <Target size={14} className="text-blue-400" />
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <Target size={16} className="text-blue-400" />
                   </div>
                   <h2 className="text-[var(--text-primary)] text-[15px] font-semibold">Vos prospects</h2>
                 </div>
                 <button
                   onClick={() => navigate('/coach/prospects')}
-                  className="text-[var(--color-primary,#FF6B2B)] text-xs font-semibold hover:underline flex items-center gap-1"
+                  className="text-[var(--color-primary,#FF6B2B)] text-xs font-semibold flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-[#FF6B2B]/10 transition-colors"
                 >
                   Voir tout <ChevronRight size={12} />
                 </button>
@@ -573,7 +625,7 @@ export default function CoachDashboardPage() {
 
               {prospects.length === 0 ? (
                 <div className="text-center py-8">
-                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mx-auto mb-3 animate-breathe">
                     <Target size={22} className="text-blue-400/50" />
                   </div>
                   <p className="text-[var(--text-muted)] text-xs mb-3">Aucun prospect pour le moment</p>
@@ -592,8 +644,9 @@ export default function CoachDashboardPage() {
                     {Object.entries(
                       prospects.reduce((acc, p) => { acc[p.statut] = (acc[p.statut] || 0) + 1; return acc }, {})
                     ).map(([statut, count]) => (
-                      <div key={statut} className="flex items-center gap-3">
-                        <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: STATUT_COLORS[statut] || '#71717a' }} />
+                      <div key={statut} className="flex items-center gap-3 pl-3 py-1.5 rounded-lg relative hover:bg-[var(--bg-surface)]/30 transition-colors">
+                        {/* Colored left border */}
+                        <div className="absolute left-0 top-1 bottom-1 w-[2px] rounded-full" style={{ backgroundColor: STATUT_COLORS[statut] || '#71717a' }} />
                         <span className="text-[var(--text-secondary)] text-sm flex-1 capitalize">{statut}</span>
                         <span className="text-[var(--text-primary)] text-sm font-bold tabular-nums">{count}</span>
                       </div>
@@ -602,7 +655,7 @@ export default function CoachDashboardPage() {
                       <Euro size={10} className="text-[var(--text-muted)]" />
                       <span className="text-[var(--text-muted)] text-sm flex-1">Valeur totale</span>
                       <span className="text-[var(--color-primary,#FF6B2B)] text-sm font-bold tabular-nums">
-                        {prospects.reduce((sum, p) => sum + (p.valeur_estimee || 0), 0)}\u20AC
+                        {prospects.reduce((sum, p) => sum + (p.valeur_estimee || 0), 0)}€
                       </span>
                     </div>
                   </div>
@@ -610,15 +663,21 @@ export default function CoachDashboardPage() {
                   {/* Recents */}
                   <div className="space-y-2.5">
                     <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-medium">Recents</p>
-                    {prospects.slice(0, 4).map((p) => {
+                    {prospects.slice(0, 4).map((p, idx) => {
                       const color = STATUT_COLORS[p.statut] || '#71717a'
                       const fullName = [p.prenom, p.nom].filter(Boolean).join(' ') || p.email || '?'
                       return (
-                        <div key={p.id} className="flex items-center gap-3">
-                          <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                        <div key={p.id} className="flex items-center gap-3 py-1">
+                          {/* Avatar-like initials */}
+                          <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white"
+                            style={{ backgroundColor: COULEURS_AVATAR[idx % COULEURS_AVATAR.length] }}
+                          >
+                            {initialesFrom(fullName)}
+                          </div>
                           <span className="text-[var(--text-secondary)] text-sm flex-1 truncate">{fullName}</span>
                           <span className="text-[9px] px-2 py-0.5 rounded-full font-semibold capitalize"
-                            style={{ backgroundColor: `${color}12`, color }}>
+                            style={{ backgroundColor: `${color}14`, color }}>
                             {p.statut}
                           </span>
                         </div>
@@ -636,25 +695,33 @@ export default function CoachDashboardPage() {
 
           {/* ── Planning d'aujourd'hui ── */}
           <DashCard>
-            <div className="h-0.5 bg-gradient-to-r from-[#FF6B2B]/40 to-transparent" />
+            <div className="h-[2px] bg-gradient-to-r from-[#FF6B2B]/60 via-[#FF8F5E]/30 to-transparent" />
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
-                    <Clock size={14} className="text-[#FF6B2B]" />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.15), rgba(255,143,94,0.08))' }}>
+                    <Clock size={16} className="text-[#FF6B2B]" />
                   </div>
-                  <h2 className="text-[var(--text-primary)] text-[15px] font-semibold">Aujourd'hui</h2>
+                  <div>
+                    <h2 className="text-[var(--text-primary)] text-[15px] font-semibold leading-tight">Aujourd'hui</h2>
+                    {lastRefresh && (
+                      <span className="text-[var(--text-muted)] text-[9px]">
+                        MAJ {lastRefresh.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                {lastRefresh && (
-                  <span className="text-[var(--text-muted)] text-[9px] bg-[var(--bg-surface)] px-2 py-0.5 rounded-md">
-                    {lastRefresh.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                {todayPlanning.length > 0 && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] tabular-nums">
+                    {todayPlanning.length}
                   </span>
                 )}
               </div>
 
               {todayPlanning.length === 0 ? (
                 <div className="text-center py-8">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3 animate-breathe">
                     <CheckCircle size={22} className="text-emerald-400/50" />
                   </div>
                   <p className="text-[var(--text-primary)] text-sm font-medium">Journee libre !</p>
@@ -669,14 +736,18 @@ export default function CoachDashboardPage() {
                       <button
                         key={`${item.type}-${item.id}`}
                         onClick={() => item.clientId ? navigate(`/coach/clients/${item.clientId}`) : null}
-                        className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-[var(--bg-surface)]/50 transition-colors text-left group"
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-[var(--bg-surface)]/50 transition-colors text-left group relative overflow-hidden`}
                       >
+                        {/* Left border for completed items */}
+                        {item.isCompleted && (
+                          <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full bg-emerald-400/60" />
+                        )}
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{ backgroundColor: `${meta.color}12` }}>
-                          <IconComp size={16} style={{ color: meta.color }} />
+                          style={{ backgroundColor: `${meta.color}14` }}>
+                          <IconComp size={16} style={{ color: item.isCompleted ? '#22c55e' : meta.color }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[var(--text-primary)] text-sm font-medium truncate">
+                          <p className={`text-sm font-medium truncate ${item.isCompleted ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
                             {item.clientName ?? item.label}
                           </p>
                           <p className="text-[var(--text-muted)] text-[11px]">
@@ -685,12 +756,14 @@ export default function CoachDashboardPage() {
                         </div>
                         <div className="flex items-center gap-1.5 flex-shrink-0">
                           {item.isCompleted && <CheckCircle size={13} className="text-emerald-400" />}
-                          <span className="text-[var(--text-muted)] text-[11px] font-medium tabular-nums">
+                          <span className={`text-[11px] font-medium tabular-nums px-1.5 py-0.5 rounded-md ${
+                            item.time ? 'bg-[var(--bg-surface)] text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
+                          }`}>
                             {item.time ?? 'Journee'}
                           </span>
                         </div>
                         {item.clientId && (
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                          <div className="md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
                             <Eye size={13} className="text-[var(--text-muted)]" />
                           </div>
                         )}
@@ -702,7 +775,7 @@ export default function CoachDashboardPage() {
 
               <button
                 onClick={() => navigate('/coach/calendar')}
-                className="w-full mt-3 py-2.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-muted)] text-xs font-medium hover:text-[var(--text-secondary)] hover:border-[var(--border-base)] transition-colors flex items-center justify-center gap-2"
+                className="w-full mt-3 py-2.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-muted)] text-xs font-medium hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-colors flex items-center justify-center gap-2"
               >
                 <Calendar size={12} />
                 Voir le calendrier complet
@@ -714,12 +787,12 @@ export default function CoachDashboardPage() {
           <DashCard>
             <div className="p-5">
               <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                  <Zap size={14} className="text-purple-400" />
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <Zap size={16} className="text-purple-400" />
                 </div>
                 <h2 className="text-[var(--text-primary)] text-[15px] font-semibold">Actions rapides</h2>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {[
                   { label: 'Nouveau client', icon: UserPlus, action: () => navigate('/coach/client-hub'), color: '#FF6B2B' },
                   { label: 'Creer un programme', icon: Dumbbell, action: () => navigate('/coach/sport'), color: '#3b82f6' },
@@ -729,14 +802,16 @@ export default function CoachDashboardPage() {
                   <button
                     key={i}
                     onClick={a.action}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--bg-surface)]/50 transition-colors text-left group"
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-[var(--bg-surface)]/50 transition-all text-left group"
                   >
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: `${a.color}12` }}>
-                      <a.icon size={15} style={{ color: a.color }} />
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                      style={{ backgroundColor: `${a.color}12` }}
+                    >
+                      <a.icon size={16} style={{ color: a.color }} className="transition-transform duration-200 group-hover:scale-110" />
                     </div>
                     <span className="text-[var(--text-primary)] text-sm font-medium flex-1">{a.label}</span>
-                    <ChevronRight size={13} className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ChevronRight size={13} className="text-[var(--text-muted)] md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
                   </button>
                 ))}
               </div>
@@ -748,14 +823,14 @@ export default function CoachDashboardPage() {
             <div className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <Users size={14} className="text-emerald-400" />
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <Users size={16} className="text-emerald-400" />
                   </div>
                   <h2 className="text-[var(--text-primary)] text-[15px] font-semibold">Derniers clients</h2>
                 </div>
                 <button
                   onClick={() => navigate('/coach/client-hub')}
-                  className="text-[var(--color-primary,#FF6B2B)] text-xs font-semibold hover:underline"
+                  className="text-[var(--color-primary,#FF6B2B)] text-xs font-semibold px-2 py-1 rounded-lg hover:bg-[#FF6B2B]/10 transition-colors"
                 >
                   Tous
                 </button>
@@ -763,35 +838,46 @@ export default function CoachDashboardPage() {
 
               {clients.length === 0 ? (
                 <div className="text-center py-6">
-                  <div className="w-12 h-12 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3 animate-breathe">
                     <Users size={22} className="text-[var(--text-muted)]" />
                   </div>
                   <p className="text-[var(--text-muted)] text-xs">Aucun client</p>
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {clients.slice(0, 5).map((c, i) => (
-                    <button
-                      key={c.id}
-                      onClick={() => navigate(`/coach/clients/${c.id}`)}
-                      className="w-full flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-[var(--bg-surface)]/50 transition-colors text-left group"
-                    >
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white ring-2 ring-white/5"
-                        style={{ backgroundColor: COULEURS_AVATAR[i % COULEURS_AVATAR.length] }}
+                  {clients.slice(0, 5).map((c, i) => {
+                    const avatarColor = COULEURS_AVATAR[i % COULEURS_AVATAR.length]
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => navigate(`/coach/clients/${c.id}`)}
+                        className="w-full flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-[var(--bg-surface)]/50 transition-colors text-left group"
                       >
-                        {initialesFrom(c.profiles?.nom)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[var(--text-primary)] text-sm font-medium truncate">
-                          {c.profiles?.nom ?? c.profiles?.email}
-                        </p>
-                      </div>
-                      <span className="text-[var(--text-muted)] text-[10px] flex-shrink-0 tabular-nums">
-                        {new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                      </span>
-                    </button>
-                  ))}
+                        {/* Avatar with gradient ring */}
+                        <div className="relative flex-shrink-0">
+                          <div className="absolute -inset-[2px] rounded-full opacity-40 group-hover:opacity-70 transition-opacity"
+                            style={{ background: `linear-gradient(135deg, ${avatarColor}, ${avatarColor}88)` }} />
+                          <div
+                            className="relative w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                            style={{ backgroundColor: avatarColor }}
+                          >
+                            {initialesFrom(c.profiles?.nom)}
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[var(--text-primary)] text-sm font-medium truncate">
+                            {c.profiles?.nom ?? c.profiles?.email}
+                          </p>
+                        </div>
+                        <span className="text-[var(--text-muted)] text-[10px] flex-shrink-0 tabular-nums">
+                          {new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                        </span>
+                        <div className="md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
+                          <ChevronRight size={12} className="text-[var(--text-muted)]" />
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>

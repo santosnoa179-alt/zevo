@@ -5,7 +5,8 @@ import { useToast } from '../../components/ui/Toast'
 import { Modal } from '../../components/ui/Modal'
 import {
   Plus, Search, GripVertical, MoreHorizontal, Euro,
-  LayoutGrid, List, Phone, Mail, Loader2, Trash2, X, User
+  LayoutGrid, List, Phone, Mail, Loader2, Trash2, X, User,
+  Users, TrendingUp
 } from 'lucide-react'
 
 // ── Colonnes Kanban ──
@@ -19,7 +20,7 @@ const COLUMNS = [
 // ══════════════════════════════════════
 // CARTE PROSPECT (Draggable)
 // ══════════════════════════════════════
-function ProspectCard({ prospect, onDragStart, onDelete }) {
+function ProspectCard({ prospect, onDragStart, onDelete, columnColor }) {
   const fullName = [prospect.prenom, prospect.nom].filter(Boolean).join(' ')
   const initials = fullName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 
@@ -31,15 +32,21 @@ function ProspectCard({ prospect, onDragStart, onDelete }) {
         e.dataTransfer.effectAllowed = 'move'
         onDragStart(prospect.id)
       }}
-      className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-[#3f3f46] transition-all group"
+      className="glass-card group cursor-grab active:cursor-grabbing transition-all hover:border-[var(--border-subtle)]"
+      style={{ borderLeft: `3px solid ${columnColor}` }}
     >
-      <div className="flex items-start gap-2.5">
+      <div className="p-3 flex items-start gap-2.5">
         {/* Grip handle */}
-        <GripVertical size={14} className="text-[var(--text-muted)] group-hover:text-[var(--text-muted)] mt-0.5 flex-shrink-0 transition-colors" />
+        <div className="p-2 -m-2 flex-shrink-0 touch-manipulation">
+          <GripVertical size={14} className="text-[var(--text-muted)] mt-0.5 transition-colors" />
+        </div>
 
         {/* Avatar */}
-        <div className="w-8 h-8 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-          <span className="text-[#FF6B2B] text-[10px] font-bold">{initials}</span>
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}
+        >
+          <span className="text-white text-[10px] font-bold tracking-wide">{initials}</span>
         </div>
 
         {/* Info */}
@@ -53,15 +60,15 @@ function ProspectCard({ prospect, onDragStart, onDelete }) {
         {/* Actions */}
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(prospect.id) }}
-          className="p-1 rounded text-white/0 group-hover:text-[var(--text-muted)] hover:!text-red-400 transition-colors flex-shrink-0"
+          className="p-2 -m-1 rounded-lg md:opacity-0 md:group-hover:opacity-100 text-[var(--text-muted)] hover:text-red-400 transition-all flex-shrink-0"
         >
-          <Trash2 size={12} />
+          <Trash2 size={13} />
         </button>
       </div>
 
       {/* Valeur */}
       {prospect.valeur_estimee > 0 && (
-        <div className="mt-2 ml-[38px] flex items-center gap-1">
+        <div className="px-3 pb-2 ml-[52px] flex items-center gap-1">
           <Euro size={11} className="text-[#FF6B2B]" />
           <span className="text-[#FF6B2B] text-xs font-semibold">{prospect.valeur_estimee} €</span>
         </div>
@@ -69,7 +76,7 @@ function ProspectCard({ prospect, onDragStart, onDelete }) {
 
       {/* Notes preview */}
       {prospect.notes && (
-        <p className="mt-1.5 ml-[38px] text-[var(--text-muted)] text-[11px] line-clamp-1">{prospect.notes}</p>
+        <p className="px-3 pb-2.5 ml-[52px] text-[var(--text-muted)] text-[11px] line-clamp-1">{prospect.notes}</p>
       )}
     </div>
   )
@@ -91,7 +98,7 @@ function KanbanColumn({ column, prospects, onDrop, onNewClick, onDragStart, onDe
 
   return (
     <div
-      className="flex flex-col min-h-[400px]"
+      className="flex flex-col min-h-[300px] md:min-h-[400px]"
       onDragOver={handleDragOver}
       onDragEnter={(e) => { e.preventDefault(); setDragOver(true) }}
       onDragLeave={(e) => {
@@ -106,30 +113,33 @@ function KanbanColumn({ column, prospects, onDrop, onNewClick, onDragStart, onDe
       }}
     >
       {/* En-tête colonne */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className={`w-2.5 h-2.5 rounded-full ${column.dotClass}`} />
-          <span className="text-[var(--text-primary)] text-sm font-semibold">{column.label}</span>
-          <span className="text-[var(--text-muted)] text-xs bg-[var(--bg-surface)] px-1.5 py-0.5 rounded-md font-medium">
-            {prospects.length}
-          </span>
+      <div className="glass-card mb-3">
+        <div className="h-[3px] rounded-t-xl" style={{ background: column.color }} />
+        <div className="flex items-center justify-between px-3 py-2.5">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${column.dotClass}`} />
+            <span className="text-[var(--text-primary)] text-sm font-semibold">{column.label}</span>
+            <span className="text-[var(--text-muted)] text-[11px] bg-[var(--bg-surface)] px-2 py-0.5 rounded-md font-medium">
+              {prospects.length}
+            </span>
+          </div>
+          {total > 0 && (
+            <span className="text-[var(--text-muted)] text-xs font-medium">{total} €</span>
+          )}
         </div>
-        {total > 0 && (
-          <span className="text-[var(--text-muted)] text-xs">{total} €</span>
-        )}
       </div>
 
       {/* Bouton ajouter */}
       <button
         onClick={() => onNewClick(column.id)}
-        className="w-full py-2 mb-2 rounded-lg border border-dashed border-[#3f3f46] text-[var(--text-muted)] text-xs hover:text-[#FF6B2B] hover:border-[#FF6B2B] transition-colors flex items-center justify-center gap-1.5"
+        className="w-full py-2.5 mb-2.5 rounded-xl border border-dashed border-[var(--border-subtle)] text-[var(--text-muted)] text-xs hover:text-[#FF6B2B] hover:border-[#FF6B2B] transition-colors flex items-center justify-center gap-1.5 p-2"
       >
         <Plus size={13} />
         Nouveau prospect
       </button>
 
       {/* Zone de drop */}
-      <div className={`flex-1 space-y-2 rounded-lg p-1 transition-colors ${
+      <div className={`flex-1 space-y-2 rounded-xl p-1.5 transition-all ${
         dragOver ? 'bg-[#FF6B2B]/5 ring-1 ring-[#FF6B2B]/20' : ''
       }`}>
         {prospects.map((p) => (
@@ -138,12 +148,14 @@ function KanbanColumn({ column, prospects, onDrop, onNewClick, onDragStart, onDe
             prospect={p}
             onDragStart={onDragStart}
             onDelete={onDelete}
+            columnColor={column.color}
           />
         ))}
 
         {/* Placeholder quand colonne vide */}
         {prospects.length === 0 && !dragOver && (
-          <div className="py-8 text-center">
+          <div className="py-10 text-center glass-card">
+            <User size={24} className="text-[var(--text-muted)] mx-auto mb-2 animate-breathe" />
             <p className="text-[var(--text-muted)] text-xs">Aucun prospect</p>
           </div>
         )}
@@ -292,87 +304,143 @@ export default function CoachProspectsPage() {
   // Stats
   const totalPipeline = prospects.reduce((s, p) => s + (p.valeur_estimee || 0), 0)
 
+  // ── Loading skeleton ──
   if (loading) {
     return (
-      <div className="p-6 animate-pulse space-y-4">
-        <div className="h-8 w-48 bg-[var(--bg-surface)] rounded-lg" />
-        <div className="h-4 w-72 bg-[var(--bg-surface)] rounded" />
-        <div className="grid grid-cols-4 gap-4 mt-6">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-[var(--bg-surface)] rounded-xl" />)}
+      <div className="p-4 md:p-6 space-y-4">
+        <div className="glass-card p-4">
+          <div className="h-[3px] rounded-t-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] -mx-4 -mt-4 mb-4 rounded-t-xl" />
+          <div className="skel-block h-7 w-44 rounded-lg mb-2" />
+          <div className="skel-block h-4 w-64 rounded" />
+        </div>
+        <div className="glass-card p-3">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="skel-block h-10 w-36 rounded-lg" />
+            <div className="skel-block h-10 flex-1 rounded-lg" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="space-y-2">
+              <div className="glass-card p-3">
+                <div className="skel-block h-4 w-28 rounded mb-1" />
+              </div>
+              <div className="glass-card p-3 space-y-2">
+                <div className="skel-block h-16 rounded-lg" />
+                <div className="skel-block h-16 rounded-lg" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 w-full">
+    <div className="p-4 md:p-6 w-full">
 
       {/* ── En-tête ── */}
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-[var(--text-primary)] text-2xl font-bold">Vos prospects</h1>
-          <p className="text-[#a1a1aa] text-sm mt-1">
-            Gérez votre pipeline de vente et convertissez vos leads en clients.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Stats badge */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)]/60 border border-[var(--border-base)]">
+      <div className="glass-card mb-4 md:mb-6">
+        {/* Gradient accent bar */}
+        <div
+          className="h-[3px] rounded-t-xl"
+          style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }}
+        />
+        <div className="p-4 md:p-5">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div className="flex items-start gap-3">
+              {/* Icon container */}
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}
+              >
+                <Users size={18} className="text-white" />
+              </div>
+              <div>
+                <h1 className="text-[var(--text-primary)] text-xl md:text-2xl font-bold">Vos prospects</h1>
+                <p className="text-[var(--text-muted)] text-sm mt-0.5">
+                  Gérez votre pipeline de vente et convertissez vos leads en clients.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Stats badge */}
+              <div className="glass-card hidden md:flex items-center gap-2.5 px-3.5 py-2 rounded-xl">
+                <div
+                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ background: '#FF6B2B' }}
+                />
+                <span className="text-[var(--text-muted)] text-xs">{prospects.length} prospect{prospects.length !== 1 ? 's' : ''}</span>
+                <span className="text-[var(--border-subtle)]">|</span>
+                <span className="text-[#FF6B2B] text-xs font-semibold">{totalPipeline} €</span>
+              </div>
+              {/* Bouton ajouter */}
+              <button
+                onClick={() => openNewModal()}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-[#FF6B2B]/20 active:scale-[0.97]"
+                style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 2px 12px rgba(255,107,43,0.25)' }}
+              >
+                <Plus size={15} />
+                Ajouter
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile stats */}
+          <div className="flex md:hidden items-center gap-2.5 mt-3 glass-card px-3 py-2 rounded-xl">
+            <div
+              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+              style={{ background: '#FF6B2B' }}
+            />
             <span className="text-[var(--text-muted)] text-xs">{prospects.length} prospect{prospects.length !== 1 ? 's' : ''}</span>
-            <span className="text-[var(--text-muted)]">·</span>
+            <span className="text-[var(--border-subtle)]">|</span>
             <span className="text-[#FF6B2B] text-xs font-semibold">{totalPipeline} €</span>
           </div>
-          {/* Bouton ajouter */}
-          <button
-            onClick={() => openNewModal()}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors"
-          >
-            <Plus size={15} />
-            Ajouter
-          </button>
         </div>
       </div>
 
       {/* ── Barre outils ── */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        {/* Toggle Vue */}
-        <div className="flex bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg overflow-hidden">
-          <button
-            onClick={() => setViewMode('kanban')}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
-              viewMode === 'kanban' ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-            }`}
-          >
-            <LayoutGrid size={13} />
-            Tableau
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
-              viewMode === 'list' ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-            }`}
-          >
-            <List size={13} />
-            Liste
-          </button>
-        </div>
+      <div className="glass-card p-3 mb-4 md:mb-6">
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Toggle Vue */}
+          <div className="flex bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl overflow-hidden flex-shrink-0">
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-medium transition-colors p-2 ${
+                viewMode === 'kanban' ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              }`}
+            >
+              <LayoutGrid size={14} />
+              Tableau
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-medium transition-colors p-2 ${
+                viewMode === 'list' ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              }`}
+            >
+              <List size={14} />
+              Liste
+            </button>
+          </div>
 
-        {/* Recherche */}
-        <div className="relative flex-1 max-w-md">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher un prospect..."
-            className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg pl-9 pr-4 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
-          />
+          {/* Recherche */}
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher un prospect..."
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors"
+            />
+          </div>
         </div>
       </div>
 
       {/* ── Kanban Board ── */}
       {viewMode === 'kanban' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {COLUMNS.map((col) => (
             <KanbanColumn
               key={col.id}
@@ -387,9 +455,15 @@ export default function CoachProspectsPage() {
         </div>
       ) : (
         /* ── Vue Liste ── */
-        <div className="space-y-1.5">
-          {/* Header */}
-          <div className="grid grid-cols-12 gap-3 px-3 py-2 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+        <div className="glass-card overflow-hidden">
+          {/* Accent bar */}
+          <div
+            className="h-[3px]"
+            style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }}
+          />
+
+          {/* Header - hidden on mobile */}
+          <div className="hidden md:grid grid-cols-12 gap-3 px-4 py-3 text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold border-b border-[var(--border-base)]">
             <div className="col-span-4">Prospect</div>
             <div className="col-span-2">Email</div>
             <div className="col-span-2">Statut</div>
@@ -398,49 +472,92 @@ export default function CoachProspectsPage() {
           </div>
 
           {filteredProspects.length === 0 ? (
-            <div className="py-12 text-center">
-              <User size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
+            <div className="py-16 text-center">
+              <User size={32} className="text-[var(--text-muted)] mx-auto mb-3 animate-breathe" />
               <p className="text-[var(--text-muted)] text-sm">Aucun prospect trouvé</p>
             </div>
           ) : (
-            filteredProspects.map((p) => {
-              const col = COLUMNS.find(c => c.id === p.statut)
-              return (
-                <div key={p.id} className="grid grid-cols-12 gap-3 items-center px-3 py-2.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)] hover:border-[#3f3f46] transition-colors group">
-                  <div className="col-span-4 flex items-center gap-2.5 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                      <span className="text-[#FF6B2B] text-[9px] font-bold">
-                        {[p.prenom?.[0], p.nom?.[0]].filter(Boolean).join('').toUpperCase()}
-                      </span>
+            <div className="divide-y divide-[var(--border-base)]">
+              {filteredProspects.map((p) => {
+                const col = COLUMNS.find(c => c.id === p.statut)
+                return (
+                  <div key={p.id} className="group transition-colors hover:bg-[var(--bg-surface)]/40">
+                    {/* Desktop row */}
+                    <div className="hidden md:grid grid-cols-12 gap-3 items-center px-4 py-3">
+                      <div className="col-span-4 flex items-center gap-2.5 min-w-0">
+                        <div
+                          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}
+                        >
+                          <span className="text-white text-[9px] font-bold">
+                            {[p.prenom?.[0], p.nom?.[0]].filter(Boolean).join('').toUpperCase()}
+                          </span>
+                        </div>
+                        <span className="text-[var(--text-primary)] text-sm font-medium truncate">
+                          {[p.prenom, p.nom].filter(Boolean).join(' ')}
+                        </span>
+                      </div>
+                      <div className="col-span-2 text-[var(--text-muted)] text-xs truncate">{p.email || '—'}</div>
+                      <div className="col-span-2">
+                        <span className="inline-flex items-center gap-1.5 text-xs">
+                          <div className={`w-1.5 h-1.5 rounded-full ${col?.dotClass}`} />
+                          <span className="text-[var(--text-muted)]">{col?.label}</span>
+                        </span>
+                      </div>
+                      <div className="col-span-2 text-[#FF6B2B] text-xs font-semibold">
+                        {p.valeur_estimee > 0 ? `${p.valeur_estimee} €` : '—'}
+                      </div>
+                      <div className="col-span-2 flex items-center justify-between">
+                        <span className="text-[var(--text-muted)] text-xs">
+                          {new Date(p.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                        </span>
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          className="p-2 rounded-lg md:opacity-0 md:group-hover:opacity-100 text-[var(--text-muted)] hover:text-red-400 transition-all"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
-                    <span className="text-[var(--text-primary)] text-sm font-medium truncate">
-                      {[p.prenom, p.nom].filter(Boolean).join(' ')}
-                    </span>
+
+                    {/* Mobile row */}
+                    <div className="flex md:hidden items-center gap-3 px-3 py-3">
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}
+                      >
+                        <span className="text-white text-[10px] font-bold">
+                          {[p.prenom?.[0], p.nom?.[0]].filter(Boolean).join('').toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[var(--text-primary)] text-sm font-medium truncate">
+                          {[p.prenom, p.nom].filter(Boolean).join(' ')}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="inline-flex items-center gap-1 text-[11px]">
+                            <div className={`w-1.5 h-1.5 rounded-full ${col?.dotClass}`} />
+                            <span className="text-[var(--text-muted)]">{col?.label}</span>
+                          </span>
+                          {p.valeur_estimee > 0 && (
+                            <>
+                              <span className="text-[var(--border-subtle)]">|</span>
+                              <span className="text-[#FF6B2B] text-[11px] font-semibold">{p.valeur_estimee} €</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDelete(p.id)}
+                        className="p-2 rounded-lg text-[var(--text-muted)] hover:text-red-400 transition-all flex-shrink-0"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
-                  <div className="col-span-2 text-[var(--text-muted)] text-xs truncate">{p.email || '—'}</div>
-                  <div className="col-span-2">
-                    <span className="inline-flex items-center gap-1.5 text-xs">
-                      <div className={`w-1.5 h-1.5 rounded-full ${col?.dotClass}`} />
-                      <span className="text-[var(--text-muted)]">{col?.label}</span>
-                    </span>
-                  </div>
-                  <div className="col-span-2 text-[#FF6B2B] text-xs font-semibold">
-                    {p.valeur_estimee > 0 ? `${p.valeur_estimee} €` : '—'}
-                  </div>
-                  <div className="col-span-2 flex items-center justify-between">
-                    <span className="text-[var(--text-muted)] text-xs">
-                      {new Date(p.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                    </span>
-                    <button
-                      onClick={() => handleDelete(p.id)}
-                      className="p-1 rounded text-transparent group-hover:text-[var(--text-muted)] hover:!text-red-400 transition-colors"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                </div>
-              )
-            })
+                )
+              })}
+            </div>
           )}
         </div>
       )}
@@ -450,6 +567,12 @@ export default function CoachProspectsPage() {
       {/* ══════════════════════════════════════ */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Nouveau prospect">
         <form onSubmit={handleAdd} className="space-y-4">
+          {/* Gradient accent bar */}
+          <div
+            className="h-[3px] rounded-full -mt-2 mb-4"
+            style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }}
+          />
+
           {/* Prénom */}
           <div>
             <label className="block text-sm text-[var(--text-secondary)] mb-1.5 font-medium">Prénom *</label>
@@ -460,7 +583,7 @@ export default function CoachProspectsPage() {
               placeholder="Prénom du prospect"
               autoFocus
               required
-              className="w-full bg-[var(--bg-input)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors"
             />
           </div>
 
@@ -472,12 +595,12 @@ export default function CoachProspectsPage() {
               value={formNom}
               onChange={(e) => setFormNom(e.target.value)}
               placeholder="Nom de famille"
-              className="w-full bg-[var(--bg-input)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors"
             />
           </div>
 
           {/* Email + Téléphone en row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm text-[var(--text-secondary)] mb-1.5 font-medium">Email</label>
               <input
@@ -485,7 +608,7 @@ export default function CoachProspectsPage() {
                 value={formEmail}
                 onChange={(e) => setFormEmail(e.target.value)}
                 placeholder="email@exemple.com"
-                className="w-full bg-[var(--bg-input)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors"
               />
             </div>
             <div>
@@ -495,13 +618,13 @@ export default function CoachProspectsPage() {
                 value={formTelephone}
                 onChange={(e) => setFormTelephone(e.target.value)}
                 placeholder="+33 6..."
-                className="w-full bg-[var(--bg-input)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors"
               />
             </div>
           </div>
 
           {/* Valeur + Statut en row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm text-[var(--text-secondary)] mb-1.5 font-medium">Valeur estimée (€)</label>
               <div className="relative">
@@ -512,7 +635,7 @@ export default function CoachProspectsPage() {
                   onChange={(e) => setFormValeur(e.target.value)}
                   placeholder="0"
                   min="0"
-                  className="w-full bg-[var(--bg-input)] border border-[var(--border-base)] rounded-xl pl-9 pr-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl pl-9 pr-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors"
                 />
               </div>
             </div>
@@ -521,7 +644,7 @@ export default function CoachProspectsPage() {
               <select
                 value={modalStatut}
                 onChange={(e) => setModalStatut(e.target.value)}
-                className="w-full bg-[var(--bg-input)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors"
               >
                 {COLUMNS.map(c => (
                   <option key={c.id} value={c.id}>{c.label}</option>
@@ -538,7 +661,7 @@ export default function CoachProspectsPage() {
               onChange={(e) => setFormNotes(e.target.value)}
               placeholder="Notes sur ce prospect..."
               rows={2}
-              className="w-full bg-[var(--bg-input)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none"
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none"
             />
           </div>
 
@@ -547,14 +670,15 @@ export default function CoachProspectsPage() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] bg-[var(--bg-surface)] hover:bg-[#3f3f46] transition-colors"
+              className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)]/80 border border-[var(--border-base)] transition-colors"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={saving || !formPrenom.trim()}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold transition-all disabled:opacity-40 hover:shadow-lg hover:shadow-[#FF6B2B]/20 active:scale-[0.97]"
+              style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 2px 12px rgba(255,107,43,0.25)' }}
             >
               {saving ? (
                 <Loader2 size={15} className="animate-spin" />

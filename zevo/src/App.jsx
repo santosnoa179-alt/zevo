@@ -49,7 +49,8 @@ const CoachDashboardPage = lazy(() => import('./pages/coach/CoachDashboardPage')
 const CoachClientsPage = lazy(() => import('./pages/coach/CoachClientsPage'))
 const CoachClientFichePage = lazy(() => import('./pages/coach/CoachClientFichePage'))
 const CoachMessagesPage = lazy(() => import('./pages/coach/CoachMessagesPage'))
-// const CoachProgrammesPage = lazy(() => import('./pages/coach/CoachProgrammesPage')) // DEPRECATED → CoachSportPage
+const CoachProgrammesPage = lazy(() => import('./pages/coach/CoachProgrammesPage'))
+const CoachProgrammesHubPage = lazy(() => import('./pages/coach/CoachProgrammesHubPage'))
 const CoachSportPage = lazy(() => import('./pages/coach/CoachSportPage'))
 const CoachNutritionPage = lazy(() => import('./pages/coach/CoachNutritionPage'))
 const NutritionBuilder = lazy(() => import('./pages/coach/NutritionBuilder'))
@@ -144,8 +145,7 @@ export default function App() {
               <Route path="clients" element={<CoachClientsPage />} />
               <Route path="clients/:clientId" element={<CoachClientFichePage />} />
               <Route path="client-hub" element={<CoachClientHub />} />
-              {/* Ancien module désactivé — redirige vers Sport */}
-              <Route path="programmes" element={<CoachSportPage />} />
+              <Route path="programmes" element={<CoachProgrammesHubPage />} />
               <Route path="sport" element={<CoachSportPage />} />
               <Route path="nutrition" element={<CoachNutritionPage />} />
               <Route path="nutrition/new" element={<NutritionBuilder />} />

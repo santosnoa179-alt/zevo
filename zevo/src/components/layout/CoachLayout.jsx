@@ -56,7 +56,7 @@ const NAV_SECTIONS = [
 const MOBILE_NAV = [
   { to: '/coach/dashboard', icon: LayoutDashboard, label: 'Accueil' },
   { to: '/coach/client-hub', icon: Users, label: 'Clients' },
-  { to: '/coach/sport', icon: Trophy, label: 'Sport' },
+  { to: '/coach/programmes', icon: Layers, label: 'Programme' },
   { to: '/coach/messages', icon: MessageCircle, label: 'Messages' },
   { to: '/coach/parametres', icon: Settings, label: 'Plus' },
 ]
@@ -225,6 +225,7 @@ export function CoachLayout() {
       <header className="md:hidden sticky top-0 z-50 bg-[var(--bg-elevated)] border-b border-[var(--border-base)] px-4 py-3 flex items-center justify-between">
         <ZevoLogo size="sm" className="text-[var(--text-primary)]" />
         <div className="flex items-center gap-2">
+          <ThemeToggle size="sm" />
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1.5 transition-colors"

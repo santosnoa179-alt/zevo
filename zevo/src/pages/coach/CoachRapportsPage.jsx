@@ -3,7 +3,8 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import {
   FileText, Download, Calendar, User,
-  BarChart3, TrendingUp, Target, CheckSquare, Dumbbell, Scale
+  BarChart3, TrendingUp, Target, CheckSquare, Dumbbell, Scale,
+  MessageSquare, RefreshCw, ChevronRight, Eye, Sparkles
 } from 'lucide-react'
 
 // ── Helpers ──
@@ -531,290 +532,358 @@ export default function CoachRapportsPage() {
   // RENDER
   // ═══════════════════════════════════════
   return (
-    <div className="p-6 w-full">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Rapports</h1>
-        <p className="text-[var(--text-secondary)] text-sm mt-1">Générez des rapports PDF professionnels pour vos clients</p>
+    <div className="p-4 md:p-6 w-full max-w-[1400px] mx-auto">
+
+      {/* ── Header ── */}
+      <div className="glass-card relative mb-6 md:mb-8 overflow-hidden">
+        {/* Barre accent gradient */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E]" />
+        <div className="p-4 md:p-6 flex items-center gap-4">
+          <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF8F5E]/10 flex items-center justify-center shrink-0">
+            <FileText size={22} className="text-[#FF6B2B]" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight">Rapports</h1>
+            <p className="text-[var(--text-secondary)] text-xs md:text-sm mt-0.5 truncate">Generez des rapports PDF professionnels pour vos clients</p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* ── Colonne gauche : configuration ── */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4">
-            <label className="block text-[var(--text-secondary)] text-xs mb-3 uppercase tracking-wider font-semibold">Type de rapport</label>
-            <div className="space-y-2">
-              {TYPES_RAPPORT.map(t => {
-                const Icon = t.icon
-                return (
-                  <button
-                    key={t.id}
-                    onClick={() => { setTypeRapport(t.id); setPreview(null) }}
-                    className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-all ${
-                      typeRapport === t.id ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'border border-[var(--border-base)] hover:border-[var(--border-base)]'
-                    }`}
-                  >
-                    <Icon size={18} className={typeRapport === t.id ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'} />
-                    <div>
-                      <p className={`text-sm font-medium ${typeRapport === t.id ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>{t.label}</p>
-                      <p className="text-[var(--text-muted)] text-xs mt-0.5">{t.description}</p>
-                    </div>
-                  </button>
-                )
-              })}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
+
+        {/* ══ Colonne gauche : configuration ══ */}
+        <div className="lg:col-span-1 space-y-3 md:space-y-4">
+
+          {/* ── Type de rapport ── */}
+          <div className="glass-card relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#FF6B2B]/60 to-transparent" />
+            <div className="p-4">
+              <label className="block text-[var(--text-secondary)] text-[10px] md:text-xs mb-3 uppercase tracking-wider font-semibold">Type de rapport</label>
+              <div className="space-y-2">
+                {TYPES_RAPPORT.map(t => {
+                  const Icon = t.icon
+                  const selected = typeRapport === t.id
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => { setTypeRapport(t.id); setPreview(null) }}
+                      className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-all duration-200 relative ${
+                        selected
+                          ? 'bg-[#FF6B2B]/8 border border-[#FF6B2B]/25 shadow-[0_0_20px_rgba(255,107,43,0.06)]'
+                          : 'border border-[var(--border-base)] hover:border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]/50'
+                      }`}
+                    >
+                      {/* Barre gauche gradient quand selectionne */}
+                      {selected && (
+                        <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-gradient-to-b from-[#FF6B2B] to-[#FF8F5E]" />
+                      )}
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                        selected
+                          ? 'bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF8F5E]/10'
+                          : 'bg-[var(--bg-surface)]'
+                      }`}>
+                        <Icon size={17} className={selected ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-sm font-medium leading-tight ${selected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>{t.label}</p>
+                        <p className="text-[var(--text-muted)] text-[11px] mt-0.5 leading-snug">{t.description}</p>
+                      </div>
+                      {selected && <ChevronRight size={14} className="text-[#FF6B2B] mt-0.5 shrink-0" />}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
+          {/* ── Selecteur client ── */}
           {typeRapport !== 'financier' && (
-            <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4">
-              <label className="block text-[var(--text-secondary)] text-xs mb-2 uppercase tracking-wider font-semibold">Client</label>
-              {loading ? (
-                <div className="h-10 bg-[var(--bg-surface)] rounded-lg animate-pulse" />
-              ) : clients.length === 0 ? (
-                <p className="text-[var(--text-muted)] text-sm">Aucun client actif</p>
-              ) : (
-                <select
-                  value={clientId}
-                  onChange={(e) => { setClientId(e.target.value); setPreview(null) }}
-                  className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
-                >
-                  {clients.map(c => (
-                    <option key={c.id} value={c.id}>{c.profiles?.nom || c.profiles?.email || 'Client'}</option>
-                  ))}
-                </select>
-              )}
+            <div className="glass-card relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#FF6B2B]/40 to-transparent" />
+              <div className="p-4">
+                <label className="flex items-center gap-2 text-[var(--text-secondary)] text-[10px] md:text-xs mb-3 uppercase tracking-wider font-semibold">
+                  <User size={13} className="text-[var(--text-muted)]" />
+                  Client
+                </label>
+                {loading ? (
+                  <div className="skel-block h-10 rounded-lg" />
+                ) : clients.length === 0 ? (
+                  <p className="text-[var(--text-muted)] text-sm py-1">Aucun client actif</p>
+                ) : (
+                  <select
+                    value={clientId}
+                    onChange={(e) => { setClientId(e.target.value); setPreview(null) }}
+                    className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 focus:outline-none transition-all"
+                  >
+                    {clients.map(c => (
+                      <option key={c.id} value={c.id}>{c.profiles?.nom || c.profiles?.email || 'Client'}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
           )}
 
+          {/* ── Commentaire coach ── */}
           {typeRapport !== 'financier' && (
-            <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4">
-              <label className="block text-[var(--text-secondary)] text-xs mb-2 uppercase tracking-wider font-semibold">Commentaire du coach</label>
-              <textarea
-                value={commentaire}
-                onChange={(e) => setCommentaire(e.target.value)}
-                placeholder="Ajoutez un message personnalisé au rapport..."
-                rows={3}
-                className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none"
-              />
+            <div className="glass-card relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#FF6B2B]/40 to-transparent" />
+              <div className="p-4">
+                <label className="flex items-center gap-2 text-[var(--text-secondary)] text-[10px] md:text-xs mb-3 uppercase tracking-wider font-semibold">
+                  <MessageSquare size={13} className="text-[var(--text-muted)]" />
+                  Commentaire du coach
+                </label>
+                <textarea
+                  value={commentaire}
+                  onChange={(e) => setCommentaire(e.target.value)}
+                  placeholder="Ajoutez un message personnalise au rapport..."
+                  rows={3}
+                  className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 focus:outline-none transition-all resize-none"
+                />
+              </div>
             </div>
           )}
 
+          {/* ── Bouton generer ── */}
           <button
             onClick={genererPreview}
             disabled={generating || (typeRapport !== 'financier' && !clientId)}
-            className="w-full flex items-center justify-center gap-2 bg-[#FF6B2B] text-white py-3 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 p-2 bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white py-3.5 rounded-xl text-sm font-semibold shadow-[0_4px_20px_rgba(255,107,43,0.3)] hover:shadow-[0_6px_28px_rgba(255,107,43,0.4)] hover:brightness-110 active:scale-[0.98] transition-all duration-200 disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed"
           >
-            {generating ? 'Chargement des données...' : (<><BarChart3 size={16} /> Générer le rapport</>)}
+            {generating ? (
+              <>
+                <RefreshCw size={16} className="animate-spin" />
+                Chargement des donnees...
+              </>
+            ) : (
+              <>
+                <BarChart3 size={16} />
+                Generer le rapport
+              </>
+            )}
           </button>
         </div>
 
-        {/* ── Colonne droite : prévisualisation ── */}
+        {/* ══ Colonne droite : previsualisation ══ */}
         <div className="lg:col-span-2">
           {!preview ? (
-            <div className="bg-[var(--bg-card)] border border-dashed border-[var(--border-base)] rounded-xl p-12 flex flex-col items-center justify-center min-h-[500px]">
-              <FileText size={48} className="text-[var(--text-muted)] mb-4" />
-              <p className="text-[var(--text-muted)] text-sm">Sélectionnez un type et cliquez sur « Générer »</p>
-              <p className="text-[var(--text-muted)] text-xs mt-1">La prévisualisation apparaîtra ici</p>
+            /* ── Etat vide ── */
+            <div className="glass-card border-dashed min-h-[400px] md:min-h-[500px] flex flex-col items-center justify-center p-8 md:p-12">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/10 to-[#FF8F5E]/5 flex items-center justify-center mb-5 animate-breathe">
+                <Eye size={32} className="text-[#FF6B2B]/40 md:text-[#FF6B2B]/50" />
+              </div>
+              <p className="text-[var(--text-muted)] text-sm md:text-base font-medium text-center">Selectionnez un type et cliquez sur Generer</p>
+              <p className="text-[var(--text-muted)] text-xs mt-1.5 opacity-60 text-center">La previsualisation apparaitra ici</p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl overflow-hidden border border-[#E4E4E7] shadow-sm">
-              {/* Header éditorial */}
-              <div className="px-6 pt-6 pb-4 border-b border-[#E4E4E7]">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[#FF6B2B] text-xs font-bold tracking-widest uppercase">{coachInfo?.nom_app || 'Zevo'}</span>
-                  <span className="text-[#71717A] text-[10px]">{new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+            /* ── Wrapper glass autour du preview blanc ── */
+            <div className="glass-card p-1 md:p-1.5">
+              <div className="bg-white rounded-xl overflow-hidden shadow-sm">
+                {/* Header editorial */}
+                <div className="px-4 md:px-6 pt-4 md:pt-6 pb-3 md:pb-4 border-b border-[#E4E4E7]">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[#FF6B2B] text-xs font-bold tracking-widest uppercase">{coachInfo?.nom_app || 'Zevo'}</span>
+                    <span className="text-[#71717A] text-[10px]">{new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                  </div>
+                  <h2 className="text-[#18181B] text-base md:text-lg font-bold tracking-tight">{TYPES_RAPPORT.find(t => t.id === preview.type)?.label?.toUpperCase()}</h2>
+                  <p className="text-[#71717A] text-xs mt-0.5">{preview.type === 'financier' ? 'Synthese financiere' : 'Synthese de progression'}</p>
                 </div>
-                <h2 className="text-[#18181B] text-lg font-bold tracking-tight">{TYPES_RAPPORT.find(t => t.id === preview.type)?.label?.toUpperCase()}</h2>
-                <p className="text-[#71717A] text-xs mt-0.5">{preview.type === 'financier' ? 'Synthèse financière' : 'Synthèse de progression'}</p>
-              </div>
 
-              <div className="p-6 space-y-6 bg-white">
-                {preview.type === 'financier' ? (
-                  <>
-                    <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase">Indicateurs financiers</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { label: 'CLIENTS ACTIFS', val: preview.data.nbClients },
-                        { label: 'CA DU MOIS', val: `${preview.data.caMois.toFixed(0)} €` },
-                        { label: 'PAIEMENTS CE MOIS', val: preview.data.nbPaiements },
-                        { label: 'TOTAL PAIEMENTS', val: preview.data.totalPaiements },
-                      ].map(({ label, val }) => (
-                        <div key={label} className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-4">
-                          <p className="text-[#71717A] text-[9px] tracking-wider font-medium">{label}</p>
-                          <p className="text-[#FF6B2B] text-2xl font-bold mt-1 tabular-nums">{val}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* Client info */}
-                    <div className="flex items-center gap-2 text-[#71717A] text-xs">
-                      <User size={13} />
-                      <span className="text-[#18181B] font-medium">{preview.client?.profiles?.nom || preview.client?.profiles?.email}</span>
-                      <span className="text-[#D4D4D8]">—</span>
-                      {preview.jours} derniers jours
-                    </div>
-
-                    {/* 3 KPIs */}
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3 text-center">
-                        <div className="flex items-center justify-center gap-1.5 mb-1"><CheckSquare size={12} className="text-[#FF6B2B]" /></div>
-                        <p className="text-[#FF6B2B] text-xl font-bold tabular-nums">{preview.data.tauxHabitudes}%</p>
-                        <p className="text-[#71717A] text-[8px] tracking-wider font-medium mt-0.5">HABITUDES</p>
-                        {preview.data.comparaison?.habitudes != null && (
-                          <p className={`text-[9px] font-bold mt-0.5 ${preview.data.comparaison.habitudes >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                            {preview.data.comparaison.habitudes >= 0 ? '+' : ''}{preview.data.comparaison.habitudes}%
-                          </p>
-                        )}
-                      </div>
-                      <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3 text-center">
-                        <div className="flex items-center justify-center gap-1.5 mb-1"><Dumbbell size={12} className="text-[#FF6B2B]" /></div>
-                        <p className="text-[#FF6B2B] text-xl font-bold tabular-nums">{preview.data.seancesCompleted}/{preview.data.seancesTotal}</p>
-                        <p className="text-[#71717A] text-[8px] tracking-wider font-medium mt-0.5">SÉANCES</p>
-                        {preview.data.comparaison?.seances != null && (
-                          <p className={`text-[9px] font-bold mt-0.5 ${preview.data.comparaison.seances >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                            {preview.data.comparaison.seances >= 0 ? '+' : ''}{preview.data.comparaison.seances}%
-                          </p>
-                        )}
-                      </div>
-                      <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3 text-center">
-                        <div className="flex items-center justify-center gap-1.5 mb-1"><Scale size={12} className="text-[#FF6B2B]" /></div>
-                        <p className="text-[#FF6B2B] text-xl font-bold tabular-nums">
-                          {preview.data.deltaPoids !== null ? `${parseFloat(preview.data.deltaPoids) > 0 ? '+' : ''}${preview.data.deltaPoids}` : '—'}
-                        </p>
-                        <p className="text-[#71717A] text-[8px] tracking-wider font-medium mt-0.5">ÉVOL. POIDS (KG)</p>
-                      </div>
-                    </div>
-
-                    {/* Habitudes détail */}
-                    <div>
-                      <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase mb-3">Habitudes</p>
-                      {preview.data.habitudesDetail.length === 0 ? (
-                        <p className="text-[#A1A1AA] text-xs italic">Aucune habitude active</p>
-                      ) : (
-                        <div className="space-y-2.5">
-                          {preview.data.habitudesDetail.map(h => (
-                            <div key={h.id}>
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-[#18181B] text-xs font-medium">{h.nom}</span>
-                                <span className="text-[#FF6B2B] text-xs font-bold tabular-nums">{h.taux}%</span>
-                              </div>
-                              <div className="h-[5px] bg-[#F4F4F5] rounded-full overflow-hidden">
-                                <div className="h-full rounded-full bg-[#FF6B2B]" style={{ width: `${h.taux}%` }} />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Entraînements */}
-                    <div>
-                      <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase mb-3">Entraînements</p>
-                      {preview.data.seanceData.length === 0 ? (
-                        <p className="text-[#A1A1AA] text-xs italic">Aucune séance sur cette période</p>
-                      ) : (
-                        <div className="border border-[#E4E4E7] rounded-lg overflow-hidden">
-                          <div className="grid grid-cols-[60px_1fr_70px] text-[9px] font-semibold text-[#71717A] tracking-wider uppercase bg-[#FAFAFA] px-3 py-2 border-b border-[#E4E4E7]">
-                            <span>Date</span><span>Séance</span><span className="text-right">Statut</span>
+                <div className="p-4 md:p-6 space-y-5 md:space-y-6 bg-white">
+                  {preview.type === 'financier' ? (
+                    <>
+                      <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase">Indicateurs financiers</p>
+                      <div className="grid grid-cols-2 gap-2 md:gap-3">
+                        {[
+                          { label: 'CLIENTS ACTIFS', val: preview.data.nbClients },
+                          { label: 'CA DU MOIS', val: `${preview.data.caMois.toFixed(0)} \u20AC` },
+                          { label: 'PAIEMENTS CE MOIS', val: preview.data.nbPaiements },
+                          { label: 'TOTAL PAIEMENTS', val: preview.data.totalPaiements },
+                        ].map(({ label, val }) => (
+                          <div key={label} className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3 md:p-4">
+                            <p className="text-[#71717A] text-[9px] tracking-wider font-medium">{label}</p>
+                            <p className="text-[#FF6B2B] text-xl md:text-2xl font-bold mt-1 tabular-nums">{val}</p>
                           </div>
-                          {preview.data.seanceData.map(s => (
-                            <div key={s.id} className="grid grid-cols-[60px_1fr_70px] items-center px-3 py-2 border-b border-[#F4F4F5] last:border-0 text-xs">
-                              <span className="text-[#71717A] tabular-nums">{new Date(s.date_prevue).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</span>
-                              <span className="text-[#18181B] font-medium truncate">{s.titre || 'Séance'}</span>
-                              {s.is_completed ? (
-                                <span className="text-right text-[#FF6B2B] font-bold text-[10px]">✓ Fait</span>
-                              ) : (
-                                <span className="text-right text-[#D4D4D8] text-[10px]">— Manqué</span>
-                              )}
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Client info */}
+                      <div className="flex items-center gap-2 text-[#71717A] text-xs">
+                        <User size={13} />
+                        <span className="text-[#18181B] font-medium">{preview.client?.profiles?.nom || preview.client?.profiles?.email}</span>
+                        <span className="text-[#D4D4D8]">\u2014</span>
+                        {preview.jours} derniers jours
+                      </div>
+
+                      {/* 3 KPIs */}
+                      <div className="grid grid-cols-3 gap-2 md:gap-3">
+                        <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-2.5 md:p-3 text-center">
+                          <div className="flex items-center justify-center gap-1.5 mb-1"><CheckSquare size={12} className="text-[#FF6B2B]" /></div>
+                          <p className="text-[#FF6B2B] text-lg md:text-xl font-bold tabular-nums">{preview.data.tauxHabitudes}%</p>
+                          <p className="text-[#71717A] text-[7px] md:text-[8px] tracking-wider font-medium mt-0.5">HABITUDES</p>
+                          {preview.data.comparaison?.habitudes != null && (
+                            <p className={`text-[9px] font-bold mt-0.5 ${preview.data.comparaison.habitudes >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                              {preview.data.comparaison.habitudes >= 0 ? '+' : ''}{preview.data.comparaison.habitudes}%
+                            </p>
+                          )}
+                        </div>
+                        <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-2.5 md:p-3 text-center">
+                          <div className="flex items-center justify-center gap-1.5 mb-1"><Dumbbell size={12} className="text-[#FF6B2B]" /></div>
+                          <p className="text-[#FF6B2B] text-lg md:text-xl font-bold tabular-nums">{preview.data.seancesCompleted}/{preview.data.seancesTotal}</p>
+                          <p className="text-[#71717A] text-[7px] md:text-[8px] tracking-wider font-medium mt-0.5">SEANCES</p>
+                          {preview.data.comparaison?.seances != null && (
+                            <p className={`text-[9px] font-bold mt-0.5 ${preview.data.comparaison.seances >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                              {preview.data.comparaison.seances >= 0 ? '+' : ''}{preview.data.comparaison.seances}%
+                            </p>
+                          )}
+                        </div>
+                        <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-2.5 md:p-3 text-center">
+                          <div className="flex items-center justify-center gap-1.5 mb-1"><Scale size={12} className="text-[#FF6B2B]" /></div>
+                          <p className="text-[#FF6B2B] text-lg md:text-xl font-bold tabular-nums">
+                            {preview.data.deltaPoids !== null ? `${parseFloat(preview.data.deltaPoids) > 0 ? '+' : ''}${preview.data.deltaPoids}` : '\u2014'}
+                          </p>
+                          <p className="text-[#71717A] text-[7px] md:text-[8px] tracking-wider font-medium mt-0.5">EVOL. POIDS (KG)</p>
+                        </div>
+                      </div>
+
+                      {/* Habitudes detail */}
+                      <div>
+                        <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase mb-3">Habitudes</p>
+                        {preview.data.habitudesDetail.length === 0 ? (
+                          <p className="text-[#A1A1AA] text-xs italic">Aucune habitude active</p>
+                        ) : (
+                          <div className="space-y-2.5">
+                            {preview.data.habitudesDetail.map(h => (
+                              <div key={h.id}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-[#18181B] text-xs font-medium">{h.nom}</span>
+                                  <span className="text-[#FF6B2B] text-xs font-bold tabular-nums">{h.taux}%</span>
+                                </div>
+                                <div className="h-[5px] bg-[#F4F4F5] rounded-full overflow-hidden">
+                                  <div className="h-full rounded-full bg-[#FF6B2B]" style={{ width: `${h.taux}%` }} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Entrainements */}
+                      <div>
+                        <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase mb-3">Entrainements</p>
+                        {preview.data.seanceData.length === 0 ? (
+                          <p className="text-[#A1A1AA] text-xs italic">Aucune seance sur cette periode</p>
+                        ) : (
+                          <div className="border border-[#E4E4E7] rounded-lg overflow-hidden">
+                            <div className="grid grid-cols-[50px_1fr_60px] md:grid-cols-[60px_1fr_70px] text-[9px] font-semibold text-[#71717A] tracking-wider uppercase bg-[#FAFAFA] px-3 py-2 border-b border-[#E4E4E7]">
+                              <span>Date</span><span>Seance</span><span className="text-right">Statut</span>
                             </div>
-                          ))}
+                            {preview.data.seanceData.map(s => (
+                              <div key={s.id} className="grid grid-cols-[50px_1fr_60px] md:grid-cols-[60px_1fr_70px] items-center px-3 py-2 border-b border-[#F4F4F5] last:border-0 text-xs">
+                                <span className="text-[#71717A] tabular-nums">{new Date(s.date_prevue).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</span>
+                                <span className="text-[#18181B] font-medium truncate">{s.titre || 'Seance'}</span>
+                                {s.is_completed ? (
+                                  <span className="text-right text-[#FF6B2B] font-bold text-[10px]">Fait</span>
+                                ) : (
+                                  <span className="text-right text-[#D4D4D8] text-[10px]">Manque</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Evolution corporelle */}
+                      {(preview.data.poidsActuel !== null || preview.data.objPoids) && (
+                        <div>
+                          <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase mb-3">Evolution corporelle</p>
+                          <div className="grid grid-cols-2 gap-2 md:gap-3 mb-3">
+                            {preview.data.poidsActuel !== null && (
+                              <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3">
+                                <p className="text-[#71717A] text-[9px] tracking-wider font-medium">POIDS ACTUEL</p>
+                                <p className="text-[#FF6B2B] text-lg md:text-xl font-bold mt-1">{preview.data.poidsActuel} kg</p>
+                              </div>
+                            )}
+                            {preview.data.deltaPoids !== null && (
+                              <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3">
+                                <p className="text-[#71717A] text-[9px] tracking-wider font-medium">VARIATION</p>
+                                <p className={`text-lg md:text-xl font-bold mt-1 ${parseFloat(preview.data.deltaPoids) <= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                  {parseFloat(preview.data.deltaPoids) > 0 ? '+' : ''}{preview.data.deltaPoids} kg
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Objectif poids */}
+                          {preview.data.objPoids && (() => {
+                            const op = preview.data.objPoids
+                            const pct = calcProgress(op.valeur_depart, op.valeur_actuelle, op.valeur_cible)
+                            return (
+                              <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3">
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <span className="text-[#18181B] text-[11px] md:text-xs font-medium">Depart : {op.valeur_depart} kg | Objectif : {op.valeur_cible} kg</span>
+                                  <span className="text-[#FF6B2B] text-xs font-bold">{pct}%</span>
+                                </div>
+                                <div className="h-[5px] bg-[#E4E4E7] rounded-full overflow-hidden">
+                                  <div className="h-full rounded-full bg-[#FF6B2B]" style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            )
+                          })()}
                         </div>
                       )}
-                    </div>
 
-                    {/* Évolution corporelle */}
-                    {(preview.data.poidsActuel !== null || preview.data.objPoids) && (
-                      <div>
-                        <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase mb-3">Évolution corporelle</p>
-                        <div className="grid grid-cols-2 gap-3 mb-3">
-                          {preview.data.poidsActuel !== null && (
-                            <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3">
-                              <p className="text-[#71717A] text-[9px] tracking-wider font-medium">POIDS ACTUEL</p>
-                              <p className="text-[#FF6B2B] text-xl font-bold mt-1">{preview.data.poidsActuel} kg</p>
-                            </div>
-                          )}
-                          {preview.data.deltaPoids !== null && (
-                            <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3">
-                              <p className="text-[#71717A] text-[9px] tracking-wider font-medium">VARIATION</p>
-                              <p className={`text-xl font-bold mt-1 ${parseFloat(preview.data.deltaPoids) <= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                                {parseFloat(preview.data.deltaPoids) > 0 ? '+' : ''}{preview.data.deltaPoids} kg
-                              </p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Objectif poids */}
-                        {preview.data.objPoids && (() => {
-                          const op = preview.data.objPoids
-                          const pct = calcProgress(op.valeur_depart, op.valeur_actuelle, op.valeur_cible)
-                          return (
-                            <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3">
-                              <div className="flex items-center justify-between mb-1.5">
-                                <span className="text-[#18181B] text-xs font-medium">Départ : {op.valeur_depart} kg | Objectif : {op.valeur_cible} kg</span>
-                                <span className="text-[#FF6B2B] text-xs font-bold">{pct}%</span>
-                              </div>
-                              <div className="h-[5px] bg-[#E4E4E7] rounded-full overflow-hidden">
-                                <div className="h-full rounded-full bg-[#FF6B2B]" style={{ width: `${pct}%` }} />
-                              </div>
-                            </div>
-                          )
-                        })()}
-                      </div>
-                    )}
-
-                    {/* Objectifs */}
-                    {preview.data.objectifsDetail.filter(o => o.statut === 'en_cours').length > 0 && (
-                      <div>
-                        <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase mb-3">Objectifs</p>
-                        <div className="space-y-3">
-                          {preview.data.objectifsDetail.filter(o => o.statut === 'en_cours').map(o => (
-                            <div key={o.id}>
-                              <div className="flex items-center justify-between mb-1">
-                                <div>
-                                  <span className="text-[#18181B] text-xs font-medium">{o.titre}</span>
-                                  <span className="text-[#A1A1AA] text-[10px] ml-2">{o.valeur_actuelle ?? o.valeur_depart}/{o.valeur_cible} {o.unite || ''}</span>
+                      {/* Objectifs */}
+                      {preview.data.objectifsDetail.filter(o => o.statut === 'en_cours').length > 0 && (
+                        <div>
+                          <p className="text-[#71717A] text-[10px] font-semibold tracking-widest uppercase mb-3">Objectifs</p>
+                          <div className="space-y-3">
+                            {preview.data.objectifsDetail.filter(o => o.statut === 'en_cours').map(o => (
+                              <div key={o.id}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="min-w-0">
+                                    <span className="text-[#18181B] text-xs font-medium">{o.titre}</span>
+                                    <span className="text-[#A1A1AA] text-[10px] ml-2">{o.valeur_actuelle ?? o.valeur_depart}/{o.valeur_cible} {o.unite || ''}</span>
+                                  </div>
+                                  <span className="text-[#FF6B2B] text-xs font-bold tabular-nums shrink-0 ml-2">{o.progression}%</span>
                                 </div>
-                                <span className="text-[#FF6B2B] text-xs font-bold tabular-nums">{o.progression}%</span>
+                                <div className="h-[5px] bg-[#F4F4F5] rounded-full overflow-hidden">
+                                  <div className="h-full rounded-full bg-[#FF6B2B]" style={{ width: `${o.progression}%` }} />
+                                </div>
                               </div>
-                              <div className="h-[5px] bg-[#F4F4F5] rounded-full overflow-hidden">
-                                <div className="h-full rounded-full bg-[#FF6B2B]" style={{ width: `${o.progression}%` }} />
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Commentaire */}
-                    {commentaire.trim() && (
-                      <div className="border-l-[3px] border-[#FF6B2B] bg-[#FFF7ED] rounded-r-lg p-4">
-                        <p className="text-[#71717A] text-[9px] font-semibold tracking-wider uppercase mb-1">Mot du coach</p>
-                        <p className="text-[#18181B] text-sm leading-relaxed whitespace-pre-wrap">{commentaire}</p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
+                      {/* Commentaire */}
+                      {commentaire.trim() && (
+                        <div className="border-l-[3px] border-[#FF6B2B] bg-[#FFF7ED] rounded-r-lg p-3 md:p-4">
+                          <p className="text-[#71717A] text-[9px] font-semibold tracking-wider uppercase mb-1">Mot du coach</p>
+                          <p className="text-[#18181B] text-sm leading-relaxed whitespace-pre-wrap">{commentaire}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
 
-              {/* Actions */}
-              <div className="px-6 py-4 border-t border-[#E4E4E7] bg-[#FAFAFA] flex gap-3">
-                <button onClick={telechargerPDF} className="flex items-center gap-2 bg-[#FF6B2B] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-colors">
-                  <Download size={16} /> Télécharger PDF
-                </button>
-                <button onClick={genererPreview} className="px-4 py-2.5 rounded-xl text-sm text-[#71717A] hover:text-[#18181B] hover:bg-[#E4E4E7] transition-colors">
-                  Rafraîchir
-                </button>
+                {/* Actions */}
+                <div className="px-4 md:px-6 py-3 md:py-4 border-t border-[#E4E4E7] bg-[#FAFAFA] flex flex-col sm:flex-row gap-2 md:gap-3">
+                  <button
+                    onClick={telechargerPDF}
+                    className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-[0_4px_16px_rgba(255,107,43,0.25)] hover:shadow-[0_6px_24px_rgba(255,107,43,0.35)] hover:brightness-110 active:scale-[0.98] transition-all duration-200 p-2"
+                  >
+                    <Download size={16} /> Telecharger PDF
+                  </button>
+                  <button
+                    onClick={genererPreview}
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-[#71717A] hover:text-[#18181B] hover:bg-[#E4E4E7] transition-colors p-2"
+                  >
+                    <RefreshCw size={14} /> Rafraichir
+                  </button>
+                </div>
               </div>
             </div>
           )}
