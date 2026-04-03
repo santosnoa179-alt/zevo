@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart3, Users, CreditCard, LogOut } from 'lucide-react'
+import { BarChart3, Users, CreditCard, LogOut, Shield, Menu, X } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { ZevoLogo } from '../ui/ZevoLogo'
 
@@ -13,6 +14,7 @@ const navItems = [
 export function AdminLayout() {
   const { logout } = useAuth()
   const navigate = useNavigate()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     await logout()
@@ -20,48 +22,130 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] flex">
-      <aside className="w-56 flex-shrink-0 bg-[var(--bg-card)] border-r border-[var(--border-base)] flex flex-col">
-        <div className="p-4 border-b border-[var(--border-base)]">
-          <ZevoLogo size="md" />
-          <p className="text-[var(--text-muted)] text-xs mt-1.5 pl-0.5">Super Admin</p>
+    <div className="min-h-screen bg-[var(--bg-base)] flex flex-col md:flex-row">
+
+      {/* ── Mobile header bar ── */}
+      <header className="md:hidden flex items-center justify-between px-4 py-3 bg-[var(--bg-card)] border-b border-[var(--border-base)]">
+        <div className="flex items-center gap-3">
+          <ZevoLogo size="sm" />
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold uppercase tracking-wider">
+            <Shield size={12} />
+            Super Admin
+          </span>
+        </div>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors"
+        >
+          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </header>
+
+      {/* ── Mobile slide-down nav ── */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-[var(--bg-card)] border-b border-[var(--border-base)] px-4 pb-4 animate-page-enter">
+          <nav>
+            <ul className="space-y-1">
+              {navItems.map(({ to, icon: Icon, label }) => (
+                <li key={to}>
+                  <NavLink
+                    to={to}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] border-l-2 border-[#FF6B2B]'
+                          : 'text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-surface)]'
+                      }`
+                    }
+                  >
+                    <Icon size={18} />
+                    {label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <div className="mt-3 pt-3 border-t border-[var(--border-subtle)]">
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors w-full"
+            >
+              <LogOut size={18} />
+              Se deconnecter
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Desktop sidebar ── */}
+      <aside className="hidden md:flex w-60 flex-shrink-0 bg-[var(--bg-card)] border-r border-[var(--border-base)] flex-col">
+
+        {/* Logo area with subtle gradient glow */}
+        <div className="relative p-5 border-b border-[var(--border-base)]">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#FF6B2B]/5 to-transparent pointer-events-none" />
+          <div className="relative flex items-center gap-3">
+            <ZevoLogo size="md" />
+          </div>
+          <div className="relative mt-3">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold uppercase tracking-wider border border-[#FF6B2B]/20">
+              <Shield size={12} />
+              Super Admin
+            </span>
+          </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4">
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-5">
+          <p className="px-3 mb-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
+            Navigation
+          </p>
           <ul className="space-y-1">
             {navItems.map(({ to, icon: Icon, label }) => (
               <li key={to}>
                 <NavLink
                   to={to}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    `group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive
                         ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
                         : 'text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-surface)]'
                     }`
                   }
                 >
-                  <Icon size={18} />
-                  {label}
+                  {({ isActive }) => (
+                    <>
+                      {/* Active gradient left border accent */}
+                      {isActive && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gradient-to-b from-[#FF6B2B] to-[#FF9A6C]" />
+                      )}
+                      <Icon size={18} className={isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)] group-hover:text-white transition-colors'} />
+                      <span>{label}</span>
+                    </>
+                  )}
                 </NavLink>
               </li>
             ))}
           </ul>
         </nav>
 
-        <div className="p-3 border-t border-[var(--border-base)]">
+        {/* Logout */}
+        <div className="p-3 border-t border-[var(--border-subtle)]">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors w-full"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors w-full"
           >
             <LogOut size={18} />
-            Se déconnecter
+            Se deconnecter
           </button>
         </div>
       </aside>
 
+      {/* ── Main content area ── */}
       <main className="flex-1 overflow-auto">
-        <Outlet />
+        <div className="animate-page-enter">
+          <Outlet />
+        </div>
       </main>
     </div>
   )
