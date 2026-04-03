@@ -6459,7 +6459,7 @@ export default function CoachClientHub() {
 
             {/* ── Tabs — premium pill navigation ── */}
             <div className="relative">
-              <div className="glass-card px-2 py-1.5 flex gap-0.5 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+              <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-2xl px-2 py-1.5 flex gap-0.5 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', overflow: 'auto' }}>
                 {TABS.map((tab) => {
                   const isActive = activeTab === tab.id
                   const TabIcon = tab.icon
