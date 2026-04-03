@@ -9,7 +9,7 @@ import { Modal } from '../../components/ui/Modal'
 import { calculerScoreBienEtre, couleurScore } from '../../utils/wellbeing'
 import ProgramBuilder from './ProgramBuilder'
 import {
-  Search, MessageCircle, Settings, UserPlus, Mail,
+  Search, MessageCircle, Settings, UserPlus, Mail, Phone,
   Target, Apple, Scale, Activity, Dumbbell,
   Calendar, Eye, Share2, ChevronRight, Loader2,
   User, Heart, Flame, BarChart3, Clock,
@@ -6021,11 +6021,39 @@ export default function CoachClientHub() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button className="p-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
+              <div className="flex items-center gap-1.5">
+                {/* Téléphone — appeler le client */}
+                {p?.telephone ? (
+                  <a
+                    href={`tel:${p.telephone}`}
+                    title={`Appeler ${p.telephone}`}
+                    className="p-2 rounded-lg text-[var(--text-muted)] hover:text-green-400 hover:bg-green-500/10 transition-colors"
+                  >
+                    <Phone size={17} />
+                  </a>
+                ) : (
+                  <button
+                    title="Aucun numéro renseigné"
+                    className="p-2 rounded-lg text-[var(--text-muted)] opacity-30 cursor-not-allowed"
+                    disabled
+                  >
+                    <Phone size={17} />
+                  </button>
+                )}
+                {/* Message — aller à la messagerie avec ce client */}
+                <button
+                  onClick={() => navigate(`/coach/messages?client=${selectedId}`)}
+                  title="Envoyer un message"
+                  className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors"
+                >
                   <MessageCircle size={17} />
                 </button>
-                <button className="p-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
+                {/* Réglages — aller à l'onglet infos */}
+                <button
+                  onClick={() => setActiveTab('infos')}
+                  title="Informations client"
+                  className="p-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors"
+                >
                   <Settings size={17} />
                 </button>
               </div>

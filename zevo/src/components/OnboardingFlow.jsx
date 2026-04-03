@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useCoachTheme } from '../hooks/useCoachTheme'
-import { CheckSquare, Target, Sparkles, ArrowRight, Check, Loader2, Camera, User } from 'lucide-react'
+import { CheckSquare, Target, Sparkles, ArrowRight, Check, Loader2, Camera, User, Phone } from 'lucide-react'
 
 // Onboarding en 4 étapes affiché au 1er login (onboarding_complete = false)
 // Step 1 : Profil (prénom, nom, photo)
@@ -16,6 +16,7 @@ export default function OnboardingFlow({ onComplete }) {
   const [step, setStep] = useState(1)
   const [prenom, setPrenom] = useState('')
   const [nom, setNom] = useState('')
+  const [telephone, setTelephone] = useState('')
   const [avatarFile, setAvatarFile] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
@@ -41,12 +42,13 @@ export default function OnboardingFlow({ onComplete }) {
       // Pré-remplir le nom depuis profiles si existant
       const { data: profile } = await supabase
         .from('profiles')
-        .select('nom, prenom')
+        .select('nom, prenom, telephone')
         .eq('id', user.id)
         .maybeSingle()
 
       if (profile?.nom) setNom(profile.nom)
       if (profile?.prenom) setPrenom(profile.prenom)
+      if (profile?.telephone) setTelephone(profile.telephone)
 
       setLoading(false)
     }
@@ -88,6 +90,7 @@ export default function OnboardingFlow({ onComplete }) {
     const updates = {}
     if (prenom.trim()) updates.prenom = prenom.trim()
     if (nom.trim()) updates.nom = nom.trim()
+    if (telephone.trim()) updates.telephone = telephone.trim()
     if (avatar_url) updates.avatar_url = avatar_url
 
     if (Object.keys(updates).length > 0) {
@@ -186,27 +189,37 @@ export default function OnboardingFlow({ onComplete }) {
               />
             </div>
 
-            {/* Prénom & Nom */}
+            {/* Prénom, Nom & Téléphone */}
             <div className="space-y-3">
               <input
                 type="text"
                 value={prenom}
                 onChange={(e) => setPrenom(e.target.value)}
-                placeholder="Prénom"
+                placeholder="Prénom *"
                 className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#FF6B2B)]/50 transition-colors"
               />
               <input
                 type="text"
                 value={nom}
                 onChange={(e) => setNom(e.target.value)}
-                placeholder="Nom"
+                placeholder="Nom *"
                 className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#FF6B2B)]/50 transition-colors"
               />
+              <div className="relative">
+                <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                <input
+                  type="tel"
+                  value={telephone}
+                  onChange={(e) => setTelephone(e.target.value)}
+                  placeholder="Téléphone * — +33 6 12 34 56 78"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl pl-11 pr-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#FF6B2B)]/50 transition-colors"
+                />
+              </div>
             </div>
 
             <button
               onClick={saveProfile}
-              disabled={uploadingAvatar}
+              disabled={uploadingAvatar || !prenom.trim() || !nom.trim() || !telephone.trim()}
               className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
               style={{ backgroundColor: couleur }}
             >

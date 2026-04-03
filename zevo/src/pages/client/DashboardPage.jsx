@@ -8,7 +8,8 @@ import {
   CheckCircle2, Circle, AlertTriangle, Flame, Layers, Dumbbell,
   ClipboardList, ChevronRight, Moon, Smile, Zap, User, TrendingUp,
   Play, Sparkles, Minus, Plus, Check, UtensilsCrossed, Trophy,
-  ArrowUpRight, ArrowDownRight, CalendarDays, MessageCircle
+  ArrowUpRight, ArrowDownRight, CalendarDays, MessageCircle,
+  Crown, Frown, Meh, SmilePlus, ThumbsUp, ThumbsDown, FileText, Star
 } from 'lucide-react'
 import { Confetti, StreakMilestone } from '../../components/ui/Confetti'
 import { usePageTransition, useStagger, usePullToRefresh } from '../../hooks/useAnimations'
@@ -56,6 +57,161 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 const JOURS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+const JOURS_COURT = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+
+const MILESTONES = [
+  { days: 7, label: '1 sem' },
+  { days: 14, label: '2 sem' },
+  { days: 30, label: '1 mois' },
+  { days: 60, label: '2 mois' },
+  { days: 100, label: '100j' },
+  { days: 365, label: '1 an' },
+]
+
+function getNextMilestone(streak) {
+  for (const m of MILESTONES) {
+    if (streak < m.days) return m
+  }
+  return { days: streak + 30, label: `${streak + 30}j` }
+}
+
+function getPrevMilestone(streak) {
+  let prev = { days: 0, label: '0' }
+  for (const m of MILESTONES) {
+    if (streak >= m.days) prev = m
+    else break
+  }
+  return prev
+}
+
+function getStreakMessage(streak) {
+  if (streak >= 100) return 'Inarrêtable.'
+  if (streak >= 60) return 'Discipline de fer.'
+  if (streak >= 30) return 'Un mois complet !'
+  if (streak >= 14) return 'Habitude installée.'
+  if (streak >= 7) return 'Première semaine !'
+  if (streak >= 3) return 'Beau début !'
+  return 'Continue !'
+}
+
+// ── Streak Badge Premium ──
+function StreakBadge({ streak, staggerClass, staggerStyle }) {
+  const next = getNextMilestone(streak)
+  const prev = getPrevMilestone(streak)
+  const progressInSegment = ((streak - prev.days) / (next.days - prev.days)) * 100
+  const msg = getStreakMessage(streak)
+
+  // Last 7 days status (simplified — all filled for streak days)
+  const today = new Date()
+  const dayIndex = today.getDay() // 0=Sun
+  // Reorder to start from Mon
+  const days7 = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    const dow = d.getDay()
+    const labels = ['D', 'L', 'M', 'M', 'J', 'V', 'S']
+    const isToday = i === 0
+    const isDone = i < streak || (i === 0) // simplified: streak covers past days
+    days7.push({ label: labels[dow], done: streak > i, isToday })
+  }
+
+  return (
+    <div className={`relative overflow-hidden rounded-2xl
+      bg-gradient-to-br from-[#FF6B2B]/[0.08] via-[var(--bg-card)] to-[var(--bg-card)]
+      border border-[#FF6B2B]/15
+      active:scale-[0.98] transition-transform duration-200
+      ${staggerClass}`}
+      style={staggerStyle}
+    >
+      {/* Subtle glow top-left */}
+      <div className="absolute -top-8 -left-8 w-24 h-24 rounded-full bg-[#FF6B2B]/10 blur-2xl pointer-events-none" />
+
+      <div className="relative px-4 pt-4 pb-3.5">
+        {/* Row 1: Flame + Count + Message */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            {/* Animated flame */}
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C]
+              flex items-center justify-center shadow-lg shadow-[#FF6B2B]/25">
+              <Flame size={20} className="text-white animate-[streakPulse_1.5s_ease-in-out_infinite]" />
+              {/* Hot particle */}
+              <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full
+                bg-yellow-400 shadow-lg shadow-yellow-400/40
+                animate-[streakGlow_2s_ease-in-out_infinite]" />
+            </div>
+            <div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[var(--text-primary)] text-2xl font-black leading-none tracking-tight">
+                  <AnimatedNumber value={streak} duration={600} />
+                </span>
+                <span className="text-[var(--text-muted)] text-xs font-semibold">jours</span>
+              </div>
+              <p className="text-[#FF6B2B] text-[11px] font-semibold mt-0.5">{msg}</p>
+            </div>
+          </div>
+
+          {/* Next milestone badge */}
+          <div className="text-right">
+            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg
+              bg-[var(--bg-surface)] border border-[var(--border-base)]">
+              <Trophy size={11} className="text-[#FF6B2B]" />
+              <span className="text-[var(--text-muted)] text-[10px] font-bold">{next.label}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: 7-day dots */}
+        <div className="flex items-center justify-between gap-1 mb-3 px-1">
+          {days7.map((d, i) => (
+            <div key={i} className="flex flex-col items-center gap-1">
+              <span className={`text-[9px] font-semibold ${d.isToday ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
+                {d.label}
+              </span>
+              <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                d.done
+                  ? 'bg-[#FF6B2B] shadow-sm shadow-[#FF6B2B]/25'
+                  : d.isToday
+                    ? 'bg-[#FF6B2B]/15 border-2 border-[#FF6B2B]/40'
+                    : 'bg-[var(--bg-surface)] border border-[var(--border-base)]'
+              }`}>
+                {d.done && <Check size={12} className="text-white" strokeWidth={3} />}
+                {!d.done && d.isToday && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] animate-pulse" />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Row 3: Progress bar to next milestone */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex-1 h-[6px] rounded-full bg-[var(--bg-surface)] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] transition-all duration-1000 ease-out"
+              style={{ width: `${Math.min(100, progressInSegment)}%` }}
+            />
+          </div>
+          <span className="text-[var(--text-muted)] text-[10px] font-bold flex-shrink-0 tabular-nums">
+            {streak}/{next.days}
+          </span>
+        </div>
+      </div>
+
+      {/* CSS for streak animations */}
+      <style>{`
+        @keyframes streakPulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.12) rotate(-3deg); }
+        }
+        @keyframes streakGlow {
+          0%, 100% { opacity: 0.6; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.1); }
+        }
+      `}</style>
+    </div>
+  )
+}
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -422,14 +578,15 @@ export default function DashboardPage() {
   const toutFait = allHabsDone && seanceFaite && sommeilSaved && humeurSaved
 
   const getGreeting = () => {
-    if (toutFait) return { text: `Journée parfaite, ${prenom}`, emoji: '👑' }
-    if (streak >= 7) return { text: `${streak} jours d'affilée`, emoji: '🔥' }
-    if (seanceDuJour && !seanceFaite) return { text: `Ta séance t'attend, ${prenom}`, emoji: '💪' }
-    if (hour < 12) return { text: `Bonjour ${prenom}`, emoji: '☀️' }
-    if (hour < 18) return { text: `Bon après-midi ${prenom}`, emoji: '💪' }
-    return { text: `Bonsoir ${prenom}`, emoji: '🌙' }
+    if (toutFait) return { text: `Journée parfaite, ${prenom}`, icon: Crown }
+    if (streak >= 7) return { text: `${streak} jours d'affilée`, icon: Flame }
+    if (seanceDuJour && !seanceFaite) return { text: `Ta séance t'attend, ${prenom}`, icon: Dumbbell }
+    if (hour < 12) return { text: `Bonjour ${prenom}`, icon: Sparkles }
+    if (hour < 18) return { text: `Bon après-midi ${prenom}`, icon: Zap }
+    return { text: `Bonsoir ${prenom}`, icon: Moon }
   }
   const greeting = getGreeting()
+  const GreetingIcon = greeting.icon
 
   // ── Macros nutrition du jour ──
   const nutriMacros = (() => {
@@ -498,8 +655,9 @@ export default function DashboardPage() {
       {/* ═══════════════ HEADER CONTEXTUEL ═══════════════ */}
       <div className={`pt-2 flex items-start justify-between ${stagger[0].className}`} style={stagger[0].style}>
         <div>
-          <h1 className="text-[var(--text-primary)] text-[26px] font-extrabold tracking-tight leading-tight">
-            {greeting.text} {greeting.emoji}
+          <h1 className="text-[var(--text-primary)] text-[26px] font-extrabold tracking-tight leading-tight flex items-center gap-2">
+            {greeting.text}
+            <GreetingIcon size={24} className="text-[#FF6B2B]" />
           </h1>
           <p className="text-[var(--text-muted)] text-sm mt-1 capitalize">
             {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -523,13 +681,9 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* ═══════════════ STREAK BADGE ═══════════════ */}
-      {streak > 1 && (
-        <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B2B]/10 to-transparent border border-[#FF6B2B]/20 active:scale-[0.98] transition-transform ${stagger[1].className}`} style={stagger[1].style}>
-          <Flame size={18} className="text-[#FF6B2B]" />
-          <span className="text-[#FF6B2B] font-bold text-sm"><AnimatedNumber value={streak} duration={600} /> jours</span>
-          <span className="text-[var(--text-muted)] text-xs">de suite — Continue comme ça !</span>
-        </div>
+      {/* ═══════════════ STREAK BADGE PREMIUM ═══════════════ */}
+      {streak > 0 && (
+        <StreakBadge streak={streak} staggerClass={stagger[1].className} staggerStyle={stagger[1].style} />
       )}
 
       {/* ═══════════════ CHECK-IN QUOTIDIEN ═══════════════ */}
@@ -590,45 +744,54 @@ export default function DashboardPage() {
             {/* ── Widget Humeur ── */}
             <div className={`rounded-2xl border p-4 transition-all duration-500 ${
               humeurSaved
-                ? 'bg-yellow-500/5 border-yellow-500/20'
+                ? 'bg-amber-500/5 border-amber-500/20'
                 : 'bg-[var(--bg-card)] border-[var(--border-base)]'
             }`}>
               {humeurSaved ? (
                 <div className="text-center py-2">
-                  <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto mb-2">
-                    <Check size={20} className="text-yellow-400" />
+                  <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-2">
+                    <Check size={20} className="text-amber-400" />
                   </div>
-                  <p className="text-yellow-300 text-sm font-bold">
-                    {['😞', '😕', '😐', '🙂', '😄'][Math.min(4, Math.max(0, Math.round((humeurInput || 5) / 2) - 1))]}
+                  <p className="text-amber-300 text-sm font-bold">
+                    {['Mal', 'Bof', 'Ok', 'Bien', 'Top'][Math.min(4, Math.max(0, Math.round((humeurInput || 5) / 2) - 1))]}
                   </p>
-                  <p className="text-yellow-300/50 text-[10px] mt-0.5">Humeur enregistrée</p>
+                  <p className="text-amber-300/50 text-[10px] mt-0.5">Humeur enregistrée</p>
                 </div>
               ) : (
                 <>
                   <div className="flex items-center gap-2 mb-3">
-                    <Smile size={14} className="text-yellow-400" />
+                    <Smile size={14} className="text-amber-400" />
                     <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-bold">Humeur</p>
                   </div>
-                  <div className="flex items-center justify-center gap-1.5 mb-3">
+                  <div className="flex items-center justify-between px-1 mb-3">
                     {[
-                      { emoji: '😞', score: 2, label: 'Mal' },
-                      { emoji: '😕', score: 4, label: 'Bof' },
-                      { emoji: '😐', score: 6, label: 'Ok' },
-                      { emoji: '🙂', score: 8, label: 'Bien' },
-                      { emoji: '😄', score: 10, label: 'Top' },
-                    ].map(({ emoji, score, label }) => (
+                      { icon: Frown, score: 2, label: 'Mal', color: '#EF4444' },
+                      { icon: Meh, score: 4, label: 'Bof', color: '#F97316' },
+                      { icon: Minus, score: 6, label: 'Ok', color: '#EAB308' },
+                      { icon: Smile, score: 8, label: 'Bien', color: '#22C55E' },
+                      { icon: Sparkles, score: 10, label: 'Top', color: '#10B981' },
+                    ].map(({ icon: MoodIcon, score, label, color }) => (
                       <button
                         key={score}
                         onClick={() => saveHumeur(score)}
                         disabled={humeurSaving}
-                        className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all active:scale-90 ${
+                        className={`flex flex-col items-center gap-0.5 rounded-lg transition-all active:scale-90 ${
                           humeurInput === score
-                            ? 'bg-yellow-500/20 scale-110'
+                            ? 'scale-105'
                             : 'hover:bg-[var(--bg-surface)]'
                         }`}
                       >
-                        <span className="text-xl leading-none">{emoji}</span>
-                        <span className="text-[8px] text-[var(--text-muted)] font-medium">{label}</span>
+                        <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-all ${
+                          humeurInput === score ? 'shadow-sm' : ''
+                        }`}
+                          style={{
+                            background: humeurInput === score ? `${color}20` : 'var(--bg-surface)',
+                            border: humeurInput === score ? `1.5px solid ${color}40` : '1.5px solid transparent',
+                          }}
+                        >
+                          <MoodIcon size={14} style={{ color: humeurInput === score ? color : 'var(--text-muted)' }} />
+                        </div>
+                        <span className="text-[7px] font-semibold leading-none" style={{ color: humeurInput === score ? color : 'var(--text-muted)' }}>{label}</span>
                       </button>
                     ))}
                   </div>
@@ -642,9 +805,9 @@ export default function DashboardPage() {
       {/* ═══════════════ FORMULAIRES EN ATTENTE ═══════════════ */}
       {formsPending.length > 0 && formsPending.map((form, idx) => {
         const formInfo = form.formulaires || {}
-        const typeEmojis = { bilan: '📋', satisfaction: '⭐', evaluation: '📊', feedback: '💬' }
+        const typeIcons = { bilan: ClipboardList, satisfaction: Star, evaluation: TrendingUp, feedback: MessageCircle }
         const typeLabels = { bilan: 'Bilan', satisfaction: 'Satisfaction', evaluation: 'Évaluation', feedback: 'Feedback' }
-        const emoji = typeEmojis[formInfo.type] || '📋'
+        const FormIcon = typeIcons[formInfo.type] || ClipboardList
         const typeLabel = typeLabels[formInfo.type] || 'Formulaire'
         const daysAgo = Math.floor((Date.now() - new Date(form.created_at).getTime()) / 86400000)
         const dateLabel = daysAgo === 0 ? "Aujourd'hui" : daysAgo === 1 ? 'Hier' : `Il y a ${daysAgo}j`
@@ -657,7 +820,7 @@ export default function DashboardPage() {
             style={{ ...stagger[3].style, animationDelay: `${(stagger[3].style?.animationDelay ? parseInt(stagger[3].style.animationDelay) : 0) + idx * 60}ms` }}
           >
             <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0 relative">
-              <span className="text-lg">{emoji}</span>
+              <FormIcon size={20} className="text-amber-300" />
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full animate-pulse" />
             </div>
             <div className="flex-1 text-left min-w-0">
@@ -771,7 +934,7 @@ export default function DashboardPage() {
             <Dumbbell size={22} className="text-[var(--text-muted)]" />
           </div>
           <p className="text-[var(--text-muted)] text-sm font-medium">Pas de séance aujourd'hui</p>
-          <p className="text-[var(--text-muted)] text-xs mt-1">Profite de ta journée de repos 💪</p>
+          <p className="text-[var(--text-muted)] text-xs mt-1">Profite de ta journée de repos</p>
         </div>
       )}
 

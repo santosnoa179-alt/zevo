@@ -57,7 +57,9 @@
       "Bash(grep -rn \"recurrence\\\\|frequence\\\\|auto.*send\\\\|trigger.*formulaire\" /Users/noasantos/Desktop/Zevo app/zevo/supabase/*.sql)",
       "Bash(cd \"/Users/noasantos/Desktop/Zevo app/zevo/src\" __NEW_LINE_7fca517b028ca180__ echo \"=== text-white \\(plain, should still exist\\) ===\" grep -c 'text-white[^/\\\\[]' --include='*.jsx' -r)",
       "Bash(grep -v ':0$')",
-      "Bash(find '/Users/noasantos/Desktop/Zevo app/zevo' -name *.sql -o -name schema*)"
+      "Bash(find '/Users/noasantos/Desktop/Zevo app/zevo' -name *.sql -o -name schema*)",
+      "Bash(find '/Users/noasantos/Desktop/Zevo app/zevo/public' -type f \\\\\\(-iname *.svg -o -iname *.png -o -iname *.jpg -o -iname *.jpeg -o -iname *.webp -o -iname *.ico \\\\\\))",
+      "Bash(find '/Users/noasantos/Desktop/Zevo app/zevo/src' -type f \\\\\\(-iname *.svg -o -iname *.png -o -iname *.jpg -o -iname *.jpeg -o -iname *.webp -o -iname *.ico \\\\\\))"
     ]
   }
 }
