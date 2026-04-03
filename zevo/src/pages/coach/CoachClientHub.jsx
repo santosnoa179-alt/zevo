@@ -123,34 +123,37 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
     loadAll()
   }, [clientId, coachId])
 
-  if (loading) return <div className="space-y-3"><div className="h-24 bg-[var(--bg-card)] rounded-2xl animate-pulse" /><div className="h-24 bg-[var(--bg-card)] rounded-2xl animate-pulse" /></div>
+  if (loading) return <div className="space-y-3"><div className="h-28 skel-block" /><div className="h-28 skel-block" /></div>
 
   return (
     <div className="space-y-4">
 
-      {/* ═══ Section Entraînement Sportif ═══ */}
-      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 flex items-center justify-between">
+      {/* Section Entrainement Sportif */}
+      <div className="glass-card overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
+        <div className="px-5 md:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B2B]/15 to-[#FF8F5E]/10 flex items-center justify-center">
               <Dumbbell size={17} className="text-[#FF6B2B]" />
             </div>
             <div>
-              <h3 className="text-[var(--text-primary)] text-base font-bold">Entraînement Sportif</h3>
-              <p className="text-[var(--text-muted)] text-[11px]">Programmes sport multi-semaines</p>
+              <h3 className="text-[var(--text-primary)] text-sm font-bold">Entrainement Sportif</h3>
+              <p className="text-[var(--text-muted)] text-[11px]">Programmes multi-semaines</p>
             </div>
           </div>
           <a href="/coach/sport"
-            className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
-            Gérer →
+            className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors flex items-center gap-1">
+            Gerer <ChevronRight size={12} />
           </a>
         </div>
 
-        <div className="px-6 pb-5">
+        <div className="px-5 md:px-6 pb-5">
           {sportProgrammes.length === 0 ? (
-            <div className="bg-[var(--bg-base)] rounded-xl p-5 text-center">
-              <Dumbbell size={22} className="text-[var(--text-muted)] mx-auto mb-2" />
-              <p className="text-[var(--text-muted)] text-xs">Aucun programme sportif assigné</p>
+            <div className="bg-[var(--bg-base)] rounded-xl p-6 text-center border border-[var(--border-subtle)]">
+              <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
+                <Dumbbell size={18} className="text-[var(--text-muted)]" />
+              </div>
+              <p className="text-[var(--text-muted)] text-xs">Aucun programme sportif assigne</p>
               <a href="/coach/sport"
                 className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
                 <Plus size={12} /> Assigner un programme
@@ -163,14 +166,14 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
                 const pct = prog?.pct ?? 0
                 const progressColor = pct >= 80 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#FF6B2B'
                 return (
-                  <div key={a.id} className="bg-[var(--bg-base)] rounded-xl p-4">
+                  <div key={a.id} className="bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-subtle)] hover:border-[var(--border-base)] transition-all group">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
                         <Dumbbell size={18} className="text-[#FF6B2B]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{a.programmes?.titre}</p>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium">{a.programmes?.duree_semaines} sem.</span>
                           {a.programmes?.categorie && (
                             <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium">{a.programmes.categorie}</span>
@@ -180,19 +183,20 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
                       </div>
                       <button
                         onClick={() => onOpenProgramme?.(a.programmes)}
-                        className="px-3 py-2 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-[11px] font-medium hover:bg-[var(--bg-surface)] hover:text-white transition-all flex items-center gap-1.5 shrink-0">
+                        className="px-3 py-2 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-[11px] font-medium hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all flex items-center gap-1.5 shrink-0">
                         Ouvrir <ChevronRight size={12} />
                       </button>
                     </div>
-                    {/* Barre de progression réelle */}
                     {prog && prog.total > 0 && (
                       <div className="mt-3">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[var(--text-muted)] text-[10px]">{prog.done}/{prog.total} séances complétées</span>
+                          <span className="text-[var(--text-muted)] text-[10px]">{prog.done}/{prog.total} seances completees</span>
                           <span className="text-[10px] font-bold" style={{ color: progressColor }}>{pct}%</span>
                         </div>
                         <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: progressColor }} />
+                          <div className="h-full rounded-full transition-all duration-700 relative" style={{ width: `${pct}%`, backgroundColor: progressColor }}>
+                            {pct > 8 && <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15) 50%, transparent)' }} />}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -204,39 +208,42 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
         </div>
       </div>
 
-      {/* ═══ Section Plan Nutritionnel ═══ */}
-      <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 flex items-center justify-between">
+      {/* Section Plan Nutritionnel */}
+      <div className="glass-card overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-emerald-500 via-emerald-400 to-transparent" />
+        <div className="px-5 md:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/15 to-emerald-400/10 flex items-center justify-center">
               <Apple size={17} className="text-emerald-400" />
             </div>
             <div>
-              <h3 className="text-[var(--text-primary)] text-base font-bold">Plan Nutritionnel</h3>
+              <h3 className="text-[var(--text-primary)] text-sm font-bold">Plan Nutritionnel</h3>
               <p className="text-[var(--text-muted)] text-[11px]">Plans de repas et macros</p>
             </div>
           </div>
           <a href="/coach/nutrition"
-            className="text-[11px] text-emerald-400 font-semibold hover:text-emerald-300 transition-colors">
-            Gérer →
+            className="text-[11px] text-emerald-400 font-semibold hover:text-emerald-300 transition-colors flex items-center gap-1">
+            Gerer <ChevronRight size={12} />
           </a>
         </div>
 
-        <div className="px-6 pb-5">
+        <div className="px-5 md:px-6 pb-5">
           {nutritionPlans.length === 0 ? (
-            <div className="bg-[var(--bg-base)] rounded-xl p-5 text-center">
-              <Apple size={22} className="text-[var(--text-muted)] mx-auto mb-2" />
-              <p className="text-[var(--text-muted)] text-xs">Aucun plan nutritionnel créé</p>
+            <div className="bg-[var(--bg-base)] rounded-xl p-6 text-center border border-[var(--border-subtle)]">
+              <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
+                <Apple size={18} className="text-[var(--text-muted)]" />
+              </div>
+              <p className="text-[var(--text-muted)] text-xs">Aucun plan nutritionnel cree</p>
               <a href={`/coach/nutrition/new?clientId=${clientId}`}
                 className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold hover:bg-emerald-500/20 transition-colors">
-                <Plus size={12} /> Créer un plan
+                <Plus size={12} /> Creer un plan
               </a>
             </div>
           ) : (
             <div className="space-y-2.5">
               {nutritionPlans.map(plan => (
                 <a key={plan.id} href={`/coach/nutrition/${plan.id}`}
-                  className="bg-[var(--bg-base)] rounded-xl p-4 flex items-center gap-4 hover:bg-[var(--bg-base)]/80 transition-all block">
+                  className="bg-[var(--bg-base)] rounded-xl p-4 flex items-center gap-4 border border-[var(--border-subtle)] hover:border-[var(--border-base)] transition-all block group">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
                     <Apple size={18} className="text-emerald-400" />
                   </div>
@@ -249,7 +256,7 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
                       <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Actif</span>
                     </div>
                   </div>
-                  <ChevronRight size={14} className="text-[var(--text-muted)] shrink-0" />
+                  <ChevronRight size={14} className="text-[var(--text-muted)] group-hover:text-emerald-400 shrink-0 transition-colors" />
                 </a>
               ))}
             </div>
@@ -284,51 +291,57 @@ function ClientSeancesSection({ clientId, onOpenCalendar }) {
       })
   }, [clientId])
 
-  if (loading) return <div className="h-24 bg-[var(--bg-card)] rounded-2xl animate-pulse" />
+  if (loading) return <div className="h-28 skel-block" />
 
   return (
-    <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
-      <div className="px-6 py-4 flex items-center justify-between">
+    <div className="glass-card overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-blue-500 via-blue-400 to-transparent" />
+      <div className="px-5 md:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
-            <Dumbbell size={17} className="text-blue-400" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/15 to-blue-400/10 flex items-center justify-center">
+            <Calendar size={17} className="text-blue-400" />
           </div>
           <div>
-            <h3 className="text-[var(--text-primary)] text-base font-bold">Prochaines séances</h3>
-            <p className="text-[var(--text-muted)] text-[11px]">Entraînements individuels planifiés</p>
+            <h3 className="text-[var(--text-primary)] text-sm font-bold">Prochaines seances</h3>
+            <p className="text-[var(--text-muted)] text-[11px]">Entrainements planifies</p>
           </div>
         </div>
         <button onClick={onOpenCalendar}
-          className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
-          Calendrier →
+          className="text-[11px] text-blue-400 font-semibold hover:text-blue-300 transition-colors flex items-center gap-1">
+          Calendrier <ChevronRight size={12} />
         </button>
       </div>
 
-      <div className="px-6 pb-5">
+      <div className="px-5 md:px-6 pb-5">
         {seances.length === 0 ? (
-          <div className="bg-[var(--bg-base)] rounded-xl p-6 text-center">
-            <Dumbbell size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
-            <p className="text-[var(--text-muted)] text-xs">Aucune séance planifiée</p>
+          <div className="bg-[var(--bg-base)] rounded-xl p-6 text-center border border-[var(--border-subtle)]">
+            <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
+              <Calendar size={18} className="text-[var(--text-muted)]" />
+            </div>
+            <p className="text-[var(--text-muted)] text-xs">Aucune seance planifiee</p>
           </div>
         ) : (
           <div className="space-y-2">
             {seances.map(s => (
-              <div key={s.id} className="flex items-center gap-3.5 px-4 py-3 rounded-xl bg-[var(--bg-base)]">
-                <div className="w-10 text-center shrink-0">
-                  <p className="text-[#FF6B2B] text-sm font-bold leading-none">
+              <div key={s.id} className="flex items-center gap-3.5 px-4 py-3 rounded-xl bg-[var(--bg-base)] border border-[var(--border-subtle)] hover:border-[var(--border-base)] transition-all">
+                <div className="w-11 h-11 rounded-xl bg-blue-500/8 flex flex-col items-center justify-center shrink-0">
+                  <p className="text-blue-400 text-sm font-bold leading-none">
                     {new Date(s.date_prevue + 'T00:00:00').getDate()}
                   </p>
-                  <p className="text-[var(--text-muted)] text-[9px] uppercase">
+                  <p className="text-[var(--text-muted)] text-[8px] uppercase font-medium">
                     {new Date(s.date_prevue + 'T00:00:00').toLocaleDateString('fr-FR', { month: 'short' })}
                   </p>
                 </div>
-                <div className="w-[2px] h-8 bg-[#FF6B2B]/20 rounded-full shrink-0" />
+                <div className="w-[2px] h-8 rounded-full shrink-0 bg-gradient-to-b from-blue-500/30 to-transparent" />
                 <div className="flex-1 min-w-0">
                   <p className="text-[var(--text-primary)] text-sm font-medium truncate">{s.titre}</p>
-                  <p className="text-[var(--text-muted)] text-[10px]">
+                  <p className="text-[var(--text-muted)] text-[10px] capitalize">
                     {new Date(s.date_prevue + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long' })}
                   </p>
                 </div>
+                {s.is_completed && (
+                  <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+                )}
               </div>
             ))}
           </div>
@@ -1255,6 +1268,9 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   const [weekOffset, setWeekOffset] = useState(0)
   const [monthOffset, setMonthOffset] = useState(0)
 
+  // ── Mobile: selected day for event list ──
+  const [mobileSelectedDay, setMobileSelectedDay] = useState(new Date())
+
   // ── Data ──
   const [seances, setSeances] = useState([])
   const [events, setEvents] = useState([])
@@ -1821,12 +1837,19 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="h-8 w-56 bg-[var(--bg-surface)] rounded-lg animate-pulse" />
-          <div className="h-10 w-40 bg-[var(--bg-surface)] rounded-lg animate-pulse" />
+          <div className="h-10 w-48 skel-block" />
+          <div className="h-10 w-32 skel-block" />
         </div>
-        <div className="grid grid-cols-7 gap-px bg-[var(--bg-surface)] rounded-xl overflow-hidden">
+        {/* Mobile skeleton */}
+        <div className="md:hidden space-y-3">
+          <div className="h-64 skel-block" />
+          <div className="h-20 skel-block" />
+          <div className="h-20 skel-block" />
+        </div>
+        {/* Desktop skeleton */}
+        <div className="hidden md:grid grid-cols-7 gap-px rounded-xl overflow-hidden">
           {Array.from({ length: 35 }, (_, i) => (
-            <div key={i} className="bg-[var(--bg-elevated)] p-3 h-20 animate-pulse" />
+            <div key={i} className="h-20 skel-block rounded-none" />
           ))}
         </div>
       </div>
@@ -1836,32 +1859,82 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   return (
     <div className="space-y-4">
 
-      {/* ═══════ TOOLBAR : Nav + Toggle + Filtres + Templates ═══════ */}
-      <div className="flex flex-col md:flex-row md:items-center gap-3">
+      {/* ═══════ TOOLBAR MOBILE ═══════ */}
+      <div className="md:hidden space-y-3">
+        {/* Row 1: Nav + Add */}
+        <div className="flex items-center gap-2">
+          <button onClick={goBack} className="w-9 h-9 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] active:scale-95 transition-all flex-shrink-0">
+            <ChevronLeft size={18} />
+          </button>
+          <div className="flex-1 text-center">
+            <p className="text-[var(--text-primary)] text-sm font-bold capitalize">{navLabel}</p>
+            {!isAtToday && (
+              <button onClick={goToday} className="text-[10px] text-[#FF6B2B] font-semibold">
+                Aujourd'hui
+              </button>
+            )}
+          </div>
+          <button onClick={goForward} className="w-9 h-9 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] active:scale-95 transition-all flex-shrink-0">
+            <ChevronRight size={18} />
+          </button>
+          <button onClick={() => openNewModal()} className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] text-white flex items-center justify-center shadow-lg shadow-[#FF6B2B]/20 active:scale-95 transition-all flex-shrink-0">
+            <Plus size={18} />
+          </button>
+        </div>
+        {/* Row 2: View toggle + Filter */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center glass-card p-1 flex-1">
+            {[{ id: 'month', label: 'Mois' }, { id: 'week', label: 'Semaine' }].map(v => (
+              <button
+                key={v.id}
+                onClick={() => setCalView(v.id)}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  calView === v.id ? 'bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white shadow-sm' : 'text-[var(--text-muted)]'
+                }`}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+          <div className="relative">
+            <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
+              className="appearance-none bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl pl-8 pr-3 py-2 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
+              <option value="">Tous</option>
+              {EVENT_TYPES_CAL.map(t => (
+                <option key={t.id} value={t.id}>{t.label}</option>
+              ))}
+            </select>
+            <Filter className="w-3 h-3 text-[var(--text-muted)] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════ TOOLBAR DESKTOP ═══════ */}
+      <div className="hidden md:flex md:items-center gap-3">
         {/* Navigation */}
-        <div className="flex items-center gap-2 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-3 py-2 flex-1 min-w-0">
-          <button onClick={goBack} className="p-1 rounded-lg hover:bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-white transition-colors flex-shrink-0">
+        <div className="flex items-center gap-2 glass-card px-3 py-2 flex-1 min-w-0">
+          <button onClick={goBack} className="p-1 rounded-lg hover:bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex-shrink-0">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-sm font-medium text-[var(--text-primary)] flex-1 text-center truncate capitalize">{navLabel}</span>
+          <span className="text-sm font-semibold text-[var(--text-primary)] flex-1 text-center truncate capitalize">{navLabel}</span>
           {!isAtToday && (
-            <button onClick={goToday} className="text-[10px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold hover:bg-[#FF6B2B]/20 transition-colors flex-shrink-0 whitespace-nowrap">
+            <button onClick={goToday} className="text-[10px] px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold hover:bg-[#FF6B2B]/20 transition-colors flex-shrink-0 whitespace-nowrap">
               Aujourd'hui
             </button>
           )}
-          <button onClick={goForward} className="p-1 rounded-lg hover:bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-white transition-colors flex-shrink-0">
+          <button onClick={goForward} className="p-1 rounded-lg hover:bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex-shrink-0">
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
         {/* Toggle Mois / Semaine */}
-        <div className="flex items-center bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-1 flex-shrink-0">
+        <div className="flex items-center glass-card p-1 flex-shrink-0">
           {[{ id: 'month', label: 'Mois' }, { id: 'week', label: 'Semaine' }].map(v => (
             <button
               key={v.id}
               onClick={() => setCalView(v.id)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                calView === v.id ? 'bg-[#FF6B2B] text-white shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                calView === v.id ? 'bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
               {v.label}
@@ -1873,7 +1946,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="relative">
             <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-              className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl pl-8 pr-4 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer min-w-[120px]">
+              className="appearance-none bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl pl-8 pr-4 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer min-w-[120px]">
               <option value="">Tous les types</option>
               {EVENT_TYPES_CAL.map(t => (
                 <option key={t.id} value={t.id}>{t.label}</option>
@@ -1883,32 +1956,32 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
           </div>
           <button onClick={() => setPanelOpen(p => !p)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-              panelOpen ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-elevated)] border border-[var(--border-base)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              panelOpen ? 'bg-[#FF6B2B] text-white' : 'glass-card !rounded-xl text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
             }`}
-            title="Modèles de séances">
+            title="Modeles de seances">
             {panelOpen ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
-            Modèles
+            Modeles
           </button>
-          <button onClick={() => openNewModal()} className="flex items-center gap-1.5 bg-[#FF6B2B] hover:bg-[#e55e24] text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors">
+          <button onClick={() => openNewModal()} className="flex items-center gap-1.5 bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] hover:shadow-lg hover:shadow-[#FF6B2B]/20 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all">
             <Plus className="w-3.5 h-3.5" /> Ajouter
           </button>
         </div>
       </div>
 
       {/* ═══════ STATS ═══════ */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 md:gap-3">
         {[
-          { label: calView === 'week' ? 'Cette semaine' : 'Ce mois', value: totalItems, icon: Calendar, color: '#FF6B2B' },
-          { label: 'Séances', value: allFiltered.filter(i => i._type === 'seance').length, icon: Dumbbell, color: '#3b82f6' },
-          { label: "Aujourd'hui", value: itemsToday, icon: Clock, color: '#22c55e' },
+          { label: calView === 'week' ? 'Semaine' : 'Ce mois', value: totalItems, icon: Calendar, color: '#FF6B2B' },
+          { label: 'Seances', value: allFiltered.filter(i => i._type === 'seance').length, icon: Dumbbell, color: '#3b82f6' },
+          { label: "Auj.", value: itemsToday, icon: Clock, color: '#22c55e' },
         ].map((s, i) => (
-          <div key={i} className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-3 flex items-center gap-3">
-            <div className="p-1.5 rounded-lg flex-shrink-0" style={{ backgroundColor: `${s.color}15` }}>
+          <div key={i} className="glass-card !rounded-xl p-2.5 md:p-3 flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: `${s.color}12` }}>
               <s.icon className="w-4 h-4" style={{ color: s.color }} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] text-[var(--text-muted)] truncate">{s.label}</p>
-              <p className="text-lg font-bold text-[var(--text-primary)] leading-tight">{s.value}</p>
+              <p className="text-[9px] md:text-[10px] text-[var(--text-muted)] truncate">{s.label}</p>
+              <p className="text-base md:text-lg font-bold text-[var(--text-primary)] leading-tight">{s.value}</p>
             </div>
           </div>
         ))}
@@ -1920,186 +1993,477 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         <div className="flex-1 min-w-0">
 
           {calView === 'month' ? (
-            /* ────────── VUE MOIS ────────── */
-            <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl overflow-hidden">
-              {/* Jours header */}
-              <div className="grid grid-cols-7 border-b border-[var(--border-base)]">
-                {JOURS_COURTS.map(j => (
-                  <div key={j} className="px-2 py-2 text-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">{j}</div>
-                ))}
-              </div>
-              {/* Grid */}
-              <div className="grid grid-cols-7">
-                {monthGrid.cells.map((cell, idx) => {
-                  const isTo = isSameDayCal(cell.date, todayCal)
-                  const dayItems = itemsForDayCal(cell.date)
-                  const maxShow = 2
-                  const overflow = dayItems.length - maxShow
+            <>
+              {/* ────────── VUE MOIS — MOBILE ────────── */}
+              <div className="md:hidden space-y-3">
+                {/* Mini calendar grid */}
+                <div className="glass-card overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
+                  {/* Day headers */}
+                  <div className="grid grid-cols-7 px-2 pt-3 pb-1">
+                    {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((j, i) => (
+                      <div key={i} className="text-center text-[10px] font-semibold text-[var(--text-muted)]">{j}</div>
+                    ))}
+                  </div>
+                  {/* Date grid — compact touch-friendly */}
+                  <div className="grid grid-cols-7 gap-y-0.5 px-2 pb-3">
+                    {monthGrid.cells.map((cell, idx) => {
+                      const isTo = isSameDayCal(cell.date, todayCal)
+                      const isSel = isSameDayCal(cell.date, mobileSelectedDay)
+                      const dayItems = itemsForDayCal(cell.date)
+                      const hasItems = dayItems.length > 0
 
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() => handleDayClick(cell.date)}
-                      className={`relative border-b border-r border-[var(--border-base)] min-h-[85px] p-1.5 flex flex-col cursor-pointer transition-colors hover:bg-[var(--bg-surface)] ${
-                        cell.inMonth ? '' : 'bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]'
-                      } ${isTo ? 'bg-[#FF6B2B]/[0.04] hover:bg-[#FF6B2B]/[0.07]' : ''}`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span
-                          onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
-                          className={`text-xs font-medium leading-none ${
-                            isTo ? 'w-6 h-6 flex items-center justify-center rounded-full bg-[#FF6B2B] text-white text-[11px] font-bold'
-                              : cell.inMonth ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
-                          } ${dayItems.length > 0 ? 'hover:underline cursor-pointer' : ''}`}
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => setMobileSelectedDay(new Date(cell.date))}
+                          className={`relative flex flex-col items-center py-1.5 rounded-xl transition-all active:scale-95 ${
+                            isSel
+                              ? 'bg-gradient-to-b from-[#FF6B2B] to-[#FF8F5E] shadow-md shadow-[#FF6B2B]/20'
+                              : isTo
+                                ? 'bg-[#FF6B2B]/8'
+                                : ''
+                          }`}
                         >
-                          {cell.date.getDate()}
+                          <span className={`text-[13px] font-semibold leading-none ${
+                            isSel
+                              ? 'text-white'
+                              : isTo
+                                ? 'text-[#FF6B2B]'
+                                : cell.inMonth
+                                  ? 'text-[var(--text-primary)]'
+                                  : 'text-[var(--text-muted)]'
+                          }`}>
+                            {cell.date.getDate()}
+                          </span>
+                          {/* Dot indicators */}
+                          {hasItems && !isSel && (
+                            <div className="flex gap-0.5 mt-0.5">
+                              {dayItems.slice(0, 3).map((item, di) => {
+                                const c = item._type === 'seance'
+                                  ? (item.is_completed ? '#22c55e' : '#FF6B2B')
+                                  : getEventTypeInfoCal(item.event_type).color
+                                return <div key={di} className="w-1 h-1 rounded-full" style={{ backgroundColor: c }} />
+                              })}
+                            </div>
+                          )}
+                          {hasItems && isSel && (
+                            <div className="w-1 h-1 rounded-full bg-white/80 mt-0.5" />
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Selected day events list */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-1">
+                    <p className="text-[var(--text-primary)] text-sm font-bold capitalize">
+                      {mobileSelectedDay.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </p>
+                    <button
+                      onClick={() => handleDayClick(mobileSelectedDay)}
+                      className="text-[10px] text-[#FF6B2B] font-semibold flex items-center gap-1"
+                    >
+                      <Plus size={12} /> Ajouter
+                    </button>
+                  </div>
+
+                  {(() => {
+                    const dayItems = itemsForDayCal(mobileSelectedDay)
+                    if (dayItems.length === 0) {
+                      return (
+                        <div className="glass-card p-8 text-center">
+                          <div className="w-11 h-11 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
+                            <Calendar size={18} className="text-[var(--text-muted)]" />
+                          </div>
+                          <p className="text-[var(--text-muted)] text-xs">Aucun evenement ce jour</p>
+                          <button
+                            onClick={() => handleDayClick(mobileSelectedDay)}
+                            className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold active:scale-95 transition-all"
+                          >
+                            <Plus size={12} /> Planifier
+                          </button>
+                        </div>
+                      )
+                    }
+                    return dayItems.map(item => {
+                      if (item._type === 'seance') {
+                        return (
+                          <button
+                            key={`ms-${item.id}`}
+                            onClick={(e) => openSeanceDetail(item, e)}
+                            className={`w-full glass-card !p-0 overflow-hidden active:scale-[0.98] transition-all text-left`}
+                          >
+                            <div className={`absolute top-0 left-0 w-1 h-full rounded-l-2xl ${item.is_completed ? 'bg-emerald-500' : 'bg-[#FF6B2B]'}`} />
+                            <div className="flex items-center gap-3 pl-4 pr-3 py-3.5">
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                item.is_completed ? 'bg-emerald-500/10' : 'bg-[#FF6B2B]/10'
+                              }`}>
+                                <Dumbbell size={18} className={item.is_completed ? 'text-emerald-400' : 'text-[#FF6B2B]'} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm font-semibold truncate ${item.is_completed ? 'text-emerald-400/70 line-through' : 'text-[var(--text-primary)]'}`}>
+                                  {item.titre}
+                                </p>
+                                <p className="text-[var(--text-muted)] text-[11px] mt-0.5">
+                                  Seance{item.is_completed ? ' — Completee' : ''}
+                                </p>
+                              </div>
+                              <ChevronRight size={16} className="text-[var(--text-muted)] flex-shrink-0" />
+                            </div>
+                          </button>
+                        )
+                      } else {
+                        const ti = getEventTypeInfoCal(item.event_type)
+                        const TI = ti.icon
+                        return (
+                          <button
+                            key={`me-${item.id}`}
+                            onClick={(e) => openEventDetail(item, e)}
+                            className="w-full glass-card !p-0 overflow-hidden active:scale-[0.98] transition-all text-left"
+                          >
+                            <div className="absolute top-0 left-0 w-1 h-full rounded-l-2xl" style={{ backgroundColor: ti.color }} />
+                            <div className="flex items-center gap-3 pl-4 pr-3 py-3.5">
+                              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                                style={{ backgroundColor: `${ti.color}12` }}>
+                                <TI size={18} style={{ color: ti.color }} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{item.title}</p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-[11px] text-[var(--text-muted)]">{formatHHmmCal(item.event_date)}</span>
+                                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md" style={{ backgroundColor: `${ti.color}10`, color: ti.color }}>
+                                    {ti.label}
+                                  </span>
+                                </div>
+                              </div>
+                              <ChevronRight size={16} className="text-[var(--text-muted)] flex-shrink-0" />
+                            </div>
+                          </button>
+                        )
+                      }
+                    })
+                  })()}
+                </div>
+              </div>
+
+              {/* ────────── VUE MOIS — DESKTOP ────────── */}
+              <div className="hidden md:block glass-card overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
+                {/* Jours header */}
+                <div className="grid grid-cols-7 border-b border-[var(--border-base)]">
+                  {JOURS_COURTS.map(j => (
+                    <div key={j} className="px-2 py-2.5 text-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">{j}</div>
+                  ))}
+                </div>
+                {/* Grid */}
+                <div className="grid grid-cols-7">
+                  {monthGrid.cells.map((cell, idx) => {
+                    const isTo = isSameDayCal(cell.date, todayCal)
+                    const dayItems = itemsForDayCal(cell.date)
+                    const maxShow = 2
+                    const overflow = dayItems.length - maxShow
+
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => handleDayClick(cell.date)}
+                        className={`relative border-b border-r border-[var(--border-base)] min-h-[85px] p-1.5 flex flex-col cursor-pointer transition-colors hover:bg-[var(--bg-surface)] ${
+                          cell.inMonth ? '' : 'opacity-40'
+                        } ${isTo ? 'bg-[#FF6B2B]/[0.04] hover:bg-[#FF6B2B]/[0.07]' : ''}`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span
+                            onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
+                            className={`text-xs font-medium leading-none ${
+                              isTo ? 'w-6 h-6 flex items-center justify-center rounded-full bg-[#FF6B2B] text-white text-[11px] font-bold'
+                                : cell.inMonth ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
+                            } ${dayItems.length > 0 ? 'hover:underline cursor-pointer' : ''}`}
+                          >
+                            {cell.date.getDate()}
+                          </span>
+                          {dayItems.length > 0 && (
+                            <span className="text-[9px] text-[var(--text-muted)] font-medium">{dayItems.length}</span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-0.5 flex-1 overflow-hidden">
+                          {dayItems.slice(0, maxShow).map((item) => {
+                            if (item._type === 'seance') {
+                              return (
+                                <div
+                                  key={`s-${item.id}`}
+                                  onClick={(e) => openSeanceDetail(item, e)}
+                                  className={`flex items-center gap-1 px-1 py-0.5 rounded truncate cursor-pointer transition-colors ${
+                                    item.is_completed ? 'bg-emerald-500/10 hover:bg-emerald-500/20' : 'bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/20'
+                                  }`}
+                                >
+                                  <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: item.is_completed ? '#22c55e' : '#FF6B2B' }} />
+                                  <span className={`text-[10px] truncate ${item.is_completed ? 'text-emerald-300/70 line-through' : 'text-[var(--text-primary)]'}`}>{item.titre}</span>
+                                </div>
+                              )
+                            } else {
+                              const ti = getEventTypeInfoCal(item.event_type)
+                              const TI = ti.icon
+                              return (
+                                <div
+                                  key={`e-${item.id}`}
+                                  onClick={(e) => openEventDetail(item, e)}
+                                  className="flex items-center gap-1 px-1 py-0.5 rounded truncate cursor-pointer hover:brightness-125 transition-all"
+                                  style={{ backgroundColor: `${ti.color}15` }}
+                                >
+                                  <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
+                                  <span className="text-[10px] text-[var(--text-primary)] truncate">{item.title}</span>
+                                </div>
+                              )
+                            }
+                          })}
+                          {overflow > 0 && (
+                            <button
+                              onClick={(e) => openDayDetail(cell.date, e)}
+                              className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] px-1 py-0.5 text-left transition-colors"
+                            >
+                              +{overflow} autre{overflow > 1 ? 's' : ''}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* ────────── VUE SEMAINE — MOBILE ────────── */}
+              <div className="md:hidden space-y-3">
+                {/* Horizontal day selector */}
+                <div className="glass-card px-2 py-2 flex gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+                  {weekDates.map((date, idx) => {
+                    const isTo = isSameDayCal(date, todayCal)
+                    const isSel = isSameDayCal(date, mobileSelectedDay)
+                    const dayItems = itemsForDayCal(date)
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setMobileSelectedDay(new Date(date))}
+                        className={`flex-1 min-w-[48px] flex flex-col items-center py-2 rounded-xl transition-all active:scale-95 ${
+                          isSel
+                            ? 'bg-gradient-to-b from-[#FF6B2B] to-[#FF8F5E] shadow-md shadow-[#FF6B2B]/20'
+                            : isTo
+                              ? 'bg-[#FF6B2B]/8'
+                              : ''
+                        }`}
+                      >
+                        <span className={`text-[9px] font-semibold uppercase ${
+                          isSel ? 'text-white/70' : 'text-[var(--text-muted)]'
+                        }`}>
+                          {JOURS_COURTS[idx]}
+                        </span>
+                        <span className={`text-lg font-bold mt-0.5 ${
+                          isSel ? 'text-white' : isTo ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'
+                        }`}>
+                          {date.getDate()}
                         </span>
                         {dayItems.length > 0 && (
-                          <span className="text-[9px] text-[var(--text-muted)] font-medium">{dayItems.length}</span>
+                          <div className={`w-1.5 h-1.5 rounded-full mt-1 ${isSel ? 'bg-white/80' : 'bg-[#FF6B2B]'}`} />
                         )}
-                      </div>
+                      </button>
+                    )
+                  })}
+                </div>
 
-                      <div className="flex flex-col gap-0.5 flex-1 overflow-hidden">
-                        {dayItems.slice(0, maxShow).map((item) => {
-                          if (item._type === 'seance') {
-                            return (
-                              <div
-                                key={`s-${item.id}`}
-                                onClick={(e) => openSeanceDetail(item, e)}
-                                className={`flex items-center gap-1 px-1 py-0.5 rounded truncate cursor-pointer transition-colors ${
-                                  item.is_completed ? 'bg-emerald-500/10 hover:bg-emerald-500/20' : 'bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/20'
-                                }`}
-                              >
-                                <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: item.is_completed ? '#22c55e' : '#FF6B2B' }} />
-                                <span className={`text-[10px] truncate ${item.is_completed ? 'text-emerald-300/70 line-through' : 'text-[var(--text-primary)]'}`}>{item.titre}</span>
-                              </div>
-                            )
-                          } else {
-                            const ti = getEventTypeInfoCal(item.event_type)
-                            const TI = ti.icon
-                            return (
-                              <div
-                                key={`e-${item.id}`}
-                                onClick={(e) => openEventDetail(item, e)}
-                                className="flex items-center gap-1 px-1 py-0.5 rounded truncate cursor-pointer hover:brightness-125 transition-all"
-                                style={{ backgroundColor: `${ti.color}15` }}
-                              >
-                                <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
-                                <span className="text-[10px] text-[var(--text-primary)] truncate">{item.title}</span>
-                              </div>
-                            )
-                          }
-                        })}
-                        {overflow > 0 && (
+                {/* Selected day header + events */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-1">
+                    <p className="text-[var(--text-primary)] text-sm font-bold capitalize">
+                      {mobileSelectedDay.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </p>
+                    <button
+                      onClick={() => handleDayClick(mobileSelectedDay)}
+                      className="text-[10px] text-[#FF6B2B] font-semibold flex items-center gap-1"
+                    >
+                      <Plus size={12} /> Ajouter
+                    </button>
+                  </div>
+
+                  {(() => {
+                    const dayItems = itemsForDayCal(mobileSelectedDay)
+                    if (dayItems.length === 0) {
+                      return (
+                        <div className="glass-card p-8 text-center">
+                          <div className="w-11 h-11 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
+                            <Calendar size={18} className="text-[var(--text-muted)]" />
+                          </div>
+                          <p className="text-[var(--text-muted)] text-xs">Rien de prevu</p>
                           <button
-                            onClick={(e) => openDayDetail(cell.date, e)}
-                            className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] px-1 py-0.5 text-left transition-colors"
+                            onClick={() => handleDayClick(mobileSelectedDay)}
+                            className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold active:scale-95 transition-all"
                           >
-                            +{overflow} autre{overflow > 1 ? 's' : ''}
+                            <Plus size={12} /> Planifier
                           </button>
-                        )}
+                        </div>
+                      )
+                    }
+                    return dayItems.map(item => {
+                      if (item._type === 'seance') {
+                        return (
+                          <button
+                            key={`ws-${item.id}`}
+                            onClick={(e) => openSeanceDetail(item, e)}
+                            className="w-full glass-card !p-0 overflow-hidden active:scale-[0.98] transition-all text-left"
+                          >
+                            <div className={`absolute top-0 left-0 w-1 h-full rounded-l-2xl ${item.is_completed ? 'bg-emerald-500' : 'bg-[#FF6B2B]'}`} />
+                            <div className="flex items-center gap-3 pl-4 pr-3 py-3.5">
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                item.is_completed ? 'bg-emerald-500/10' : 'bg-[#FF6B2B]/10'
+                              }`}>
+                                <Dumbbell size={18} className={item.is_completed ? 'text-emerald-400' : 'text-[#FF6B2B]'} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm font-semibold truncate ${item.is_completed ? 'text-emerald-400/70 line-through' : 'text-[var(--text-primary)]'}`}>
+                                  {item.titre}
+                                </p>
+                                <p className="text-[var(--text-muted)] text-[11px] mt-0.5">Seance</p>
+                              </div>
+                              <ChevronRight size={16} className="text-[var(--text-muted)] flex-shrink-0" />
+                            </div>
+                          </button>
+                        )
+                      } else {
+                        const ti = getEventTypeInfoCal(item.event_type)
+                        const TI = ti.icon
+                        return (
+                          <button
+                            key={`we-m-${item.id}`}
+                            onClick={(e) => openEventDetail(item, e)}
+                            className="w-full glass-card !p-0 overflow-hidden active:scale-[0.98] transition-all text-left"
+                          >
+                            <div className="absolute top-0 left-0 w-1 h-full rounded-l-2xl" style={{ backgroundColor: ti.color }} />
+                            <div className="flex items-center gap-3 pl-4 pr-3 py-3.5">
+                              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                                style={{ backgroundColor: `${ti.color}12` }}>
+                                <TI size={18} style={{ color: ti.color }} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{item.title}</p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-[11px] text-[var(--text-muted)]">{formatHHmmCal(item.event_date)}</span>
+                                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md" style={{ backgroundColor: `${ti.color}10`, color: ti.color }}>
+                                    {ti.label}
+                                  </span>
+                                </div>
+                              </div>
+                              <ChevronRight size={16} className="text-[var(--text-muted)] flex-shrink-0" />
+                            </div>
+                          </button>
+                        )
+                      }
+                    })
+                  })()}
+                </div>
+              </div>
+
+              {/* ────────── VUE SEMAINE — DESKTOP ────────── */}
+              <div className="hidden md:block glass-card overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-blue-500 via-blue-400 to-transparent" />
+                {/* All-day seances section */}
+                {(() => {
+                  const hasAllDay = weekDates.some(d => itemsForDayCal(d).some(i => i._type === 'seance'))
+                  if (!hasAllDay) return null
+                  return (
+                    <div className="border-b border-[var(--border-base)]">
+                      <div className="grid grid-cols-[60px_repeat(7,1fr)]">
+                        <div className="p-2 border-r border-[var(--border-base)] flex items-center justify-center">
+                          <span className="text-[9px] text-[var(--text-muted)] uppercase font-semibold">Seances</span>
+                        </div>
+                        {weekDates.map((date, idx) => {
+                          const daySeances = itemsForDayCal(date).filter(i => i._type === 'seance')
+                          return (
+                            <div key={idx} className={`p-1.5 border-r border-[var(--border-base)] last:border-r-0 min-h-[40px] ${isSameDayCal(date, todayCal) ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
+                              <div className="flex flex-col gap-1">
+                                {daySeances.map(s => (
+                                  <div
+                                    key={`ad-${s.id}`}
+                                    onClick={(e) => openSeanceDetail(s, e)}
+                                    className={`flex items-center gap-1 px-1.5 py-1 rounded-md border cursor-pointer transition-colors ${
+                                      s.is_completed
+                                        ? 'bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20'
+                                        : 'bg-[#FF6B2B]/10 border-[#FF6B2B]/20 hover:bg-[#FF6B2B]/20'
+                                    }`}
+                                  >
+                                    <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: s.is_completed ? '#22c55e' : '#FF6B2B' }} />
+                                    <span className={`text-[10px] font-medium truncate ${s.is_completed ? 'text-emerald-300/70 line-through' : 'text-[var(--text-primary)]'}`}>{s.titre}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                   )
-                })}
-              </div>
-            </div>
-          ) : (
-            /* ────────── VUE SEMAINE ────────── */
-            <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl overflow-hidden">
-              {/* All-day séances section */}
-              {(() => {
-                const hasAllDay = weekDates.some(d => itemsForDayCal(d).some(i => i._type === 'seance'))
-                if (!hasAllDay) return null
-                return (
-                  <div className="border-b border-[var(--border-base)]">
-                    <div className="grid grid-cols-[60px_repeat(7,1fr)]">
-                      <div className="p-2 border-r border-[var(--border-base)] flex items-center justify-center">
-                        <span className="text-[9px] text-[var(--text-muted)] uppercase font-semibold">Séances</span>
+                })()}
+
+                {/* Header row */}
+                <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[var(--border-base)]">
+                  <div className="p-2 border-r border-[var(--border-base)]" />
+                  {weekDates.map((date, idx) => {
+                    const isTo = isSameDayCal(date, todayCal)
+                    return (
+                      <div key={idx} className={`p-2 border-r border-[var(--border-base)] last:border-r-0 text-center ${isTo ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
+                        <p className="text-[10px] text-[var(--text-muted)] uppercase font-semibold">{JOURS_COURTS[idx]}</p>
+                        <p className={`text-sm font-bold mt-0.5 ${isTo ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{date.getDate()}</p>
                       </div>
-                      {weekDates.map((date, idx) => {
-                        const daySeances = itemsForDayCal(date).filter(i => i._type === 'seance')
+                    )
+                  })}
+                </div>
+
+                {/* Time grid */}
+                <div className="grid grid-cols-[60px_repeat(7,1fr)] relative" style={{ maxHeight: 480, overflowY: 'auto' }}>
+                  {HOURS_CAL.map(h => (
+                    <div key={h} className="contents">
+                      <div className="h-[40px] border-r border-b border-[var(--border-base)] flex items-start justify-end pr-2 pt-0.5">
+                        <span className="text-[10px] text-[var(--text-muted)] font-medium tabular-nums">{String(h).padStart(2, '0')}:00</span>
+                      </div>
+                      {weekDates.map((date, dIdx) => {
+                        const isTo = isSameDayCal(date, todayCal)
+                        const dayEvts = itemsForDayCal(date).filter(i => i._type === 'event')
+                        const hourEvts = dayEvts.filter(e => new Date(e.event_date).getHours() === h)
                         return (
-                          <div key={idx} className={`p-1.5 border-r border-[var(--border-base)] last:border-r-0 min-h-[40px] ${isSameDayCal(date, todayCal) ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
-                            <div className="flex flex-col gap-1">
-                              {daySeances.map(s => (
+                          <div
+                            key={dIdx}
+                            onClick={() => handleDayClick(date)}
+                            className={`h-[40px] border-r border-b border-[var(--border-base)] last:border-r-0 relative cursor-pointer hover:bg-[var(--bg-surface)] transition-colors ${isTo ? 'bg-[#FF6B2B]/[0.02]' : ''}`}
+                          >
+                            {hourEvts.map(evt => {
+                              const ti = getEventTypeInfoCal(evt.event_type)
+                              const TI = ti.icon
+                              return (
                                 <div
-                                  key={`ad-${s.id}`}
-                                  onClick={(e) => openSeanceDetail(s, e)}
-                                  className={`flex items-center gap-1 px-1.5 py-1 rounded-md border cursor-pointer transition-colors ${
-                                    s.is_completed
-                                      ? 'bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20'
-                                      : 'bg-[#FF6B2B]/10 border-[#FF6B2B]/20 hover:bg-[#FF6B2B]/20'
-                                  }`}
+                                  key={`we-${evt.id}`}
+                                  onClick={(e) => openEventDetail(evt, e)}
+                                  className="absolute inset-x-0.5 top-0.5 rounded-md px-1.5 py-1 z-10 border cursor-pointer hover:brightness-125 transition-all"
+                                  style={{ backgroundColor: `${ti.color}20`, borderColor: `${ti.color}40` }}
                                 >
-                                  <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: s.is_completed ? '#22c55e' : '#FF6B2B' }} />
-                                  <span className={`text-[10px] font-medium truncate ${s.is_completed ? 'text-emerald-300/70 line-through' : 'text-[var(--text-primary)]'}`}>{s.titre}</span>
+                                  <div className="flex items-center gap-1">
+                                    <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
+                                    <span className="text-[10px] font-medium text-[var(--text-primary)] truncate">{evt.title}</span>
+                                  </div>
                                 </div>
-                              ))}
-                            </div>
+                              )
+                            })}
                           </div>
                         )
                       })}
                     </div>
-                  </div>
-                )
-              })()}
-
-              {/* Header row */}
-              <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[var(--border-base)]">
-                <div className="p-2 border-r border-[var(--border-base)]" />
-                {weekDates.map((date, idx) => {
-                  const isTo = isSameDayCal(date, todayCal)
-                  return (
-                    <div key={idx} className={`p-2 border-r border-[var(--border-base)] last:border-r-0 text-center ${isTo ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
-                      <p className="text-[10px] text-[var(--text-muted)] uppercase font-semibold">{JOURS_COURTS[idx]}</p>
-                      <p className={`text-sm font-bold mt-0.5 ${isTo ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{date.getDate()}</p>
-                    </div>
-                  )
-                })}
+                  ))}
+                </div>
               </div>
-
-              {/* Time grid */}
-              <div className="grid grid-cols-[60px_repeat(7,1fr)] relative" style={{ maxHeight: 480, overflowY: 'auto' }}>
-                {HOURS_CAL.map(h => (
-                  <div key={h} className="contents">
-                    <div className="h-[40px] border-r border-b border-[var(--border-base)] flex items-start justify-end pr-2 pt-0.5">
-                      <span className="text-[10px] text-[var(--text-muted)] font-medium tabular-nums">{String(h).padStart(2, '0')}:00</span>
-                    </div>
-                    {weekDates.map((date, dIdx) => {
-                      const isTo = isSameDayCal(date, todayCal)
-                      const dayEvts = itemsForDayCal(date).filter(i => i._type === 'event')
-                      const hourEvts = dayEvts.filter(e => new Date(e.event_date).getHours() === h)
-                      return (
-                        <div
-                          key={dIdx}
-                          onClick={() => handleDayClick(date)}
-                          className={`h-[40px] border-r border-b border-[var(--border-base)] last:border-r-0 relative cursor-pointer hover:bg-[var(--bg-surface)] transition-colors ${isTo ? 'bg-[#FF6B2B]/[0.02]' : ''}`}
-                        >
-                          {hourEvts.map(evt => {
-                            const ti = getEventTypeInfoCal(evt.event_type)
-                            const TI = ti.icon
-                            return (
-                              <div
-                                key={`we-${evt.id}`}
-                                onClick={(e) => openEventDetail(evt, e)}
-                                className="absolute inset-x-0.5 top-0.5 rounded-md px-1.5 py-1 z-10 border cursor-pointer hover:brightness-125 transition-all"
-                                style={{ backgroundColor: `${ti.color}20`, borderColor: `${ti.color}40` }}
-                              >
-                                <div className="flex items-center gap-1">
-                                  <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
-                                  <span className="text-[10px] font-medium text-[var(--text-primary)] truncate">{evt.title}</span>
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )
-                    })}
-                  </div>
-                ))}
-              </div>
-            </div>
+            </>
           )}
         </div>
 
@@ -5877,50 +6241,57 @@ export default function CoachClientHub() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-3.5rem)] overflow-hidden">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-3.5rem)] overflow-hidden bg-[var(--bg-base)]">
 
       {/* ══════════════════════════════════════ */}
       {/* SIDEBAR — Liste des clients           */}
       {/* ══════════════════════════════════════ */}
-      <div className={`${selectedId ? 'hidden md:flex' : 'flex'} w-full md:w-72 flex-shrink-0 bg-[var(--bg-elevated)] border-r border-[var(--border-base)] flex-col overflow-hidden`}>
+      <div className={`${selectedId ? 'hidden md:flex' : 'flex'} w-full md:w-80 flex-shrink-0 bg-[var(--bg-elevated)] border-r border-[var(--border-base)] flex-col overflow-hidden`}>
 
         {/* Header */}
-        <div className="p-4 border-b border-[var(--border-base)]">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[var(--text-primary)] font-semibold text-sm">Clients</h2>
+        <div className="p-5 border-b border-[var(--border-base)]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-[var(--text-primary)] font-bold text-base tracking-tight">Clients</h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                {clients.length}
+              </span>
+            </div>
             {canAddClient ? (
               <button
                 onClick={() => { setModalInvit(true); setInvitSuccess(null); setInvitError('') }}
-                className="p-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 transition-colors"
+                className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] text-white flex items-center justify-center hover:shadow-lg hover:shadow-[#FF6B2B]/20 transition-all active:scale-95"
               >
                 <UserPlus size={14} />
               </button>
             ) : (
               <button
                 onClick={() => navigate('/pricing')}
-                className="p-1.5 rounded-lg bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[#FF6B2B] transition-colors"
+                className="w-8 h-8 rounded-xl bg-[var(--bg-surface)] text-[var(--text-muted)] flex items-center justify-center hover:text-[#FF6B2B] transition-colors"
                 title={`Limite de ${maxClients} clients atteinte`}
               >
                 <Lock size={14} />
               </button>
             )}
           </div>
-          <div className="relative">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+          <div className="relative group">
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--color-primary)] transition-colors" />
             <input
               value={recherche}
               onChange={(e) => setRecherche(e.target.value)}
-              placeholder="Rechercher un client..."
-              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg pl-8 pr-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+              placeholder="Rechercher..."
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 focus:shadow-[0_0_0_3px_rgba(255,107,43,0.08)] transition-all"
             />
           </div>
         </div>
 
         {/* Liste */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto py-2">
           {clientsFiltres.length === 0 ? (
-            <div className="p-6 text-center">
-              <User size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
+            <div className="p-8 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
+                <User size={20} className="text-[var(--text-muted)]" />
+              </div>
               <p className="text-[var(--text-muted)] text-xs">Aucun client</p>
             </div>
           ) : (
@@ -5933,32 +6304,42 @@ export default function CoachClientHub() {
                 <button
                   key={c.id}
                   onClick={() => { setSelectedId(c.id); setActiveTab('overview'); setEditingSeanceId(null); setOpenProgramme(null) }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all ${
+                  className={`w-full flex items-center gap-3.5 px-5 py-3.5 text-left transition-all relative ${
                     isSelected
-                      ? 'bg-[var(--bg-base)] border-l-2 border-[#FF6B2B]'
-                      : 'border-l-2 border-transparent hover:bg-[var(--bg-base)]/50'
+                      ? 'bg-[var(--bg-base)]'
+                      : 'hover:bg-[var(--bg-base)]/50'
                   }`}
                 >
+                  {/* Selection indicator */}
+                  {isSelected && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-8 rounded-r-full bg-gradient-to-b from-[#FF6B2B] to-[#FF8F5E]" />
+                  )}
+
                   {/* Avatar */}
                   {c.profiles?.avatar_url ? (
-                    <img src={c.profiles.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                    <div className={`relative flex-shrink-0 ${isSelected ? 'ring-2 ring-[#FF6B2B]/30' : ''} rounded-xl`}>
+                      <img src={c.profiles.avatar_url} alt="" className="w-10 h-10 rounded-xl object-cover" />
+                    </div>
                   ) : (
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
-                      style={{ backgroundColor: c.couleurAvatar }}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-bold text-white transition-all ${isSelected ? 'ring-2 ring-[#FF6B2B]/30 shadow-lg' : ''}`}
+                      style={{ background: `linear-gradient(135deg, ${c.couleurAvatar}, ${c.couleurAvatar}cc)` }}>
                       {ini}
                     </div>
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium truncate ${isSelected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
+                    <p className={`text-sm font-semibold truncate ${isSelected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                       {name}
                     </p>
-                    <p className="text-[var(--text-muted)] text-[10px] truncate">{c.profiles?.email}</p>
+                    <p className="text-[var(--text-muted)] text-[11px] truncate mt-0.5">{c.profiles?.email}</p>
                   </div>
 
                   {/* Pastille actif */}
                   {c.actif && (
-                    <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                    <div className="relative flex-shrink-0">
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                      <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-30" />
+                    </div>
                   )}
                 </button>
               )
@@ -5974,112 +6355,132 @@ export default function CoachClientHub() {
         {!selectedId || loadingProfile ? (
           <div className="flex items-center justify-center h-full">
             {loadingProfile ? (
-              <Loader2 size={24} className="animate-spin text-[#FF6B2B]" />
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center">
+                  <Loader2 size={20} className="animate-spin text-white" />
+                </div>
+                <p className="text-[var(--text-muted)] text-xs">Chargement...</p>
+              </div>
             ) : (
               <div className="text-center">
-                <User size={40} className="text-[var(--text-muted)] mx-auto mb-3" />
-                <p className="text-[var(--text-muted)] text-sm">Sélectionnez un client</p>
+                <div className="w-16 h-16 rounded-2xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-4">
+                  <User size={28} className="text-[var(--text-muted)]" />
+                </div>
+                <p className="text-[var(--text-secondary)] text-sm font-medium">Selectionnez un client</p>
+                <p className="text-[var(--text-muted)] text-xs mt-1">pour afficher son tableau de bord</p>
               </div>
             )}
           </div>
         ) : (
-          <div className="p-4 md:p-6 space-y-6">
+          <div className="p-4 md:p-6 space-y-5">
 
             {/* ── Bouton retour mobile ── */}
             <button
               onClick={() => setSelectedId(null)}
-              className="md:hidden flex items-center gap-2 text-[var(--text-muted)] text-sm hover:text-white transition-colors -mb-2"
+              className="md:hidden inline-flex items-center gap-2 text-[var(--text-muted)] text-sm font-medium hover:text-[var(--text-primary)] transition-colors -mb-1"
             >
-              <ChevronLeft size={16} /> Retour aux clients
+              <ChevronLeft size={16} /> Retour
             </button>
 
-            {/* ── En-tête client ── */}
-            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-              <div className="flex items-center gap-4">
-                {/* Gros avatar */}
-                {p?.avatar_url ? (
-                  <img src={p.avatar_url} alt="" className="w-16 h-16 rounded-2xl object-cover" />
-                ) : (
-                  <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B] flex items-center justify-center">
-                    <span className="text-white text-xl font-bold">{initials}</span>
+            {/* ── En-tete client — glass-card hero ── */}
+            <div className="glass-card p-5 md:p-6">
+              {/* Accent bar */}
+              <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-[#FF6B2B] to-transparent opacity-40" />
+
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  {/* Avatar with glow */}
+                  <div className="relative">
+                    {p?.avatar_url ? (
+                      <img src={p.avatar_url} alt="" className="w-14 h-14 md:w-16 md:h-16 rounded-2xl object-cover ring-2 ring-[var(--border-base)]" />
+                    ) : (
+                      <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center ring-2 ring-[#FF6B2B]/20"
+                        style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+                        <span className="text-white text-lg md:text-xl font-bold">{initials}</span>
+                      </div>
+                    )}
+                    {/* Status dot */}
+                    <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-[var(--bg-card)] ${selectedClient?.actif ? 'bg-emerald-500' : 'bg-red-500'}`} />
                   </div>
-                )}
-                <div>
-                  <h2 className="text-[var(--text-primary)] text-2xl font-bold">{fullName}</h2>
-                  <div className="flex items-center gap-3 mt-1">
-                    {/* Badge actif + toggle */}
-                    <span className="inline-flex items-center gap-1.5 text-xs">
-                      <div className={`w-2 h-2 rounded-full ${selectedClient?.actif ? 'bg-green-500' : 'bg-red-500'}`} />
-                      <span className={selectedClient?.actif ? 'text-green-400' : 'text-red-400'}>
+                  <div>
+                    <h2 className="text-[var(--text-primary)] text-xl md:text-2xl font-bold tracking-tight">{fullName}</h2>
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                        selectedClient?.actif
+                          ? 'bg-emerald-500/10 text-emerald-400'
+                          : 'bg-red-500/10 text-red-400'
+                      }`}>
                         {selectedClient?.actif ? 'Actif' : 'Inactif'}
                       </span>
-                    </span>
-                    {/* Score */}
-                    <span className="text-xs font-bold" style={{ color: couleurScore(score) }}>
-                      {score}/100
-                    </span>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{
+                        color: couleurScore(score),
+                        backgroundColor: `${couleurScore(score)}15`
+                      }}>
+                        {score}/100
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                {/* Téléphone — appeler le client */}
-                {p?.telephone ? (
-                  <a
-                    href={`tel:${p.telephone}`}
-                    title={`Appeler ${p.telephone}`}
-                    className="p-2 rounded-lg text-[var(--text-muted)] hover:text-green-400 hover:bg-green-500/10 transition-colors"
-                  >
-                    <Phone size={17} />
-                  </a>
-                ) : (
+                <div className="flex items-center gap-2">
+                  {p?.telephone ? (
+                    <a
+                      href={`tel:${p.telephone}`}
+                      title={`Appeler ${p.telephone}`}
+                      className="w-9 h-9 rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-emerald-400 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all"
+                    >
+                      <Phone size={15} />
+                    </a>
+                  ) : (
+                    <button
+                      title="Aucun numero renseigne"
+                      className="w-9 h-9 rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] opacity-30 cursor-not-allowed"
+                      disabled
+                    >
+                      <Phone size={15} />
+                    </button>
+                  )}
                   <button
-                    title="Aucun numéro renseigné"
-                    className="p-2 rounded-lg text-[var(--text-muted)] opacity-30 cursor-not-allowed"
-                    disabled
+                    onClick={() => navigate(`/coach/messages?client=${selectedId}`)}
+                    title="Envoyer un message"
+                    className="w-9 h-9 rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/5 transition-all"
                   >
-                    <Phone size={17} />
+                    <MessageCircle size={15} />
                   </button>
-                )}
-                {/* Message — aller à la messagerie avec ce client */}
-                <button
-                  onClick={() => navigate(`/coach/messages?client=${selectedId}`)}
-                  title="Envoyer un message"
-                  className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors"
-                >
-                  <MessageCircle size={17} />
-                </button>
-                {/* Réglages — aller à l'onglet infos */}
-                <button
-                  onClick={() => setActiveTab('infos')}
-                  title="Informations client"
-                  className="p-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors"
-                >
-                  <Settings size={17} />
-                </button>
+                  <button
+                    onClick={() => setActiveTab('infos')}
+                    title="Informations client"
+                    className="w-9 h-9 rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all"
+                  >
+                    <Settings size={15} />
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* ── Tabs ── */}
-            <div className="flex gap-1 overflow-x-auto pb-1">
-              {TABS.map((tab) => {
-                const isActive = activeTab === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => { setActiveTab(tab.id); if (tab.id !== 'sport') setOpenProgramme(null) }}
-                    className={`relative px-4 py-2.5 text-xs font-medium whitespace-nowrap transition-all ${
-                      isActive
-                        ? 'text-[var(--text-primary)]'
-                        : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                    }`}
-                  >
-                    {tab.label}
-                    {isActive && (
-                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" />
-                    )}
-                  </button>
-                )
-              })}
+            {/* ── Tabs — premium pill navigation ── */}
+            <div className="relative">
+              <div className="glass-card px-2 py-1.5 flex gap-0.5 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+                {TABS.map((tab) => {
+                  const isActive = activeTab === tab.id
+                  const TabIcon = tab.icon
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => { setActiveTab(tab.id); if (tab.id !== 'sport') setOpenProgramme(null) }}
+                      className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium whitespace-nowrap rounded-xl transition-all flex-shrink-0 ${
+                        isActive
+                          ? 'bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white shadow-md shadow-[#FF6B2B]/15'
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-base)]'
+                      }`}
+                    >
+                      <TabIcon size={13} />
+                      {tab.label}
+                    </button>
+                  )
+                })}
+              </div>
+              {/* Fade hint right */}
+              <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none bg-gradient-to-l from-[var(--bg-card)] to-transparent rounded-r-2xl" />
             </div>
 
             {/* ── Contenu "Vue d'ensemble" ── */}
@@ -6122,15 +6523,16 @@ export default function CoachClientHub() {
                     ]
                   })().map((card, ci) => (
                     <div key={ci} onClick={card.onClick || undefined}
-                      className={`bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 flex flex-col justify-between min-h-[120px] transition-all ${card.onClick ? 'cursor-pointer hover:border-[var(--border-base)] hover:bg-[var(--bg-card)] active:scale-[0.98]' : ''}`}>
+                      className={`glass-card p-4 flex flex-col justify-between min-h-[120px] transition-all group ${card.onClick ? 'cursor-pointer hover:border-[var(--border-strong)] active:scale-[0.98]' : ''}`}>
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="text-[var(--text-muted)] text-[10px] font-medium uppercase tracking-wider">{card.label}</p>
                           <p className="text-[var(--text-primary)] text-lg font-bold mt-1">{card.value}</p>
-                          {card.sub && <p className="text-[var(--text-muted)] text-[10px]">{card.sub}</p>}
+                          {card.sub && <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{card.sub}</p>}
                         </div>
-                        <div className="w-7 h-7 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center">
-                          <card.icon size={14} className="text-[var(--text-muted)]" />
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+                          style={{ backgroundColor: `${card.color}12` }}>
+                          <card.icon size={15} style={{ color: card.color }} />
                         </div>
                       </div>
                       {/* Mini sparkline */}
@@ -6189,10 +6591,14 @@ export default function CoachClientHub() {
                     const isLoss = cible < depart
 
                     return (
-                      <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5">
+                      <div className="glass-card p-5">
+                        {/* Accent bar */}
+                        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
                         <div className="flex items-center justify-between mb-5">
                           <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
-                            <Scale size={15} className="text-[#FF6B2B]" />
+                            <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
+                              <Scale size={13} className="text-[#FF6B2B]" />
+                            </div>
                             Poids
                           </h3>
                           <div className="flex items-center gap-3">
@@ -6209,8 +6615,8 @@ export default function CoachClientHub() {
                           </div>
                         </div>
 
-                        {/* Départ → Actuel → Cible */}
-                        <div className="bg-[var(--bg-elevated)] rounded-xl p-4 flex items-center">
+                        {/* Depart - Actuel - Cible */}
+                        <div className="bg-[var(--bg-base)] rounded-xl p-4 flex items-center border border-[var(--border-subtle)]">
                           <div className="flex-1 text-center">
                             <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider mb-1">Départ</p>
                             <p className="text-[var(--text-primary)] text-2xl font-bold">{depart || '—'}<span className="text-sm text-[var(--text-muted)] ml-1">{unite}</span></p>
@@ -6281,22 +6687,26 @@ export default function CoachClientHub() {
                     const totalEnCours = objectifs.filter(o => o.statut === 'en_cours').length
 
                     return (
-                  <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5">
+                  <div className="glass-card p-5">
+                    {/* Accent bar */}
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#a855f7] via-[#c084fc] to-transparent" />
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
-                        <Target size={15} className="text-[#FF6B2B]" />
+                        <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                          <Target size={13} className="text-purple-400" />
+                        </div>
                         Objectifs
                       </h3>
                       <div className="flex items-center gap-2">
                         {totalEnCours > 0 && (
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-bold">
                             {totalEnCours} en cours
                           </span>
                         )}
                         <button
                           onClick={() => setActiveTab('objectifs')}
-                          className="text-[var(--text-muted)] hover:text-[#FF6B2B] transition-colors"
-                          title="Gérer les objectifs"
+                          className="text-[var(--text-muted)] hover:text-purple-400 transition-colors"
+                          title="Gerer les objectifs"
                         >
                           <Settings size={13} />
                         </button>
@@ -6344,14 +6754,14 @@ export default function CoachClientHub() {
                           )
                         })}
                         {atteints.length > 0 && (
-                          <p className="text-emerald-400/50 text-[10px] text-center pt-1">
-                            ✅ {atteints.length} objectif{atteints.length > 1 ? 's' : ''} atteint{atteints.length > 1 ? 's' : ''}
+                          <p className="text-emerald-400/50 text-[10px] text-center pt-1 flex items-center justify-center gap-1">
+                            <CheckCircle2 size={10} /> {atteints.length} objectif{atteints.length > 1 ? 's' : ''} atteint{atteints.length > 1 ? 's' : ''}
                           </p>
                         )}
                       </div>
                     ) : atteints.length > 0 ? (
                       <div className="text-center py-4">
-                        <p className="text-emerald-400 text-sm font-bold">🎉 Tous les objectifs atteints</p>
+                        <p className="text-emerald-400 text-sm font-bold flex items-center justify-center gap-1.5"><CheckCircle2 size={15} /> Tous les objectifs atteints</p>
                         <p className="text-emerald-400/30 text-xs mt-1">{atteints.length} objectif{atteints.length > 1 ? 's' : ''}</p>
                       </div>
                     ) : (
@@ -6374,10 +6784,13 @@ export default function CoachClientHub() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
                   {/* Carte Nutrition recap */}
-                  <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5">
+                  <div className="glass-card p-5">
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-emerald-500 via-emerald-400 to-transparent" />
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
-                        <Apple size={15} className="text-[#FF6B2B]" />
+                        <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                          <Apple size={13} className="text-emerald-400" />
+                        </div>
                         Nutrition
                       </h3>
                       <button onClick={() => setActiveTab('nutrition')} className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
@@ -6428,10 +6841,13 @@ export default function CoachClientHub() {
                   </div>
 
                   {/* Carte Habitudes du jour */}
-                  <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-5">
+                  <div className="glass-card p-5">
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-500 via-amber-400 to-transparent" />
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
-                        <Flame size={15} className="text-[#FF6B2B]" />
+                        <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                          <Flame size={13} className="text-amber-400" />
+                        </div>
                         Habitudes du jour
                       </h3>
                       <div className="flex items-center gap-2">
@@ -6579,13 +6995,18 @@ export default function CoachClientHub() {
               />
             )}
 
-            {/* ── Placeholder pour les autres onglets ── */}
+            {/* Placeholder pour les autres onglets */}
             {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && activeTab !== 'infos' && activeTab !== 'suivi' && activeTab !== 'habitudes' && activeTab !== 'objectifs' && (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
-                  <BarChart3 size={36} className="text-[var(--text-muted)] mx-auto mb-3" />
-                  <p className="text-[var(--text-muted)] text-sm">
-                    Onglet « {TABS.find(t => t.id === activeTab)?.label} » — bientôt disponible
+                  <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-4">
+                    <BarChart3 size={24} className="text-[var(--text-muted)]" />
+                  </div>
+                  <p className="text-[var(--text-secondary)] text-sm font-medium">
+                    {TABS.find(t => t.id === activeTab)?.label}
+                  </p>
+                  <p className="text-[var(--text-muted)] text-xs mt-1">
+                    Bientot disponible
                   </p>
                 </div>
               </div>
@@ -6631,7 +7052,7 @@ export default function CoachClientHub() {
         ) : (
           <div className="space-y-4">
             <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
-              <p className="text-green-400 text-sm font-medium">✓ Invitation créée !</p>
+              <p className="text-green-400 text-sm font-medium flex items-center gap-1.5"><CheckCircle2 size={14} /> Invitation creee</p>
               <p className="text-[var(--text-muted)] text-xs mt-1">Envoyez ce lien à {invitSuccess.prenom || invitSuccess.email} :</p>
             </div>
             <div className="bg-[var(--bg-elevated)] rounded-lg p-3">
