@@ -23,18 +23,26 @@ export default function InvitePage() {
   // Vérifie la validité du token au chargement
   useEffect(() => {
     const checkToken = async () => {
+      // Requete sans join pour eviter les problemes de RLS/FK
       const { data, error } = await supabase
         .from('invitations')
-        .select('*, coaches(nom_app)')
+        .select('*')
         .eq('token', token)
         .eq('acceptee', false)
         .gt('expires_at', new Date().toISOString())
         .single()
 
       if (error || !data) {
+        console.error('[InvitePage] Token invalide:', error)
         setError('Ce lien d\'invitation est invalide ou expiré.')
       } else {
-        setInvitation(data)
+        // Charger le nom de l'app du coach separement (non bloquant)
+        const { data: coach } = await supabase
+          .from('coaches')
+          .select('nom_app')
+          .eq('id', data.coach_id)
+          .single()
+        setInvitation({ ...data, coach_nom_app: coach?.nom_app || 'Zevo' })
       }
       setLoading(false)
     }
@@ -118,7 +126,7 @@ export default function InvitePage() {
           </div>
           <h1 className="text-[var(--text-primary)] text-2xl font-bold">Bienvenue !</h1>
           <p className="text-[var(--text-muted)] text-sm mt-1">
-            Ton coach t'a invité sur {invitation?.coaches?.nom_app ?? 'Zevo'}
+            Ton coach t'a invité sur {invitation?.coach_nom_app ?? 'Zevo'}
           </p>
         </div>
 

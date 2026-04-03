@@ -139,8 +139,14 @@ export default function CoachParametresPage() {
   // Vérifie le retour d'onboarding Stripe Connect
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    if (params.get('stripe_connect') === 'success') {
+    if (params.get('stripe_connect') === 'success' && user) {
       setStripeOnboardingComplete(true)
+      // Persister en base
+      supabase
+        .from('coaches')
+        .update({ stripe_onboarding_complete: true })
+        .eq('id', user.id)
+        .then(() => console.log('Stripe onboarding complete saved'))
       window.history.replaceState({}, '', '/coach/parametres')
     }
   }, [])
