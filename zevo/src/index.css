@@ -67,6 +67,10 @@
 /* ═══════════════════════════════════════════════════════════════
    STYLES GLOBAUX (utilisent les variables)
    ═══════════════════════════════════════════════════════════════ */
+html {
+  background-color: var(--bg-base);
+}
+
 body {
   background-color: var(--bg-base);
   color: var(--text-primary);
