@@ -24,19 +24,32 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'offreId et clientId requis' })
     }
 
-    // Charger l'offre et le coach
-    const { data: offre } = await supabase
+    // Charger l'offre
+    const { data: offre, error: offreError } = await supabase
       .from('offres_coaching')
-      .select('*, coaches(stripe_account_id, stripe_onboarding_complete)')
+      .select('*')
       .eq('id', offreId)
       .single()
 
-    if (!offre) {
+    if (offreError || !offre) {
+      console.error('Erreur chargement offre:', offreError)
       return res.status(404).json({ error: 'Offre introuvable' })
     }
 
-    const stripeAccountId = offre.coaches?.stripe_account_id
-    if (!stripeAccountId || !offre.coaches?.stripe_onboarding_complete) {
+    // Charger le coach separement pour eviter les problemes de FK
+    const { data: coach, error: coachError } = await supabase
+      .from('coaches')
+      .select('stripe_account_id, stripe_onboarding_complete')
+      .eq('id', offre.coach_id)
+      .single()
+
+    if (coachError || !coach) {
+      console.error('Erreur chargement coach:', coachError)
+      return res.status(404).json({ error: 'Coach introuvable' })
+    }
+
+    const stripeAccountId = coach.stripe_account_id
+    if (!stripeAccountId || !coach.stripe_onboarding_complete) {
       return res.status(400).json({ error: 'Coach non connecté à Stripe' })
     }
 
