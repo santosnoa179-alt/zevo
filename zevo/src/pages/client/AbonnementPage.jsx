@@ -22,19 +22,35 @@ export default function AbonnementPage() {
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(null)
 
-  // Vérifier si succès de paiement (retour Stripe)
+  // Verifier si succes de paiement (retour Stripe)
   const params = new URLSearchParams(window.location.search)
   const paiementSuccess = params.get('paiement') === 'success'
 
   useEffect(() => {
     if (!user) return
-    chargerDonnees()
+
+    const init = async () => {
+      // Si retour Stripe success, marquer le dernier paiement en_attente comme paye
+      if (paiementSuccess) {
+        await supabase
+          .from('paiements_clients')
+          .update({ statut: 'paye', date_paiement: new Date().toISOString() })
+          .eq('client_id', user.id)
+          .eq('statut', 'en_attente')
+          .order('created_at', { ascending: false })
+          .limit(1)
+        // Nettoyer l'URL
+        window.history.replaceState({}, '', '/app/abonnement')
+      }
+      chargerDonnees()
+    }
+    init()
   }, [user])
 
   const chargerDonnees = async () => {
     setLoading(true)
 
-    // Récupérer le coach_id du client
+    // Recuperer le coach_id du client
     const { data: client } = await supabase
       .from('clients')
       .select('coach_id')
@@ -44,22 +60,30 @@ export default function AbonnementPage() {
     if (!client) { setLoading(false); return }
 
     // Charger les offres actives du coach
-    const [offresRes, paiementsRes] = await Promise.all([
-      supabase
-        .from('offres_coaching')
-        .select('*')
-        .eq('coach_id', client.coach_id)
-        .eq('actif', true)
-        .order('prix'),
-      supabase
-        .from('paiements_clients')
-        .select('*, offres_coaching(titre)')
-        .eq('client_id', user.id)
-        .order('created_at', { ascending: false }),
-    ])
+    const { data: offresData } = await supabase
+      .from('offres_coaching')
+      .select('*')
+      .eq('coach_id', client.coach_id)
+      .eq('actif', true)
+      .order('prix')
 
-    setOffres(offresRes.data || [])
-    setPaiements(paiementsRes.data || [])
+    // Charger les paiements sans join (evite les problemes RLS)
+    const { data: paiementsData } = await supabase
+      .from('paiements_clients')
+      .select('*')
+      .eq('client_id', user.id)
+      .order('created_at', { ascending: false })
+
+    // Enrichir les paiements avec le titre de l'offre
+    const offresMap = {}
+    ;(offresData || []).forEach(o => { offresMap[o.id] = o.titre })
+    const paiementsEnrichis = (paiementsData || []).map(p => ({
+      ...p,
+      offre_titre: offresMap[p.offre_id] || 'Paiement',
+    }))
+
+    setOffres(offresData || [])
+    setPaiements(paiementsEnrichis)
     setLoading(false)
   }
 
@@ -189,7 +213,7 @@ export default function AbonnementPage() {
             >
               <div>
                 <p className="text-[var(--text-primary)] text-sm font-medium">
-                  {p.offres_coaching?.titre || 'Paiement'}
+                  {p.offre_titre || 'Paiement'}
                 </p>
                 <p className="text-[var(--text-muted)] text-xs mt-0.5">
                   {p.date_paiement
