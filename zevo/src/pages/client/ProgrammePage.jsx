@@ -4,15 +4,16 @@ import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { supabase } from '../../lib/supabase'
 import { usePageTransition } from '../../hooks/useAnimations'
-import { Card, CardBody } from '../../components/ui/Card'
 import {
   Layers, ChevronRight, ChevronDown, Dumbbell, Apple,
   Loader2, CheckCircle2, Image as ImageIcon,
   BookOpen, FileText, Video, Link as LinkIcon, ExternalLink, Download,
   UtensilsCrossed, Flame, Droplets, Wheat, Trophy,
-  Calendar, Check, Lock
+  Calendar, Check, Lock, Sun, Coffee, Cookie, Moon, Utensils,
+  Target, Zap, Sparkles
 } from 'lucide-react'
 
+// ── Resource type config ──
 const RESSOURCE_ICONS = {
   pdf: { icon: FileText, color: 'text-red-400', bg: 'bg-red-500/10', action: Download },
   video: { icon: Video, color: 'text-purple-400', bg: 'bg-purple-500/10', action: ExternalLink },
@@ -21,18 +22,108 @@ const RESSOURCE_ICONS = {
   guide: { icon: BookOpen, color: 'text-yellow-400', bg: 'bg-yellow-500/10', action: ExternalLink },
 }
 
+// ── Meal labels & icons (no emojis) ──
 const REPAS_LABELS = {
-  petit_dej: 'Petit-déjeuner',
-  dejeuner: 'Déjeuner',
+  petit_dej: 'Petit-dejeuner',
+  dejeuner: 'Dejeuner',
   collation: 'Collation',
-  diner: 'Dîner',
+  diner: 'Diner',
 }
-const REPAS_ICONS = {
-  petit_dej: '🌅',
-  dejeuner: '☀️',
-  collation: '🍎',
-  diner: '🌙',
+const REPAS_ICON_MAP = {
+  petit_dej: { icon: Sun, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+  dejeuner: { icon: Coffee, color: 'text-orange-400', bg: 'bg-orange-500/10' },
+  collation: { icon: Cookie, color: 'text-green-400', bg: 'bg-green-500/10' },
+  diner: { icon: Moon, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
 }
+
+// ── Shared sub-components ──
+
+function SectionLabel({ children, icon: Icon, iconColor = 'text-[#FF6B2B]' }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      {Icon && <Icon size={14} className={iconColor} />}
+      <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold">{children}</p>
+    </div>
+  )
+}
+
+function ProgressRing({ percent, size = 44, stroke = 3.5, color = '#FF6B2B' }) {
+  const r = (size - stroke) / 2
+  const circ = 2 * Math.PI * r
+  const offset = circ - (percent / 100) * circ
+  return (
+    <svg width={size} height={size} className="-rotate-90">
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--border-base)" strokeWidth={stroke} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+        strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
+        className="transition-all duration-700 ease-out" />
+    </svg>
+  )
+}
+
+function WeekTracker({ totalWeeks, completedWeeks, isWeekCompleted, validateWeek, validatingWeek, progress, accentColor = '#FF6B2B', label = 'Suivi de progression' }) {
+  return (
+    <div className="glass-card overflow-hidden">
+      {/* Header with ring */}
+      <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center gap-4">
+        <div className="relative flex items-center justify-center">
+          <ProgressRing percent={progress} color={accentColor} />
+          <span className="absolute text-[10px] font-bold" style={{ color: accentColor }}>{progress}%</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-[var(--text-primary)] font-semibold text-sm">{label}</h3>
+          <p className="text-[var(--text-muted)] text-[10px] mt-0.5">
+            {completedWeeks.length} / {totalWeeks} semaine{totalWeeks > 1 ? 's' : ''} validee{completedWeeks.length > 1 ? 's' : ''}
+          </p>
+        </div>
+      </div>
+
+      {/* Weeks grid */}
+      <div className="p-4">
+        <div className="grid grid-cols-4 gap-2">
+          {Array.from({ length: totalWeeks }, (_, i) => i + 1).map(weekNum => {
+            const done = isWeekCompleted(weekNum)
+            const isValidating = validatingWeek === weekNum
+            const unlocked = weekNum === 1 || isWeekCompleted(weekNum - 1)
+
+            return (
+              <button
+                key={weekNum}
+                onClick={() => !done && unlocked && validateWeek(weekNum)}
+                disabled={done || !unlocked || isValidating}
+                className={`relative flex flex-col items-center justify-center py-3 rounded-xl border transition-all ${
+                  done
+                    ? 'bg-emerald-500/10 border-emerald-500/20'
+                    : unlocked
+                      ? 'border-[var(--border-base)] hover:border-[color:var(--accent)] active:scale-95 bg-[var(--bg-card)]'
+                      : 'bg-[var(--bg-surface)]/50 border-transparent opacity-40'
+                }`}
+                style={{ '--accent': accentColor }}
+              >
+                {done ? (
+                  <CheckCircle2 size={18} className="text-emerald-400 mb-0.5" />
+                ) : isValidating ? (
+                  <Loader2 size={16} className="animate-spin mb-0.5" style={{ color: accentColor }} />
+                ) : unlocked ? (
+                  <span className="text-sm font-bold mb-0.5" style={{ color: accentColor }}>{weekNum}</span>
+                ) : (
+                  <Lock size={13} className="text-[var(--text-muted)] mb-0.5" />
+                )}
+                <span className={`text-[9px] font-medium ${done ? 'text-emerald-400' : 'text-[var(--text-muted)]'}`}>
+                  Sem. {weekNum}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAIN COMPONENT
+// ═══════════════════════════════════════════════════════════════════
 
 export default function ProgrammePage() {
   const { user } = useAuth()
@@ -65,8 +156,6 @@ export default function ProgrammePage() {
   // ── Charge le programme sport ──
   const loadSport = useCallback(async () => {
     if (!user) return
-
-    // 1. Récupère l'assignation avec le programme nested
     const { data: assign } = await supabase
       .from('programme_assignations')
       .select('*, programmes(*)')
@@ -76,9 +165,6 @@ export default function ProgrammePage() {
       .maybeSingle()
 
     if (assign) {
-
-      // Fallback : si le nested select ne ramène pas document_url (RLS),
-      // tente un fetch direct
       if (assign.programmes && !assign.programmes.document_url) {
         const { data: progDirect } = await supabase
           .from('programmes')
@@ -89,16 +175,12 @@ export default function ProgrammePage() {
           assign.programmes = { ...assign.programmes, ...progDirect }
         }
       }
-
       setAssignation(assign)
-
-      // 2. Phases
       const { data: phasesData } = await supabase
         .from('programme_phases')
         .select('*')
         .eq('programme_id', assign.programme_id)
         .order('ordre')
-
       setPhases(phasesData || [])
       if (phasesData?.length && assign.phase_actuelle) {
         const currentPhase = phasesData.find(p => p.ordre === assign.phase_actuelle)
@@ -111,8 +193,6 @@ export default function ProgrammePage() {
   const loadNutrition = useCallback(async () => {
     if (!user) return
     setLoadingNutrition(true)
-
-    // Plan nutrition actif assigné au client
     const { data: plan } = await supabase
       .from('client_nutrition_plans')
       .select('*')
@@ -123,8 +203,6 @@ export default function ProgrammePage() {
 
     if (plan) {
       setNutritionPlan(plan)
-
-      // Charger les repas et suivi semaines en parallèle
       const [repasRes, suiviRes] = await Promise.all([
         supabase
           .from('plan_repas')
@@ -138,11 +216,9 @@ export default function ProgrammePage() {
           .eq('plan_id', plan.id)
           .order('numero_semaine'),
       ])
-
       setRepas(repasRes.data || [])
       setCompletedNutriWeeks(suiviRes.data || [])
     }
-
     setLoadingNutrition(false)
   }, [user])
 
@@ -171,20 +247,19 @@ export default function ProgrammePage() {
       })
       if (error) {
         if (error.code === '23505') {
-          toast.error('Cette semaine est déjà validée !')
+          toast.error('Cette semaine est deja validee !')
         } else {
           throw error
         }
       } else {
         setCompletedWeeks(prev => [...prev, { numero_semaine: weekNum, completed_at: new Date().toISOString() }])
-        toast.success('Super ! Semaine validée, ton coach est prévenu.')
-        // Notification au coach
+        toast.success('Super ! Semaine validee, ton coach est prevenu.')
         if (coachId) {
           await supabase.from('notifications').insert({
             coach_id: coachId,
             client_id: user.id,
-            titre: 'Semaine validée ! 🎉',
-            message: `Ton client a validé la semaine ${weekNum} de son programme sport.`,
+            titre: 'Semaine validee',
+            message: `Ton client a valide la semaine ${weekNum} de son programme sport.`,
             type: 'validation_semaine',
             destinataire: 'coach',
           }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
@@ -210,20 +285,19 @@ export default function ProgrammePage() {
       })
       if (error) {
         if (error.code === '23505') {
-          toast.error('Cette semaine est déjà validée !')
+          toast.error('Cette semaine est deja validee !')
         } else {
           throw error
         }
       } else {
         setCompletedNutriWeeks(prev => [...prev, { numero_semaine: weekNum, completed_at: new Date().toISOString() }])
-        toast.success('Super ! Semaine nutritionnelle validée.')
-        // Notification au coach
+        toast.success('Super ! Semaine nutritionnelle validee.')
         if (coachId) {
           await supabase.from('notifications').insert({
             coach_id: coachId,
             client_id: user.id,
-            titre: 'Semaine validée ! 🎉',
-            message: `Ton client a validé la semaine ${weekNum} de son plan nutrition.`,
+            titre: 'Semaine validee',
+            message: `Ton client a valide la semaine ${weekNum} de son plan nutrition.`,
             type: 'validation_semaine',
             destinataire: 'coach',
           }).then(({ error: nErr }) => { if (nErr) console.warn('[Notif]', nErr.message) })
@@ -241,32 +315,33 @@ export default function ProgrammePage() {
     if (!user) return
     const init = async () => {
       setLoading(true)
-      // Récupère le coach_id pour les notifications
       const { data: clientData } = await supabase
         .from('clients')
         .select('coach_id')
         .eq('id', user.id)
         .maybeSingle()
       if (clientData?.coach_id) setCoachId(clientData.coach_id)
-
       await Promise.all([loadSport(), loadNutrition()])
       setLoading(false)
     }
     init()
   }, [user, loadSport, loadNutrition])
 
-  // Load week progress once assignation is set
   useEffect(() => {
     if (assignation?.programme_id) loadWeekProgress(assignation.programme_id)
   }, [assignation?.programme_id, loadWeekProgress])
 
   const pageTransition = usePageTransition()
 
-  // ── Loading ──
+  // ── Loading skeleton ──
   if (loading) {
     return (
-      <div className="p-4 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-[#FF6B2B]" size={32} />
+      <div className="p-4 max-w-2xl space-y-4">
+        <div className="skel-block h-8 w-40" />
+        <div className="skel-block h-12 w-full rounded-xl" />
+        <div className="skel-block h-48 w-full rounded-2xl" />
+        <div className="skel-block h-32 w-full rounded-2xl" />
+        <div className="skel-block h-64 w-full rounded-2xl" />
       </div>
     )
   }
@@ -276,7 +351,6 @@ export default function ProgrammePage() {
     ? Math.round((assignation.phase_actuelle / phases.length) * 100)
     : 0
 
-  // Mode Document : dès qu'un document_url existe, on affiche la carte PDF
   const hasExercises = phases.some(p => (p.exercices?.length || 0) > 0)
   const isDocumentMode = !!prog?.document_url
   const totalWeeks = prog?.duree_semaines || 4
@@ -289,7 +363,6 @@ export default function ProgrammePage() {
   const completedNutriCount = completedNutriWeeks.length
   const nutriWeekProgress = Math.round((completedNutriCount / nutriTotalWeeks) * 100)
 
-  // Grouper les repas par jour (le jour est stocké dans metadata.day)
   const repasParJour = repas.reduce((acc, r) => {
     const jour = r.metadata?.day ?? 0
     if (!acc[jour]) acc[jour] = []
@@ -300,219 +373,169 @@ export default function ProgrammePage() {
   return (
     <div className={`p-4 max-w-2xl space-y-5 ${pageTransition.className}`}>
 
-      {/* ── Header + Tabs ── */}
+      {/* ═══════════ HEADER ═══════════ */}
       <div className="pt-2">
-        <h1 className="text-[var(--text-primary)] text-xl font-bold flex items-center gap-2">
-          <Layers size={20} className="text-[#FF6B2B]" />
-          Programme
-        </h1>
-        <p className="text-[var(--text-muted)] text-sm mt-0.5">Ton plan personnalisé par ton coach</p>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center shadow-lg shadow-[#FF6B2B]/20">
+            <Layers size={18} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-[var(--text-primary)] text-xl font-bold leading-tight">Programme</h1>
+            <p className="text-[var(--text-muted)] text-[11px]">Ton plan personnalise par ton coach</p>
+          </div>
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-1 gap-1">
-        <button
-          onClick={() => setTab('sport')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-            tab === 'sport'
-              ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
-              : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-          }`}
-        >
-          <Dumbbell size={15} />
-          Sport
-        </button>
-        <button
-          onClick={() => setTab('nutrition')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-            tab === 'nutrition'
-              ? 'bg-[#22c55e] text-white shadow-lg shadow-[#22c55e]/20'
-              : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-          }`}
-        >
-          <UtensilsCrossed size={15} />
-          Nutrition
-        </button>
+      {/* ═══════════ TABS ═══════════ */}
+      <div className="glass-card p-1.5 flex gap-1.5">
+        {[
+          { key: 'sport', label: 'Sport', icon: Dumbbell, color: '#FF6B2B' },
+          { key: 'nutrition', label: 'Nutrition', icon: UtensilsCrossed, color: '#22c55e' },
+        ].map(t => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+              tab === t.key
+                ? 'text-white shadow-lg'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
+            }`}
+            style={tab === t.key ? {
+              background: `linear-gradient(135deg, ${t.color} 0%, ${t.color}cc 100%)`,
+              boxShadow: `0 4px 16px ${t.color}30`,
+            } : undefined}
+          >
+            <t.icon size={15} />
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {/* ══════════ ONGLET SPORT ══════════ */}
+      {/* ══════════════════════════════════════════════════════════════
+           ONGLET SPORT
+         ══════════════════════════════════════════════════════════════ */}
       {tab === 'sport' && (
         <>
-          {/* DEBUG : log prog dans la console */}
-
           {!assignation ? (
-            <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] p-12 text-center">
-              <div className="w-14 h-14 bg-[#FF6B2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Dumbbell size={24} className="text-[#FF6B2B]" />
+            /* ── Empty state ── */
+            <div className="glass-card p-12 text-center">
+              <div className="relative inline-flex items-center justify-center mb-5">
+                <div className="absolute w-20 h-20 rounded-full bg-[#FF6B2B]/5 animate-breathe" />
+                <div className="relative w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center">
+                  <Dumbbell size={24} className="text-[#FF6B2B]" />
+                </div>
               </div>
               <h2 className="text-[var(--text-primary)] font-semibold text-lg mb-2">Aucun programme sportif</h2>
-              <p className="text-[var(--text-muted)] text-sm">Ton coach n'a pas encore assigné de programme sportif.</p>
+              <p className="text-[var(--text-muted)] text-sm max-w-[260px] mx-auto">Ton coach n'a pas encore assigne de programme sportif.</p>
             </div>
+
           ) : isDocumentMode ? (
             /* ═══════════════════════════════════════════ */
             /* MODE DOCUMENT — PDF global                  */
             /* ═══════════════════════════════════════════ */
             <>
-              {/* Programme Header */}
+              {/* Programme title */}
               <div>
-                <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-1">Programme actif</p>
+                <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-medium mb-1">Programme actif</p>
                 <h2 className="text-[var(--text-primary)] text-lg font-bold">{prog?.titre}</h2>
-                {prog?.description && <p className="text-[var(--text-muted)] text-sm mt-1">{prog.description}</p>}
+                {prog?.description && <p className="text-[var(--text-muted)] text-sm mt-1 leading-relaxed">{prog.description}</p>}
               </div>
 
-              {/* Grande carte PDF premium */}
-              <div className="bg-[var(--bg-card)] rounded-2xl p-8 text-center shadow-xl border border-[var(--border-base)] my-2">
-                <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-[#FF6B2B]/10 rounded-full">
-                    <svg className="w-12 h-12 text-[#FF6B2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                </div>
-                <h2 className="text-xl font-bold text-white mb-2">Ton programme PDF</h2>
-                <p className="text-[var(--text-muted)] mb-6 text-sm">Consulte ton plan d'entraînement complet joint par ton coach.</p>
-                <a
-                  href={prog.document_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-[#FF6B2B] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20"
-                >
-                  Ouvrir le document
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-
-              {/* ── Suivi de progression — Semaines ── */}
-              <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] overflow-hidden">
-                {/* Header */}
-                <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Calendar size={15} className="text-[#FF6B2B]" />
-                      <h3 className="text-[var(--text-primary)] font-semibold text-sm">Suivi de progression</h3>
+              {/* PDF Card — hero style */}
+              <div className="glass-card overflow-hidden">
+                {/* Gradient accent bar */}
+                <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+                <div className="p-8 text-center">
+                  <div className="relative inline-flex items-center justify-center mb-5">
+                    <div className="absolute w-24 h-24 rounded-full bg-[#FF6B2B]/5 animate-breathe" />
+                    <div className="relative w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center">
+                      <FileText size={28} className="text-[#FF6B2B]" />
                     </div>
-                    <span className="text-[#FF6B2B] text-xs font-bold">{weekProgress}%</span>
                   </div>
-                  {/* Progress bar global */}
-                  <div className="h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                    <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-500"
-                      style={{ width: `${weekProgress}%` }} />
-                  </div>
-                  <p className="text-[var(--text-muted)] text-[10px] mt-2">
-                    {completedCount} / {totalWeeks} semaine{totalWeeks > 1 ? 's' : ''} validée{completedCount > 1 ? 's' : ''}
-                  </p>
-                </div>
-
-                {/* Weeks list */}
-                <div className="divide-y divide-[var(--border-subtle)]">
-                  {Array.from({ length: totalWeeks }, (_, i) => i + 1).map(weekNum => {
-                    const done = isWeekCompleted(weekNum)
-                    const isValidating = validatingWeek === weekNum
-                    // Semaine déverrouillée si : semaine 1, ou semaine précédente complétée
-                    const unlocked = weekNum === 1 || isWeekCompleted(weekNum - 1)
-
-                    return (
-                      <div key={weekNum} className={`flex items-center gap-3 px-5 py-3.5 transition-all ${
-                        done ? 'bg-emerald-500/[0.03]' : ''
-                      }`}>
-                        {/* Status icon */}
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                          done
-                            ? 'bg-emerald-500/15'
-                            : unlocked
-                              ? 'bg-[#FF6B2B]/10'
-                              : 'bg-[var(--bg-surface)]'
-                        }`}>
-                          {done ? (
-                            <CheckCircle2 size={16} className="text-emerald-400" />
-                          ) : unlocked ? (
-                            <span className="text-[#FF6B2B] text-xs font-bold">{weekNum}</span>
-                          ) : (
-                            <Lock size={13} className="text-[var(--text-muted)]" />
-                          )}
-                        </div>
-
-                        {/* Week label */}
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
-                            Semaine {weekNum}
-                          </p>
-                          {done && (
-                            <p className="text-[var(--text-muted)] text-[10px]">
-                              Validée le {new Date(completedWeeks.find(cw => cw.numero_semaine === weekNum)?.completed_at).toLocaleDateString('fr-FR')}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Action button */}
-                        {done ? (
-                          <span className="text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">Terminée</span>
-                        ) : unlocked ? (
-                          <button onClick={() => validateWeek(weekNum)}
-                            disabled={isValidating}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold hover:bg-[#FF6B2B]/20 transition-all disabled:opacity-50">
-                            {isValidating ? (
-                              <Loader2 size={12} className="animate-spin" />
-                            ) : (
-                              <Check size={12} />
-                            )}
-                            {isValidating ? 'Validation...' : 'Valider'}
-                          </button>
-                        ) : (
-                          <span className="text-[var(--text-muted)] text-[10px]">Verrouillée</span>
-                        )}
-                      </div>
-                    )
-                  })}
+                  <h2 className="text-[var(--text-primary)] text-lg font-bold mb-1.5">Ton programme PDF</h2>
+                  <p className="text-[var(--text-muted)] mb-6 text-sm max-w-[280px] mx-auto">Consulte ton plan d'entrainement complet joint par ton coach.</p>
+                  <a
+                    href={prog.document_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 text-white font-bold px-7 py-3 rounded-xl transition-all active:scale-95 hover:shadow-xl"
+                    style={{
+                      background: 'linear-gradient(135deg, #FF6B2B 0%, #FF8F5E 100%)',
+                      boxShadow: '0 4px 20px rgba(255,107,43,0.3)',
+                    }}
+                  >
+                    Ouvrir le document
+                    <ExternalLink size={16} />
+                  </a>
                 </div>
               </div>
+
+              {/* Week tracker */}
+              <WeekTracker
+                totalWeeks={totalWeeks}
+                completedWeeks={completedWeeks}
+                isWeekCompleted={isWeekCompleted}
+                validateWeek={validateWeek}
+                validatingWeek={validatingWeek}
+                progress={weekProgress}
+              />
             </>
+
           ) : (
             /* ═══════════════════════════════════════════ */
             /* MODE CLASSIQUE — Phases + Exercices         */
             /* ═══════════════════════════════════════════ */
             <>
-              {/* Programme Header */}
+              {/* Programme title */}
               <div>
-                <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-1">Programme actif</p>
+                <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-medium mb-1">Programme actif</p>
                 <h2 className="text-[var(--text-primary)] text-lg font-bold">{prog?.titre}</h2>
-                {prog?.description && <p className="text-[var(--text-muted)] text-sm mt-1">{prog.description}</p>}
+                {prog?.description && <p className="text-[var(--text-muted)] text-sm mt-1 leading-relaxed">{prog.description}</p>}
               </div>
 
-              {/* Progress Card */}
-              <Card>
-                <CardBody>
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider">Progression</p>
-                    <span className="text-[#FF6B2B] text-sm font-bold">{progressPercent}%</span>
+              {/* Progress hero card */}
+              <div className="glass-card overflow-hidden">
+                <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+                <div className="p-5">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="relative flex items-center justify-center">
+                      <ProgressRing percent={progressPercent} size={56} stroke={4} />
+                      <span className="absolute text-xs font-bold text-[#FF6B2B]">{progressPercent}%</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[var(--text-primary)] text-sm font-semibold">Phase {assignation.phase_actuelle}/{phases.length}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {prog?.categorie && (
+                          <span className="px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold">
+                            {prog.categorie}
+                          </span>
+                        )}
+                        {prog?.duree_semaines && (
+                          <span className="text-[var(--text-muted)] text-[10px]">{prog.duree_semaines} semaines</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-1 mb-3">
+                  {/* Phase bar segments */}
+                  <div className="flex gap-1">
                     {phases.map((ph, i) => (
                       <div key={ph.id}
-                        className="h-2.5 rounded-full flex-1 transition-all"
+                        className="h-2 rounded-full flex-1 transition-all duration-500"
                         style={{
-                          backgroundColor: i < assignation.phase_actuelle ? '#FF6B2B' : 'var(--border-base)',
-                        }} />
+                          background: i < assignation.phase_actuelle
+                            ? 'linear-gradient(135deg, #FF6B2B, #FF9A6C)'
+                            : 'var(--border-base)',
+                        }}
+                      />
                     ))}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
-                    <span>Phase {assignation.phase_actuelle}/{phases.length}</span>
-                    {prog?.categorie && (
-                      <span className="px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px]">
-                        {prog.categorie}
-                      </span>
-                    )}
-                    <span>{prog?.duree_semaines} semaines</span>
-                  </div>
-                </CardBody>
-              </Card>
+                </div>
+              </div>
 
-              {/* Global document attached to programme */}
+              {/* Global document attached */}
               {prog?.document_url && (
                 <a href={prog.document_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-4 p-4 bg-[var(--bg-card)] rounded-2xl border border-[#FF6B2B]/20 hover:border-[#FF6B2B]/40 transition-all group">
+                  className="glass-card flex items-center gap-4 p-4 hover:border-[#FF6B2B]/30 transition-all group">
                   <div className="w-12 h-12 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B]/20 transition-all">
                     <FileText size={22} className="text-[#FF6B2B]" />
                   </div>
@@ -520,17 +543,17 @@ export default function ProgrammePage() {
                     <p className="text-[var(--text-primary)] text-sm font-semibold truncate">
                       {prog.document_nom || 'Programme PDF'}
                     </p>
-                    <p className="text-[var(--text-muted)] text-xs mt-0.5">Fichier joint par ton coach • Appuie pour ouvrir</p>
+                    <p className="text-[var(--text-muted)] text-xs mt-0.5">Fichier joint par ton coach</p>
                   </div>
-                  <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B] group-hover:text-white transition-all">
+                  <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B] transition-all">
                     <Download size={16} className="text-[#FF6B2B] group-hover:text-white transition-all" />
                   </div>
                 </a>
               )}
 
-              {/* Phases */}
+              {/* ── Phases ── */}
               <div className="space-y-3">
-                <h2 className="text-[var(--text-primary)] font-semibold text-base">Phases du programme</h2>
+                <SectionLabel icon={Zap}>Phases du programme</SectionLabel>
                 {phases.map((phase, index) => {
                   const isCurrent = phase.ordre === assignation.phase_actuelle
                   const isDone = phase.ordre < assignation.phase_actuelle
@@ -538,16 +561,19 @@ export default function ProgrammePage() {
 
                   return (
                     <div key={phase.id}
-                      className={`bg-[var(--bg-card)] rounded-2xl border overflow-hidden transition-all ${
-                        isCurrent ? 'border-[#FF6B2B]/30 shadow-lg shadow-[#FF6B2B]/10' : 'border-[var(--border-base)]'
-                      }`}>
+                      className={`glass-card overflow-hidden transition-all ${
+                        isCurrent ? '!border-[#FF6B2B]/25' : ''
+                      }`}
+                      style={isCurrent ? { boxShadow: '0 0 24px rgba(255,107,43,0.08)' } : undefined}
+                    >
+                      {/* Phase header */}
                       <button onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
-                        className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-[var(--bg-surface)] transition-colors">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          isDone ? 'bg-green-500/20' : isCurrent ? 'bg-[#FF6B2B]/20' : 'bg-[var(--bg-surface)]'
+                        className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-[var(--bg-surface)]/50 transition-colors">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
+                          isDone ? 'bg-emerald-500/15' : isCurrent ? 'bg-[#FF6B2B]/15' : 'bg-[var(--bg-surface)]'
                         }`}>
                           {isDone ? (
-                            <CheckCircle2 size={16} className="text-green-400" />
+                            <CheckCircle2 size={16} className="text-emerald-400" />
                           ) : (
                             <span className={`text-xs font-bold ${isCurrent ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
                               {index + 1}
@@ -560,36 +586,37 @@ export default function ProgrammePage() {
                               {phase.titre}
                             </span>
                             {isCurrent && (
-                              <span className="text-[9px] bg-[#FF6B2B] text-white px-2 py-0.5 rounded-full font-bold uppercase">
+                              <span className="text-[8px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
+                                style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', color: 'white' }}>
                                 En cours
                               </span>
                             )}
                           </div>
                           <span className="text-[var(--text-muted)] text-xs">{phase.duree_semaines} semaine{phase.duree_semaines > 1 ? 's' : ''}</span>
                         </div>
-                        {isExpanded ? <ChevronDown size={16} className="text-[var(--text-muted)]" /> : <ChevronRight size={16} className="text-[var(--text-muted)]" />}
+                        <div className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
+                          <ChevronRight size={16} className="text-[var(--text-muted)]" />
+                        </div>
                       </button>
 
+                      {/* Phase expanded content */}
                       {isExpanded && (
-                        <div className="px-4 pb-4 space-y-4 border-t border-[var(--border-subtle)] pt-4">
-                          {phase.description && <p className="text-[var(--text-muted)] text-sm">{phase.description}</p>}
+                        <div className="px-4 pb-5 space-y-5 border-t border-[var(--border-subtle)] pt-4">
+                          {phase.description && (
+                            <p className="text-[var(--text-secondary)] text-sm leading-relaxed">{phase.description}</p>
+                          )}
 
                           {/* Exercices */}
                           {(phase.exercices?.length || 0) > 0 && (
                             <div>
-                              <div className="flex items-center gap-2 mb-3">
-                                <Dumbbell size={14} className="text-[#FF6B2B]" />
-                                <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold">
-                                  Exercices ({phase.exercices.length})
-                                </p>
-                              </div>
+                              <SectionLabel icon={Dumbbell}>Exercices ({phase.exercices.length})</SectionLabel>
                               <div className="space-y-2">
                                 {phase.exercices.map((ex, ei) => (
-                                  <div key={ei} className="flex items-center gap-3 bg-[var(--bg-base)] rounded-xl p-3">
+                                  <div key={ei} className="flex items-center gap-3 bg-[var(--bg-base)] rounded-xl p-3 border border-[var(--border-subtle)]">
                                     {ex.image_url ? (
-                                      <img src={ex.image_url} alt={ex.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
+                                      <img src={ex.image_url} alt={ex.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
                                     ) : (
-                                      <div className="w-14 h-14 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center flex-shrink-0">
+                                      <div className="w-14 h-14 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center flex-shrink-0">
                                         <ImageIcon size={18} className="text-[var(--text-muted)]" />
                                       </div>
                                     )}
@@ -598,7 +625,7 @@ export default function ProgrammePage() {
                                       <p className="text-[var(--text-muted)] text-xs">{ex.muscle_group}</p>
                                     </div>
                                     <div className="text-right flex-shrink-0">
-                                      <p className="text-[#FF6B2B] text-sm font-bold">{ex.sets}×{ex.reps}</p>
+                                      <p className="text-[#FF6B2B] text-sm font-bold">{ex.sets}x{ex.reps}</p>
                                       {ex.rest_seconds && <p className="text-[var(--text-muted)] text-[10px]">{ex.rest_seconds}s repos</p>}
                                     </div>
                                   </div>
@@ -610,41 +637,38 @@ export default function ProgrammePage() {
                           {/* Nutrition dans la phase */}
                           {(phase.calories_objectif || phase.proteines_g || phase.consignes_nutrition) && (
                             <div>
-                              <div className="flex items-center gap-2 mb-3">
-                                <Apple size={14} className="text-green-400" />
-                                <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold">Nutrition</p>
-                              </div>
+                              <SectionLabel icon={Apple} iconColor="text-green-400">Nutrition</SectionLabel>
                               {(phase.calories_objectif || phase.proteines_g) && (
                                 <div className="grid grid-cols-4 gap-2 mb-3">
                                   {phase.calories_objectif && (
-                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
+                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
                                       <p className="text-[var(--text-primary)] text-lg font-bold">{phase.calories_objectif}</p>
-                                      <p className="text-[var(--text-muted)] text-[10px] uppercase">kcal</p>
+                                      <p className="text-[var(--text-muted)] text-[9px] uppercase">kcal</p>
                                     </div>
                                   )}
                                   {phase.proteines_g && (
-                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
+                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
                                       <p className="text-blue-400 text-lg font-bold">{phase.proteines_g}g</p>
-                                      <p className="text-[var(--text-muted)] text-[10px] uppercase">Protéines</p>
+                                      <p className="text-[var(--text-muted)] text-[9px] uppercase">Prot.</p>
                                     </div>
                                   )}
                                   {phase.glucides_g && (
-                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
-                                      <p className="text-yellow-400 text-lg font-bold">{phase.glucides_g}g</p>
-                                      <p className="text-[var(--text-muted)] text-[10px] uppercase">Glucides</p>
+                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
+                                      <p className="text-amber-400 text-lg font-bold">{phase.glucides_g}g</p>
+                                      <p className="text-[var(--text-muted)] text-[9px] uppercase">Gluc.</p>
                                     </div>
                                   )}
                                   {phase.lipides_g && (
-                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
+                                    <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
                                       <p className="text-purple-400 text-lg font-bold">{phase.lipides_g}g</p>
-                                      <p className="text-[var(--text-muted)] text-[10px] uppercase">Lipides</p>
+                                      <p className="text-[var(--text-muted)] text-[9px] uppercase">Lip.</p>
                                     </div>
                                   )}
                                 </div>
                               )}
                               {phase.consignes_nutrition && (
-                                <div className="bg-[var(--bg-base)] rounded-xl p-3">
-                                  <p className="text-[var(--text-secondary)] text-xs whitespace-pre-wrap">{phase.consignes_nutrition}</p>
+                                <div className="bg-[var(--bg-base)] rounded-xl p-3.5 border border-[var(--border-subtle)]">
+                                  <p className="text-[var(--text-secondary)] text-xs whitespace-pre-wrap leading-relaxed">{phase.consignes_nutrition}</p>
                                 </div>
                               )}
                             </div>
@@ -653,10 +677,10 @@ export default function ProgrammePage() {
                           {/* Habitudes */}
                           {(phase.habitudes?.length || 0) > 0 && (
                             <div>
-                              <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold mb-2">Habitudes</p>
+                              <SectionLabel icon={Sparkles} iconColor="text-amber-400">Habitudes</SectionLabel>
                               <div className="flex flex-wrap gap-2">
                                 {phase.habitudes.map((h, hi) => (
-                                  <span key={hi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)] text-xs text-[var(--text-primary)]">
+                                  <span key={hi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)]">
                                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: h.couleur || '#FF6B2B' }} />
                                     {h.nom}
                                   </span>
@@ -668,11 +692,12 @@ export default function ProgrammePage() {
                           {/* Objectifs */}
                           {(phase.objectifs?.length || 0) > 0 && (
                             <div>
-                              <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold mb-2">Objectifs</p>
+                              <SectionLabel icon={Target} iconColor="text-blue-400">Objectifs</SectionLabel>
                               <div className="flex flex-wrap gap-2">
                                 {phase.objectifs.map((o, oi) => (
-                                  <span key={oi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)] text-xs text-[var(--text-primary)]">
-                                    🎯 {o.titre}
+                                  <span key={oi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)]">
+                                    <Target size={11} className="text-blue-400" />
+                                    {o.titre}
                                   </span>
                                 ))}
                               </div>
@@ -682,12 +707,9 @@ export default function ProgrammePage() {
                           {/* Ressources */}
                           {(phase.ressources_attachees?.length || 0) > 0 && (
                             <div>
-                              <div className="flex items-center gap-2 mb-3">
-                                <BookOpen size={14} className="text-blue-400" />
-                                <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold">
-                                  Ressources ({phase.ressources_attachees.length})
-                                </p>
-                              </div>
+                              <SectionLabel icon={BookOpen} iconColor="text-blue-400">
+                                Ressources ({phase.ressources_attachees.length})
+                              </SectionLabel>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {phase.ressources_attachees.map((res, ri) => {
                                   const typeInfo = RESSOURCE_ICONS[res.type] || RESSOURCE_ICONS.lien
@@ -703,7 +725,7 @@ export default function ProgrammePage() {
                                         <p className="text-[var(--text-primary)] text-sm font-medium truncate group-hover:text-blue-400 transition-colors">{res.titre}</p>
                                         <p className="text-[var(--text-muted)] text-[10px] capitalize mt-0.5">{res.type}{res.categorie ? ` · ${res.categorie}` : ''}</p>
                                       </div>
-                                      <ActionIcon size={14} className="text-[var(--text-muted)] group-hover:text-[var(--text-muted)] transition-colors flex-shrink-0" />
+                                      <ActionIcon size={14} className="text-[var(--text-muted)] flex-shrink-0" />
                                     </a>
                                   )
                                 })}
@@ -717,154 +739,127 @@ export default function ProgrammePage() {
                 })}
               </div>
 
-              {/* ── Suivi semaines (mode classique aussi) ── */}
+              {/* ── Week tracker (classic mode) ── */}
               {totalWeeks > 0 && (
-                <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] overflow-hidden">
-                  <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Calendar size={15} className="text-[#FF6B2B]" />
-                        <h3 className="text-[var(--text-primary)] font-semibold text-sm">Suivi hebdomadaire</h3>
-                      </div>
-                      <span className="text-[#FF6B2B] text-xs font-bold">{completedCount}/{totalWeeks}</span>
-                    </div>
-                    <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                      <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-500"
-                        style={{ width: `${weekProgress}%` }} />
-                    </div>
-                  </div>
-                  <div className="divide-y divide-[var(--border-subtle)]">
-                    {Array.from({ length: totalWeeks }, (_, i) => i + 1).map(weekNum => {
-                      const done = isWeekCompleted(weekNum)
-                      const isValidating = validatingWeek === weekNum
-                      const unlocked = weekNum === 1 || isWeekCompleted(weekNum - 1)
-                      return (
-                        <div key={weekNum} className={`flex items-center gap-3 px-5 py-3 ${done ? 'bg-emerald-500/[0.03]' : ''}`}>
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            done ? 'bg-emerald-500/15' : unlocked ? 'bg-[#FF6B2B]/10' : 'bg-[var(--bg-surface)]'
-                          }`}>
-                            {done ? <CheckCircle2 size={14} className="text-emerald-400" /> :
-                             unlocked ? <span className="text-[#FF6B2B] text-[10px] font-bold">{weekNum}</span> :
-                             <Lock size={11} className="text-[var(--text-muted)]" />}
-                          </div>
-                          <span className={`flex-1 text-xs font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
-                            Sem. {weekNum}
-                          </span>
-                          {done ? (
-                            <span className="text-emerald-400/60 text-[9px]">OK</span>
-                          ) : unlocked ? (
-                            <button onClick={() => validateWeek(weekNum)} disabled={isValidating}
-                              className="px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold hover:bg-[#FF6B2B]/20 transition-all disabled:opacity-50">
-                              {isValidating ? '...' : 'Valider'}
-                            </button>
-                          ) : null}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
+                <WeekTracker
+                  totalWeeks={totalWeeks}
+                  completedWeeks={completedWeeks}
+                  isWeekCompleted={isWeekCompleted}
+                  validateWeek={validateWeek}
+                  validatingWeek={validatingWeek}
+                  progress={weekProgress}
+                  label="Suivi hebdomadaire"
+                />
               )}
             </>
           )}
         </>
       )}
 
-      {/* ══════════ ONGLET NUTRITION ══════════ */}
+      {/* ══════════════════════════════════════════════════════════════
+           ONGLET NUTRITION
+         ══════════════════════════════════════════════════════════════ */}
       {tab === 'nutrition' && (
         <>
           {loadingNutrition ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="animate-spin text-[#22c55e]" size={28} />
+            <div className="space-y-4">
+              <div className="skel-block h-6 w-36" />
+              <div className="skel-block h-40 w-full rounded-2xl" />
+              <div className="skel-block h-28 w-full rounded-2xl" />
             </div>
           ) : !nutritionPlan ? (
-            <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] p-12 text-center">
-              <div className="w-14 h-14 bg-[#22c55e]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <UtensilsCrossed size={24} className="text-[#22c55e]" />
+            /* ── Empty state ── */
+            <div className="glass-card p-12 text-center">
+              <div className="relative inline-flex items-center justify-center mb-5">
+                <div className="absolute w-20 h-20 rounded-full bg-[#22c55e]/5 animate-breathe" />
+                <div className="relative w-14 h-14 rounded-2xl bg-[#22c55e]/10 flex items-center justify-center">
+                  <UtensilsCrossed size={24} className="text-[#22c55e]" />
+                </div>
               </div>
               <h2 className="text-[var(--text-primary)] font-semibold text-lg mb-2">Aucun plan nutritionnel</h2>
-              <p className="text-[var(--text-muted)] text-sm">Ton coach n'a pas encore assigné de plan nutrition.</p>
+              <p className="text-[var(--text-muted)] text-sm max-w-[260px] mx-auto">Ton coach n'a pas encore assigne de plan nutrition.</p>
             </div>
           ) : (
             <>
               {/* Nutrition Header */}
               <div>
-                <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-1">Plan nutritionnel</p>
+                <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-medium mb-1">Plan nutritionnel</p>
                 <h2 className="text-[var(--text-primary)] text-lg font-bold">{nutritionPlan.titre || nutritionPlan.nom || 'Mon plan nutrition'}</h2>
-                {nutritionPlan.objectif && <p className="text-[var(--text-muted)] text-sm mt-1">{nutritionPlan.objectif}</p>}
+                {nutritionPlan.objectif && <p className="text-[var(--text-muted)] text-sm mt-1 leading-relaxed">{nutritionPlan.objectif}</p>}
               </div>
 
-              {/* Carte PDF compacte (si document_url existe) */}
+              {/* PDF card */}
               {nutritionPlan.document_url && (
                 <a href={nutritionPlan.document_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-4 p-4 bg-[var(--bg-card)] rounded-2xl border border-[#FF6B2B]/20 hover:border-[#FF6B2B]/40 transition-all group">
-                  <div className="w-12 h-12 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B]/20 transition-all">
-                    <svg className="w-6 h-6 text-[#FF6B2B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
+                  className="glass-card flex items-center gap-4 p-4 hover:border-[#22c55e]/30 transition-all group">
+                  <div className="w-12 h-12 rounded-xl bg-[#22c55e]/10 flex items-center justify-center shrink-0 group-hover:bg-[#22c55e]/20 transition-all">
+                    <FileText size={22} className="text-[#22c55e]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[var(--text-primary)] text-sm font-semibold truncate">
                       {nutritionPlan.document_nom || 'Plan nutritionnel PDF'}
                     </p>
-                    <p className="text-[var(--text-muted)] text-xs mt-0.5">Fichier joint par ton coach • Appuie pour ouvrir</p>
+                    <p className="text-[var(--text-muted)] text-xs mt-0.5">Fichier joint par ton coach</p>
                   </div>
-                  <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B] transition-all">
-                    <Download size={16} className="text-[#FF6B2B] group-hover:text-white transition-all" />
+                  <div className="w-9 h-9 rounded-lg bg-[#22c55e]/10 flex items-center justify-center shrink-0 group-hover:bg-[#22c55e] transition-all">
+                    <Download size={16} className="text-[#22c55e] group-hover:text-white transition-all" />
                   </div>
                 </a>
               )}
 
-              {/* Macros globaux si disponibles */}
+              {/* Macros card */}
               {(nutritionPlan.calories_cible || nutritionPlan.proteines_cible) && (
-                <Card>
-                  <CardBody>
-                    <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-3">Objectifs journaliers</p>
+                <div className="glass-card overflow-hidden">
+                  <div className="h-1 bg-gradient-to-r from-[#22c55e] to-[#4ade80]" />
+                  <div className="p-5">
+                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-medium mb-4">Objectifs journaliers</p>
                     <div className="grid grid-cols-4 gap-2">
                       {nutritionPlan.calories_cible && (
-                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
-                          <Flame size={14} className="text-[#FF6B2B] mx-auto mb-1" />
+                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
+                          <Flame size={14} className="text-[#FF6B2B] mx-auto mb-1.5" />
                           <p className="text-[var(--text-primary)] text-base font-bold">{nutritionPlan.calories_cible}</p>
                           <p className="text-[var(--text-muted)] text-[9px] uppercase">kcal</p>
                         </div>
                       )}
                       {nutritionPlan.proteines_cible && (
-                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
-                          <Droplets size={14} className="text-blue-400 mx-auto mb-1" />
+                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
+                          <Droplets size={14} className="text-blue-400 mx-auto mb-1.5" />
                           <p className="text-blue-400 text-base font-bold">{nutritionPlan.proteines_cible}g</p>
                           <p className="text-[var(--text-muted)] text-[9px] uppercase">Prot.</p>
                         </div>
                       )}
                       {nutritionPlan.glucides_cible && (
-                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
-                          <Wheat size={14} className="text-yellow-400 mx-auto mb-1" />
-                          <p className="text-yellow-400 text-base font-bold">{nutritionPlan.glucides_cible}g</p>
+                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
+                          <Wheat size={14} className="text-amber-400 mx-auto mb-1.5" />
+                          <p className="text-amber-400 text-base font-bold">{nutritionPlan.glucides_cible}g</p>
                           <p className="text-[var(--text-muted)] text-[9px] uppercase">Gluc.</p>
                         </div>
                       )}
                       {nutritionPlan.lipides_cible && (
-                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center">
-                          <Droplets size={14} className="text-purple-400 mx-auto mb-1" />
+                        <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
+                          <Droplets size={14} className="text-purple-400 mx-auto mb-1.5" />
                           <p className="text-purple-400 text-base font-bold">{nutritionPlan.lipides_cible}g</p>
                           <p className="text-[var(--text-muted)] text-[9px] uppercase">Lip.</p>
                         </div>
                       )}
                     </div>
-                  </CardBody>
-                </Card>
+                  </div>
+                </div>
               )}
 
               {/* Repas par jour */}
               {Object.keys(repasParJour).length > 0 && (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {Object.entries(repasParJour).sort(([a], [b]) => Number(a) - Number(b)).map(([jour, jourRepas]) => (
                     <div key={jour}>
-                      <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold mb-2">
-                        Jour {Number(jour) + 1 > 1 ? `Jour ${Number(jour) + 1}` : 'Repas du jour'}
+                      <p className="text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold mb-2.5">
+                        {Number(jour) + 1 > 1 ? `Jour ${Number(jour) + 1}` : 'Repas du jour'}
                       </p>
-                      <div className="space-y-2">
+                      <div className="space-y-2.5">
                         {jourRepas.map((r) => {
                           const titre = r.metadata?.titre || REPAS_LABELS[r.type] || r.type
-                          const emoji = REPAS_ICONS[r.type] || '🍽️'
+                          const mealConfig = REPAS_ICON_MAP[r.type] || { icon: Utensils, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]' }
+                          const MealIcon = mealConfig.icon
                           const aliments = r.repas_aliments || []
                           const totalKcal = Math.round(aliments.reduce((sum, a) => {
                             const kcal100 = a.aliments?.kcal_100g || 0
@@ -874,36 +869,36 @@ export default function ProgrammePage() {
                           const macros = r.metadata?.macros
 
                           return (
-                            <div key={r.id} className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-base)] overflow-hidden">
-                              <div className="px-4 py-3 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-base">{emoji}</span>
-                                  <div>
-                                    <p className="text-[var(--text-primary)] text-sm font-medium">{titre}</p>
-                                    {r.metadata?.description && (
-                                      <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{r.metadata.description}</p>
-                                    )}
-                                  </div>
+                            <div key={r.id} className="glass-card overflow-hidden">
+                              <div className="px-4 py-3.5 flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded-xl ${mealConfig.bg} flex items-center justify-center flex-shrink-0`}>
+                                  <MealIcon size={16} className={mealConfig.color} />
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[var(--text-primary)] text-sm font-semibold">{titre}</p>
+                                  {r.metadata?.description && (
+                                    <p className="text-[var(--text-muted)] text-[10px] mt-0.5 truncate">{r.metadata.description}</p>
+                                  )}
+                                </div>
+                                <div className="text-right flex-shrink-0">
                                   {totalKcal > 0 && (
                                     <span className="text-[#FF6B2B] text-xs font-bold">{totalKcal} kcal</span>
                                   )}
                                   {macros && (
-                                    <span className="text-[var(--text-muted)] text-[9px]">
+                                    <p className="text-[var(--text-muted)] text-[9px] mt-0.5">
                                       P{macros.p} G{macros.g} L{macros.l}
-                                    </span>
+                                    </p>
                                   )}
                                 </div>
                               </div>
                               {aliments.length > 0 && (
-                                <div className="px-4 pb-3 space-y-1.5">
+                                <div className="px-4 pb-3.5 space-y-2 border-t border-[var(--border-subtle)] pt-3">
                                   {aliments.map((a, ai) => {
                                     const kcal = Math.round((a.aliments?.kcal_100g || 0) * (a.quantite_g || 100) / 100)
                                     return (
                                       <div key={ai} className="flex items-center justify-between text-xs">
-                                        <span className="text-[var(--text-secondary)]">{a.aliments?.nom || 'Aliment'}</span>
-                                        <span className="text-[var(--text-muted)]">{a.quantite_g}g {kcal > 0 && `• ${kcal} kcal`}</span>
+                                        <span className="text-[var(--text-secondary)] font-medium">{a.aliments?.nom || 'Aliment'}</span>
+                                        <span className="text-[var(--text-muted)] tabular-nums">{a.quantite_g}g {kcal > 0 && `· ${kcal} kcal`}</span>
                                       </div>
                                     )
                                   })}
@@ -918,74 +913,41 @@ export default function ProgrammePage() {
                 </div>
               )}
 
-              {/* Message si pas de repas ET pas de PDF */}
+              {/* No meals & no PDF */}
               {Object.keys(repasParJour).length === 0 && !nutritionPlan.document_url && (
-                <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-base)] p-6 text-center">
-                  <p className="text-[var(--text-muted)] text-sm">Pas de détail de repas pour ce plan.</p>
+                <div className="glass-card p-6 text-center">
+                  <p className="text-[var(--text-muted)] text-sm">Pas de detail de repas pour ce plan.</p>
                   {nutritionPlan.notes && (
-                    <div className="mt-3 bg-[var(--bg-base)] rounded-xl p-4">
-                      <p className="text-[var(--text-secondary)] text-xs whitespace-pre-wrap text-left">{nutritionPlan.notes}</p>
+                    <div className="mt-3 bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-subtle)]">
+                      <p className="text-[var(--text-secondary)] text-xs whitespace-pre-wrap text-left leading-relaxed">{nutritionPlan.notes}</p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Notes globales du plan */}
+              {/* Coach notes */}
               {nutritionPlan.notes && Object.keys(repasParJour).length > 0 && (
-                <Card>
-                  <CardBody>
-                    <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-wider mb-2">Notes du coach</p>
-                    <p className="text-[var(--text-secondary)] text-sm whitespace-pre-wrap">{nutritionPlan.notes}</p>
-                  </CardBody>
-                </Card>
-              )}
-
-              {/* ── Suivi semaines ── */}
-              {nutriTotalWeeks > 0 && (
-                <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] overflow-hidden">
-                  <div className="px-5 py-4 border-b border-[var(--border-subtle)]">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Calendar size={15} className="text-[#FF6B2B]" />
-                        <h3 className="text-[var(--text-primary)] font-semibold text-sm">Suivi hebdomadaire</h3>
-                      </div>
-                      <span className="text-[#FF6B2B] text-xs font-bold">{completedNutriCount}/{nutriTotalWeeks}</span>
-                    </div>
-                    <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                      <div className="h-full bg-[#FF6B2B] rounded-full transition-all duration-500"
-                        style={{ width: `${nutriWeekProgress}%` }} />
-                    </div>
-                  </div>
-                  <div className="divide-y divide-[var(--border-subtle)]">
-                    {Array.from({ length: nutriTotalWeeks }, (_, i) => i + 1).map(weekNum => {
-                      const done = isNutriWeekCompleted(weekNum)
-                      const isValidating = validatingNutriWeek === weekNum
-                      const unlocked = weekNum === 1 || isNutriWeekCompleted(weekNum - 1)
-                      return (
-                        <div key={weekNum} className={`flex items-center gap-3 px-5 py-3 ${done ? 'bg-emerald-500/[0.03]' : ''}`}>
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            done ? 'bg-emerald-500/15' : unlocked ? 'bg-[#FF6B2B]/10' : 'bg-[var(--bg-surface)]'
-                          }`}>
-                            {done ? <CheckCircle2 size={14} className="text-emerald-400" /> :
-                             unlocked ? <span className="text-[#FF6B2B] text-[10px] font-bold">{weekNum}</span> :
-                             <Lock size={11} className="text-[var(--text-muted)]" />}
-                          </div>
-                          <span className={`flex-1 text-xs font-medium ${done ? 'text-emerald-400' : unlocked ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
-                            Sem. {weekNum}
-                          </span>
-                          {done ? (
-                            <span className="text-emerald-400/60 text-[9px]">OK</span>
-                          ) : unlocked ? (
-                            <button onClick={() => validateNutriWeek(weekNum)} disabled={isValidating}
-                              className="px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold hover:bg-[#FF6B2B]/20 transition-all disabled:opacity-50">
-                              {isValidating ? '...' : 'Valider'}
-                            </button>
-                          ) : null}
-                        </div>
-                      )
-                    })}
+                <div className="glass-card overflow-hidden">
+                  <div className="h-0.5 bg-gradient-to-r from-[#22c55e]/50 to-transparent" />
+                  <div className="p-5">
+                    <SectionLabel icon={BookOpen} iconColor="text-[#22c55e]">Notes du coach</SectionLabel>
+                    <p className="text-[var(--text-secondary)] text-sm whitespace-pre-wrap leading-relaxed">{nutritionPlan.notes}</p>
                   </div>
                 </div>
+              )}
+
+              {/* Week tracker */}
+              {nutriTotalWeeks > 0 && (
+                <WeekTracker
+                  totalWeeks={nutriTotalWeeks}
+                  completedWeeks={completedNutriWeeks}
+                  isWeekCompleted={isNutriWeekCompleted}
+                  validateWeek={validateNutriWeek}
+                  validatingWeek={validatingNutriWeek}
+                  progress={nutriWeekProgress}
+                  accentColor="#22c55e"
+                  label="Suivi hebdomadaire"
+                />
               )}
             </>
           )}

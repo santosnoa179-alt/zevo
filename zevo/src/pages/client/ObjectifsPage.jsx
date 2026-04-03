@@ -7,7 +7,7 @@ import AnimatedNumber from '../../components/ui/AnimatedNumber'
 import {
   Target, Calendar, Scale, TrendingDown,
   TrendingUp, Loader2, X, Ruler,
-  Check, Plus, ChevronDown, ChevronUp, Flame, Zap
+  Check, Plus, ChevronDown, ChevronUp, Flame, Zap, Activity
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
@@ -19,7 +19,7 @@ const UNITS = { poids: 'kg', tour_bras: 'cm', tour_poitrine: 'cm', tour_taille: 
 function getFieldsForObjectif(t) {
   const s = (t || '').toLowerCase()
   if (s.includes('masse') || s.includes('muscle') || s.includes('prise')) return ['poids', 'tour_bras', 'tour_poitrine', 'tour_cuisses']
-  if (s.includes('perte') || s.includes('sèche') || s.includes('seche') || s.includes('maigrir')) return ['poids', 'tour_taille', 'tour_hanches']
+  if (s.includes('perte') || s.includes('seche') || s.includes('maigrir')) return ['poids', 'tour_taille', 'tour_hanches']
   return ['poids', 'tour_taille', 'tour_poitrine']
 }
 
@@ -38,60 +38,66 @@ function isPoidsObjectif(obj) {
 
 function isCounterObjectif(obj) {
   const u = (obj.unite || '').toLowerCase(), t = (obj.titre || '').toLowerCase()
-  return ['x', 'fois', 'séances', 'seances', 'sessions'].includes(u)
-    || ['entraîner', 'entrainer', 'séance', 'seance', 'session', 'fois'].some(k => t.includes(k))
+  return ['x', 'fois', 'seances', 'sessions'].includes(u)
+    || ['entrainer', 'seance', 'session', 'fois'].some(k => t.includes(k))
 }
 
-// ── SVG Circular Progress Ring ──
-function ProgressRing({ pct, size = 120, stroke = 8, color = '#FF6B2B', children }) {
+// ── SVG Hero Ring ──
+function HeroRing({ pct, size = 120, stroke = 8, color = '#FF6B2B', children }) {
   const r = (size - stroke) / 2
   const circ = 2 * Math.PI * r
   const offset = circ - (Math.min(pct, 100) / 100) * circ
+  const uid = 'hero-ring-glow'
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
+      {/* Ambient glow */}
+      {pct > 0 && (
+        <div className="absolute inset-0 rounded-full animate-breathe"
+          style={{ background: `radial-gradient(circle, ${color}15 0%, transparent 70%)` }} />
+      )}
+      <svg width={size} height={size} className="-rotate-90 relative z-10">
         <defs>
-          <filter id="hero-ring-glow">
+          <filter id={uid}>
             <feGaussianBlur stdDeviation="3" result="blur" />
             <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
+          <linearGradient id="hero-ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FF6B2B" />
+            <stop offset="100%" stopColor="#FF9A6C" />
+          </linearGradient>
         </defs>
-        {/* Track */}
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--border-base)" strokeWidth={stroke} />
-        {/* Progress with glow */}
         {pct > 0 && (
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="url(#hero-ring-grad)" strokeWidth={stroke}
             strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
-            filter="url(#hero-ring-glow)"
+            filter={`url(#${uid})`}
             className="transition-all duration-1000 ease-out" />
         )}
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
         {children}
       </div>
     </div>
   )
 }
 
-// ── Mini Progress Ring (objectif cards) ──
-function MiniRing({ pct, size = 44, stroke = 4 }) {
+// ── Mini Ring (objectif cards) ──
+function MiniRing({ pct, size = 44, stroke = 3.5 }) {
   const color = pct >= 100 ? '#22c55e' : pct >= 50 ? '#FF6B2B' : pct >= 25 ? '#f59e0b' : '#ef4444'
   const r = (size - stroke) / 2
   const circ = 2 * Math.PI * r
   const offset = circ - (Math.min(pct, 100) / 100) * circ
-  const uid = `ring-glow-${Math.random().toString(36).slice(2, 6)}`
+  const uid = `ring-${Math.random().toString(36).slice(2, 6)}`
   return (
     <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
         <defs>
           <filter id={uid}>
-            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feGaussianBlur stdDeviation="1.5" result="blur" />
             <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
         </defs>
-        {/* Track */}
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--border-base)" strokeWidth={stroke} />
-        {/* Progress arc with glow */}
         {pct > 0 && (
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke}
             strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
@@ -100,7 +106,10 @@ function MiniRing({ pct, size = 44, stroke = 4 }) {
         )}
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className={`text-[10px] font-bold ${pct >= 100 ? 'text-emerald-400' : 'text-[var(--text-primary)]'}`}>{pct}%</span>
+        {pct >= 100
+          ? <Check size={14} className="text-emerald-400" strokeWidth={3} />
+          : <span className="text-[10px] font-bold text-[var(--text-primary)]">{pct}%</span>
+        }
       </div>
     </div>
   )
@@ -111,7 +120,7 @@ function ChartTooltip({ active, payload }) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
-    <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs shadow-xl">
+    <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl px-3 py-2 text-xs shadow-xl backdrop-blur-lg">
       <p className="text-[var(--text-muted)] text-[9px] mb-0.5">{d.label}</p>
       {payload.map((p, i) => (
         <p key={i} className="font-bold" style={{ color: p.stroke }}>
@@ -121,6 +130,23 @@ function ChartTooltip({ active, payload }) {
     </div>
   )
 }
+
+// ── Section Label ──
+function SectionLabel({ children, icon: Icon, iconColor = 'text-[#FF6B2B]', right }) {
+  return (
+    <div className="flex items-center justify-between px-0.5">
+      <div className="flex items-center gap-2">
+        {Icon && <Icon size={15} className={iconColor} />}
+        <span className="text-[var(--text-primary)] text-sm font-bold">{children}</span>
+      </div>
+      {right}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAIN COMPONENT
+// ═══════════════════════════════════════════════════════════════════
 
 export default function ObjectifsPage() {
   const { user } = useAuth()
@@ -201,11 +227,11 @@ export default function ObjectifsPage() {
       await supabase.from('clients').update({ poids: p }).eq('id', user.id)
       setPoidsActuel(p); await syncPoidsObjectifs(p)
     }
-    toast.success('Mensurations enregistrées !')
+    toast.success('Mensurations enregistrees !')
     setShowSaisie(false); setShowAllFields(false); setNewValues({}); setSavingMens(false)
     if (coachId) {
       const detail = newValues.poids ? ` (${newValues.poids} kg)` : ''
-      supabase.from('notifications').insert({ coach_id: coachId, client_id: user.id, titre: 'Nouvelle pesée ⚖️', message: `Ton client a mis à jour ses mensurations${detail}.`, type: 'mensuration', destinataire: 'coach' })
+      supabase.from('notifications').insert({ coach_id: coachId, client_id: user.id, titre: 'Nouvelle pesee', message: `Ton client a mis a jour ses mensurations${detail}.`, type: 'mensuration', destinataire: 'coach' })
     }
     const { data: fresh } = await supabase.from('suivi_mensurations').select('*').eq('client_id', user.id).order('created_at', { ascending: true })
     setMensData(fresh ?? [])
@@ -219,7 +245,7 @@ export default function ObjectifsPage() {
     const { error } = await supabase.from('objectifs').update({ valeur_actuelle: newVal, statut: isAtteint ? 'atteint' : 'en_cours' }).eq('id', obj.id)
     if (error) { toast.error(error.message) } else {
       setObjectifs(prev => prev.map(o => o.id === obj.id ? { ...o, valeur_actuelle: newVal, statut: isAtteint ? 'atteint' : o.statut } : o))
-      toast.success(isAtteint ? '🎉 Objectif atteint !' : 'Valeur mise à jour !')
+      toast.success(isAtteint ? 'Objectif atteint !' : 'Valeur mise a jour !')
     }
     setSavingInline(false); setInlineEditing(null); setInlineValue('')
   }
@@ -233,10 +259,12 @@ export default function ObjectifsPage() {
 
   // ── Loading skeleton ──
   if (loading) return (
-    <div className="p-4 space-y-4 max-w-2xl animate-pulse">
-      <div className="h-52 bg-[var(--bg-card)] rounded-2xl" />
-      <div className="h-20 bg-[var(--bg-card)] rounded-2xl" />
-      <div className="h-20 bg-[var(--bg-card)] rounded-2xl" />
+    <div className="p-4 space-y-4 max-w-2xl">
+      <div className="skel-block h-8 w-40" />
+      <div className="skel-block h-52 w-full rounded-2xl" />
+      <div className="skel-block h-16 w-full rounded-2xl" />
+      <div className="skel-block h-16 w-full rounded-2xl" />
+      <div className="skel-block h-16 w-full rounded-2xl" />
     </div>
   )
 
@@ -244,120 +272,152 @@ export default function ObjectifsPage() {
   const hasChartData = chartData.length >= 2
 
   return (
-    <div className={`p-4 pb-28 space-y-4 max-w-2xl ${pageTransition.className}`}>
+    <div className={`p-4 pb-28 space-y-5 max-w-2xl ${pageTransition.className}`}>
 
-      {/* ═══════════════════════════════════════════
-          HERO — Weight Ring / Empty State
-          ═══════════════════════════════════════════ */}
-      <div className="relative overflow-hidden rounded-2xl border border-[var(--border-base)]">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B2B]/8 via-[#1E1E1E] to-[#141414]" />
-        <div className="absolute -top-20 -right-20 w-60 h-60 bg-[#FF6B2B]/[0.04] rounded-full blur-3xl" />
-
-        <div className="relative px-5 pt-5 pb-5">
-
-          {hasMens && dernierPoids != null ? (
-            /* ── AVEC DONNÉES : Ring + Stats ── */
-            <>
-              <div className="flex items-center gap-5">
-                {/* Ring de progression poids */}
-                <ProgressRing pct={poidsProgress} size={110} stroke={7}>
-                  <span className="text-[var(--text-primary)] text-2xl font-extrabold leading-none">{dernierPoids}</span>
-                  <span className="text-[var(--text-muted)] text-[10px] font-medium mt-0.5">kg</span>
-                </ProgressRing>
-
-                {/* Stats à droite */}
-                <div className="flex-1 space-y-3">
-                  <div>
-                    <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-wider font-semibold">Objectif</p>
-                    <p className="text-[var(--text-primary)] text-lg font-bold">
-                      {poidsCible ? `${poidsCible} kg` : <span className="text-[var(--text-muted)]">Non défini</span>}
-                    </p>
-                  </div>
-                  {delta !== null && (
-                    <div className="flex items-center gap-1.5">
-                      {delta < 0 ? <TrendingDown size={13} className="text-emerald-400" />
-                        : delta > 0 ? <TrendingUp size={13} className="text-red-400" />
-                        : null}
-                      <span className={`text-sm font-bold ${delta < 0 ? 'text-emerald-400' : delta > 0 ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>
-                        {delta > 0 ? '+' : ''}{delta} kg
-                      </span>
-                      <span className="text-[var(--text-muted)] text-[10px]">depuis le début</span>
-                    </div>
-                  )}
-                  {poidsCible && dernierPoids && (
-                    <p className="text-[var(--text-muted)] text-[10px]">
-                      Il te reste <span className="text-[#FF6B2B] font-semibold">{Math.abs(+(dernierPoids - poidsCible).toFixed(1))} kg</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Bouton pesée */}
-              <button
-                onClick={() => { setNewValues({}); setShowAllFields(false); setShowSaisie(true) }}
-                className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-[var(--text-secondary)] text-xs font-semibold hover:bg-[var(--bg-surface)] hover:text-[var(--text-secondary)] active:scale-[0.98] transition-all"
-              >
-                <Scale size={13} />
-                Enregistrer une pesée
-              </button>
-            </>
-          ) : (
-            /* ── ÉTAT VIDE ── */
-            <div className="text-center py-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF6B2B]/5 border border-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
-                <Scale size={28} className="text-[#FF6B2B]" />
-              </div>
-              <h3 className="text-[var(--text-primary)] text-base font-bold mb-1">Commence ton suivi</h3>
-              <p className="text-[var(--text-muted)] text-xs leading-relaxed max-w-[240px] mx-auto mb-4">
-                Enregistre ta première pesée pour suivre ta progression.
-              </p>
-              <button
-                onClick={() => { setNewValues({}); setShowAllFields(false); setShowSaisie(true) }}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#e55a1b] active:scale-[0.97] transition-all shadow-lg shadow-[#FF6B2B]/25"
-              >
-                <Scale size={15} />
-                Ma première pesée
-              </button>
-            </div>
-          )}
+      {/* ═══════════════ HEADER ═══════════════ */}
+      <div className="pt-2">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center shadow-lg shadow-[#FF6B2B]/20">
+            <Target size={18} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-[var(--text-primary)] text-xl font-bold leading-tight">Objectifs</h1>
+            <p className="text-[var(--text-muted)] text-[11px]">Suis ta progression et tes mensurations</p>
+          </div>
         </div>
       </div>
 
       {/* ═══════════════════════════════════════════
-          COURBES (dépliable)
+          HERO — Weight Ring / Empty State
+          ═══════════════════════════════════════════ */}
+      <div className="glass-card overflow-hidden">
+        {/* Top accent */}
+        <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+
+        {/* Ambient background */}
+        <div className="relative">
+          <div className="absolute -top-20 -right-20 w-48 h-48 bg-[#FF6B2B]/[0.03] rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#FF6B2B]/[0.02] rounded-full blur-2xl pointer-events-none" />
+
+          <div className="relative px-5 pt-5 pb-5">
+            {hasMens && dernierPoids != null ? (
+              /* ── WITH DATA: Ring + Stats ── */
+              <>
+                <div className="flex items-center gap-5">
+                  <HeroRing pct={poidsProgress} size={110} stroke={7}>
+                    <span className="text-[var(--text-primary)] text-2xl font-extrabold leading-none tabular-nums">
+                      <AnimatedNumber value={dernierPoids} decimals={1} />
+                    </span>
+                    <span className="text-[var(--text-muted)] text-[10px] font-medium mt-0.5">kg</span>
+                  </HeroRing>
+
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-medium">Objectif poids</p>
+                      <p className="text-[var(--text-primary)] text-lg font-bold">
+                        {poidsCible ? `${poidsCible} kg` : <span className="text-[var(--text-muted)] text-sm">Non defini</span>}
+                      </p>
+                    </div>
+                    {delta !== null && (
+                      <div className="flex items-center gap-1.5">
+                        <div className={`w-5 h-5 rounded-md flex items-center justify-center ${
+                          delta < 0 ? 'bg-emerald-500/15' : delta > 0 ? 'bg-red-500/15' : 'bg-[var(--bg-surface)]'
+                        }`}>
+                          {delta < 0 ? <TrendingDown size={11} className="text-emerald-400" />
+                            : delta > 0 ? <TrendingUp size={11} className="text-red-400" />
+                            : null}
+                        </div>
+                        <span className={`text-sm font-bold tabular-nums ${delta < 0 ? 'text-emerald-400' : delta > 0 ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>
+                          {delta > 0 ? '+' : ''}{delta} kg
+                        </span>
+                      </div>
+                    )}
+                    {poidsCible && dernierPoids && (
+                      <p className="text-[var(--text-muted)] text-[10px]">
+                        Reste <span className="text-[#FF6B2B] font-semibold">{Math.abs(+(dernierPoids - poidsCible).toFixed(1))} kg</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Measurement CTA */}
+                <button
+                  onClick={() => { setNewValues({}); setShowAllFields(false); setShowSaisie(true) }}
+                  className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[var(--bg-surface)]/80 border border-[var(--border-base)] text-[var(--text-secondary)] text-xs font-semibold hover:border-[#FF6B2B]/20 active:scale-[0.98] transition-all"
+                >
+                  <Scale size={13} />
+                  Enregistrer une pesee
+                </button>
+              </>
+            ) : (
+              /* ── EMPTY STATE ── */
+              <div className="text-center py-4">
+                <div className="relative inline-flex items-center justify-center mb-5">
+                  <div className="absolute w-20 h-20 rounded-full bg-[#FF6B2B]/5 animate-breathe" />
+                  <div className="relative w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 border border-[#FF6B2B]/10 flex items-center justify-center">
+                    <Scale size={28} className="text-[#FF6B2B]" />
+                  </div>
+                </div>
+                <h3 className="text-[var(--text-primary)] text-base font-bold mb-1">Commence ton suivi</h3>
+                <p className="text-[var(--text-muted)] text-xs leading-relaxed max-w-[240px] mx-auto mb-5">
+                  Enregistre ta premiere pesee pour suivre ta progression.
+                </p>
+                <button
+                  onClick={() => { setNewValues({}); setShowAllFields(false); setShowSaisie(true) }}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-bold active:scale-[0.97] transition-all"
+                  style={{
+                    background: 'linear-gradient(135deg, #FF6B2B 0%, #FF8F5E 100%)',
+                    boxShadow: '0 4px 20px rgba(255,107,43,0.3)',
+                  }}
+                >
+                  <Scale size={15} />
+                  Ma premiere pesee
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════
+          EVOLUTION CHARTS (collapsible)
           ═══════════════════════════════════════════ */}
       {hasMens && hasChartData && (
-        <div className="rounded-2xl border border-[var(--border-base)] overflow-hidden bg-[var(--bg-card)]/60">
+        <div className="glass-card overflow-hidden">
           <button
             onClick={() => setShowCharts(!showCharts)}
-            className="w-full flex items-center justify-between px-4 py-3 hover:bg-[var(--bg-surface)] transition-colors"
+            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-[var(--bg-surface)]/50 transition-colors"
           >
-            <div className="flex items-center gap-2">
-              <Flame size={14} className="text-[#FF6B2B]" />
-              <span className="text-[var(--text-secondary)] text-xs font-semibold">Courbes d'évolution</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
+                <Activity size={14} className="text-[#FF6B2B]" />
+              </div>
+              <span className="text-[var(--text-primary)] text-sm font-semibold">Courbes d'evolution</span>
             </div>
-            {showCharts ? <ChevronUp size={14} className="text-[var(--text-muted)]" /> : <ChevronDown size={14} className="text-[var(--text-muted)]" />}
+            <div className={`transition-transform duration-200 ${showCharts ? 'rotate-180' : ''}`}>
+              <ChevronDown size={16} className="text-[var(--text-muted)]" />
+            </div>
           </button>
 
           {showCharts && (
-            <div className="px-4 pb-4 space-y-4 border-t border-[var(--border-subtle)]">
+            <div className="px-4 pb-5 space-y-4 border-t border-[var(--border-subtle)]">
               {fields.map(field => {
                 const fieldData = chartData.filter(d => d[field] != null)
                 if (fieldData.length < 2) return null
                 const color = COLORS[field]
                 return (
                   <div key={field} className="pt-3">
-                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-2 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-2.5 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
                       {LABELS[field]} ({UNITS[field]})
                     </p>
-                    <div className="h-32">
+                    <div className="h-36 bg-[var(--bg-base)]/50 rounded-xl p-2">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={fieldData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                           <XAxis dataKey="label" tick={{ fill: 'var(--text-muted)', fontSize: 9 }} axisLine={false} tickLine={false} />
                           <YAxis domain={['dataMin - 1', 'dataMax + 1']} tick={{ fill: 'var(--text-muted)', fontSize: 9 }} axisLine={false} tickLine={false} />
                           <Tooltip content={<ChartTooltip />} cursor={false} />
-                          <Line type="monotone" dataKey={field} stroke={color} strokeWidth={2}
+                          <Line type="monotone" dataKey={field} stroke={color} strokeWidth={2.5}
                             dot={{ fill: color, r: 3, strokeWidth: 0 }}
                             activeDot={{ fill: color, r: 5, stroke: color, strokeWidth: 2, strokeOpacity: 0.3 }} />
                           {field === 'poids' && poidsCible && (
@@ -374,32 +434,36 @@ export default function ObjectifsPage() {
         </div>
       )}
 
-      {/* Message si 1 seule mesure */}
+      {/* Hint for single measurement */}
       {hasMens && !hasChartData && (
-        <div className="text-center py-2">
-          <p className="text-[var(--text-muted)] text-[11px]">Encore 1 pesée pour débloquer tes courbes d'évolution</p>
+        <div className="glass-card px-4 py-3 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+            <Activity size={14} className="text-amber-400" />
+          </div>
+          <p className="text-[var(--text-muted)] text-[11px] leading-relaxed">Encore 1 pesee pour debloquer tes courbes d'evolution</p>
         </div>
       )}
 
       {/* ═══════════════════════════════════════════
-          OBJECTIFS
+          OBJECTIFS LIST
           ═══════════════════════════════════════════ */}
       {objectifs.length > 0 && (
-        <div className="space-y-2.5">
-          {/* Section header */}
-          <div className="flex items-center justify-between px-0.5">
-            <div className="flex items-center gap-2">
-              <Target size={15} className="text-[#FF6B2B]" />
-              <span className="text-[var(--text-primary)] text-sm font-bold">Objectifs</span>
-              <span className="text-[var(--text-muted)] text-xs">{objectifs.length}</span>
-            </div>
-            {totalObjProgress > 0 && (
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--bg-surface)]">
-                <Zap size={10} className="text-[#FF6B2B]" />
-                <span className="text-[var(--text-muted)] text-[10px] font-medium"><AnimatedNumber value={totalObjProgress} />% global</span>
-              </div>
-            )}
-          </div>
+        <div className="space-y-3">
+          <SectionLabel
+            icon={Target}
+            right={
+              totalObjProgress > 0 && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                  <Zap size={10} className="text-[#FF6B2B]" />
+                  <span className="text-[var(--text-muted)] text-[10px] font-semibold tabular-nums">
+                    <AnimatedNumber value={totalObjProgress} />% global
+                  </span>
+                </div>
+              )
+            }
+          >
+            Objectifs
+          </SectionLabel>
 
           {/* Objectif cards */}
           {objectifs.map((o) => {
@@ -412,8 +476,13 @@ export default function ObjectifsPage() {
             const done = pct >= 100
 
             return (
-              <div key={o.id} className={`rounded-xl border bg-[var(--bg-card)]/60 overflow-hidden transition-all ${done ? 'border-emerald-500/20' : 'border-[var(--border-base)]'}`}>
-                <div className="p-3.5">
+              <div key={o.id}
+                className={`glass-card overflow-hidden transition-all ${
+                  done ? '!border-emerald-500/20' : ''
+                }`}
+                style={done ? { boxShadow: '0 0 20px rgba(34,197,94,0.06)' } : undefined}
+              >
+                <div className="p-4">
                   <div className="flex items-center gap-3">
                     {/* Mini ring */}
                     <MiniRing pct={pct} />
@@ -423,7 +492,7 @@ export default function ObjectifsPage() {
                       <div className="flex items-center justify-between gap-2">
                         <p className={`text-sm font-semibold truncate ${done ? 'text-emerald-400' : 'text-[var(--text-primary)]'}`}>{o.titre}</p>
                         {o.date_cible && (
-                          <span className="text-[var(--text-muted)] text-[9px] flex items-center gap-0.5 flex-shrink-0">
+                          <span className="text-[var(--text-muted)] text-[9px] flex items-center gap-0.5 flex-shrink-0 bg-[var(--bg-surface)] px-1.5 py-0.5 rounded-md">
                             <Calendar size={8} />
                             {new Date(o.date_cible).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                           </span>
@@ -431,32 +500,32 @@ export default function ObjectifsPage() {
                       </div>
 
                       {/* Values row */}
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1.5">
                         {actuel != null && o.valeur_cible != null ? (
-                          <span className="text-[var(--text-muted)] text-[11px]">
-                            <span className="text-[var(--text-primary)] font-semibold">{actuel}</span>
+                          <span className="text-[11px]">
+                            <span className="text-[var(--text-primary)] font-bold tabular-nums">{actuel}</span>
                             <span className="text-[var(--text-muted)] mx-1">/</span>
-                            <span className="text-[#FF6B2B] font-semibold">{o.valeur_cible}</span>
+                            <span className="text-[#FF6B2B] font-bold tabular-nums">{o.valeur_cible}</span>
                             {unite && <span className="text-[var(--text-muted)] ml-0.5">{unite}</span>}
                           </span>
                         ) : actuel != null ? (
-                          <span className="text-[var(--text-muted)] text-[11px]">
-                            <span className="text-[var(--text-primary)] font-semibold">{actuel}</span>
+                          <span className="text-[11px]">
+                            <span className="text-[var(--text-primary)] font-bold tabular-nums">{actuel}</span>
                             {unite && <span className="text-[var(--text-muted)] ml-0.5">{unite}</span>}
                           </span>
                         ) : (
-                          <span className="text-[var(--text-muted)] text-[10px] italic">Aucune donnée</span>
+                          <span className="text-[var(--text-muted)] text-[10px] italic">Aucune donnee</span>
                         )}
 
                         {done && (
-                          <span className="text-emerald-400 text-[10px] font-semibold flex items-center gap-0.5">
-                            <Check size={10} strokeWidth={3} /> Atteint
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                            <Check size={9} strokeWidth={3} /> Atteint
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Action button (right side) */}
+                    {/* Action button */}
                     {!done && !isPoids && !isEditing && (
                       isCounter ? (
                         <button
@@ -469,14 +538,14 @@ export default function ObjectifsPage() {
                       ) : (
                         <button
                           onClick={() => { setInlineEditing(o.id); setInlineValue(actuel != null ? String(actuel) : '') }}
-                          className="px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-base)] text-[var(--text-muted)] text-[10px] font-medium hover:border-[#FF6B2B]/20 hover:text-[#FF6B2B] transition-all flex-shrink-0"
+                          className="px-3 py-1.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-muted)] text-[10px] font-semibold hover:border-[#FF6B2B]/20 hover:text-[#FF6B2B] transition-all flex-shrink-0"
                         >
                           Modifier
                         </button>
                       )
                     )}
                     {isPoids && !done && (
-                      <span className="text-[var(--text-muted)] text-[9px] italic flex-shrink-0">Auto</span>
+                      <span className="text-[var(--text-muted)] text-[9px] italic bg-[var(--bg-surface)] px-2 py-1 rounded-lg flex-shrink-0">Auto</span>
                     )}
                   </div>
 
@@ -489,20 +558,32 @@ export default function ObjectifsPage() {
                       <div className="flex-1 relative">
                         <input type="number" step="0.1" value={inlineValue} onChange={(e) => setInlineValue(e.target.value)}
                           placeholder={actuel != null ? String(actuel) : '0'} autoFocus
-                          className="w-full bg-[var(--bg-base)] text-[var(--text-primary)] text-sm font-semibold rounded-lg px-3 py-2 pr-10 placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/30 transition-all" />
+                          className="w-full bg-[var(--bg-base)] text-[var(--text-primary)] text-sm font-semibold rounded-xl px-3 py-2 pr-10 placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/30 border border-[var(--border-base)] transition-all" />
                         {unite && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[10px]">{unite}</span>}
                       </div>
                       <button type="submit" disabled={savingInline || !inlineValue}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#FF6B2B] text-white hover:bg-[#e55a1b] active:scale-90 transition-all disabled:opacity-30 flex-shrink-0">
-                        {savingInline ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} strokeWidth={3} />}
+                        className="w-9 h-9 flex items-center justify-center rounded-xl text-white active:scale-90 transition-all disabled:opacity-30 flex-shrink-0"
+                        style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+                        {savingInline ? <Loader2 size={12} className="animate-spin" /> : <Check size={13} strokeWidth={3} />}
                       </button>
                       <button type="button" onClick={() => { setInlineEditing(null); setInlineValue('') }}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-all flex-shrink-0">
-                        <X size={12} />
+                        className="w-9 h-9 flex items-center justify-center rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-all flex-shrink-0">
+                        <X size={13} />
                       </button>
                     </form>
                   )}
                 </div>
+
+                {/* Progress bar at bottom of card */}
+                {!done && pct > 0 && (
+                  <div className="h-0.5 bg-[var(--border-subtle)]">
+                    <div className="h-full rounded-full transition-all duration-700" style={{
+                      width: `${pct}%`,
+                      background: pct >= 50 ? 'linear-gradient(90deg, #FF6B2B, #FF9A6C)' : pct >= 25 ? '#f59e0b' : '#ef4444',
+                    }} />
+                  </div>
+                )}
+                {done && <div className="h-0.5 bg-gradient-to-r from-emerald-500 to-emerald-400" />}
               </div>
             )
           })}
@@ -510,49 +591,59 @@ export default function ObjectifsPage() {
       )}
 
       {/* ═══════════════════════════════════════════
-          MODALE PESÉE
+          MODAL PESEE
           ═══════════════════════════════════════════ */}
       {showSaisie && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowSaisie(false); setShowAllFields(false) }} />
-          <div className="relative z-[101] bg-[var(--bg-base)] border border-[var(--border-base)] w-full sm:w-[380px] sm:rounded-2xl rounded-t-2xl overflow-hidden">
+          <div className="relative z-[101] bg-[var(--bg-base)] border border-[var(--border-base)] w-full sm:w-[400px] sm:rounded-2xl rounded-t-2xl overflow-hidden">
 
-            <div className="px-4 py-3 border-b border-[var(--border-base)] flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/15 flex items-center justify-center">
-                  <Scale size={13} className="text-[#FF6B2B]" />
+            {/* Accent bar */}
+            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+
+            {/* Handle bar (mobile) */}
+            <div className="flex justify-center pt-3 pb-0 sm:hidden">
+              <div className="w-8 h-1 rounded-full bg-[var(--border-strong)]" />
+            </div>
+
+            {/* Header */}
+            <div className="px-5 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+                  <Scale size={16} className="text-[#FF6B2B]" />
                 </div>
                 <div>
-                  <h3 className="text-[var(--text-primary)] font-semibold text-sm">Nouvelle mesure</h3>
+                  <h3 className="text-[var(--text-primary)] font-bold text-[15px]">Nouvelle mesure</h3>
                   <p className="text-[var(--text-muted)] text-[10px]">{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
                 </div>
               </div>
-              <button onClick={() => { setShowSaisie(false); setShowAllFields(false) }} className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
-                <X size={15} />
+              <button onClick={() => { setShowSaisie(false); setShowAllFields(false) }}
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors">
+                <X size={16} />
               </button>
             </div>
 
-            <form onSubmit={enregistrerMensurations} className="p-4 space-y-4">
-              {/* Weight input */}
+            <form onSubmit={enregistrerMensurations} className="px-5 pb-5 space-y-4">
+              {/* Weight input — hero style */}
               {fields.includes('poids') && (
-                <div className="bg-[var(--bg-base)] rounded-xl p-5 text-center">
-                  <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-wider font-semibold mb-3 flex items-center justify-center gap-1.5">
+                <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-subtle)] p-6 text-center">
+                  <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-medium mb-3 flex items-center justify-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" /> Poids du jour
                   </p>
                   <div className="flex items-end justify-center gap-1.5">
                     <input type="number" step="0.1" min="20" max="300" value={newValues.poids || ''}
                       onChange={(e) => setNewValues(prev => ({ ...prev, poids: e.target.value }))}
-                      placeholder={lastEntry?.poids ? String(lastEntry.poids) : '—'} autoFocus
-                      className="w-24 bg-transparent text-center text-[var(--text-primary)] text-4xl font-extrabold placeholder:text-[var(--text-muted)] focus:outline-none border-b-2 border-[#FF6B2B]/20 focus:border-[#FF6B2B] transition-colors pb-0.5" />
+                      placeholder={lastEntry?.poids ? String(lastEntry.poids) : '--'} autoFocus
+                      className="w-24 bg-transparent text-center text-[var(--text-primary)] text-4xl font-extrabold placeholder:text-[var(--text-muted)] focus:outline-none border-b-2 border-[#FF6B2B]/20 focus:border-[#FF6B2B] transition-colors pb-0.5 tabular-nums" />
                     <span className="text-[var(--text-muted)] text-base font-semibold pb-1.5">kg</span>
                   </div>
                   {newValues.poids && lastEntry?.poids && (() => {
                     const diff = +(parseFloat(newValues.poids) - lastEntry.poids).toFixed(1)
                     if (isNaN(diff) || diff === 0) return null
                     return (
-                      <span className={`inline-block mt-2.5 text-[10px] font-medium px-2.5 py-0.5 rounded-full ${
+                      <span className={`inline-block mt-3 text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
                         diff < 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-                      }`}>{diff > 0 ? '+' : ''}{diff} kg vs dernière pesée</span>
+                      }`}>{diff > 0 ? '+' : ''}{diff} kg vs derniere pesee</span>
                     )
                   })()}
                 </div>
@@ -561,7 +652,7 @@ export default function ObjectifsPage() {
               {/* Expand mensurations */}
               {fields.filter(f => f !== 'poids').length > 0 && !showAllFields && (
                 <button type="button" onClick={() => setShowAllFields(true)}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-dashed border-[var(--border-base)] text-[var(--text-muted)] text-[11px] font-medium hover:border-white/10 hover:text-[var(--text-muted)] transition-all">
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-[var(--border-base)] text-[var(--text-muted)] text-[11px] font-medium hover:border-[var(--border-strong)] hover:text-[var(--text-secondary)] transition-all">
                   <Ruler size={11} /> Ajouter des mensurations <ChevronDown size={11} />
                 </button>
               )}
@@ -571,14 +662,14 @@ export default function ObjectifsPage() {
                 const currentVal = newValues[field]
                 const diff = currentVal && lastVal ? +(parseFloat(currentVal) - lastVal).toFixed(1) : null
                 return (
-                  <div key={field} className="bg-[var(--bg-base)] rounded-xl p-3">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-                        <span className="text-[var(--text-muted)] text-[11px] font-medium">{LABELS[field]}</span>
+                  <div key={field} className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-subtle)] p-3.5">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                        <span className="text-[var(--text-secondary)] text-[11px] font-semibold">{LABELS[field]}</span>
                       </div>
                       {diff !== null && !isNaN(diff) && diff !== 0 && (
-                        <span className={`text-[9px] font-medium px-2 py-0.5 rounded-full ${diff < 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                        <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${diff < 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
                           {diff > 0 ? '+' : ''}{diff} {UNITS[field]}
                         </span>
                       )}
@@ -586,8 +677,8 @@ export default function ObjectifsPage() {
                     <div className="flex items-end gap-1.5">
                       <input type="number" step="0.1" min="0" max="200" value={newValues[field] || ''}
                         onChange={(e) => setNewValues(prev => ({ ...prev, [field]: e.target.value }))}
-                        placeholder={lastVal ? String(lastVal) : '—'}
-                        className="flex-1 bg-transparent text-[var(--text-primary)] text-lg font-bold placeholder:text-[var(--text-muted)] focus:outline-none border-b border-[var(--border-subtle)] focus:border-[var(--border-strong)] transition-colors pb-0.5" />
+                        placeholder={lastVal ? String(lastVal) : '--'}
+                        className="flex-1 bg-transparent text-[var(--text-primary)] text-lg font-bold placeholder:text-[var(--text-muted)] focus:outline-none border-b border-[var(--border-subtle)] focus:border-[var(--border-strong)] transition-colors pb-0.5 tabular-nums" />
                       <span className="text-[var(--text-muted)] text-xs font-medium pb-1">{UNITS[field]}</span>
                     </div>
                   </div>
@@ -595,7 +686,12 @@ export default function ObjectifsPage() {
               })}
 
               <button type="submit" disabled={savingMens || !fields.some(f => newValues[f])}
-                className="w-full py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#e55a1b] transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                className="w-full py-3.5 rounded-xl text-white text-sm font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]"
+                style={{
+                  background: 'linear-gradient(135deg, #FF6B2B 0%, #FF8F5E 100%)',
+                  boxShadow: '0 4px 20px rgba(255,107,43,0.25)',
+                }}
+              >
                 {savingMens ? <><Loader2 size={14} className="animate-spin" /> Enregistrement...</> : <><Check size={14} strokeWidth={3} /> Enregistrer</>}
               </button>
             </form>

@@ -9,37 +9,50 @@ import {
   ClipboardList, ChevronRight, Moon, Smile, Zap, User, TrendingUp,
   Play, Sparkles, Minus, Plus, Check, UtensilsCrossed, Trophy,
   ArrowUpRight, ArrowDownRight, CalendarDays, MessageCircle,
-  Crown, Frown, Meh, SmilePlus, ThumbsUp, ThumbsDown, FileText, Star
+  Crown, Frown, Meh, SmilePlus, ThumbsUp, ThumbsDown, FileText, Star,
+  Sunrise, Sun, Coffee, Heart, Activity
 } from 'lucide-react'
 import { Confetti, StreakMilestone } from '../../components/ui/Confetti'
 import { usePageTransition, useStagger, usePullToRefresh } from '../../hooks/useAnimations'
 import AnimatedNumber from '../../components/ui/AnimatedNumber'
 import PullToRefreshIndicator from '../../components/ui/PullToRefresh'
 
-// ── Jauge circulaire SVG premium ──
-function ScoreGauge({ score, couleur }) {
-  const r = 52
+// ── Jauge circulaire SVG — version redesign ──
+function ScoreGauge({ score, couleur, size = 120 }) {
+  const r = (size / 2) - 12
   const circ = 2 * Math.PI * r
   const offset = circ - (score / 100) * circ
+  const center = size / 2
   return (
-    <div className="relative">
-      <svg width="130" height="130" viewBox="0 0 130 130" className="flex-shrink-0 drop-shadow-lg">
+    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
+      {/* Ambient glow behind gauge */}
+      <div className="absolute inset-0 rounded-full opacity-20 blur-xl" style={{ background: couleur }} />
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="relative">
         {/* Track */}
-        <circle cx="65" cy="65" r={r} fill="none" stroke="var(--border-base)" strokeWidth="10" />
-        {/* Glow effect */}
+        <circle cx={center} cy={center} r={r} fill="none" stroke="var(--border-base)" strokeWidth="8" opacity="0.5" />
+        {/* Faint glow ring */}
+        <circle cx={center} cy={center} r={r + 4} fill="none" stroke={couleur} strokeWidth="1" opacity="0.1" />
+        {/* Active arc */}
         <circle
-          cx="65" cy="65" r={r}
+          cx={center} cy={center} r={r}
           fill="none"
           stroke={couleur}
-          strokeWidth="10"
+          strokeWidth="8"
           strokeLinecap="round"
           strokeDasharray={circ}
           strokeDashoffset={offset}
-          transform="rotate(-90 65 65)"
-          style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)', filter: `drop-shadow(0 0 8px ${couleur}40)` }}
+          transform={`rotate(-90 ${center} ${center})`}
+          style={{
+            transition: 'stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1)',
+            filter: `drop-shadow(0 0 6px ${couleur}50)`,
+          }}
         />
-        <text x="65" y="60" textAnchor="middle" fill="var(--text-primary)" fontSize="30" fontWeight="800" fontFamily="-apple-system,BlinkMacSystemFont,sans-serif">{score}</text>
-        <text x="65" y="78" textAnchor="middle" fill="var(--text-muted)" fontSize="11" fontFamily="-apple-system,sans-serif">/100</text>
+        <text x={center} y={center - 4} textAnchor="middle" fill="var(--text-primary)" fontSize="28" fontWeight="800" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+          {score}
+        </text>
+        <text x={center} y={center + 14} textAnchor="middle" fill="var(--text-muted)" fontSize="10" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+          sur 100
+        </text>
       </svg>
     </div>
   )
@@ -49,15 +62,16 @@ function ScoreGauge({ score, couleur }) {
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl px-3.5 py-2.5 text-sm shadow-xl backdrop-blur-sm">
+    <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl px-3.5 py-2.5 text-sm shadow-2xl backdrop-blur-md">
       <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider mb-0.5">{label}</p>
-      <p className="text-[var(--text-primary)] font-bold text-base">{payload[0].value}<span className="text-[var(--text-muted)] text-xs font-normal">/100</span></p>
+      <p className="text-[var(--text-primary)] font-bold text-base">
+        {payload[0].value}<span className="text-[var(--text-muted)] text-xs font-normal">/100</span>
+      </p>
     </div>
   )
 }
 
 const JOURS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
-const JOURS_COURT = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 
 const MILESTONES = [
   { days: 7, label: '1 sem' },
@@ -94,88 +108,69 @@ function getStreakMessage(streak) {
   return 'Continue !'
 }
 
-// ── Streak Badge Premium ──
+// ── Streak Badge — Redesign Premium ──
 function StreakBadge({ streak, staggerClass, staggerStyle }) {
   const next = getNextMilestone(streak)
   const prev = getPrevMilestone(streak)
   const progressInSegment = ((streak - prev.days) / (next.days - prev.days)) * 100
   const msg = getStreakMessage(streak)
 
-  // Last 7 days status (simplified — all filled for streak days)
   const today = new Date()
-  const dayIndex = today.getDay() // 0=Sun
-  // Reorder to start from Mon
   const days7 = []
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today)
     d.setDate(d.getDate() - i)
     const dow = d.getDay()
     const labels = ['D', 'L', 'M', 'M', 'J', 'V', 'S']
-    const isToday = i === 0
-    const isDone = i < streak || (i === 0) // simplified: streak covers past days
-    days7.push({ label: labels[dow], done: streak > i, isToday })
+    days7.push({ label: labels[dow], done: streak > i, isToday: i === 0 })
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl
-      bg-gradient-to-br from-[#FF6B2B]/[0.08] via-[var(--bg-card)] to-[var(--bg-card)]
-      border border-[#FF6B2B]/15
-      active:scale-[0.98] transition-transform duration-200
-      ${staggerClass}`}
-      style={staggerStyle}
-    >
-      {/* Subtle glow top-left */}
-      <div className="absolute -top-8 -left-8 w-24 h-24 rounded-full bg-[#FF6B2B]/10 blur-2xl pointer-events-none" />
+    <div className={`relative overflow-hidden rounded-2xl border border-[#FF6B2B]/12 ${staggerClass}`}
+      style={{ ...staggerStyle, background: 'linear-gradient(135deg, rgba(255,107,43,0.06) 0%, var(--bg-card) 60%)' }}>
+      {/* Ambient corner glow */}
+      <div className="absolute -top-10 -left-10 w-28 h-28 rounded-full bg-[#FF6B2B]/8 blur-2xl pointer-events-none animate-breathe" />
 
       <div className="relative px-4 pt-4 pb-3.5">
-        {/* Row 1: Flame + Count + Message */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2.5">
-            {/* Animated flame */}
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C]
-              flex items-center justify-center shadow-lg shadow-[#FF6B2B]/25">
-              <Flame size={20} className="text-white animate-[streakPulse_1.5s_ease-in-out_infinite]" />
-              {/* Hot particle */}
-              <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full
-                bg-yellow-400 shadow-lg shadow-yellow-400/40
-                animate-[streakGlow_2s_ease-in-out_infinite]" />
+        {/* Row 1: Flame + Count + Milestone */}
+        <div className="flex items-center justify-between mb-3.5">
+          <div className="flex items-center gap-3">
+            <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C] flex items-center justify-center shadow-lg shadow-[#FF6B2B]/20">
+              <Flame size={20} className="text-white animate-streak-pulse" />
+              <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-lg shadow-yellow-400/40 animate-streak-glow" />
             </div>
             <div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-[var(--text-primary)] text-2xl font-black leading-none tracking-tight">
+                <span className="text-[var(--text-primary)] text-[26px] font-black leading-none tracking-tight">
                   <AnimatedNumber value={streak} duration={600} />
                 </span>
-                <span className="text-[var(--text-muted)] text-xs font-semibold">jours</span>
+                <span className="text-[var(--text-muted)] text-xs font-medium">jours</span>
               </div>
-              <p className="text-[#FF6B2B] text-[11px] font-semibold mt-0.5">{msg}</p>
+              <p className="text-[#FF6B2B] text-[11px] font-semibold mt-0.5 tracking-tight">{msg}</p>
             </div>
           </div>
 
-          {/* Next milestone badge */}
-          <div className="text-right">
-            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg
-              bg-[var(--bg-surface)] border border-[var(--border-base)]">
-              <Trophy size={11} className="text-[#FF6B2B]" />
-              <span className="text-[var(--text-muted)] text-[10px] font-bold">{next.label}</span>
-            </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)]">
+            <Trophy size={11} className="text-[#FF6B2B]/70" />
+            <span className="text-[var(--text-muted)] text-[10px] font-bold tabular-nums">{next.label}</span>
           </div>
         </div>
 
         {/* Row 2: 7-day dots */}
-        <div className="flex items-center justify-between gap-1 mb-3 px-1">
+        <div className="flex items-center justify-between mb-3 px-0.5">
           {days7.map((d, i) => (
             <div key={i} className="flex flex-col items-center gap-1">
-              <span className={`text-[9px] font-semibold ${d.isToday ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
+              <span className={`text-[9px] font-semibold tracking-wide ${d.isToday ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
                 {d.label}
               </span>
-              <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-300 ${
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300 ${
                 d.done
-                  ? 'bg-[#FF6B2B] shadow-sm shadow-[#FF6B2B]/25'
+                  ? 'bg-[#FF6B2B] shadow-sm shadow-[#FF6B2B]/20'
                   : d.isToday
-                    ? 'bg-[#FF6B2B]/15 border-2 border-[#FF6B2B]/40'
-                    : 'bg-[var(--bg-surface)] border border-[var(--border-base)]'
+                    ? 'bg-[#FF6B2B]/10 ring-1.5 ring-[#FF6B2B]/30'
+                    : 'bg-[var(--bg-surface)]'
               }`}>
-                {d.done && <Check size={12} className="text-white" strokeWidth={3} />}
+                {d.done && <Check size={13} className="text-white" strokeWidth={2.5} />}
                 {!d.done && d.isToday && (
                   <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] animate-pulse" />
                 )}
@@ -184,39 +179,45 @@ function StreakBadge({ streak, staggerClass, staggerStyle }) {
           ))}
         </div>
 
-        {/* Row 3: Progress bar to next milestone */}
+        {/* Row 3: Progress bar */}
         <div className="flex items-center gap-2.5">
-          <div className="flex-1 h-[6px] rounded-full bg-[var(--bg-surface)] overflow-hidden">
+          <div className="flex-1 h-[5px] rounded-full bg-[var(--bg-surface)] overflow-hidden relative">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] transition-all duration-1000 ease-out"
+              className="h-full rounded-full bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] transition-all duration-1000 ease-out relative"
               style={{ width: `${Math.min(100, progressInSegment)}%` }}
-            />
+            >
+              {/* Shimmer on progress */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" style={{ animation: 'shimmer-bar 2s ease-in-out infinite' }} />
+            </div>
           </div>
           <span className="text-[var(--text-muted)] text-[10px] font-bold flex-shrink-0 tabular-nums">
             {streak}/{next.days}
           </span>
         </div>
       </div>
-
-      {/* CSS for streak animations */}
-      <style>{`
-        @keyframes streakPulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.12) rotate(-3deg); }
-        }
-        @keyframes streakGlow {
-          0%, 100% { opacity: 0.6; transform: scale(0.8); }
-          50% { opacity: 1; transform: scale(1.1); }
-        }
-      `}</style>
     </div>
   )
 }
+
+// ── Section Header helper ──
+function SectionLabel({ icon: Icon, label, color = 'var(--color-primary, #FF6B2B)', children }) {
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
+        <Icon size={13} style={{ color }} />
+        <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">{label}</p>
+      </div>
+      {children}
+    </div>
+  )
+}
+
 
 export default function DashboardPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+
   const [loading, setLoading] = useState(true)
   const [profil, setProfil] = useState(null)
   const [habitudes, setHabitudes] = useState([])
@@ -230,32 +231,25 @@ export default function DashboardPage() {
   const [streak, setStreak] = useState(0)
   const [showAllDoneConfetti, setShowAllDoneConfetti] = useState(false)
 
-  // Séance du jour
   const [seanceDuJour, setSeanceDuJour] = useState(null)
   const [seanceExos, setSeanceExos] = useState([])
 
-  // Formulaires en attente (détails complets)
   const [formsPending, setFormsPending] = useState([])
 
-  // Programme sport en cours
   const [programme, setProgramme] = useState(null)
   const [programmePhases, setProgrammePhases] = useState([])
   const [progSeances, setProgSeances] = useState({ total: 0, done: 0 })
 
-  // Plan nutrition en cours
   const [nutritionPlan, setNutritionPlan] = useState(null)
   const [nutriRepasCount, setNutriRepasCount] = useState(0)
   const [nutriWeeksDone, setNutriWeeksDone] = useState(0)
-  const [nutriRepas, setNutriRepas] = useState([])  // repas du jour pour la carte nutrition
+  const [nutriRepas, setNutriRepas] = useState([])
 
-  // Prochaine étape
   const [seanceDemain, setSeanceDemain] = useState(null)
   const [unreadMessages, setUnreadMessages] = useState(0)
 
-  // Scores semaine précédente (pour tendance)
   const [prevWeekAvg, setPrevWeekAvg] = useState(null)
 
-  // Check-in widgets state
   const [sommeilInput, setSommeilInput] = useState(7)
   const [sommeilSaved, setSommeilSaved] = useState(false)
   const [sommeilSaving, setSommeilSaving] = useState(false)
@@ -267,7 +261,6 @@ export default function DashboardPage() {
 
   // ── Charge les scores des 7 derniers jours + semaine précédente pour tendance ──
   const chargerComparatif = useCallback(async (clientId, totalHab) => {
-    // On fetch 14 jours pour calculer la tendance
     const il14jours = new Date()
     il14jours.setDate(il14jours.getDate() - 13)
     const dateMin14 = il14jours.toISOString().split('T')[0]
@@ -291,7 +284,6 @@ export default function DashboardPage() {
       })
     }
 
-    // Semaine actuelle (7 derniers jours)
     const data = []
     for (let i = 6; i >= 0; i--) {
       const d = new Date()
@@ -301,7 +293,6 @@ export default function DashboardPage() {
     }
     setWeekData(data)
 
-    // Semaine précédente (jours 7 à 13) pour calculer la tendance
     const prevScores = []
     for (let i = 13; i >= 7; i--) {
       const d = new Date()
@@ -338,18 +329,16 @@ export default function DashboardPage() {
       setHumeur(humeurData)
       setSport(sportRes.data ?? null)
 
-      // Init check-in widgets
       if (sommeilData) { setSommeilInput(sommeilData.heures || 7); setSommeilSaved(true) }
       if (humeurData) { setHumeurInput(humeurData.score || null); setHumeurSaved(true) }
 
-      // ── Séance du jour (toutes, pas filtrées par is_completed) ──
       const { data: seancesAuj, error: seancesErr } = await supabase
         .from('seances')
         .select('id, titre, date_prevue, notes, is_completed, is_template')
         .eq('client_id', user.id)
         .eq('date_prevue', today)
         .eq('is_template', false)
-        .order('is_completed', { ascending: true }) // non-terminées d'abord
+        .order('is_completed', { ascending: true })
         .order('created_at', { ascending: true })
         .limit(1)
 
@@ -358,7 +347,6 @@ export default function DashboardPage() {
       const seance = seancesAuj?.[0] ?? null
       setSeanceDuJour(seance)
 
-      // Charger les exercices de la séance
       if (seance) {
         const { data: exos } = await supabase
           .from('exercices')
@@ -370,7 +358,6 @@ export default function DashboardPage() {
         setSeanceExos([])
       }
 
-      // ── Formulaires en attente ──
       const { data: formsData, error: formsErr } = await supabase
         .from('formulaire_reponses')
         .select('id, created_at, formulaire_id, formulaires(titre, description, type)')
@@ -380,10 +367,8 @@ export default function DashboardPage() {
       if (formsErr) console.error('[Dashboard] formulaires:', formsErr.message)
       setFormsPending(formsData ?? [])
 
-      // ── Comparatif 7 jours ──
       await chargerComparatif(user.id, habs.length)
 
-      // ── Streak ──
       if (habs.length > 0) {
         const { data: streakLogs } = await supabase
           .from('habitudes_log')
@@ -404,7 +389,6 @@ export default function DashboardPage() {
         setStreak(s)
       }
 
-      // ── Programme en cours ──
       const { data: assignData } = await supabase
         .from('programme_assignations')
         .select('*, programmes(id, titre, duree_semaines)')
@@ -422,7 +406,6 @@ export default function DashboardPage() {
           .order('ordre')
         setProgrammePhases(phasesData || [])
 
-        // Séances du programme — progression
         const progId = assignData.programmes?.id || assignData.programme_id
         const { data: progSeancesData } = await supabase
           .from('seances')
@@ -436,7 +419,6 @@ export default function DashboardPage() {
         setProgSeances({ total, done })
       }
 
-      // ── Plan nutrition en cours ──
       const { data: nutPlan } = await supabase
         .from('client_nutrition_plans')
         .select('id, nom, duree_semaines')
@@ -447,7 +429,6 @@ export default function DashboardPage() {
 
       if (nutPlan) {
         setNutritionPlan(nutPlan)
-        // Compter les repas et les semaines validées
         const [repasRes, suiviRes, repasDetailRes] = await Promise.all([
           supabase.from('plan_repas').select('id', { count: 'exact', head: true }).eq('plan_id', nutPlan.id),
           supabase.from('suivi_nutrition').select('id').eq('plan_id', nutPlan.id).eq('client_id', user.id),
@@ -464,7 +445,6 @@ export default function DashboardPage() {
         setNutriRepas([])
       }
 
-      // ── Séance de demain (pour "Prochaine étape") ──
       const demain = new Date()
       demain.setDate(demain.getDate() + 1)
       const demainStr = demain.toISOString().split('T')[0]
@@ -479,7 +459,6 @@ export default function DashboardPage() {
         .maybeSingle()
       setSeanceDemain(seanceDemainData ?? null)
 
-      // ── Messages non lus ──
       const { count: msgCount } = await supabase
         .from('messages')
         .select('id', { count: 'exact', head: true })
@@ -494,7 +473,6 @@ export default function DashboardPage() {
     setLoading(false)
   }, [user, today, chargerComparatif])
 
-  // Recharge à chaque navigation vers le dashboard (ex: retour après workout)
   useEffect(() => { chargerDonnees() }, [chargerDonnees, location.key])
 
   const pageTransition = usePageTransition()
@@ -567,11 +545,9 @@ export default function DashboardPage() {
   const score = calculerScoreBienEtre({ habitudes: { cochees, total: totalHab }, sommeil, humeur, sport })
   const couleur = couleurScore(score)
   const label = labelScore(score)
-  // Prénom en priorité (table clients), sinon premier mot du nom (table profiles), sinon fallback
   const rawPrenom = profil?.prenom || profil?.nom?.split(' ')[0] || 'Sportif'
   const prenom = rawPrenom.charAt(0).toUpperCase() + rawPrenom.slice(1).toLowerCase()
 
-  // ── Message contextuel intelligent ──
   const hour = new Date().getHours()
   const allHabsDone = totalHab > 0 && cochees === totalHab
   const seanceFaite = seanceDuJour?.is_completed
@@ -580,7 +556,7 @@ export default function DashboardPage() {
   const getGreeting = () => {
     if (toutFait) return { text: `Journée parfaite, ${prenom}`, icon: Crown }
     if (streak >= 7) return { text: `${streak} jours d'affilée`, icon: Flame }
-    if (seanceDuJour && !seanceFaite) return { text: `Ta séance t'attend, ${prenom}`, icon: Dumbbell }
+    if (seanceDuJour && !seanceFaite) return { text: `Ta séance t'attend`, icon: Dumbbell }
     if (hour < 12) return { text: `Bonjour ${prenom}`, icon: Sparkles }
     if (hour < 18) return { text: `Bon après-midi ${prenom}`, icon: Zap }
     return { text: `Bonsoir ${prenom}`, icon: Moon }
@@ -607,14 +583,12 @@ export default function DashboardPage() {
     return { kcal: Math.round(kcal), prot: Math.round(prot), gluc: Math.round(gluc), lip: Math.round(lip) }
   })()
 
-  // ── Tendance semaine ──
   const currentWeekActive = weekData.filter(d => d.score > 0)
   const currentWeekAvg = currentWeekActive.length > 0
     ? Math.round(currentWeekActive.reduce((a, b) => a + b.score, 0) / currentWeekActive.length)
     : null
   const trendDiff = (currentWeekAvg !== null && prevWeekAvg !== null) ? currentWeekAvg - prevWeekAvg : null
 
-  // ── "Prochaine étape" — quoi montrer ──
   const getNextStep = () => {
     if (seanceDuJour && !seanceFaite) return { type: 'seance', label: 'Lance ta séance', sub: seanceDuJour.titre, icon: Play, color: '#FF6B2B', action: () => navigate(`/app/workout/${seanceDuJour.id}`) }
     if (!sommeilSaved || !humeurSaved) return { type: 'checkin', label: 'Fais ton check-in', sub: !sommeilSaved ? 'Sommeil non renseigné' : 'Humeur non renseignée', icon: Moon, color: '#818cf8' }
@@ -630,173 +604,234 @@ export default function DashboardPage() {
 
   const { pullDistance, isRefreshing, handlers: pullHandlers } = usePullToRefresh(chargerDonnees)
 
-  // ── Skeleton premium ──
+  // ══════════════════════════════════════════════════════════
+  //  SKELETON — Refined loading state
+  // ══════════════════════════════════════════════════════════
   if (loading) {
     return (
-      <div className="p-5 pb-28 space-y-5 max-w-lg mx-auto animate-pulse">
-        <div className="pt-2 space-y-2">
-          <div className="h-9 w-56 bg-[var(--bg-surface)] rounded-xl" />
-          <div className="h-4 w-36 bg-[var(--bg-surface)] rounded-lg" />
+      <div className="p-5 pb-28 space-y-4 max-w-lg mx-auto">
+        {/* Header skeleton */}
+        <div className="pt-2 flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-8 w-52 skel-block" />
+            <div className="h-3.5 w-32 skel-block" />
+          </div>
+          <div className="w-11 h-11 rounded-full skel-block" />
         </div>
-        <div className="h-44 bg-[var(--bg-surface)] rounded-2xl" />
-        <div className="h-56 bg-[var(--bg-surface)] rounded-2xl" />
-        <div className="h-36 bg-[var(--bg-surface)] rounded-2xl" />
-        <div className="h-48 bg-[var(--bg-surface)] rounded-2xl" />
+        {/* Streak skeleton */}
+        <div className="h-36 skel-block rounded-2xl" />
+        {/* Check-in skeleton */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="h-40 skel-block rounded-2xl" />
+          <div className="h-40 skel-block rounded-2xl" />
+        </div>
+        {/* Seance skeleton */}
+        <div className="h-48 skel-block rounded-2xl" />
+        {/* Score skeleton */}
+        <div className="h-36 skel-block rounded-2xl" />
+        {/* Chart skeleton */}
+        <div className="h-52 skel-block rounded-2xl" />
       </div>
     )
   }
 
+  // ══════════════════════════════════════════════════════════
+  //  RENDER
+  // ══════════════════════════════════════════════════════════
   return (
-    <div className={`p-5 pb-28 space-y-5 max-w-lg mx-auto ${pageTransition.className}`} {...pullHandlers}>
+    <div className={`p-5 pb-28 space-y-4 max-w-lg mx-auto ${pageTransition.className}`} {...pullHandlers}>
       <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} />
       <Confetti active={showAllDoneConfetti} />
       <StreakMilestone streak={streak} />
 
-      {/* ═══════════════ HEADER CONTEXTUEL ═══════════════ */}
+      {/* ═══════════════ HEADER ═══════════════ */}
       <div className={`pt-2 flex items-start justify-between ${stagger[0].className}`} style={stagger[0].style}>
-        <div>
-          <h1 className="text-[var(--text-primary)] text-[26px] font-extrabold tracking-tight leading-tight flex items-center gap-2">
-            {greeting.text}
-            <GreetingIcon size={24} className="text-[#FF6B2B]" />
+        <div className="flex-1 min-w-0">
+          <h1 className="text-[var(--text-primary)] text-[26px] font-extrabold tracking-tight leading-tight flex items-center gap-2.5">
+            <span className="truncate">{greeting.text}</span>
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.12), rgba(255,107,43,0.04))' }}>
+              <GreetingIcon size={18} className="text-[#FF6B2B]" />
+            </span>
           </h1>
-          <p className="text-[var(--text-muted)] text-sm mt-1 capitalize">
-            {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
+          <div className="flex items-center gap-2 mt-1.5">
+            <p className="text-[var(--text-muted)] text-sm capitalize">
+              {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+            {score > 0 && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-[var(--text-muted)]" />
+                <span className="text-xs font-semibold" style={{ color: couleur }}>{score}/100</span>
+              </>
+            )}
+          </div>
         </div>
-        {/* Avatar avec glow */}
+
         <button
           onClick={() => navigate('/app/profil')}
-          className="relative active:scale-95 transition-transform"
+          className="relative active:scale-95 transition-transform ml-3"
         >
-          <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[var(--color-primary,#FF6B2B)] to-[#FF9A6C] flex items-center justify-center shadow-lg"
-               style={{ boxShadow: '0 0 20px rgba(255,107,43,0.3)' }}>
+          <div className="w-11 h-11 rounded-full flex items-center justify-center ring-2 ring-offset-2 ring-offset-[var(--bg-base)]"
+            style={{ background: profil?.avatar_url ? 'transparent' : 'linear-gradient(135deg, #FF6B2B, #FF9A6C)', ringColor: 'rgba(255,107,43,0.2)' }}>
             {profil?.avatar_url ? (
               <img src={profil.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
             ) : (
-              <User size={20} className="text-white" />
+              <User size={18} className="text-white" />
             )}
           </div>
-          {/* Glow ring */}
-          <div className="absolute inset-0 rounded-full border-2 border-[var(--color-primary,#FF6B2B)]/30 animate-pulse" />
         </button>
       </div>
 
-      {/* ═══════════════ STREAK BADGE PREMIUM ═══════════════ */}
+      {/* ═══════════════ PROCHAINE ETAPE (CTA contextuel) ═══════════════ */}
+      {nextStep && (
+        <button
+          onClick={nextStep.action || undefined}
+          className={`group w-full rounded-2xl border p-3.5 text-left active:scale-[0.98] transition-all ${stagger[1].className}`}
+          style={{
+            ...stagger[1].style,
+            background: `linear-gradient(135deg, ${nextStep.color}0A, transparent)`,
+            borderColor: `${nextStep.color}15`,
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: `${nextStep.color}12` }}>
+              <nextStep.icon size={18} style={{ color: nextStep.color }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[9px] uppercase tracking-widest font-bold mb-0.5" style={{ color: `${nextStep.color}80` }}>
+                Prochaine action
+              </p>
+              <p className="text-[var(--text-primary)] text-sm font-bold leading-snug">{nextStep.label}</p>
+            </div>
+            <ChevronRight size={16} className="text-[var(--text-muted)] group-hover:translate-x-0.5 transition-transform" />
+          </div>
+        </button>
+      )}
+
+      {/* ═══════════════ STREAK ═══════════════ */}
       {streak > 0 && (
-        <StreakBadge streak={streak} staggerClass={stagger[1].className} staggerStyle={stagger[1].style} />
+        <StreakBadge streak={streak} staggerClass={stagger[2].className} staggerStyle={stagger[2].style} />
       )}
 
       {/* ═══════════════ CHECK-IN QUOTIDIEN ═══════════════ */}
       {(!sommeilSaved || !humeurSaved) && (
-        <div className={`space-y-3 ${stagger[2].className}`} style={stagger[2].style}>
-          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold px-1">Check-in du jour</p>
+        <div className={`glass-card p-4 ${stagger[3].className}`} style={stagger[3].style}>
+          {/* Accent line */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
+            style={{ background: 'linear-gradient(90deg, #818cf8, #f59e0b, transparent)' }} />
 
-          <div className="grid grid-cols-2 gap-3">
-            {/* ── Widget Sommeil ── */}
-            <div className={`rounded-2xl border p-4 transition-all duration-500 ${
-              sommeilSaved
-                ? 'bg-indigo-500/5 border-indigo-500/20'
-                : 'bg-[var(--bg-card)] border-[var(--border-base)]'
-            }`}>
-              {sommeilSaved ? (
-                <div className="text-center py-2">
-                  <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto mb-2">
-                    <Check size={20} className="text-indigo-400" />
+          <div className="relative">
+            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold mb-3.5">
+              Check-in du jour
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* ── Widget Sommeil ── */}
+              <div className={`rounded-xl p-3.5 transition-all duration-500 ${
+                sommeilSaved
+                  ? 'bg-indigo-500/[0.06] ring-1 ring-indigo-500/15'
+                  : 'bg-[var(--bg-surface)]/50'
+              }`}>
+                {sommeilSaved ? (
+                  <div className="text-center py-1">
+                    <div className="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center mx-auto mb-2">
+                      <Moon size={16} className="text-indigo-400" />
+                    </div>
+                    <p className="text-indigo-300 text-lg font-black leading-none">{sommeilInput}h</p>
+                    <p className="text-indigo-400/40 text-[9px] mt-1 font-medium">Enregistré</p>
                   </div>
-                  <p className="text-indigo-300 text-sm font-bold">{sommeilInput}h</p>
-                  <p className="text-indigo-300/50 text-[10px] mt-0.5">Sommeil enregistré</p>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Moon size={14} className="text-indigo-400" />
-                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-bold">Sommeil</p>
-                  </div>
-                  <div className="flex items-center justify-center gap-3 mb-3">
-                    <button
-                      onClick={() => setSommeilInput(v => Math.max(0, +(v - 0.5).toFixed(1)))}
-                      className="w-9 h-9 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all active:scale-90"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <div className="text-center min-w-[50px]">
-                      <p className="text-[var(--text-primary)] text-2xl font-black leading-none">{sommeilInput}</p>
-                      <p className="text-[var(--text-muted)] text-[9px] mt-0.5">heures</p>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Moon size={12} className="text-indigo-400" />
+                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-wider font-bold">Sommeil</p>
+                    </div>
+                    <div className="flex items-center justify-center gap-2.5 mb-3">
+                      <button
+                        onClick={() => setSommeilInput(v => Math.max(0, +(v - 0.5).toFixed(1)))}
+                        className="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-indigo-300 transition-all active:scale-90"
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <div className="text-center min-w-[44px]">
+                        <p className="text-[var(--text-primary)] text-2xl font-black leading-none tabular-nums">{sommeilInput}</p>
+                        <p className="text-[var(--text-muted)] text-[8px] mt-0.5 font-medium">heures</p>
+                      </div>
+                      <button
+                        onClick={() => setSommeilInput(v => Math.min(14, +(v + 0.5).toFixed(1)))}
+                        className="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-indigo-300 transition-all active:scale-90"
+                      >
+                        <Plus size={14} />
+                      </button>
                     </div>
                     <button
-                      onClick={() => setSommeilInput(v => Math.min(14, +(v + 0.5).toFixed(1)))}
-                      className="w-9 h-9 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all active:scale-90"
+                      onClick={saveSommeil}
+                      disabled={sommeilSaving}
+                      className="w-full py-2 rounded-lg bg-indigo-500/15 text-indigo-300 text-[11px] font-bold hover:bg-indigo-500/25 transition-all active:scale-95 disabled:opacity-50"
                     >
-                      <Plus size={16} />
+                      {sommeilSaving ? '...' : 'Valider'}
                     </button>
-                  </div>
-                  <button
-                    onClick={saveSommeil}
-                    disabled={sommeilSaving}
-                    className="w-full py-2 rounded-xl bg-indigo-500/20 text-indigo-300 text-xs font-bold hover:bg-indigo-500/30 transition-all active:scale-95 disabled:opacity-50"
-                  >
-                    {sommeilSaving ? '...' : 'Valider'}
-                  </button>
-                </>
-              )}
-            </div>
+                  </>
+                )}
+              </div>
 
-            {/* ── Widget Humeur ── */}
-            <div className={`rounded-2xl border p-4 transition-all duration-500 ${
-              humeurSaved
-                ? 'bg-amber-500/5 border-amber-500/20'
-                : 'bg-[var(--bg-card)] border-[var(--border-base)]'
-            }`}>
-              {humeurSaved ? (
-                <div className="text-center py-2">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-2">
-                    <Check size={20} className="text-amber-400" />
+              {/* ── Widget Humeur ── */}
+              <div className={`rounded-xl p-3.5 transition-all duration-500 ${
+                humeurSaved
+                  ? 'bg-amber-500/[0.06] ring-1 ring-amber-500/15'
+                  : 'bg-[var(--bg-surface)]/50'
+              }`}>
+                {humeurSaved ? (
+                  <div className="text-center py-1">
+                    <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center mx-auto mb-2">
+                      <Smile size={16} className="text-amber-400" />
+                    </div>
+                    <p className="text-amber-300 text-sm font-black leading-none">
+                      {['Mal', 'Bof', 'Ok', 'Bien', 'Top'][Math.min(4, Math.max(0, Math.round((humeurInput || 5) / 2) - 1))]}
+                    </p>
+                    <p className="text-amber-400/40 text-[9px] mt-1 font-medium">Enregistré</p>
                   </div>
-                  <p className="text-amber-300 text-sm font-bold">
-                    {['Mal', 'Bof', 'Ok', 'Bien', 'Top'][Math.min(4, Math.max(0, Math.round((humeurInput || 5) / 2) - 1))]}
-                  </p>
-                  <p className="text-amber-300/50 text-[10px] mt-0.5">Humeur enregistrée</p>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Smile size={14} className="text-amber-400" />
-                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-bold">Humeur</p>
-                  </div>
-                  <div className="flex items-center justify-between px-1 mb-3">
-                    {[
-                      { icon: Frown, score: 2, label: 'Mal', color: '#EF4444' },
-                      { icon: Meh, score: 4, label: 'Bof', color: '#F97316' },
-                      { icon: Minus, score: 6, label: 'Ok', color: '#EAB308' },
-                      { icon: Smile, score: 8, label: 'Bien', color: '#22C55E' },
-                      { icon: Sparkles, score: 10, label: 'Top', color: '#10B981' },
-                    ].map(({ icon: MoodIcon, score, label, color }) => (
-                      <button
-                        key={score}
-                        onClick={() => saveHumeur(score)}
-                        disabled={humeurSaving}
-                        className={`flex flex-col items-center gap-0.5 rounded-lg transition-all active:scale-90 ${
-                          humeurInput === score
-                            ? 'scale-105'
-                            : 'hover:bg-[var(--bg-surface)]'
-                        }`}
-                      >
-                        <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-all ${
-                          humeurInput === score ? 'shadow-sm' : ''
-                        }`}
-                          style={{
-                            background: humeurInput === score ? `${color}20` : 'var(--bg-surface)',
-                            border: humeurInput === score ? `1.5px solid ${color}40` : '1.5px solid transparent',
-                          }}
+                ) : (
+                  <>
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Smile size={12} className="text-amber-400" />
+                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-wider font-bold">Humeur</p>
+                    </div>
+                    <div className="flex items-center justify-between mb-1">
+                      {[
+                        { icon: Frown, score: 2, label: 'Mal', color: '#EF4444' },
+                        { icon: Meh, score: 4, label: 'Bof', color: '#F97316' },
+                        { icon: Minus, score: 6, label: 'Ok', color: '#EAB308' },
+                        { icon: Smile, score: 8, label: 'Bien', color: '#22C55E' },
+                        { icon: Sparkles, score: 10, label: 'Top', color: '#10B981' },
+                      ].map(({ icon: MoodIcon, score, label, color }) => (
+                        <button
+                          key={score}
+                          onClick={() => saveHumeur(score)}
+                          disabled={humeurSaving}
+                          className={`flex flex-col items-center gap-0.5 transition-all active:scale-90 ${
+                            humeurInput === score ? '' : ''
+                          }`}
                         >
-                          <MoodIcon size={14} style={{ color: humeurInput === score ? color : 'var(--text-muted)' }} />
-                        </div>
-                        <span className="text-[7px] font-semibold leading-none" style={{ color: humeurInput === score ? color : 'var(--text-muted)' }}>{label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all`}
+                            style={{
+                              background: humeurInput === score ? `${color}18` : 'var(--bg-card)',
+                              border: humeurInput === score ? `1.5px solid ${color}35` : '1.5px solid var(--border-base)',
+                              transform: humeurInput === score ? 'scale(1.1)' : 'scale(1)',
+                            }}
+                          >
+                            <MoodIcon size={13} style={{ color: humeurInput === score ? color : 'var(--text-muted)' }} />
+                          </div>
+                          <span className="text-[7px] font-bold leading-none mt-0.5" style={{ color: humeurInput === score ? color : 'var(--text-muted)' }}>
+                            {label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -816,26 +851,29 @@ export default function DashboardPage() {
           <button
             key={form.id}
             onClick={() => navigate('/app/formulaires')}
-            className={`w-full flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/15 active:scale-[0.98] transition-all ${stagger[3].className}`}
-            style={{ ...stagger[3].style, animationDelay: `${(stagger[3].style?.animationDelay ? parseInt(stagger[3].style.animationDelay) : 0) + idx * 60}ms` }}
+            className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border border-amber-500/12 active:scale-[0.98] transition-all ${stagger[4].className}`}
+            style={{
+              ...stagger[4].style,
+              animationDelay: `${(stagger[4].style?.animationDelay ? parseInt(stagger[4].style.animationDelay) : 0) + idx * 60}ms`,
+              background: 'linear-gradient(135deg, rgba(245,158,11,0.06), transparent)',
+            }}
           >
-            <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0 relative">
-              <FormIcon size={20} className="text-amber-300" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full animate-pulse" />
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0 relative">
+              <FormIcon size={18} className="text-amber-300" />
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-400 rounded-full ring-2 ring-[var(--bg-card)]" />
             </div>
             <div className="flex-1 text-left min-w-0">
               <p className="text-[var(--text-primary)] font-semibold text-sm truncate">
                 {formInfo.titre || 'Formulaire à remplir'}
               </p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-amber-400/70 text-xs font-medium">{typeLabel}</span>
-                <span className="text-[var(--text-muted)]">·</span>
-                <span className="text-[var(--text-secondary)] text-xs">{dateLabel}</span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-amber-400/60 text-[11px] font-medium">{typeLabel}</span>
+                <span className="text-[var(--text-muted)] text-[11px]">{dateLabel}</span>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 bg-amber-500/15 px-3 py-1.5 rounded-xl flex-shrink-0">
-              <span className="text-amber-300 text-xs font-semibold">Remplir</span>
-              <ChevronRight size={14} className="text-amber-400/60" />
+            <div className="flex items-center gap-1 bg-amber-500/10 px-2.5 py-1.5 rounded-lg flex-shrink-0">
+              <span className="text-amber-300 text-[11px] font-semibold">Remplir</span>
+              <ChevronRight size={12} className="text-amber-400/50" />
             </div>
           </button>
         )
@@ -845,33 +883,40 @@ export default function DashboardPage() {
       {seanceDuJour ? (
         <div className={`relative overflow-hidden rounded-2xl border ${
           seanceDuJour.is_completed
-            ? 'bg-gradient-to-br from-emerald-500/10 via-[#1E1E1E] to-[#1E1E1E] border-emerald-500/15'
-            : 'bg-gradient-to-br from-[var(--color-primary,#FF6B2B)]/15 via-[#1E1E1E] to-[#1E1E1E] border-[var(--color-primary,#FF6B2B)]/20'
-        } ${stagger[4].className}`} style={stagger[4].style}>
+            ? 'border-emerald-500/12'
+            : 'border-[var(--color-primary,#FF6B2B)]/15'
+        } ${stagger[5].className}`}
+          style={{
+            ...stagger[5].style,
+            background: seanceDuJour.is_completed
+              ? 'linear-gradient(135deg, rgba(16,185,129,0.06), var(--bg-card) 60%)'
+              : 'linear-gradient(135deg, rgba(255,107,43,0.08), var(--bg-card) 60%)',
+          }}
+        >
           {/* Background decoration */}
-          <div className={`absolute top-0 right-0 w-32 h-32 rounded-full -translate-y-8 translate-x-8 blur-2xl ${
-            seanceDuJour.is_completed ? 'bg-emerald-500/5' : 'bg-[var(--color-primary,#FF6B2B)]/5'
+          <div className={`absolute top-0 right-0 w-36 h-36 rounded-full -translate-y-10 translate-x-10 blur-3xl pointer-events-none ${
+            seanceDuJour.is_completed ? 'bg-emerald-500/4' : 'bg-[var(--color-primary,#FF6B2B)]/4'
           }`} />
 
           <div className="relative p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Dumbbell size={14} className={seanceDuJour.is_completed ? 'text-emerald-400' : 'text-[var(--color-primary,#FF6B2B)]'} />
-                <p className={`text-[11px] uppercase tracking-widest font-bold ${
-                  seanceDuJour.is_completed ? 'text-emerald-400' : 'text-[var(--color-primary,#FF6B2B)]'
+                <Dumbbell size={13} className={seanceDuJour.is_completed ? 'text-emerald-400' : 'text-[var(--color-primary,#FF6B2B)]'} />
+                <p className={`text-[10px] uppercase tracking-widest font-bold ${
+                  seanceDuJour.is_completed ? 'text-emerald-400/70' : 'text-[var(--color-primary,#FF6B2B)]/70'
                 }`}>
                   Séance du jour
                 </p>
               </div>
               {seanceDuJour.is_completed && (
-                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
+                <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
                   <Check size={10} strokeWidth={3} />
                   Terminée
                 </span>
               )}
             </div>
 
-            <h2 className="text-[var(--text-primary)] text-xl font-bold mb-1">{seanceDuJour.titre}</h2>
+            <h2 className="text-[var(--text-primary)] text-lg font-bold mb-1 leading-snug">{seanceDuJour.titre}</h2>
 
             {seanceExos.length > 0 && (
               <p className="text-[var(--text-muted)] text-xs mb-4">
@@ -879,284 +924,279 @@ export default function DashboardPage() {
               </p>
             )}
 
-            {/* Liste exercices (max 3 preview) */}
             {seanceExos.length > 0 && !seanceDuJour.is_completed && (
-              <div className="space-y-2 mb-5">
+              <div className="space-y-1.5 mb-5">
                 {seanceExos.slice(0, 3).map((exo) => (
-                  <div key={exo.id} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-[var(--bg-surface)]">
-                    <div className="w-8 h-8 rounded-lg bg-[var(--color-primary,#FF6B2B)]/10 flex items-center justify-center flex-shrink-0">
-                      <Dumbbell size={14} className="text-[var(--color-primary,#FF6B2B)]" />
+                  <div key={exo.id} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)]/60 border border-[var(--border-subtle)]">
+                    <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,#FF6B2B)]/8 flex items-center justify-center flex-shrink-0">
+                      <Dumbbell size={13} className="text-[var(--color-primary,#FF6B2B)]/70" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[var(--text-primary)] text-sm font-medium truncate">{exo.nom}</p>
-                      <p className="text-[var(--text-muted)] text-[11px]">
-                        {exo.series && `${exo.series}×`}{exo.repetitions && `${exo.repetitions}`}
+                      <p className="text-[var(--text-primary)] text-[13px] font-medium truncate">{exo.nom}</p>
+                      <p className="text-[var(--text-muted)] text-[10px]">
+                        {exo.series && `${exo.series}x`}{exo.repetitions && `${exo.repetitions}`}
                         {exo.poids ? ` · ${exo.poids}kg` : ''}
                       </p>
                     </div>
                   </div>
                 ))}
                 {seanceExos.length > 3 && (
-                  <p className="text-[var(--text-muted)] text-xs text-center">
+                  <p className="text-[var(--text-muted)] text-[11px] text-center pt-1">
                     +{seanceExos.length - 3} autre{seanceExos.length - 3 > 1 ? 's' : ''}
                   </p>
                 )}
               </div>
             )}
 
-            {/* CTA Button — conditionnel selon l'état */}
             {seanceDuJour.is_completed ? (
               <button
                 onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
-                className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-bold text-sm tracking-wide text-emerald-400 bg-emerald-500/10 border border-emerald-500/15 hover:bg-emerald-500/15 active:scale-[0.98] transition-all duration-200"
+                className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-[13px] tracking-wide text-emerald-400 bg-emerald-500/8 border border-emerald-500/12 hover:bg-emerald-500/12 active:scale-[0.98] transition-all"
               >
-                <CheckCircle2 size={16} />
-                SÉANCE TERMINÉE — VOIR LE RÉSUMÉ
+                <CheckCircle2 size={15} />
+                VOIR LE RÉSUMÉ
               </button>
             ) : (
               <button
                 onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
-                className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl font-bold text-sm tracking-wide text-white active:scale-95 transition-all duration-200"
+                className="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-bold text-[13px] tracking-wide text-white active:scale-95 transition-all"
                 style={{
                   background: 'linear-gradient(135deg, var(--color-primary, #FF6B2B), #FF9A6C)',
-                  boxShadow: '0 4px 20px rgba(255,107,43,0.35)',
+                  boxShadow: '0 4px 24px rgba(255,107,43,0.3), 0 1px 3px rgba(0,0,0,0.2)',
                 }}
               >
-                <Play size={16} className="fill-white" />
+                <Play size={15} className="fill-white" />
                 COMMENCER L'ENTRAÎNEMENT
               </button>
             )}
           </div>
         </div>
       ) : (
-        <div className={`rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 text-center ${stagger[4].className}`} style={stagger[4].style}>
-          <div className="w-12 h-12 rounded-full bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
-            <Dumbbell size={22} className="text-[var(--text-muted)]" />
+        <div className={`rounded-2xl bg-[var(--bg-card)] border border-dashed border-[var(--border-base)] p-5 ${stagger[5].className}`} style={stagger[5].style}>
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center flex-shrink-0">
+              <Dumbbell size={20} className="text-[var(--text-muted)]" />
+            </div>
+            <div>
+              <p className="text-[var(--text-secondary)] text-sm font-medium">Pas de séance aujourd'hui</p>
+              <p className="text-[var(--text-muted)] text-xs mt-0.5">Profite de ta journée de repos</p>
+            </div>
           </div>
-          <p className="text-[var(--text-muted)] text-sm font-medium">Pas de séance aujourd'hui</p>
-          <p className="text-[var(--text-muted)] text-xs mt-1">Profite de ta journée de repos</p>
         </div>
       )}
 
       {/* ═══════════════ SCORE BIEN-ÊTRE ═══════════════ */}
-      <div className={`rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 ${stagger[5].className}`} style={stagger[5].style}>
-        <div className="flex items-center gap-5">
-          <ScoreGauge score={score} couleur={couleur} />
-          <div className="flex-1 min-w-0">
-            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-semibold mb-1">Score bien-être</p>
-            <p className="text-2xl font-extrabold" style={{ color: couleur }}>{label}</p>
-            <div className="mt-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <Moon size={13} className="text-indigo-400 flex-shrink-0" />
-                <span className="text-[var(--text-muted)] text-xs">
-                  {sommeil ? `${sommeil.heures}h · qualité ${sommeil.qualite}/5` : 'Non renseigné'}
-                </span>
+      <div className={`glass-card p-5 ${stagger[6].className}`} style={stagger[6].style}>
+        {/* Subtle ambient glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ background: couleur }} />
+
+        <div className="relative">
+          <SectionLabel icon={Activity} label="Bien-être" color={couleur}>
+            {trendDiff !== null && trendDiff !== 0 && (
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold ${
+                trendDiff > 0
+                  ? 'bg-emerald-500/8 text-emerald-400'
+                  : 'bg-red-500/8 text-red-400'
+              }`}>
+                {trendDiff > 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
+                {trendDiff > 0 ? '+' : ''}{trendDiff}
               </div>
-              <div className="flex items-center gap-2">
-                <Smile size={13} className="text-yellow-400 flex-shrink-0" />
-                <span className="text-[var(--text-muted)] text-xs">
-                  Humeur {humeur ? `${humeur.score}/10` : 'non renseignée'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Zap size={13} className="text-green-400 flex-shrink-0" />
-                <span className="text-[var(--text-muted)] text-xs">
-                  {sport ? `Activité · intensité ${sport.intensite}/5` : 'Pas d\'activité'}
-                </span>
-              </div>
+            )}
+          </SectionLabel>
+
+          <div className="flex items-center gap-5">
+            <ScoreGauge score={score} couleur={couleur} size={110} />
+            <div className="flex-1 min-w-0 space-y-1">
+              <p className="text-xl font-extrabold leading-none mb-3" style={{ color: couleur }}>{label}</p>
+              {[
+                { icon: Moon, color: '#818cf8', text: sommeil ? `${sommeil.heures}h de sommeil` : 'Sommeil non renseigné' },
+                { icon: Smile, color: '#eab308', text: humeur ? `Humeur ${humeur.score}/10` : 'Humeur non renseignée' },
+                { icon: Zap, color: '#22c55e', text: sport ? `Intensité ${sport.intensite}/5` : 'Pas d\'activité' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <item.icon size={12} style={{ color: item.color }} className="flex-shrink-0 opacity-70" />
+                  <span className="text-[var(--text-muted)] text-[11px] leading-snug">{item.text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
       {/* ═══════════════ HABITUDES DU JOUR ═══════════════ */}
-      <div className={`rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 ${stagger[6].className}`} style={stagger[6].style}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Sparkles size={14} className="text-[var(--color-primary,#FF6B2B)]" />
-            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">
-              Habitudes du jour
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--bg-surface)]">
-            {cochees > 0 && cochees === totalHab && <Flame size={12} className="text-[var(--color-primary,#FF6B2B)]" />}
-            <span className="text-[var(--color-primary,#FF6B2B)] text-xs font-bold"><AnimatedNumber value={cochees} duration={400} />/{totalHab}</span>
-          </div>
-        </div>
+      <div className={`glass-card p-5 ${stagger[7].className}`} style={stagger[7].style}>
+        <div className="relative">
+          <SectionLabel icon={Sparkles} label="Habitudes du jour">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-surface)]">
+              {allHabsDone && <Flame size={11} className="text-[var(--color-primary,#FF6B2B)]" />}
+              <span className="text-[var(--color-primary,#FF6B2B)] text-[11px] font-bold tabular-nums">
+                <AnimatedNumber value={cochees} duration={400} />/{totalHab}
+              </span>
+            </div>
+          </SectionLabel>
 
-        {habitudes.length === 0 ? (
-          <p className="text-[var(--text-muted)] text-sm text-center py-6">Aucune habitude assignée pour l'instant.</p>
-        ) : (
-          <div className="space-y-2.5">
-            {habitudes.map((h) => {
-              const fait = logAujourdhui.includes(h.id)
-              const accentColor = h.couleur ?? 'var(--color-primary, #FF6B2B)'
-              return (
-                <button
-                  key={h.id}
-                  onClick={() => toggleHabitude(h.id)}
-                  disabled={toggling === h.id}
-                  className={`flex items-center gap-3.5 w-full text-left py-3.5 px-4 rounded-xl transition-all duration-200 active:scale-[0.97] disabled:opacity-50 border ${
-                    fait
-                      ? 'bg-[var(--bg-surface)] border-[var(--border-base)]'
-                      : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]'
-                  }`}
-                >
-                  {fait ? (
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                         style={{ backgroundColor: `${accentColor}20` }}>
-                      <CheckCircle2 size={18} style={{ color: accentColor }} />
-                    </div>
-                  ) : (
-                    <div className="w-7 h-7 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center flex-shrink-0">
-                      <Circle size={18} className="text-[var(--text-muted)]" />
-                    </div>
-                  )}
-                  <span className={`text-sm font-medium flex-1 ${fait ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
-                    {h.nom}
-                  </span>
-                  {h.assigned_by && (
-                    <span className="text-[9px] text-[var(--color-primary,#FF6B2B)]/70 bg-[var(--color-primary,#FF6B2B)]/10 px-2 py-0.5 rounded-full flex-shrink-0 font-semibold uppercase tracking-wider">
-                      Coach
+          {habitudes.length === 0 ? (
+            <p className="text-[var(--text-muted)] text-sm text-center py-6">Aucune habitude assignée pour l'instant.</p>
+          ) : (
+            <div className="space-y-2">
+              {habitudes.map((h) => {
+                const fait = logAujourdhui.includes(h.id)
+                const accentColor = h.couleur ?? 'var(--color-primary, #FF6B2B)'
+                return (
+                  <button
+                    key={h.id}
+                    onClick={() => toggleHabitude(h.id)}
+                    disabled={toggling === h.id}
+                    className={`flex items-center gap-3 w-full text-left py-3 px-3.5 rounded-xl transition-all duration-200 active:scale-[0.97] disabled:opacity-50 ${
+                      fait
+                        ? 'bg-[var(--bg-surface)]/50'
+                        : 'bg-[var(--bg-surface)]/80 hover:bg-[var(--bg-surface)]'
+                    }`}
+                    style={fait ? { borderLeft: `2px solid ${accentColor}30` } : { borderLeft: '2px solid transparent' }}
+                  >
+                    {fait ? (
+                      <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+                           style={{ backgroundColor: `${accentColor}15` }}>
+                        <CheckCircle2 size={16} style={{ color: accentColor }} />
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 rounded-md bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center flex-shrink-0">
+                        <Circle size={14} className="text-[var(--text-muted)]" />
+                      </div>
+                    )}
+                    <span className={`text-[13px] font-medium flex-1 transition-colors ${fait ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
+                      {h.nom}
                     </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        )}
+                    {h.assigned_by && (
+                      <span className="text-[8px] text-[var(--color-primary,#FF6B2B)]/60 bg-[var(--color-primary,#FF6B2B)]/8 px-2 py-0.5 rounded-md flex-shrink-0 font-bold uppercase tracking-wider">
+                        Coach
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
 
-        {/* Progress bar */}
-        {totalHab > 0 && (
-          <div className="mt-4 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700 ease-out"
-              style={{
-                width: `${Math.round((cochees / totalHab) * 100)}%`,
-                background: `linear-gradient(90deg, ${couleurScore(Math.round((cochees / totalHab) * 100))}, ${couleurScore(Math.round((cochees / totalHab) * 100))}90)`,
-              }}
-            />
-          </div>
-        )}
+          {totalHab > 0 && (
+            <div className="mt-3.5 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700 ease-out"
+                style={{
+                  width: `${Math.round((cochees / totalHab) * 100)}%`,
+                  background: allHabsDone
+                    ? 'linear-gradient(90deg, #22c55e, #4ade80)'
+                    : `linear-gradient(90deg, var(--color-primary, #FF6B2B), #FF9A6C)`,
+                }}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ═══════════════ MES PROGRAMMES (Sport + Nutrition) ═══════════════ */}
+      {/* ═══════════════ MES PROGRAMMES ═══════════════ */}
       {(programme || nutritionPlan) && (
-        <div className={`space-y-3 ${stagger[7].className}`} style={stagger[7].style}>
+        <div className={`space-y-3 ${stagger[8].className}`} style={stagger[8].style}>
           <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold px-1">Mes programmes</p>
 
-          <div className={`grid gap-3 ${programme && nutritionPlan ? 'grid-cols-1' : 'grid-cols-1'}`}>
-
-            {/* ── Carte Programme Sport ── */}
+          <div className={`grid gap-3 ${programme && nutritionPlan ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {/* ── Programme Sport ── */}
             {programme && (
               <button
                 onClick={() => navigate('/app/programme')}
-                className="w-full rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 text-left active:scale-[0.98] transition-transform relative overflow-hidden"
+                className="glass-card p-4 text-left active:scale-[0.98] transition-transform"
               >
-                {/* Gradient accent */}
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[var(--color-primary,#FF6B2B)] via-[#FF9A6C] to-transparent" />
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[var(--color-primary,#FF6B2B)] via-[#FF9A6C]/50 to-transparent" />
 
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[var(--color-primary,#FF6B2B)]/10 flex items-center justify-center flex-shrink-0">
-                      <Trophy size={16} className="text-[var(--color-primary,#FF6B2B)]" />
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,#FF6B2B)]/10 flex items-center justify-center">
+                      <Trophy size={14} className="text-[var(--color-primary,#FF6B2B)]" />
                     </div>
-                    <div>
-                      <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Programme Sport</p>
-                    </div>
+                    <ChevronRight size={14} className="text-[var(--text-muted)]" />
                   </div>
-                  <ChevronRight size={16} className="text-[var(--text-muted)]" />
-                </div>
 
-                <p className="text-[var(--text-primary)] font-bold text-base mb-1">{programme.programmes?.titre}</p>
-                <p className="text-[var(--text-muted)] text-xs mb-3">
-                  Phase {programme.phase_actuelle}/{programmePhases.length}
-                  {programmePhases[programme.phase_actuelle - 1] && (
-                    <> — {programmePhases[programme.phase_actuelle - 1].titre}</>
+                  <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold mb-1">Sport</p>
+                  <p className="text-[var(--text-primary)] font-bold text-sm mb-1 truncate">{programme.programmes?.titre}</p>
+                  <p className="text-[var(--text-muted)] text-[11px] mb-3">
+                    Phase {programme.phase_actuelle}/{programmePhases.length}
+                  </p>
+
+                  {programmePhases.length > 0 && (
+                    <div className="flex gap-1 mb-2.5">
+                      {programmePhases.map((ph, i) => (
+                        <div
+                          key={ph.id}
+                          className="h-1.5 rounded-full flex-1 transition-all"
+                          style={{
+                            backgroundColor: i < programme.phase_actuelle
+                              ? 'var(--color-primary, #FF6B2B)'
+                              : 'var(--border-base)',
+                          }}
+                        />
+                      ))}
+                    </div>
                   )}
-                </p>
 
-                {/* Phase indicators */}
-                {programmePhases.length > 0 && (
-                  <div className="flex gap-1.5 mb-3">
-                    {programmePhases.map((ph, i) => (
-                      <div
-                        key={ph.id}
-                        className="h-2 rounded-full flex-1 transition-all"
-                        style={{
-                          backgroundColor: i < programme.phase_actuelle
-                            ? 'var(--color-primary, #FF6B2B)'
-                            : 'var(--border-base)',
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {/* Séances progression */}
-                {progSeances.total > 0 && (
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex-1 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${Math.round((progSeances.done / progSeances.total) * 100)}%`,
-                          background: 'linear-gradient(90deg, var(--color-primary, #FF6B2B), #FF9A6C)',
-                        }}
-                      />
+                  {progSeances.total > 0 && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${Math.round((progSeances.done / progSeances.total) * 100)}%`,
+                            background: 'linear-gradient(90deg, var(--color-primary, #FF6B2B), #FF9A6C)',
+                          }}
+                        />
+                      </div>
+                      <span className="text-[var(--text-muted)] text-[9px] font-medium flex-shrink-0 tabular-nums">
+                        {progSeances.done}/{progSeances.total}
+                      </span>
                     </div>
-                    <span className="text-[var(--text-muted)] text-[10px] font-medium flex-shrink-0">
-                      {progSeances.done}/{progSeances.total} séances
-                    </span>
-                  </div>
-                )}
+                  )}
+                </div>
               </button>
             )}
 
-            {/* ── Carte Plan Nutrition ── */}
+            {/* ── Plan Nutrition ── */}
             {nutritionPlan && (
               <button
                 onClick={() => navigate('/app/programme?tab=nutrition')}
-                className="w-full rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 text-left active:scale-[0.98] transition-transform relative overflow-hidden"
+                className="glass-card p-4 text-left active:scale-[0.98] transition-transform"
               >
-                {/* Gradient accent vert */}
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-emerald-500 via-emerald-400 to-transparent" />
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-emerald-500 via-emerald-400/50 to-transparent" />
 
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                      <UtensilsCrossed size={16} className="text-emerald-400" />
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <UtensilsCrossed size={14} className="text-emerald-400" />
                     </div>
-                    <div>
-                      <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Plan Nutrition</p>
-                    </div>
+                    <ChevronRight size={14} className="text-[var(--text-muted)]" />
                   </div>
-                  <ChevronRight size={16} className="text-[var(--text-muted)]" />
+
+                  <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold mb-1">Nutrition</p>
+                  <p className="text-[var(--text-primary)] font-bold text-sm mb-1 truncate">{nutritionPlan.nom}</p>
+                  <p className="text-[var(--text-muted)] text-[11px] mb-3">
+                    {nutriRepasCount} repas{nutritionPlan.duree_semaines ? ` · ${nutritionPlan.duree_semaines} sem.` : ''}
+                  </p>
+
+                  {nutritionPlan.duree_semaines > 0 && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${Math.round((nutriWeeksDone / nutritionPlan.duree_semaines) * 100)}%`,
+                            background: 'linear-gradient(90deg, #22c55e, #4ade80)',
+                          }}
+                        />
+                      </div>
+                      <span className="text-[var(--text-muted)] text-[9px] font-medium flex-shrink-0 tabular-nums">
+                        {nutriWeeksDone}/{nutritionPlan.duree_semaines}
+                      </span>
+                    </div>
+                  )}
                 </div>
-
-                <p className="text-[var(--text-primary)] font-bold text-base mb-1">{nutritionPlan.nom}</p>
-                <p className="text-[var(--text-muted)] text-xs mb-3">
-                  {nutriRepasCount} repas{nutriRepasCount > 1 ? '' : ''}
-                  {nutritionPlan.duree_semaines && ` · ${nutritionPlan.duree_semaines} semaines`}
-                </p>
-
-                {/* Semaines progression */}
-                {nutritionPlan.duree_semaines > 0 && (
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex-1 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${Math.round((nutriWeeksDone / nutritionPlan.duree_semaines) * 100)}%`,
-                          background: 'linear-gradient(90deg, #22c55e, #4ADE80)',
-                        }}
-                      />
-                    </div>
-                    <span className="text-[var(--text-muted)] text-[10px] font-medium flex-shrink-0">
-                      {nutriWeeksDone}/{nutritionPlan.duree_semaines} sem.
-                    </span>
-                  </div>
-                )}
               </button>
             )}
           </div>
@@ -1165,155 +1205,120 @@ export default function DashboardPage() {
 
       {/* ═══════════════ NUTRITION DU JOUR ═══════════════ */}
       {nutriMacros && nutriRepas.length > 0 && (
-        <div className={`rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 ${stagger[8].className}`} style={stagger[8].style}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <UtensilsCrossed size={14} className="text-emerald-400" />
-              <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Nutrition du jour</p>
+        <div className={`glass-card p-5 ${stagger[9].className}`} style={stagger[9].style}>
+          <div className="relative">
+            <SectionLabel icon={UtensilsCrossed} label="Nutrition du jour" color="#22c55e">
+              <button
+                onClick={() => navigate('/app/programme')}
+                className="text-emerald-400/50 text-[10px] font-semibold hover:text-emerald-400 transition-colors"
+              >
+                Voir le plan
+              </button>
+            </SectionLabel>
+
+            {/* Macros */}
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {[
+                { label: 'Calories', value: nutriMacros.kcal, unit: 'kcal', color: '#FF6B2B' },
+                { label: 'Protéines', value: nutriMacros.prot, unit: 'g', color: '#3b82f6' },
+                { label: 'Glucides', value: nutriMacros.gluc, unit: 'g', color: '#f59e0b' },
+                { label: 'Lipides', value: nutriMacros.lip, unit: 'g', color: '#22c55e' },
+              ].map((m, i) => (
+                <div key={i} className="text-center py-2.5 px-1 rounded-xl bg-[var(--bg-surface)]/60" style={{ borderTop: `2px solid ${m.color}25` }}>
+                  <p className="text-[var(--text-primary)] text-sm font-bold leading-none tabular-nums">{m.value}</p>
+                  <p className="text-[9px] font-medium mt-0.5" style={{ color: `${m.color}70` }}>{m.unit}</p>
+                  <p className="text-[var(--text-muted)] text-[8px] mt-0.5">{m.label}</p>
+                </div>
+              ))}
             </div>
-            <button
-              onClick={() => navigate('/app/programme')}
-              className="text-emerald-400/60 text-[10px] font-semibold hover:text-emerald-400 transition-colors"
-            >
-              Voir le plan →
-            </button>
-          </div>
 
-          {/* Macros résumé */}
-          <div className="grid grid-cols-4 gap-2 mb-4">
-            {[
-              { label: 'Calories', value: nutriMacros.kcal, unit: 'kcal', color: '#FF6B2B' },
-              { label: 'Protéines', value: nutriMacros.prot, unit: 'g', color: '#3b82f6' },
-              { label: 'Glucides', value: nutriMacros.gluc, unit: 'g', color: '#f59e0b' },
-              { label: 'Lipides', value: nutriMacros.lip, unit: 'g', color: '#22c55e' },
-            ].map((m, i) => (
-              <div key={i} className="text-center py-2.5 px-1 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
-                <p className="text-[var(--text-primary)] text-sm font-bold leading-none">{m.value}</p>
-                <p className="text-[9px] font-medium mt-0.5" style={{ color: `${m.color}90` }}>{m.unit}</p>
-                <p className="text-[var(--text-muted)] text-[8px] mt-1">{m.label}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Liste des repas */}
-          <div className="space-y-2">
-            {(() => {
-              const typeLabels = { petit_dej: 'Petit-déjeuner', dejeuner: 'Déjeuner', diner: 'Dîner', collation: 'Collation' }
-              const typeEmojis = { petit_dej: '🌅', dejeuner: '☀️', diner: '🌙', collation: '🍎' }
-              return nutriRepas.map((repas, i) => {
-                const nbAliments = repas.repas_aliments?.length || 0
-                return (
-                  <div key={repas.id || i} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
-                    <span className="text-base">{typeEmojis[repas.type] || '🍽️'}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[var(--text-primary)] text-sm font-medium">{typeLabels[repas.type] || repas.type}</p>
-                      <p className="text-[var(--text-muted)] text-[11px]">{nbAliments} aliment{nbAliments > 1 ? 's' : ''}</p>
+            {/* Repas list */}
+            <div className="space-y-1.5">
+              {(() => {
+                const typeLabels = { petit_dej: 'Petit-déjeuner', dejeuner: 'Déjeuner', diner: 'Dîner', collation: 'Collation' }
+                const typeIcons = { petit_dej: Sunrise, dejeuner: Sun, diner: Moon, collation: Coffee }
+                const typeColors = { petit_dej: '#f59e0b', dejeuner: '#FF6B2B', diner: '#818cf8', collation: '#22c55e' }
+                return nutriRepas.map((repas, i) => {
+                  const nbAliments = repas.repas_aliments?.length || 0
+                  const RepasIcon = typeIcons[repas.type] || UtensilsCrossed
+                  const repasColor = typeColors[repas.type] || '#FF6B2B'
+                  return (
+                    <div key={repas.id || i} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)]/50"
+                      style={{ borderLeft: `2px solid ${repasColor}30` }}>
+                      <RepasIcon size={15} style={{ color: repasColor }} className="flex-shrink-0 opacity-70" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[var(--text-primary)] text-[13px] font-medium">{typeLabels[repas.type] || repas.type}</p>
+                        <p className="text-[var(--text-muted)] text-[10px]">{nbAliments} aliment{nbAliments > 1 ? 's' : ''}</p>
+                      </div>
                     </div>
-                  </div>
-                )
-              })
-            })()}
+                  )
+                })
+              })()}
+            </div>
           </div>
         </div>
       )}
 
-      {/* ═══════════════ GRAPHIQUE 7 JOURS — REFONDU ═══════════════ */}
-      <div className={`rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] p-5 ${stagger[9].className}`} style={stagger[9].style}>
-        {/* Header avec tendance */}
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2">
-            <TrendingUp size={14} className="text-[var(--color-primary,#FF6B2B)]" />
-            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Score bien-être</p>
+      {/* ═══════════════ GRAPHIQUE 7 JOURS ═══════════════ */}
+      <div className={`glass-card p-5 ${stagger[10].className}`} style={stagger[10].style}>
+        <div className="relative">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={13} className="text-[var(--color-primary,#FF6B2B)]" />
+              <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Score 7 jours</p>
+            </div>
+            {currentWeekAvg !== null && (
+              <span className="text-[var(--text-muted)] text-[10px] font-bold tabular-nums">
+                Moy. {currentWeekAvg}
+              </span>
+            )}
           </div>
-          {trendDiff !== null && trendDiff !== 0 && (
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold ${
-              trendDiff > 0
-                ? 'bg-emerald-500/10 text-emerald-400'
-                : 'bg-red-500/10 text-red-400'
-            }`}>
-              {trendDiff > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-              {trendDiff > 0 ? '+' : ''}{trendDiff} pts
+
+          <p className="text-[var(--text-muted)] text-[11px] mb-4">
+            Évolution de ton bien-être sur la semaine
+          </p>
+
+          {weekData.some(d => d.score > 0) ? (
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart data={weekData} margin={{ top: 5, right: 0, left: -28, bottom: 0 }}>
+                <XAxis
+                  dataKey="jour"
+                  tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 600 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fill: 'var(--text-muted)', fontSize: 9 }}
+                  axisLine={false}
+                  tickLine={false}
+                  ticks={[0, 50, 100]}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--border-base)', radius: 8 }} />
+                <Bar dataKey="score" radius={[6, 6, 2, 2]} maxBarSize={30}>
+                  {weekData.map((entry, index) => {
+                    const isToday = index === weekData.length - 1
+                    return (
+                      <Cell
+                        key={index}
+                        fill="var(--color-primary, #FF6B2B)"
+                        fillOpacity={isToday ? 1 : 0.35}
+                      />
+                    )
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="py-8 text-center">
+              <Sparkles size={22} className="text-[var(--text-muted)] mx-auto mb-2 opacity-50" />
+              <p className="text-[var(--text-muted)] text-sm">
+                Commence à renseigner tes données pour voir l'évolution
+              </p>
             </div>
           )}
         </div>
-
-        {/* Sous-titre */}
-        <p className="text-[var(--text-muted)] text-[11px] mb-4">
-          Évolution sur les 7 derniers jours
-          {currentWeekAvg !== null && <> · Moy. <span className="text-[var(--text-muted)] font-semibold">{currentWeekAvg}/100</span></>}
-        </p>
-
-        {weekData.some(d => d.score > 0) ? (
-          <ResponsiveContainer width="100%" height={150}>
-            <BarChart data={weekData} margin={{ top: 5, right: 0, left: -28, bottom: 0 }}>
-              <XAxis
-                dataKey="jour"
-                tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                domain={[0, 100]}
-                tick={{ fill: 'var(--text-muted)', fontSize: 10 }}
-                axisLine={false}
-                tickLine={false}
-                ticks={[0, 50, 100]}
-              />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--border-base)', radius: 8 }} />
-              <Bar
-                dataKey="score"
-                radius={[8, 8, 2, 2]}
-                maxBarSize={34}
-              >
-                {weekData.map((entry, index) => (
-                  <Cell
-                    key={index}
-                    fill="var(--color-primary, #FF6B2B)"
-                    fillOpacity={index === weekData.length - 1 ? 1 : 0.45}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="py-8 text-center">
-            <Sparkles size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
-            <p className="text-[var(--text-muted)] text-sm">
-              Commence à renseigner tes données pour voir l'évolution
-            </p>
-          </div>
-        )}
       </div>
-
-      {/* ═══════════════ PROCHAINE ÉTAPE ═══════════════ */}
-      {nextStep && (
-        <button
-          onClick={nextStep.action || undefined}
-          className={`w-full rounded-2xl border p-4 text-left active:scale-[0.98] transition-all ${stagger[10].className}`}
-          style={{
-            ...stagger[10].style,
-            background: `linear-gradient(135deg, ${nextStep.color}08, ${nextStep.color}03)`,
-            borderColor: `${nextStep.color}18`,
-          }}
-        >
-          <div className="flex items-center gap-3.5">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${nextStep.color}15` }}
-            >
-              <nextStep.icon size={20} style={{ color: nextStep.color }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase tracking-widest font-bold mb-0.5" style={{ color: `${nextStep.color}90` }}>
-                Prochaine étape
-              </p>
-              <p className="text-[var(--text-primary)] text-sm font-bold">{nextStep.label}</p>
-              <p className="text-[var(--text-muted)] text-xs mt-0.5 truncate">{nextStep.sub}</p>
-            </div>
-            <ChevronRight size={16} style={{ color: `${nextStep.color}50` }} />
-          </div>
-        </button>
-      )}
 
     </div>
   )

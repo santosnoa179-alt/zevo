@@ -187,3 +187,70 @@ body {
 .animate-number-flash {
   animation: number-flash 0.6s ease-out;
 }
+
+/* ── Dashboard Premium Animations ── */
+
+@keyframes streakPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12) rotate(-3deg); }
+}
+
+@keyframes streakGlow {
+  0%, 100% { opacity: 0.6; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes shimmer-bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+@keyframes float-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes gauge-draw {
+  from { stroke-dashoffset: var(--gauge-circ); }
+  to { stroke-dashoffset: var(--gauge-offset); }
+}
+
+.animate-streak-pulse { animation: streakPulse 1.5s ease-in-out infinite; }
+.animate-streak-glow { animation: streakGlow 2s ease-in-out infinite; }
+.animate-breathe { animation: breathe 4s ease-in-out infinite; }
+.animate-float-subtle { animation: float-subtle 3s ease-in-out infinite; }
+
+/* Skeleton shimmer v2 */
+@keyframes skel-sweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skel-block {
+  background: linear-gradient(90deg, var(--skeleton-from) 25%, var(--skeleton-via) 50%, var(--skeleton-from) 75%);
+  background-size: 200% 100%;
+  animation: skel-sweep 1.6s ease-in-out infinite;
+  border-radius: 12px;
+}
+
+/* Glass card surfaces */
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-base);
+  border-radius: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 50%);
+  pointer-events: none;
+}

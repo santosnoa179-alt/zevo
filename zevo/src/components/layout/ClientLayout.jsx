@@ -42,7 +42,7 @@ const MENU_ITEMS = [
 ]
 
 // Routes où la bottom nav est masquée (mode immersif)
-const HIDDEN_NAV_ROUTES = ['/app/workout']
+const HIDDEN_NAV_ROUTES = ['/app/workout', '/app/messages']
 
 export function ClientLayout() {
   const { user, logout } = useAuth()
