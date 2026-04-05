@@ -7,7 +7,8 @@ import {
   Search, MessageCircle, Rocket, LogOut, Menu, X,
   Settings, ChevronDown, ChevronLeft, BookOpen, Layers, ClipboardList,
   FileText, BarChart3, CreditCard, Paintbrush, Send, Mic,
-  CheckCircle, Flame, TrendingDown, FolderOpen, Trophy, UtensilsCrossed
+  CheckCircle, Flame, TrendingDown, FolderOpen, Trophy, UtensilsCrossed,
+  Clock, Sparkles
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { usePlanLimits } from '../../hooks/usePlanLimits'
@@ -108,7 +109,7 @@ export function CoachLayout() {
     const load = async () => {
       const { data } = await supabase
         .from('coaches')
-        .select('prenom, nom, nom_app, logo_url, tutorial_coach_done')
+        .select('prenom, nom, nom_app, logo_url, tutorial_coach_done, trial_ends_at, subscription_status')
         .eq('id', user.id)
         .maybeSingle()
       if (data) {
@@ -215,6 +216,19 @@ export function CoachLayout() {
     ? [coachProfile.prenom, coachProfile.nom].filter(Boolean).join(' ') || 'Coach'
     : 'Coach'
   const coachInitials = coachName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+
+  // ══════════════════════════════════════
+  // TRIAL / PAYWALL LOGIC
+  // ══════════════════════════════════════
+  const isSubscribed = coachProfile?.subscription_status === 'active'
+  const trialEndsAt = coachProfile?.trial_ends_at ? new Date(coachProfile.trial_ends_at) : null
+  const now = new Date()
+  const msRemaining = trialEndsAt ? trialEndsAt.getTime() - now.getTime() : 0
+  const daysRemaining = trialEndsAt ? Math.max(0, Math.ceil(msRemaining / (1000 * 60 * 60 * 24))) : 0
+  const trialExpired = trialEndsAt ? msRemaining <= 0 : false
+  const accessDenied = coachProfile && !isSubscribed && trialExpired
+  const showTrialBanner = coachProfile && !isSubscribed && !trialExpired && trialEndsAt
+  const isOnAbonnementsPage = currentPath === '/coach/abonnements'
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)] flex flex-col md:flex-row">
@@ -533,7 +547,66 @@ export function CoachLayout() {
 
         {/* Zone de contenu */}
         <main className="flex-1 overflow-auto pb-16 md:pb-0 bg-[var(--bg-base)]">
-          <Outlet />
+          {/* ── Banner essai gratuit ── */}
+          {showTrialBanner && (
+            <div className="mx-4 mt-4 md:mx-6 md:mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-[#FF6B2B]/25 bg-gradient-to-r from-[#FF6B2B]/10 via-[#FF6B2B]/5 to-transparent px-4 py-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/15 flex items-center justify-center flex-shrink-0">
+                  <Sparkles size={16} className="text-[#FF6B2B]" />
+                </div>
+                <div>
+                  <p className="text-[var(--text-primary)] text-sm font-semibold">
+                    Essai gratuit&nbsp;: {daysRemaining} jour{daysRemaining > 1 ? 's' : ''} restant{daysRemaining > 1 ? 's' : ''}
+                  </p>
+                  <p className="text-[var(--text-muted)] text-xs">
+                    Choisis un plan pour continuer à utiliser Zevo sans interruption.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/coach/abonnements')}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-lg shadow-[#FF6B2B]/20"
+              >
+                Choisir un plan
+              </button>
+            </div>
+          )}
+
+          {/* ── Paywall (essai expiré) ── */}
+          {accessDenied && !isOnAbonnementsPage ? (
+            <div className="flex items-center justify-center min-h-[calc(100vh-8rem)] px-4 py-10">
+              <div className="glass-card relative w-full max-w-md rounded-3xl p-8 text-center overflow-hidden">
+                {/* Glow orange */}
+                <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-[#FF6B2B]/20 blur-3xl" />
+
+                <div className="relative">
+                  <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF8F5E]/10 border border-[#FF6B2B]/30 flex items-center justify-center mb-5 animate-breathe">
+                    <Lock size={28} className="text-[#FF6B2B]" />
+                  </div>
+                  <h2 className="text-[var(--text-primary)] text-2xl font-bold mb-2">
+                    Votre période d'essai est terminée
+                  </h2>
+                  <p className="text-[var(--text-muted)] text-sm mb-6 leading-relaxed">
+                    Ton essai gratuit de 14 jours est arrivé à son terme. Choisis un plan pour retrouver l'accès à ton espace coach et continuer à accompagner tes clients.
+                  </p>
+
+                  <div className="flex items-center justify-center gap-2 mb-6 text-xs text-[var(--text-muted)]">
+                    <Clock size={13} />
+                    <span>Accès bloqué jusqu'à l'activation d'un abonnement</span>
+                  </div>
+
+                  <button
+                    onClick={() => navigate('/coach/abonnements')}
+                    className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-[#FF6B2B]/30"
+                  >
+                    Choisir un plan
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
 
