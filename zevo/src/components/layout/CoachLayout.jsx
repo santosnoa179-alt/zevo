@@ -95,6 +95,29 @@ export function CoachLayout() {
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+
+  // Bloquer le scroll du body quand le menu mobile est ouvert
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
+      document.body.style.top = `-${window.scrollY}px`
+    } else {
+      const scrollY = document.body.style.top
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.top = ''
+      if (scrollY) window.scrollTo(0, parseInt(scrollY || '0', 10) * -1)
+    }
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.top = ''
+    }
+  }, [menuOpen])
   const [coachProfile, setCoachProfile] = useState(null)
   const [notifications, setNotifications] = useState([])
   const [loadingNotifs, setLoadingNotifs] = useState(false)
@@ -251,7 +274,7 @@ export function CoachLayout() {
 
       {/* ── Menu mobile overlay ── */}
       {menuOpen && (
-        <div className="md:hidden fixed inset-0 top-[53px] z-40 bg-[var(--bg-elevated)]/95 backdrop-blur-sm overflow-auto">
+        <div className="md:hidden fixed inset-0 top-[53px] z-40 bg-[var(--bg-elevated)] backdrop-blur-sm overflow-y-auto overscroll-contain">
           <nav className="p-4">
             {NAV_SECTIONS.map((section, si) => (
               <div key={si} className={si > 0 ? 'mt-4' : ''}>
@@ -546,7 +569,7 @@ export function CoachLayout() {
         </header>
 
         {/* Zone de contenu */}
-        <main className="flex-1 overflow-auto pb-16 md:pb-0 bg-[var(--bg-base)]">
+        <main className="flex-1 overflow-auto pb-20 md:pb-0 bg-[var(--bg-base)]" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}>
           {/* ── Banner essai gratuit ── */}
           {showTrialBanner && (
             <div className="mx-4 mt-4 md:mx-6 md:mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-[#FF6B2B]/25 bg-gradient-to-r from-[#FF6B2B]/10 via-[#FF6B2B]/5 to-transparent px-4 py-3">
@@ -626,25 +649,25 @@ export function CoachLayout() {
       {/* ══════════════════════════════════════ */}
       {/* BOTTOM NAV MOBILE                     */}
       {/* ══════════════════════════════════════ */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-elevated)] border-t border-[var(--border-base)]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-elevated)]/95 backdrop-blur-lg border-t border-[var(--border-base)]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <ul className="flex items-center justify-around h-14">
           {MOBILE_NAV.map(({ to, icon: Icon, label }) => {
             const isMsgTab = to === '/coach/messages'
             const badgeCount = isMsgTab ? unreadMsgCount : 0
             return (
-              <li key={to}>
+              <li key={to} className="flex-1">
                 <NavLink
                   to={to}
                   className={({ isActive }) =>
-                    `flex flex-col items-center gap-0.5 px-2 py-1.5 transition-colors relative ${
+                    `flex flex-col items-center justify-center gap-0.5 py-2 transition-colors relative ${
                       isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
                     }`
                   }
                 >
                   <div className="relative">
-                    <Icon size={18} />
+                    <Icon size={20} />
                     {badgeCount > 0 && (
-                      <span className="absolute -top-1.5 -right-2 min-w-[14px] h-3.5 px-1 rounded-full bg-[#FF6B2B] text-white text-[8px] font-bold flex items-center justify-center">
+                      <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
                         {badgeCount > 9 ? '9+' : badgeCount}
                       </span>
                     )}
