@@ -60,6 +60,7 @@ export default async function handler(req, res) {
         const { client_id, coach_id } = session.metadata || {}
 
         if (client_id && coach_id) {
+          // Mettre à jour le paiement
           await supabase
             .from('paiements_clients')
             .update({
@@ -68,6 +69,15 @@ export default async function handler(req, res) {
               stripe_payment_intent_id: session.payment_intent || session.id,
             })
             .eq('stripe_payment_intent_id', session.id)
+
+          // Activer le client maintenant qu'il a payé
+          await supabase
+            .from('clients')
+            .update({ actif: true })
+            .eq('id', client_id)
+            .eq('coach_id', coach_id)
+
+          console.log(`[connect-webhook] Client ${client_id} activé après paiement`)
         }
         break
       }
@@ -106,6 +116,13 @@ export default async function handler(req, res) {
                 stripe_payment_intent_id: invoice.payment_intent,
                 date_paiement: new Date().toISOString(),
               })
+
+            // S'assurer que le client est actif après paiement
+            await supabase
+              .from('clients')
+              .update({ actif: true })
+              .eq('id', client_id)
+              .eq('coach_id', coach_id)
           }
         }
         break
