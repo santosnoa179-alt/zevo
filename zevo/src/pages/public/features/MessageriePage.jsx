@@ -24,7 +24,7 @@ function ChatMockup() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="rounded-2xl border border-white/[0.06] bg-[#141414] overflow-hidden shadow-2xl shadow-black/40 h-[420px] flex">
+      <div className="rounded-2xl border border-white/[0.06] bg-[#141414] overflow-hidden shadow-2xl shadow-black/40 h-[380px] md:h-[420px] flex">
 
         {/* Conversation list */}
         <div className="w-72 border-r border-white/[0.04] flex flex-col hidden md:flex">

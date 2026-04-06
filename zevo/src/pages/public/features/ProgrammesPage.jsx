@@ -68,9 +68,9 @@ function ProgramMockup() {
 
       <div className="relative rounded-2xl border border-white/[0.08] bg-[#141414]/90 backdrop-blur-xl overflow-hidden shadow-2xl shadow-black/40">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06] bg-[#111111]/80">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 py-3.5 border-b border-white/[0.06] bg-[#111111]/80 gap-2 sm:gap-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center flex-shrink-0">
               <ClipboardList size={14} className="text-white" />
             </div>
             <div>
@@ -98,7 +98,8 @@ function ProgramMockup() {
         {/* Weeks timeline */}
         <div className="px-5 py-4 border-b border-white/[0.04]">
           <p className="text-[9px] uppercase font-semibold text-[#F5F5F3]/15 tracking-wider mb-3">Periodisation</p>
-          <div className="flex gap-2">
+          <div className="overflow-x-auto -mx-5 px-5">
+          <div className="flex gap-2 min-w-[500px]">
             {weeks.map((w) => (
               <div
                 key={w.num}
@@ -123,6 +124,7 @@ function ProgramMockup() {
                 </div>
               </div>
             ))}
+          </div>
           </div>
         </div>
 
@@ -152,7 +154,7 @@ function ProgramMockup() {
                     <span className={`text-[11px] font-medium truncate ${s.done ? 'text-[#F5F5F3]/40 line-through' : 'text-[#F5F5F3]/70'}`}>{s.name}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
                   <span className="text-[9px] text-[#F5F5F3]/15">{s.exercises} exos</span>
                   <span className="text-[9px] text-[#F5F5F3]/15">{s.duration}</span>
                   <ChevronRight size={12} className="text-[#F5F5F3]/10" />
@@ -163,7 +165,7 @@ function ProgramMockup() {
         </div>
 
         {/* Footer stats */}
-        <div className="px-5 py-3 border-t border-white/[0.04] bg-[#111111]/50 flex items-center justify-between">
+        <div className="px-5 py-3 border-t border-white/[0.04] bg-[#111111]/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-0">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
               <Target size={10} className="text-[#FF6B2B]" />

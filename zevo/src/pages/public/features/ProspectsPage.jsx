@@ -58,7 +58,8 @@ function ProspectsMockup() {
           </div>
 
           {/* Kanban columns */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="overflow-x-auto -mx-5 md:mx-0 px-5 md:px-0">
+          <div className="grid grid-cols-3 gap-3 min-w-[600px]">
             {columns.map((col, ci) => (
               <div key={ci} className="rounded-xl border border-white/[0.05] bg-[#111111] p-3">
                 {/* Column header */}
@@ -104,8 +105,10 @@ function ProspectsMockup() {
             ))}
           </div>
 
+          </div>
+
           {/* Bottom stats bar */}
-          <div className="mt-4 flex items-center justify-between px-3 py-3 rounded-xl border border-white/[0.04] bg-[#111111]">
+          <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 px-3 py-3 rounded-xl border border-white/[0.04] bg-[#111111]">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
                 <TrendingUp size={10} className="text-emerald-400" />

@@ -50,7 +50,7 @@ function CalendarMockup() {
               <p className="text-[10px] text-[#F5F5F3]/25">14 seances planifiees</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-md bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 text-[10px] font-medium text-[#FF6B2B]">Aujourd'hui</span>
             <span className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-[10px] text-[#F5F5F3]/30">Semaine</span>
             <span className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-[10px] text-[#F5F5F3]/30">Mois</span>
@@ -58,45 +58,47 @@ function CalendarMockup() {
         </div>
 
         {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-px bg-white/[0.03]">
-          {/* Day headers */}
-          {days.map((d, i) => (
-            <div key={i} className={`text-center py-2.5 border-b border-white/[0.04] ${i === 2 ? 'bg-[#FF6B2B]/[0.04]' : 'bg-[#141414]'}`}>
-              <p className="text-[10px] text-[#F5F5F3]/25 font-medium">{d.label}</p>
-              <p className={`text-[14px] font-bold mt-0.5 ${i === 2 ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]/50'}`}>{d.date}</p>
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <div className="min-w-[640px] grid grid-cols-7 gap-px bg-white/[0.03]">
+            {/* Day headers */}
+            {days.map((d, i) => (
+              <div key={i} className={`text-center py-2.5 border-b border-white/[0.04] ${i === 2 ? 'bg-[#FF6B2B]/[0.04]' : 'bg-[#141414]'}`}>
+                <p className="text-[10px] text-[#F5F5F3]/25 font-medium">{d.label}</p>
+                <p className={`text-[14px] font-bold mt-0.5 ${i === 2 ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]/50'}`}>{d.date}</p>
+              </div>
+            ))}
 
-          {/* Session columns */}
-          {days.map((_, dayIdx) => (
-            <div key={dayIdx} className={`relative bg-[#141414] ${dayIdx === 2 ? 'bg-[#FF6B2B]/[0.02]' : ''}`} style={{ height: '260px' }}>
-              {/* Time grid lines */}
-              {[0, 25, 50, 75].map(t => (
-                <div key={t} className="absolute left-0 right-0 border-t border-white/[0.02]" style={{ top: `${t}%` }} />
-              ))}
-              {/* Sessions */}
-              {sessions.filter(s => s.day === dayIdx).map((s, si) => (
-                <div
-                  key={si}
-                  className="absolute left-1 right-1 rounded-lg overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-[1.02] hover:z-10"
-                  style={{ top: s.top, height: s.height }}
-                >
-                  <div className="absolute inset-0 opacity-15 group-hover:opacity-25 transition-opacity" style={{ backgroundColor: s.color }} />
-                  <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-full" style={{ backgroundColor: s.color }} />
-                  <div className="relative px-2 py-1.5">
-                    <p className="text-[9px] font-semibold truncate" style={{ color: s.color }}>{s.time}</p>
-                    <p className="text-[9px] text-[#F5F5F3]/60 truncate font-medium">{s.name}</p>
-                    <p className="text-[8px] text-[#F5F5F3]/25 truncate">{s.type}</p>
+            {/* Session columns */}
+            {days.map((_, dayIdx) => (
+              <div key={dayIdx} className={`relative bg-[#141414] ${dayIdx === 2 ? 'bg-[#FF6B2B]/[0.02]' : ''}`} style={{ height: '260px' }}>
+                {/* Time grid lines */}
+                {[0, 25, 50, 75].map(t => (
+                  <div key={t} className="absolute left-0 right-0 border-t border-white/[0.02]" style={{ top: `${t}%` }} />
+                ))}
+                {/* Sessions */}
+                {sessions.filter(s => s.day === dayIdx).map((s, si) => (
+                  <div
+                    key={si}
+                    className="absolute left-1 right-1 rounded-lg overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-[1.02] hover:z-10"
+                    style={{ top: s.top, height: s.height }}
+                  >
+                    <div className="absolute inset-0 opacity-15 group-hover:opacity-25 transition-opacity" style={{ backgroundColor: s.color }} />
+                    <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-full" style={{ backgroundColor: s.color }} />
+                    <div className="relative px-2 py-1.5">
+                      <p className="text-[9px] font-semibold truncate" style={{ color: s.color }}>{s.time}</p>
+                      <p className="text-[9px] text-[#F5F5F3]/60 truncate font-medium">{s.name}</p>
+                      <p className="text-[8px] text-[#F5F5F3]/25 truncate">{s.type}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ))}
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Footer status */}
-        <div className="flex items-center justify-between px-5 py-2.5 border-t border-white/[0.04] bg-[#111111]/50">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-2.5 border-t border-white/[0.04] bg-[#111111]/50">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             {[
               { color: '#FF6B2B', label: 'Force' },
               { color: '#3B82F6', label: 'Cardio' },

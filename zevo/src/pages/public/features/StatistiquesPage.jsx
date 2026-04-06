@@ -22,9 +22,9 @@ function StatsMockup() {
       <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-[#141414] to-[#0F0F0F] p-1 shadow-2xl shadow-black/40">
         <div className="rounded-xl bg-[#0C0C0C] p-5 md:p-7">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF6B2B]/5 border border-[#FF6B2B]/10 flex items-center justify-center">
+          <div className="flex items-center justify-between mb-6 gap-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF6B2B]/5 border border-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
                 <BarChart3 size={14} className="text-[#FF6B2B]" />
               </div>
               <div>
@@ -32,9 +32,9 @@ function StatsMockup() {
                 <p className="text-[10px] text-[#F5F5F3]/25">Avril 2026</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <span className="px-2.5 py-1 rounded-md bg-[#FF6B2B]/10 border border-[#FF6B2B]/15 text-[9px] font-semibold text-[#FF6B2B]">Ce mois</span>
-              <span className="px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/[0.06] text-[9px] font-medium text-[#F5F5F3]/25">90 jours</span>
+              <span className="px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/[0.06] text-[9px] font-medium text-[#F5F5F3]/25 hidden sm:inline">90 jours</span>
             </div>
           </div>
 
@@ -53,7 +53,7 @@ function StatsMockup() {
                       {m.change}
                     </span>
                   </div>
-                  <p className="text-xl md:text-2xl font-bold text-[#F5F5F3]/90">
+                  <p className="text-lg md:text-2xl font-bold text-[#F5F5F3]/90">
                     {m.value}<span className="text-sm text-[#F5F5F3]/30 ml-0.5">{m.unit}</span>
                   </p>
                   <p className="text-[10px] text-[#F5F5F3]/25 mt-1">{m.label}</p>

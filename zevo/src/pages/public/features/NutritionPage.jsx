@@ -74,7 +74,7 @@ function NutritionMockup() {
 
         {/* Macro cards */}
         <div className="px-5 py-4 border-b border-white/[0.04]">
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {macros.map((m, i) => {
               const Icon = m.icon
               return (
@@ -124,7 +124,7 @@ function NutritionMockup() {
                     <p className={`text-[11px] font-semibold ${meal.done ? 'text-[#F5F5F3]/40' : 'text-[#F5F5F3]/70'}`}>{meal.name}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
                   <div className="flex items-center gap-1">
                     <Clock size={9} className="text-[#F5F5F3]/15" />
                     <span className="text-[9px] text-[#F5F5F3]/20">{meal.time}</span>

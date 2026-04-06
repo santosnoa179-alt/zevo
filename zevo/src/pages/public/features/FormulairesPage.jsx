@@ -108,9 +108,9 @@ function FormBuilderMockup() {
                           </div>
                         )}
                         {q.type === 'scale' && (
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                              <div key={n} className={`w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-semibold border transition-all ${n <= q.value ? 'bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF8F5E]/10 border-[#FF6B2B]/15 text-[#FF6B2B]' : 'bg-white/[0.02] border-white/[0.04] text-[#F5F5F3]/15'}`}>
+                              <div key={n} className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center text-[9px] font-semibold border transition-all ${n <= q.value ? 'bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF8F5E]/10 border-[#FF6B2B]/15 text-[#FF6B2B]' : 'bg-white/[0.02] border-white/[0.04] text-[#F5F5F3]/15'}`}>
                                 {n}
                               </div>
                             ))}

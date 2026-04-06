@@ -31,7 +31,7 @@ function ClientProfileMockup() {
       <div className="rounded-2xl border border-white/[0.06] bg-[#141414] overflow-hidden shadow-2xl shadow-black/40">
 
         {/* Header */}
-        <div className="px-5 py-4 border-b border-white/[0.06] bg-[#111111] flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-white/[0.06] bg-[#111111] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF8F5E]/10 border border-[#FF6B2B]/15 flex items-center justify-center">
               <Users size={14} className="text-[#FF6B2B]" />
@@ -128,7 +128,7 @@ function ClientProfileMockup() {
             </div>
 
             {/* Measurements grid */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 overflow-hidden">
               {measurements.map((m, i) => {
                 const TrendIcon = m.trend === 'up' ? ArrowUp : m.trend === 'down' ? ArrowDown : Minus
                 const trendColor = m.label === 'Masse muscu.' ? (m.trend === 'up' ? 'text-green-400' : 'text-red-400') : (m.trend === 'down' ? 'text-green-400' : 'text-red-400')

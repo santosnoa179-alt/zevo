@@ -44,13 +44,14 @@ function LibraryMockup() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] w-48">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] w-48">
               <Search size={12} className="text-[#F5F5F3]/20" />
               <span className="text-[10px] text-[#F5F5F3]/20">Rechercher...</span>
             </div>
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+              <Search size={11} className="text-[#F5F5F3]/25 sm:hidden" />
               <Filter size={11} className="text-[#F5F5F3]/25" />
-              <span className="text-[10px] text-[#F5F5F3]/25">Filtres</span>
+              <span className="text-[10px] text-[#F5F5F3]/25 hidden sm:inline">Filtres</span>
             </div>
           </div>
         </div>
@@ -82,8 +83,8 @@ function LibraryMockup() {
           {/* File list */}
           <div className="flex-1 p-3.5">
             <div className="flex items-center justify-between mb-3 px-1">
-              <p className="text-[10px] text-[#F5F5F3]/25 font-medium">Exercices Upper Body</p>
-              <div className="flex items-center gap-3">
+              <p className="text-[10px] text-[#F5F5F3]/25 font-medium truncate">Exercices Upper Body</p>
+              <div className="flex items-center gap-3 shrink-0 ml-2">
                 <span className="text-[9px] text-[#F5F5F3]/15">24 fichiers</span>
               </div>
             </div>
@@ -104,7 +105,7 @@ function LibraryMockup() {
                       {file.tag}
                     </span>
                     <span className="text-[9px] text-[#F5F5F3]/15 hidden sm:block w-12 text-right">{file.date}</span>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="hidden sm:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Eye size={11} className="text-[#F5F5F3]/20 hover:text-[#FF6B2B] cursor-pointer transition-colors" />
                       <Share2 size={11} className="text-[#F5F5F3]/20 hover:text-[#FF6B2B] cursor-pointer transition-colors" />
                       <Download size={11} className="text-[#F5F5F3]/20 hover:text-[#FF6B2B] cursor-pointer transition-colors" />
@@ -137,7 +138,7 @@ function FileTypesSection() {
           <p className="text-[11px] font-semibold text-[#FF6B2B] uppercase tracking-widest mb-3">Formats supportes</p>
           <h2 className="text-2xl md:text-4xl font-bold">Tous tes fichiers, <span className="bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-[#FFB088] bg-clip-text text-transparent">un seul hub</span></h2>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {types.map((t, i) => {
             const Icon = t.icon
             return (
