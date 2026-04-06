@@ -7,11 +7,7 @@ import {
 } from 'lucide-react'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
 
-// ══════════════════════════════════════════════════════════
-// REMPLACE cette URL par ton lien Cal.com une fois le compte cree
-// Exemple : https://cal.com/ton-nom/demo-zevo
-// ══════════════════════════════════════════════════════════
-const CAL_EMBED_URL = 'https://cal.com/zevo/demo'
+const CAL_EMBED_URL = 'https://cal.com/zevo-app/demo-zevo'
 
 const DEMO_BENEFITS = [
   { icon: Video, text: 'Demo personnalisee de 20 min en visio' },
