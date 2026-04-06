@@ -178,7 +178,7 @@ export function ClientLayout() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-[var(--bg-base)]/90 backdrop-blur-lg border-b border-[var(--border-base)] px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-[var(--bg-base)]/90 backdrop-blur-lg border-b border-[var(--border-base)] px-4 pb-3 flex items-center justify-between" style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top, 0px))' }}>
         <div className="flex items-center gap-2.5">
           {logoUrl ? (
             <>

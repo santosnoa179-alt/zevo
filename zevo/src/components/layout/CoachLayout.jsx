@@ -259,7 +259,7 @@ export function CoachLayout() {
       {/* ══════════════════════════════════════ */}
       {/* HEADER MOBILE                         */}
       {/* ══════════════════════════════════════ */}
-      <header className="md:hidden sticky top-0 z-50 bg-[var(--bg-elevated)] border-b border-[var(--border-base)] px-4 py-3 flex items-center justify-between">
+      <header className="md:hidden sticky top-0 z-50 bg-[var(--bg-elevated)] border-b border-[var(--border-base)] px-4 pb-3 flex items-center justify-between" style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top, 0px))' }}>
         <ZevoLogo size="sm" className="text-[var(--text-primary)]" />
         <div className="flex items-center gap-2">
           <ThemeToggle size="sm" />
@@ -274,7 +274,7 @@ export function CoachLayout() {
 
       {/* ── Menu mobile overlay ── */}
       {menuOpen && (
-        <div className="md:hidden fixed inset-0 top-[53px] z-40 bg-[var(--bg-elevated)] backdrop-blur-sm overflow-y-auto overscroll-contain">
+        <div className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-[var(--bg-elevated)] backdrop-blur-sm overflow-y-auto overscroll-contain" style={{ top: 'calc(53px + env(safe-area-inset-top, 0px))' }}>
           <nav className="p-4">
             {NAV_SECTIONS.map((section, si) => (
               <div key={si} className={si > 0 ? 'mt-4' : ''}>
