@@ -126,9 +126,11 @@ create policy "invitations_select" on invitations
 create policy "invitations_insert" on invitations
   for insert with check (auth.uid() = coach_id);
 
+-- Le client fraîchement inscrit doit pouvoir marquer son invitation comme acceptée
 create policy "invitations_update" on invitations
   for update using (
     auth.uid() = coach_id
+    or auth.uid() is not null
     or is_admin()
   );
 
