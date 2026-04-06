@@ -97,13 +97,18 @@ export default function LoginPage() {
         console.error('Erreur update profiles:', profileError)
       }
 
-      // 3. Créer la ligne coach avec plan par défaut (pas d'abonnement)
+      // 3. Créer la ligne coach avec plan par défaut + essai gratuit 14 jours
+      const trialEnd = new Date()
+      trialEnd.setDate(trialEnd.getDate() + 14)
+
       const { error: coachError } = await supabase
         .from('coaches')
         .insert({
           id: userId,
           plan: 'starter',
           abonnement_actif: false,
+          trial_ends_at: trialEnd.toISOString(),
+          subscription_status: 'trialing',
         })
 
       if (coachError) {

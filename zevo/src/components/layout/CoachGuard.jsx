@@ -29,7 +29,7 @@ export function CoachGuard({ children }) {
 
     const { data, error } = await supabase
       .from('coaches')
-      .select('abonnement_actif, stripe_customer_id, onboarding_complete')
+      .select('abonnement_actif, stripe_customer_id, onboarding_complete, trial_ends_at, subscription_status')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -39,8 +39,12 @@ export function CoachGuard({ children }) {
     }
 
     if (data) {
+      // Trial actif = accès autorisé même sans abonnement
+      const trialActive = data.trial_ends_at && new Date(data.trial_ends_at) > new Date()
+      const hasActiveSubscription = data.abonnement_actif === true || data.subscription_status === 'active'
+
       return {
-        abonnementActif: data.abonnement_actif === true,
+        abonnementActif: hasActiveSubscription || trialActive,
         onboardingDone: data.onboarding_complete === true,
         stripeCustomerId: data.stripe_customer_id,
       }
