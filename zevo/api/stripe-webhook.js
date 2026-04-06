@@ -260,6 +260,7 @@ export default async function handler(req, res) {
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
           abonnement_actif: true,
+          subscription_status: 'active',
         })
 
         if (success) {
@@ -299,6 +300,7 @@ export default async function handler(req, res) {
           .update({
             plan: newPlan,
             abonnement_actif: isActive,
+            subscription_status: isActive ? 'active' : 'canceled',
           })
           .eq('stripe_subscription_id', subscription.id)
 
@@ -319,7 +321,7 @@ export default async function handler(req, res) {
 
         const { error } = await supabaseAdmin
           .from('coaches')
-          .update({ abonnement_actif: false, plan: 'starter' })
+          .update({ abonnement_actif: false, plan: 'starter', subscription_status: 'canceled' })
           .eq('stripe_subscription_id', subscription.id)
 
         if (error) {
@@ -340,7 +342,7 @@ export default async function handler(req, res) {
         if (invoice.subscription) {
           const { error } = await supabaseAdmin
             .from('coaches')
-            .update({ abonnement_actif: false })
+            .update({ abonnement_actif: false, subscription_status: 'past_due' })
             .eq('stripe_subscription_id', invoice.subscription)
 
           if (error) {

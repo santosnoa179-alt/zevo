@@ -109,7 +109,7 @@ export function CoachLayout() {
     const load = async () => {
       const { data } = await supabase
         .from('coaches')
-        .select('prenom, nom, nom_app, logo_url, tutorial_coach_done, trial_ends_at, subscription_status')
+        .select('prenom, nom, nom_app, logo_url, tutorial_coach_done, trial_ends_at, subscription_status, abonnement_actif')
         .eq('id', user.id)
         .maybeSingle()
       if (data) {
@@ -220,7 +220,7 @@ export function CoachLayout() {
   // ══════════════════════════════════════
   // TRIAL / PAYWALL LOGIC
   // ══════════════════════════════════════
-  const isSubscribed = coachProfile?.subscription_status === 'active'
+  const isSubscribed = coachProfile?.subscription_status === 'active' || coachProfile?.abonnement_actif === true
   const trialEndsAt = coachProfile?.trial_ends_at ? new Date(coachProfile.trial_ends_at) : null
   const now = new Date()
   const msRemaining = trialEndsAt ? trialEndsAt.getTime() - now.getTime() : 0
