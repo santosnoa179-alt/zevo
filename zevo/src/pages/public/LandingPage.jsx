@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, Check, Star, Users, Dumbbell, BarChart3,
@@ -6,9 +6,10 @@ import {
   ChevronDown, Menu, X, Sparkles, Play,
   Smartphone, CreditCard, BookOpen,
   TrendingUp, Heart, Clock, Target,
-  Crown, Flame, Activity, Apple,
+  Crown, Flame, Activity,
   FileText, Paintbrush, UserPlus, CalendarDays,
-  Eye, Lock, Bell, ArrowUpRight, Utensils
+  Lock, Bell, Utensils, CheckCircle,
+  ArrowUpRight, Trophy, Rocket, Eye, ChevronRight
 } from 'lucide-react'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
 
@@ -24,188 +25,136 @@ const NAV_LINKS = [
   { label: 'FAQ', id: 'faq' },
 ]
 
-// Bento features — layout irrégulier comme Ekklo
 const BENTO_FEATURES = [
   {
-    icon: Users,
-    title: 'Hub Client 360',
-    desc: 'Chaque client a sa fiche complete : objectifs, progression, mensurations, score bien-etre. Tout au meme endroit, en un coup d\'oeil.',
-    size: 'large', // span 2 cols
+    icon: Users, title: 'Hub Client 360',
+    desc: 'Objectifs, mensurations, score bien-etre, historique. Chaque client a sa fiche complete.',
+    span: 'col-span-1 md:col-span-2 md:row-span-2', visual: 'hub',
   },
   {
-    icon: Dumbbell,
-    title: 'Programmes & Seances',
-    desc: 'Cree des programmes multi-semaines avec exercices, series, repos. Tes clients les suivent en live.',
-    size: 'normal',
+    icon: Dumbbell, title: 'Programmes',
+    desc: 'Multi-semaines, drag & drop, suivi live.',
+    span: 'col-span-1', visual: null,
   },
   {
-    icon: MessageCircle,
-    title: 'Messagerie temps reel',
-    desc: 'Chat integre avec notifications push. Plus besoin de WhatsApp.',
-    size: 'normal',
+    icon: MessageCircle, title: 'Messagerie',
+    desc: 'Chat temps reel + notifications push.',
+    span: 'col-span-1', visual: null,
   },
   {
-    icon: Utensils,
-    title: 'Plans nutritionnels',
-    desc: 'Cree des plans alimentaires personnalises avec macros et repas. Tes clients ont tout dans leur app.',
-    size: 'normal',
+    icon: BarChart3, title: 'Statistiques & Rapports',
+    desc: 'Dashboards, graphiques, PDF automatiques. Mesure tout ce qui compte.',
+    span: 'col-span-1 md:col-span-2', visual: 'stats',
   },
   {
-    icon: ClipboardList,
-    title: 'Formulaires & Bilans',
-    desc: 'Questionnaires personnalises, bilans automatiques, collecte de donnees simplifiee.',
-    size: 'normal',
+    icon: Utensils, title: 'Nutrition',
+    desc: 'Plans alimentaires, macros, repas.',
+    span: 'col-span-1', visual: null,
   },
   {
-    icon: BarChart3,
-    title: 'Statistiques & Rapports',
-    desc: 'Tableaux de bord detailles, graphiques de progression, taux de retention, PDF automatiques. Prends des decisions basees sur les donnees.',
-    size: 'large',
+    icon: Paintbrush, title: 'App Builder',
+    desc: 'Ton logo, tes couleurs, tes modules.',
+    span: 'col-span-1', visual: null,
   },
   {
-    icon: Paintbrush,
-    title: 'App Builder',
-    desc: 'Ton logo, tes couleurs, tes modules. L\'experience de tes clients ressemble a TA marque.',
-    size: 'normal',
+    icon: ClipboardList, title: 'Formulaires',
+    desc: 'Questionnaires & bilans automatises.',
+    span: 'col-span-1', visual: null,
   },
   {
-    icon: CreditCard,
-    title: 'Paiements integres',
-    desc: 'Connecte Stripe en un clic. Cree des offres, encaisse automatiquement.',
-    size: 'normal',
+    icon: CreditCard, title: 'Paiements Stripe',
+    desc: 'Offres, encaissement auto, facturation.',
+    span: 'col-span-1', visual: null,
   },
 ]
 
-// Section alternance image/texte — comme Ekklo
 const SHOWCASES = [
   {
     badge: 'Suivi client',
-    title: 'Une vision complete de chaque client',
-    desc: 'Objectifs, mensurations, score bien-etre, historique des seances — tout est centralise dans le Hub Client 360. Plus besoin de jongler entre 10 outils.',
-    features: ['Fiche client unifiee', 'Score bien-etre automatique', 'Alertes de desengagement', 'Historique complet'],
+    title: 'Chaque client merite une attention sur-mesure',
+    desc: 'Objectifs, mensurations, score bien-etre, historique des seances. Tout est centralise dans une fiche unique. Tu sais exactement ou en est chaque client en 3 secondes.',
+    features: ['Fiche client unifiee', 'Score bien-etre auto', 'Alertes desengagement', 'Historique complet'],
     visual: 'client',
+    metric: { value: '3s', label: 'pour voir l\'essentiel' },
   },
   {
     badge: 'Programmation',
-    title: 'Des programmes qui se suivent tout seuls',
-    desc: 'Cree des programmes multi-semaines en quelques minutes. Tes clients voient leurs seances, valident leurs series, et toi tu suis tout en temps reel.',
-    features: ['Drag & drop intuitif', 'Exercices avec videos', 'Suivi en temps reel', 'Templates reutilisables'],
+    title: 'Des programmes que tes clients adorent suivre',
+    desc: 'Interface intuitive, exercices avec demos, validation en temps reel. Tes clients restent motives, tu gagnes des heures chaque semaine.',
+    features: ['Drag & drop', 'Videos demo', 'Suivi temps reel', 'Templates'],
     visual: 'program',
+    metric: { value: '4h', label: 'gagnees par semaine' },
   },
   {
-    badge: 'Application mobile',
-    title: 'Ton app, a tes couleurs',
-    desc: 'Avec l\'App Builder, personnalise l\'experience de tes clients. Ton logo, ta palette, tes modules actives. Ils pensent utiliser TON app.',
-    features: ['Branding complet', 'Modules au choix', 'Experience premium', 'Preview en direct'],
+    badge: 'Ton app',
+    title: 'Tes clients pensent que c\'est TON app',
+    desc: 'Avec l\'App Builder, personnalise tout : logo, couleurs, modules. L\'experience est 100% a ton image. Tes clients ne savent meme pas que c\'est Zevo.',
+    features: ['Branding complet', 'Modules au choix', 'Preview live', 'Experience premium'],
     visual: 'app',
+    metric: { value: '100%', label: 'a ton image' },
   },
 ]
 
 const STEPS = [
-  { num: '01', title: 'Cree ton compte', desc: 'Inscription en 30 secondes. 14 jours d\'essai gratuit, toutes fonctionnalites incluses. Aucune carte bancaire requise.', icon: UserPlus },
-  { num: '02', title: 'Configure ton espace', desc: 'Ajoute tes clients, cree tes programmes, personnalise ton app. L\'onboarding te guide pas a pas.', icon: Paintbrush },
-  { num: '03', title: 'Accompagne & scale', desc: 'Tes clients suivent leurs seances et remplissent leurs bilans. Tu suis tout en temps reel et tu scales.', icon: TrendingUp },
+  { num: '01', title: 'Cree ton compte', desc: '30 secondes. Pas de carte bancaire. Toutes les fonctionnalites pendant 14 jours.', icon: Rocket },
+  { num: '02', title: 'Configure & invite', desc: 'Ajoute tes clients, cree tes premiers programmes. L\'onboarding te guide.', icon: Paintbrush },
+  { num: '03', title: 'Scale ton coaching', desc: 'Tes clients progressent, tu mesures tout, tu scales. Simple.', icon: TrendingUp },
 ]
 
 const TESTIMONIALS = [
   {
-    name: 'Lucas M.',
-    role: 'Coach sportif independant',
-    text: 'Depuis que j\'utilise Zevo, j\'ai double mon nombre de clients. L\'app me fait gagner un temps fou au quotidien. Le Hub Client est une vraie pepite.',
-    avatar: 'L',
-    rating: 5,
+    name: 'Lucas Martin', role: 'Coach sportif · Paris', avatar: 'LM',
+    text: 'J\'ai double mon nombre de clients en 3 mois. Le Hub Client me fait gagner un temps fou. Mes clients adorent l\'experience.',
+    metric: { value: 'x2', label: 'clients en 3 mois' }, rating: 5,
   },
   {
-    name: 'Sarah K.',
-    role: 'Coach nutrition & bien-etre',
-    text: 'Mes clients adorent l\'experience. Les formulaires et le suivi automatique ont completement change ma facon de travailler. Je ne reviendrais en arriere pour rien.',
-    avatar: 'S',
-    rating: 5,
+    name: 'Sarah Khelifi', role: 'Coach nutrition · Lyon', avatar: 'SK',
+    text: 'Les formulaires automatiques et le suivi nutritionnel ont change ma facon de travailler. Je ne reviendrais en arriere pour rien au monde.',
+    metric: { value: '4h', label: 'gagnees/semaine' }, rating: 5,
   },
   {
-    name: 'Thomas R.',
-    role: 'Preparateur physique',
-    text: 'Le Hub Client 360 est incroyable. J\'ai toutes les infos de mes athletes en un coup d\'oeil. Les rapports PDF m\'ont fait gagner des heures chaque semaine.',
-    avatar: 'T',
-    rating: 5,
+    name: 'Thomas Renaud', role: 'Preparateur physique · Bordeaux', avatar: 'TR',
+    text: 'Les rapports PDF automatiques m\'ont fait gagner des heures. Mes athletes voient leur progression, ca les motive enormement.',
+    metric: { value: '98%', label: 'retention clients' }, rating: 5,
   },
   {
-    name: 'Marie P.',
-    role: 'Coach holistique',
-    text: 'L\'App Builder est genial, mes clients pensent que j\'ai ma propre application. Ca change completement l\'image de mon business. Merci Zevo !',
-    avatar: 'M',
-    rating: 5,
+    name: 'Marie Petit', role: 'Coach holistique · Nantes', avatar: 'MP',
+    text: 'L\'App Builder est genial. Mes clients pensent que j\'ai ma propre app. Ca a transforme l\'image de mon business completement.',
+    metric: { value: '+45%', label: 'revenue en 2 mois' }, rating: 5,
   },
 ]
 
 const PLANS = [
   {
-    id: 'starter',
-    name: 'Starter',
-    price: { monthly: 29, yearly: 24 },
-    desc: 'Ideal pour demarrer ton activite de coaching',
-    features: [
-      'Jusqu\'a 5 clients',
-      'Dashboard coach complet',
-      'Messagerie temps reel',
-      'Score bien-etre & alertes',
-      'Formulaires personnalises',
-      'Programmes multi-semaines',
-      'Bibliotheque / Drive',
-      'CRM prospects',
-      'Support par email',
-    ],
+    id: 'starter', name: 'Starter', price: { monthly: 29, yearly: 24 },
+    desc: 'Pour demarrer ton activite',
+    features: ['5 clients', 'Dashboard complet', 'Messagerie temps reel', 'Programmes & seances', 'Formulaires', 'Bibliotheque', 'CRM prospects', 'Support email'],
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    price: { monthly: 49, yearly: 39 },
-    popular: true,
-    desc: 'Pour scaler ton activite et te demarquer',
-    features: [
-      'Jusqu\'a 50 clients',
-      'Tout le plan Starter',
-      'App Builder (branding)',
-      'Rapports PDF automatiques',
-      'Statistiques avancees',
-      'Plans nutritionnels',
-      'Support prioritaire',
-    ],
+    id: 'pro', name: 'Pro', price: { monthly: 49, yearly: 39 }, popular: true,
+    desc: 'Pour scaler serieusement',
+    features: ['50 clients', 'Tout le Starter', 'App Builder (branding)', 'Rapports PDF auto', 'Statistiques avancees', 'Plans nutritionnels', 'Support prioritaire'],
   },
   {
-    id: 'unlimited',
-    name: 'Unlimited',
-    price: { monthly: 79, yearly: 65 },
-    desc: 'Pour les coachs sans aucune limite',
-    features: [
-      'Clients illimites',
-      'Tout le plan Pro',
-      'Automatisation avancee',
-      'API & webhooks',
-      'Support dedie',
-    ],
+    id: 'unlimited', name: 'Unlimited', price: { monthly: 79, yearly: 65 },
+    desc: 'Zero limite',
+    features: ['Clients illimites', 'Tout le Pro', 'Automatisation', 'API & webhooks', 'Support dedie'],
   },
-]
-
-const STATS = [
-  { value: '500+', label: 'Coachs actifs' },
-  { value: '12 000+', label: 'Clients suivis' },
-  { value: '4.8/5', label: 'Note moyenne' },
-  { value: '98%', label: 'Taux de satisfaction' },
 ]
 
 const FAQS = [
-  { q: 'L\'essai gratuit est-il vraiment sans engagement ?', a: 'Oui, 14 jours gratuits avec toutes les fonctionnalites. Aucune carte bancaire demandee. Tu peux annuler a tout moment, tes donnees seront conservees 30 jours.' },
-  { q: 'Mes clients doivent-ils payer pour utiliser Zevo ?', a: 'Non. Tes clients accedent gratuitement a leur espace via un lien d\'invitation que tu leur envoies. Ils n\'ont rien a payer pour utiliser l\'app.' },
-  { q: 'Puis-je personnaliser l\'app a mes couleurs ?', a: 'Oui, avec l\'App Builder (inclus dans le plan Pro), tu peux personnaliser le logo, les couleurs, les modules actifs. Tes clients ont l\'impression d\'utiliser ta propre application.' },
-  { q: 'Comment fonctionnent les paiements ?', a: 'Tu connectes ton compte Stripe en un clic depuis les parametres. Tu crees des offres de coaching avec le prix souhaite, et tes clients paient directement. L\'argent arrive sur ton compte Stripe.' },
-  { q: 'Puis-je migrer mes clients existants ?', a: 'Oui, tu peux inviter tes clients existants par email ou via un lien d\'invitation. Ils creent leur compte en moins d\'une minute et retrouvent tout leur suivi.' },
-  { q: 'Y a-t-il un engagement minimum ?', a: 'Non, tous nos plans sont sans engagement. Tu peux upgrader, downgrader ou annuler a tout moment. Pas de frais caches.' },
-  { q: 'Zevo fonctionne-t-il sur mobile ?', a: 'Oui, Zevo est 100% responsive. Tes clients et toi pouvez utiliser la plateforme depuis n\'importe quel appareil : smartphone, tablette ou ordinateur.' },
+  { q: 'L\'essai gratuit est-il vraiment sans engagement ?', a: 'Oui, 14 jours gratuits avec TOUTES les fonctionnalites. Aucune carte bancaire. Tu peux annuler en un clic, tes donnees sont conservees 30 jours.' },
+  { q: 'Mes clients doivent-ils payer pour utiliser Zevo ?', a: 'Non. Tes clients accedent gratuitement a leur espace via un lien d\'invitation. Ils n\'ont rien a payer.' },
+  { q: 'Puis-je personnaliser l\'app a mes couleurs ?', a: 'Oui ! L\'App Builder (plan Pro) te permet de mettre ton logo, tes couleurs, tes modules. Tes clients ont l\'impression d\'utiliser ta propre application.' },
+  { q: 'Comment fonctionnent les paiements ?', a: 'Tu connectes Stripe en un clic. Tu crees des offres avec ton prix, tes clients paient directement. L\'argent arrive sur ton compte.' },
+  { q: 'Puis-je migrer mes clients ?', a: 'Oui, invite-les par email ou lien. Creation de compte en moins d\'une minute.' },
+  { q: 'Y a-t-il un engagement ?', a: 'Non. Sans engagement. Upgrade, downgrade ou annule a tout moment. Zero frais caches.' },
+  { q: 'Ca marche sur mobile ?', a: '100% responsive. Smartphone, tablette, desktop — tout fonctionne partout.' },
 ]
 
-const LOGOS_PARTNERS = [
-  'CrossFit', 'BPJEPS', 'STAPS', 'FitPro', 'CoachHub'
+const SOCIAL_PROOF_NAMES = [
+  'Julien D.', 'Amira K.', 'Paul R.', 'Laura M.', 'Kevin T.', 'Sofia B.', 'Marc L.', 'Chloe V.',
+  'Antoine P.', 'Yasmine N.', 'Hugo F.', 'Leila S.', 'Nathan G.', 'Emma C.', 'Dylan H.', 'Ines A.',
 ]
 
 // ══════════════════════════════════════════════════════════
@@ -217,8 +166,8 @@ function useInView(ref, opts = {}) {
   useEffect(() => {
     if (!ref.current) return
     const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setInView(true); if (opts.once !== false) obs.disconnect() } },
-      { threshold: opts.threshold || 0.2 }
+      ([e]) => { if (e.isIntersecting) { setInView(true); if (opts.once !== false) obs.disconnect() } },
+      { threshold: opts.threshold || 0.15 }
     )
     obs.observe(ref.current)
     return () => obs.disconnect()
@@ -226,38 +175,108 @@ function useInView(ref, opts = {}) {
   return inView
 }
 
+function useAnimatedCounter(target, inView, duration = 2000) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    if (!inView) return
+    const num = parseInt(target.replace(/[^0-9]/g, ''), 10)
+    if (isNaN(num)) { setCount(target); return }
+    let start = 0
+    const step = num / (duration / 16)
+    const timer = setInterval(() => {
+      start += step
+      if (start >= num) { setCount(num); clearInterval(timer) }
+      else setCount(Math.floor(start))
+    }, 16)
+    return () => clearInterval(timer)
+  }, [inView, target, duration])
+  return count
+}
+
 // ══════════════════════════════════════════════════════════
-// SHOWCASE VISUAL MOCKUPS
+// SUB-COMPONENTS
 // ══════════════════════════════════════════════════════════
+
+function BentoVisualHub() {
+  return (
+    <div className="mt-4 rounded-xl bg-[#111] border border-white/[0.05] p-3 space-y-2.5">
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center text-white text-[10px] font-bold">JD</div>
+        <div className="flex-1">
+          <div className="text-xs font-semibold text-[#F5F5F3]">Julie Dupont</div>
+          <div className="text-[9px] text-[#F5F5F3]/25">Perte de poids · 3 mois</div>
+        </div>
+        <div className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">Actif</div>
+      </div>
+      <div className="grid grid-cols-3 gap-1.5">
+        {[
+          { v: '8.4', l: 'Bien-etre', c: '#10B981' },
+          { v: '12/16', l: 'Seances', c: '#3B82F6' },
+          { v: '-3.2kg', l: 'Poids', c: '#FF6B2B' },
+        ].map((s, i) => (
+          <div key={i} className="rounded-lg bg-white/[0.03] border border-white/[0.04] p-2 text-center">
+            <p className="text-sm font-bold" style={{ color: s.c }}>{s.v}</p>
+            <p className="text-[8px] text-[#F5F5F3]/25">{s.l}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function BentoVisualStats() {
+  return (
+    <div className="mt-4 flex items-end gap-1 h-14 px-1">
+      {[25, 35, 30, 50, 45, 60, 55, 68, 62, 75, 70, 85, 80, 92].map((h, i) => (
+        <div key={i} className="flex-1 rounded-t transition-all" style={{ height: `${h}%`, background: `linear-gradient(to top, #FF6B2B${i > 10 ? '' : '80'}, #FF8F5E${i > 10 ? '' : '50'})` }} />
+      ))}
+    </div>
+  )
+}
 
 function ShowcaseVisual({ type }) {
   if (type === 'client') {
     return (
-      <div className="rounded-2xl bg-[#161616] border border-white/[0.06] p-5 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center text-white text-sm font-bold">JD</div>
-          <div>
-            <div className="text-sm font-semibold text-[#F5F5F3]">Julie Dupont</div>
-            <div className="text-[10px] text-[#F5F5F3]/30">Objectif : Perte de poids</div>
-          </div>
-          <div className="ml-auto px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">Actif</div>
-        </div>
-        <div className="grid grid-cols-3 gap-2.5">
-          {[
-            { label: 'Bien-etre', val: '8.4', color: '#10B981' },
-            { label: 'Seances', val: '12/16', color: '#3B82F6' },
-            { label: 'Poids', val: '-3.2 kg', color: '#FF6B2B' },
-          ].map((s, i) => (
-            <div key={i} className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-3 text-center">
-              <p className="text-lg font-bold" style={{ color: s.color }}>{s.val}</p>
-              <p className="text-[9px] text-[#F5F5F3]/30 mt-0.5">{s.label}</p>
+      <div className="relative">
+        <div className="rounded-2xl bg-[#141414] border border-white/[0.06] p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-[#FF6B2B]/20">JD</div>
+            <div>
+              <div className="text-sm font-semibold text-[#F5F5F3]">Julie Dupont</div>
+              <div className="text-[10px] text-[#F5F5F3]/25">Objectif : Perte de poids · Depuis 3 mois</div>
             </div>
-          ))}
+          </div>
+          <div className="grid grid-cols-3 gap-2.5">
+            {[
+              { label: 'Bien-etre', val: '8.4/10', color: '#10B981', trend: '+0.6' },
+              { label: 'Seances', val: '12/16', color: '#3B82F6', trend: '75%' },
+              { label: 'Poids', val: '-3.2 kg', color: '#FF6B2B', trend: 'objectif' },
+            ].map((s, i) => (
+              <div key={i} className="rounded-xl bg-white/[0.025] border border-white/[0.05] p-3 text-center">
+                <p className="text-lg font-bold" style={{ color: s.color }}>{s.val}</p>
+                <p className="text-[9px] text-[#F5F5F3]/25 mt-0.5">{s.label}</p>
+                <p className="text-[8px] mt-1 font-semibold" style={{ color: s.color }}>{s.trend}</p>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-xl bg-white/[0.025] border border-white/[0.05] p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-semibold text-[#F5F5F3]/40">Progression</span>
+              <span className="text-[9px] text-emerald-400 font-bold">En bonne voie</span>
+            </div>
+            <div className="flex items-end gap-1 h-14">
+              {[30, 42, 38, 55, 50, 62, 58, 70, 65, 78, 72, 85].map((h, i) => (
+                <div key={i} className="flex-1 rounded-t" style={{ height: `${h}%`, background: `linear-gradient(to top, rgba(16,185,129,${0.2 + i * 0.05}), rgba(16,185,129,${0.1 + i * 0.04}))` }} />
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="flex items-end gap-1 h-16">
-          {[35, 42, 38, 55, 50, 62, 58, 70, 65, 75, 72, 80].map((h, i) => (
-            <div key={i} className="flex-1 rounded-t bg-gradient-to-t from-[#FF6B2B]/60 to-[#FF8F5E]/30" style={{ height: `${h}%` }} />
-          ))}
+        {/* Floating notification */}
+        <div className="absolute -top-3 -right-3 px-3 py-2 rounded-xl bg-[#1A1A1A] border border-emerald-500/20 shadow-xl shadow-black/30 flex items-center gap-2 animate-bounce-slow">
+          <div className="w-5 h-5 rounded-full bg-emerald-500/15 flex items-center justify-center">
+            <CheckCircle size={12} className="text-emerald-400" />
+          </div>
+          <span className="text-[10px] font-semibold text-emerald-400">Seance validee !</span>
         </div>
       </div>
     )
@@ -265,79 +284,114 @@ function ShowcaseVisual({ type }) {
 
   if (type === 'program') {
     return (
-      <div className="rounded-2xl bg-[#161616] border border-white/[0.06] p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold text-[#F5F5F3]">Programme Force</div>
-          <div className="text-[10px] text-[#F5F5F3]/30">Semaine 3/8</div>
-        </div>
-        {[
-          { name: 'Squat Back', sets: '4x8', rpe: '8', done: true },
-          { name: 'Bench Press', sets: '4x6', rpe: '9', done: true },
-          { name: 'Romanian Deadlift', sets: '3x10', rpe: '7', done: false },
-          { name: 'Pull-ups', sets: '4x8', rpe: '8', done: false },
-        ].map((ex, i) => (
-          <div key={i} className={`flex items-center gap-3 rounded-xl border p-3 transition-all ${ex.done ? 'bg-emerald-500/[0.04] border-emerald-500/20' : 'bg-white/[0.02] border-white/[0.05]'}`}>
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${ex.done ? 'bg-emerald-500/15' : 'bg-white/[0.05]'}`}>
-              {ex.done ? <Check size={14} className="text-emerald-400" /> : <Dumbbell size={14} className="text-[#F5F5F3]/30" />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-[#F5F5F3]">{ex.name}</p>
-              <p className="text-[10px] text-[#F5F5F3]/30">{ex.sets} · RPE {ex.rpe}</p>
-            </div>
-            {ex.done && <span className="text-[9px] text-emerald-400 font-bold">FAIT</span>}
+      <div className="relative">
+        <div className="rounded-2xl bg-[#141414] border border-white/[0.06] p-5 space-y-3">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-sm font-semibold text-[#F5F5F3]">Programme Force</div>
+            <div className="px-2 py-0.5 rounded-lg bg-[#FF6B2B]/10 text-[9px] text-[#FF6B2B] font-bold">Semaine 3/8</div>
           </div>
-        ))}
+          {/* Progress bar */}
+          <div className="h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] w-[37.5%] transition-all" />
+          </div>
+          {[
+            { name: 'Squat Back', sets: '4x8 @ 80kg', done: true },
+            { name: 'Bench Press', sets: '4x6 @ 70kg', done: true },
+            { name: 'Romanian DL', sets: '3x10 @ 60kg', done: false },
+            { name: 'Pull-ups lestes', sets: '4x8 @ +10kg', done: false },
+          ].map((ex, i) => (
+            <div key={i} className={`flex items-center gap-3 rounded-xl border p-3 transition-all ${ex.done ? 'bg-emerald-500/[0.03] border-emerald-500/15' : 'bg-white/[0.015] border-white/[0.05]'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${ex.done ? 'bg-emerald-500/15' : 'bg-white/[0.04]'}`}>
+                {ex.done ? <Check size={15} className="text-emerald-400" /> : <Dumbbell size={15} className="text-[#F5F5F3]/25" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-[#F5F5F3]">{ex.name}</p>
+                <p className="text-[10px] text-[#F5F5F3]/25">{ex.sets}</p>
+              </div>
+              {ex.done && <span className="text-[9px] text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-500/10">Fait</span>}
+            </div>
+          ))}
+        </div>
+        {/* Floating badge */}
+        <div className="absolute -bottom-3 -left-3 px-3 py-2 rounded-xl bg-[#1A1A1A] border border-[#FF6B2B]/20 shadow-xl shadow-black/30 flex items-center gap-2">
+          <Flame size={14} className="text-[#FF6B2B]" />
+          <span className="text-[10px] font-bold text-[#FF6B2B]">7 jours de suite !</span>
+        </div>
       </div>
     )
   }
 
-  // App builder visual
+  // App builder
   return (
-    <div className="rounded-2xl bg-[#161616] border border-white/[0.06] overflow-hidden">
-      {/* Phone frame */}
-      <div className="mx-auto max-w-[220px] py-6">
-        <div className="rounded-[24px] border-2 border-white/[0.08] bg-[#0D0D0D] overflow-hidden shadow-2xl">
-          {/* Status bar */}
-          <div className="flex items-center justify-between px-4 py-1.5 text-[8px] text-[#F5F5F3]/40">
+    <div className="relative flex justify-center">
+      <div className="w-[240px]">
+        <div className="rounded-[28px] border-2 border-white/[0.08] bg-[#0D0D0D] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+          <div className="flex items-center justify-between px-5 py-1.5 text-[8px] text-[#F5F5F3]/30">
             <span>9:41</span>
-            <div className="flex gap-1">
-              <Activity size={8} />
-              <Bell size={8} />
-            </div>
+            <div className="w-16 h-4 rounded-full bg-white/[0.06]" />
+            <div className="flex gap-1"><Activity size={7} /></div>
           </div>
-          {/* App header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E]">
-            <p className="text-white text-[10px] font-bold">Mon Coach App</p>
-            <p className="text-white/60 text-[8px]">Bienvenue, Julie</p>
+          <div className="px-4 py-3.5 bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E]">
+            <p className="text-white text-xs font-bold">FitCoach Pro</p>
+            <p className="text-white/50 text-[9px]">Bonjour Julie !</p>
           </div>
-          {/* Content */}
-          <div className="p-3 space-y-2">
-            <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5">
+          <div className="p-3 space-y-2.5">
+            <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-3">
               <div className="flex items-center gap-2 mb-2">
-                <CalendarDays size={10} className="text-[#FF6B2B]" />
-                <span className="text-[9px] font-semibold text-[#F5F5F3]">Prochaine seance</span>
+                <CalendarDays size={11} className="text-[#FF6B2B]" />
+                <span className="text-[10px] font-semibold text-[#F5F5F3]">Prochaine seance</span>
               </div>
-              <p className="text-[8px] text-[#F5F5F3]/40">Upper Body · Aujourd'hui 18h</p>
+              <p className="text-[9px] text-[#F5F5F3]/30">Upper Body · Aujourd'hui 18h</p>
+              <div className="mt-2 h-1 rounded-full bg-white/[0.05]">
+                <div className="h-full rounded-full bg-[#FF6B2B] w-[60%]" />
+              </div>
             </div>
-            <div className="rounded-lg bg-white/[0.04] border border-white/[0.06] p-2.5">
-              <div className="flex items-center gap-2 mb-2">
-                <Heart size={10} className="text-emerald-400" />
-                <span className="text-[9px] font-semibold text-[#F5F5F3]">Bien-etre</span>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-2.5 text-center">
+                <Heart size={12} className="text-emerald-400 mx-auto mb-1" />
+                <p className="text-sm font-bold text-[#F5F5F3]">8.4</p>
+                <p className="text-[7px] text-[#F5F5F3]/25">Bien-etre</p>
               </div>
-              <div className="flex gap-1">
-                {[1,2,3,4,5].map(i => (
-                  <div key={i} className={`h-4 flex-1 rounded ${i <= 4 ? 'bg-emerald-500/30' : 'bg-white/[0.05]'}`} />
-                ))}
+              <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-2.5 text-center">
+                <Flame size={12} className="text-[#FF6B2B] mx-auto mb-1" />
+                <p className="text-sm font-bold text-[#F5F5F3]">7j</p>
+                <p className="text-[7px] text-[#F5F5F3]/25">Serie</p>
               </div>
+            </div>
+            <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-3">
+              <div className="flex items-center gap-2">
+                <MessageCircle size={11} className="text-[#3B82F6]" />
+                <span className="text-[10px] font-semibold text-[#F5F5F3]">Message du coach</span>
+              </div>
+              <p className="text-[9px] text-[#F5F5F3]/30 mt-1">"Super semaine Julie ! Continue..."</p>
             </div>
           </div>
-          {/* Bottom nav */}
-          <div className="flex items-center justify-around py-2 border-t border-white/[0.06]">
-            {[Activity, Dumbbell, MessageCircle, Users].map((Icon, i) => (
-              <Icon key={i} size={12} className={i === 0 ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]/20'} />
+          <div className="flex items-center justify-around py-2.5 border-t border-white/[0.05]">
+            {[Activity, Dumbbell, Utensils, MessageCircle].map((Icon, i) => (
+              <Icon key={i} size={14} className={i === 0 ? 'text-[#FF6B2B]' : 'text-[#F5F5F3]/15'} />
             ))}
           </div>
         </div>
+      </div>
+      {/* Phone glow */}
+      <div className="pointer-events-none absolute inset-0 -bottom-10 bg-[#FF6B2B]/[0.04] blur-[50px] rounded-full" />
+    </div>
+  )
+}
+
+// Social proof notification popup
+function SocialProofPopup({ visible, name }) {
+  return (
+    <div className={`fixed bottom-6 left-6 z-40 transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+      <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#1A1A1A]/90 backdrop-blur-xl border border-white/[0.08] shadow-2xl shadow-black/50">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+          {name?.charAt(0)}
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-[#F5F5F3]">{name} vient de s'inscrire</p>
+          <p className="text-[10px] text-[#F5F5F3]/30">Il y a quelques instants</p>
+        </div>
+        <Sparkles size={14} className="text-[#FF6B2B] flex-shrink-0" />
       </div>
     </div>
   )
@@ -353,289 +407,269 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [billingYearly, setBillingYearly] = useState(false)
-  const [activeTestimonial, setActiveTestimonial] = useState(0)
+  const [activeTesti, setActiveTesti] = useState(0)
+
+  // Social proof popup
+  const [showPopup, setShowPopup] = useState(false)
+  const [popupName, setPopupName] = useState('')
 
   // Intersection observers
   const statsRef = useRef(null)
   const statsInView = useInView(statsRef)
   const featuresRef = useRef(null)
   const featuresInView = useInView(featuresRef)
+  const heroRef = useRef(null)
+  const heroInView = useInView(heroRef, { threshold: 0.05 })
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Social proof popup timer
+  useEffect(() => {
+    const show = () => {
+      const name = SOCIAL_PROOF_NAMES[Math.floor(Math.random() * SOCIAL_PROOF_NAMES.length)]
+      setPopupName(name)
+      setShowPopup(true)
+      setTimeout(() => setShowPopup(false), 4000)
+    }
+    const first = setTimeout(show, 8000)
+    const interval = setInterval(show, 25000)
+    return () => { clearTimeout(first); clearInterval(interval) }
   }, [])
 
   // Auto-rotate testimonials
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTestimonial(prev => (prev + 1) % TESTIMONIALS.length)
-    }, 5000)
+    const interval = setInterval(() => setActiveTesti(p => (p + 1) % TESTIMONIALS.length), 5000)
     return () => clearInterval(interval)
   }, [])
 
-  const scrollTo = (id) => {
-    setMenuOpen(false)
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const scrollTo = (id) => { setMenuOpen(false); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }) }
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-[#F5F5F3] overflow-x-hidden">
+      <SocialProofPopup visible={showPopup} name={popupName} />
 
-      {/* ══════════════════════════════════════ */}
-      {/* NAVBAR — sticky, glassmorphism on scroll */}
-      {/* ══════════════════════════════════════ */}
+      {/* ══════════════════════ NAVBAR ══════════════════════ */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-[#0D0D0D]/70 backdrop-blur-2xl border-b border-white/[0.06] py-3' : 'bg-transparent py-5'}`}>
         <div className="max-w-7xl mx-auto px-5 md:px-8 flex items-center justify-between">
           <ZevoLogo size="md" />
-
-          {/* Desktop nav */}
           <div className="hidden lg:flex items-center gap-8">
-            {NAV_LINKS.map(link => (
-              <button key={link.id} onClick={() => scrollTo(link.id)} className="text-[13px] text-[#F5F5F3]/50 hover:text-[#F5F5F3] transition-colors duration-300 font-medium">
-                {link.label}
-              </button>
+            {NAV_LINKS.map(l => (
+              <button key={l.id} onClick={() => scrollTo(l.id)} className="text-[13px] text-[#F5F5F3]/40 hover:text-[#F5F5F3] transition-colors duration-300 font-medium">{l.label}</button>
             ))}
           </div>
-
           <div className="hidden md:flex items-center gap-3">
-            <button onClick={() => navigate('/login')} className="px-4 py-2 text-sm font-medium text-[#F5F5F3]/60 hover:text-[#F5F5F3] transition-colors">
-              Se connecter
-            </button>
+            <button onClick={() => navigate('/login')} className="px-4 py-2 text-sm font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] transition-colors">Se connecter</button>
             <button onClick={() => navigate('/register')} className="group px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-sm font-semibold hover:shadow-lg hover:shadow-[#FF6B2B]/25 transition-all duration-300 flex items-center gap-2">
-              Essai gratuit
-              <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+              Essai gratuit <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
-
-          {/* Mobile burger */}
-          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 text-[#F5F5F3]/60 hover:text-[#F5F5F3] transition-colors">
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 text-[#F5F5F3]/60">{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
         </div>
-
-        {/* Mobile menu overlay */}
         {menuOpen && (
           <div className="md:hidden fixed inset-0 top-[60px] bg-[#0D0D0D]/98 backdrop-blur-2xl z-40">
             <div className="p-6 space-y-1">
-              {NAV_LINKS.map((link, i) => (
-                <button
-                  key={link.id}
-                  onClick={() => scrollTo(link.id)}
-                  className="block w-full text-left text-lg font-medium text-[#F5F5F3]/60 hover:text-[#F5F5F3] py-3 border-b border-white/[0.04] transition-all"
-                  style={{ animationDelay: `${i * 50}ms` }}
-                >
-                  {link.label}
-                </button>
+              {NAV_LINKS.map((l, i) => (
+                <button key={l.id} onClick={() => scrollTo(l.id)} className="block w-full text-left text-lg font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] py-3.5 border-b border-white/[0.04]">{l.label}</button>
               ))}
               <div className="pt-6 space-y-3">
-                <button onClick={() => { setMenuOpen(false); navigate('/login') }} className="block w-full text-center text-sm text-[#F5F5F3]/60 py-3">
-                  Se connecter
-                </button>
-                <button onClick={() => { setMenuOpen(false); navigate('/register') }} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-sm font-semibold">
-                  Commencer gratuitement
-                </button>
+                <button onClick={() => { setMenuOpen(false); navigate('/login') }} className="block w-full text-center text-sm text-[#F5F5F3]/50 py-3">Se connecter</button>
+                <button onClick={() => { setMenuOpen(false); navigate('/register') }} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-sm font-semibold">Commencer gratuitement</button>
               </div>
             </div>
           </div>
         )}
       </nav>
 
-      {/* ══════════════════════════════════════ */}
-      {/* HERO — Fullscreen avec reveal anim     */}
-      {/* ══════════════════════════════════════ */}
-      <section className="relative min-h-screen flex items-center justify-center px-5 md:px-8 pt-24 pb-20">
-        {/* Background effects */}
-        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[700px] rounded-full bg-[#FF6B2B]/[0.06] blur-[150px]" />
-        <div className="pointer-events-none absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-[#FF8F5E]/[0.03] blur-[120px]" />
-        {/* Grid pattern */}
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,black,transparent)]" />
+      {/* ══════════════════════ HERO ══════════════════════ */}
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center px-5 md:px-8 pt-24 pb-20">
+        {/* BG */}
+        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] rounded-full bg-[#FF6B2B]/[0.05] blur-[180px]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,black,transparent)]" />
 
-        <div className="relative max-w-5xl mx-auto text-center">
-          {/* Rating badge */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06] mb-8">
-            <div className="flex gap-0.5">
-              {[1,2,3,4,5].map(i => <Star key={i} size={12} className="text-[#FF6B2B] fill-[#FF6B2B]" />)}
+        <div className={`relative max-w-5xl mx-auto text-center transition-all duration-1000 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          {/* Social proof badge */}
+          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06] mb-8 hover:bg-white/[0.06] transition-colors cursor-default">
+            <div className="flex -space-x-1.5">
+              {['#FF6B2B', '#3B82F6', '#10B981', '#F59E0B'].map((c, i) => (
+                <div key={i} className="w-5 h-5 rounded-full border-2 border-[#0D0D0D] flex items-center justify-center text-[7px] font-bold text-white" style={{ backgroundColor: c, zIndex: 4 - i }}>
+                  {['L', 'S', 'T', 'M'][i]}
+                </div>
+              ))}
             </div>
-            <span className="text-xs font-medium text-[#F5F5F3]/50">4.8/5 — Aime par 500+ coachs</span>
+            <div className="flex gap-0.5">
+              {[1,2,3,4,5].map(i => <Star key={i} size={10} className="text-[#FF6B2B] fill-[#FF6B2B]" />)}
+            </div>
+            <span className="text-xs font-medium text-[#F5F5F3]/40">Aime par <strong className="text-[#F5F5F3]/70">500+</strong> coachs</span>
           </div>
 
-          <h1 className="text-[clamp(2.5rem,7vw,5rem)] font-bold tracking-tight leading-[1.08] mb-7">
-            Le logiciel tout-en-un
-            <br />
-            pour les{' '}
-            <span className="relative">
-              <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">coachs ambitieux</span>
-              {/* Underline decoration */}
-              <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 8C50 2 150 2 298 8" stroke="#FF6B2B" strokeWidth="3" strokeLinecap="round" opacity="0.4" />
-              </svg>
+          <h1 className="text-[clamp(2.5rem,7vw,4.75rem)] font-bold tracking-tight leading-[1.08] mb-7">
+            <span className="block">Arrete de jongler entre</span>
+            <span className="block">10 outils.{' '}
+              <span className="relative inline-block">
+                <span className="bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-[#FF6B2B] bg-clip-text text-transparent bg-[size:200%] animate-gradient-x">Scale ton coaching.</span>
+              </span>
             </span>
           </h1>
 
-          <p className="text-lg md:text-xl text-[#F5F5F3]/40 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Gere tes clients, cree des programmes, suis leur progression et developpe ton activite. Tout depuis une seule plateforme.
+          <p className="text-base md:text-xl text-[#F5F5F3]/35 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Clients, programmes, nutrition, paiements, messagerie — tout dans <strong className="text-[#F5F5F3]/60">une seule plateforme</strong> pensee pour les coachs qui veulent grandir.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-            <button
-              onClick={() => navigate('/register')}
-              className="group w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF6B2B]/30 transition-all duration-300 flex items-center justify-center gap-2.5"
-            >
-              Commencer gratuitement
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-5">
+            <button onClick={() => navigate('/register')} className="group w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF6B2B]/30 transition-all duration-300 flex items-center justify-center gap-2.5 relative overflow-hidden">
+              <span className="relative z-10 flex items-center gap-2.5">
+                Commencer gratuitement
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />
+              </span>
+              {/* Shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             </button>
-            <button
-              onClick={() => scrollTo('features')}
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.08] text-[#F5F5F3]/60 font-medium text-base hover:bg-white/[0.03] hover:text-[#F5F5F3] hover:border-white/[0.12] transition-all duration-300 flex items-center justify-center gap-2"
-            >
-              <Play size={16} className="text-[#FF6B2B]" />
-              Voir la demo
+            <button onClick={() => scrollTo('features')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.08] text-[#F5F5F3]/50 font-medium text-base hover:bg-white/[0.03] hover:text-[#F5F5F3] hover:border-white/[0.12] transition-all duration-300 flex items-center justify-center gap-2">
+              <Play size={15} className="text-[#FF6B2B]" /> Voir la demo
             </button>
           </div>
 
-          <p className="text-xs text-[#F5F5F3]/25 mb-16">14 jours gratuits · Sans carte bancaire · Sans engagement</p>
+          <div className="flex items-center justify-center gap-5 text-[#F5F5F3]/20 text-xs mb-16 md:mb-20">
+            <span className="flex items-center gap-1.5"><Shield size={12} /> Sans carte bancaire</span>
+            <span className="flex items-center gap-1.5"><Clock size={12} /> Setup 2 min</span>
+            <span className="flex items-center gap-1.5"><Zap size={12} /> 14 jours gratuits</span>
+          </div>
 
-          {/* Hero mockup browser */}
+          {/* Browser mockup */}
           <div className="relative mx-auto max-w-4xl">
-            <div className="rounded-2xl md:rounded-3xl border border-white/[0.08] bg-[#1A1A1A] overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.5)]">
-              {/* Browser chrome */}
-              <div className="flex items-center gap-2 px-4 py-3 bg-[#141414] border-b border-white/[0.05]">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
-                </div>
-                <div className="flex-1 flex justify-center">
-                  <div className="flex items-center gap-2 px-4 py-1 rounded-lg bg-white/[0.04] text-[10px] text-[#F5F5F3]/25 font-mono">
-                    <Lock size={8} />
-                    app.zevo.coach/dashboard
-                  </div>
-                </div>
+            <div className="rounded-2xl md:rounded-3xl border border-white/[0.07] bg-[#161616] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.6)]">
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-[#111] border-b border-white/[0.04]">
+                <div className="flex gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" /><div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" /><div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" /></div>
+                <div className="flex-1 flex justify-center"><div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.03] text-[10px] text-[#F5F5F3]/20 font-mono"><Lock size={7} /> app.zevo.coach</div></div>
               </div>
-              {/* Dashboard content */}
-              <div className="p-4 md:p-8">
-                <div className="flex items-center justify-between mb-6">
+              <div className="p-4 md:p-7">
+                <div className="flex items-center justify-between mb-5">
                   <div>
-                    <div className="text-base md:text-lg font-bold text-[#F5F5F3]">Bonjour, Coach</div>
-                    <div className="text-[11px] text-[#F5F5F3]/30">Tableau de bord · Lundi 7 Avril</div>
+                    <p className="text-sm md:text-base font-bold text-[#F5F5F3]">Bonjour, Coach</p>
+                    <p className="text-[10px] text-[#F5F5F3]/25">Lundi 7 Avril 2026</p>
                   </div>
-                  <div className="flex gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-                      <Bell size={14} className="text-[#F5F5F3]/30" />
-                    </div>
+                  <div className="hidden md:flex gap-2">
+                    <div className="px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[10px] text-[#FF6B2B] font-bold flex items-center gap-1.5"><Sparkles size={10} /> 3 clients en attente</div>
                   </div>
                 </div>
-                {/* KPI row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-5">
                   {[
-                    { label: 'Clients actifs', val: '24', trend: '+3', icon: Users, color: '#FF6B2B' },
-                    { label: 'Seances / semaine', val: '67', trend: '+12%', icon: Dumbbell, color: '#3B82F6' },
-                    { label: 'Taux retention', val: '94%', trend: '+2%', icon: TrendingUp, color: '#10B981' },
-                    { label: 'Revenu mensuel', val: '3 240\u20AC', trend: '+18%', icon: CreditCard, color: '#F59E0B' },
-                  ].map((kpi, i) => (
-                    <div key={i} className="rounded-xl bg-white/[0.025] border border-white/[0.05] p-3 md:p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <kpi.icon size={14} style={{ color: kpi.color }} />
-                        <span className="text-[9px] text-emerald-400 font-semibold">{kpi.trend}</span>
+                    { l: 'Clients', v: '24', t: '+3', c: '#FF6B2B', ic: Users },
+                    { l: 'Seances', v: '67', t: '+12%', c: '#3B82F6', ic: Dumbbell },
+                    { l: 'Retention', v: '94%', t: '+2%', c: '#10B981', ic: TrendingUp },
+                    { l: 'Revenu', v: '3 240\u20AC', t: '+18%', c: '#F59E0B', ic: CreditCard },
+                  ].map((k, i) => (
+                    <div key={i} className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <k.ic size={13} style={{ color: k.c }} />
+                        <span className="text-[8px] text-emerald-400 font-bold">{k.t}</span>
                       </div>
-                      <p className="text-lg md:text-xl font-bold text-[#F5F5F3]">{kpi.val}</p>
-                      <p className="text-[10px] text-[#F5F5F3]/30 mt-0.5">{kpi.label}</p>
+                      <p className="text-lg font-bold text-[#F5F5F3]">{k.v}</p>
+                      <p className="text-[9px] text-[#F5F5F3]/25">{k.l}</p>
                     </div>
                   ))}
                 </div>
-                {/* Chart area */}
-                <div className="rounded-xl bg-white/[0.025] border border-white/[0.05] p-4 md:p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-semibold text-[#F5F5F3]/60">Progression clients</span>
-                    <span className="text-[10px] text-[#F5F5F3]/25">12 derniers mois</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                  <div className="md:col-span-2 rounded-xl bg-white/[0.02] border border-white/[0.04] p-4">
+                    <span className="text-[10px] font-semibold text-[#F5F5F3]/30">Progression clients · 12 mois</span>
+                    <div className="flex items-end gap-1 h-20 mt-3">
+                      {[28, 35, 32, 48, 42, 56, 52, 65, 60, 72, 68, 82].map((h, i) => (
+                        <div key={i} className="flex-1 rounded-t" style={{ height: `${h}%`, background: `linear-gradient(to top, #FF6B2B${i >= 10 ? '' : Math.round(30 + i * 6).toString(16)}, #FF8F5E${i >= 10 ? '' : Math.round(20 + i * 5).toString(16)})` }} />
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex items-end gap-1.5 h-20 md:h-28">
-                    {[30, 45, 40, 55, 50, 65, 60, 72, 68, 80, 78, 90].map((h, i) => (
-                      <div key={i} className="flex-1 rounded-t transition-all duration-500" style={{ height: `${h}%`, background: i >= 10 ? 'linear-gradient(to top, #FF6B2B, #FF8F5E)' : `linear-gradient(to top, rgba(255,107,43,${0.15 + i * 0.05}), rgba(255,143,94,${0.1 + i * 0.04}))` }} />
+                  <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 space-y-2.5">
+                    <span className="text-[10px] font-semibold text-[#F5F5F3]/30">Activite recente</span>
+                    {[
+                      { t: 'Julie a valide sa seance', c: '#10B981' },
+                      { t: 'Nouveau prospect', c: '#FF6B2B' },
+                      { t: 'Paiement recu 49\u20AC', c: '#F59E0B' },
+                    ].map((a, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: a.c }} />
+                        <span className="text-[9px] text-[#F5F5F3]/35 truncate">{a.t}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Floating glow */}
-            <div className="pointer-events-none absolute -bottom-20 left-1/2 -translate-x-1/2 w-[60%] h-32 bg-[#FF6B2B]/[0.05] blur-[80px] rounded-full" />
+            <div className="pointer-events-none absolute -bottom-24 left-1/2 -translate-x-1/2 w-[60%] h-40 bg-[#FF6B2B]/[0.05] blur-[100px] rounded-full" />
           </div>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════ */}
-      {/* TRUST BAR — Logos & Stats              */}
-      {/* ══════════════════════════════════════ */}
-      <section className="border-y border-white/[0.05] bg-[#0A0A0A]">
-        {/* Logos marquee */}
-        <div className="py-8 border-b border-white/[0.04] overflow-hidden">
-          <p className="text-center text-[10px] uppercase tracking-[0.2em] text-[#F5F5F3]/20 font-medium mb-6">Utilise par des coachs certifies</p>
-          <div className="flex items-center justify-center gap-12 md:gap-20 opacity-30">
-            {LOGOS_PARTNERS.map((name, i) => (
-              <span key={i} className="text-sm md:text-base font-bold text-[#F5F5F3] whitespace-nowrap tracking-wider">{name}</span>
-            ))}
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div ref={statsRef} className="max-w-6xl mx-auto px-5 md:px-8 py-12 md:py-16 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {STATS.map((s, i) => (
-            <div key={i} className="text-center">
-              <p
-                className={`text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent transition-all duration-700 ${statsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-                style={{ transitionDelay: `${i * 120}ms` }}
-              >
-                {s.value}
-              </p>
-              <p className="text-sm text-[#F5F5F3]/30 mt-2 font-medium">{s.label}</p>
+      {/* ══════════════════════ LOGOS + STATS ══════════════════════ */}
+      <section className="border-y border-white/[0.04] bg-[#0A0A0A]">
+        <div className="py-6 border-b border-white/[0.03] overflow-hidden relative">
+          <p className="text-center text-[9px] uppercase tracking-[0.25em] text-[#F5F5F3]/15 font-semibold mb-5">Utilise par des coachs certifies</p>
+          {/* Infinite marquee */}
+          <div className="relative">
+            <div className="flex gap-16 animate-marquee whitespace-nowrap">
+              {[...Array(2)].flatMap((_, r) =>
+                ['CrossFit', 'BPJEPS', 'STAPS', 'FitPro', 'CoachHub', 'TrainMe', 'SportEasy', 'MyCoach'].map((n, i) => (
+                  <span key={`${r}-${i}`} className="text-sm font-bold text-[#F5F5F3]/[0.12] tracking-wider">{n}</span>
+                ))
+              )}
             </div>
-          ))}
+          </div>
+        </div>
+        <div ref={statsRef} className="max-w-6xl mx-auto px-5 md:px-8 py-14 grid grid-cols-2 md:grid-cols-4 gap-8">
+          {[
+            { value: '500', suffix: '+', label: 'Coachs actifs' },
+            { value: '12000', suffix: '+', label: 'Clients suivis' },
+            { value: '4.8', suffix: '/5', label: 'Note moyenne' },
+            { value: '98', suffix: '%', label: 'Satisfaction' },
+          ].map((s, i) => {
+            const count = useAnimatedCounter(s.value, statsInView)
+            return (
+              <div key={i} className="text-center">
+                <p className={`text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent transition-all duration-700 ${statsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`} style={{ transitionDelay: `${i * 100}ms` }}>
+                  {typeof count === 'number' ? count.toLocaleString('fr-FR') : count}{s.suffix}
+                </p>
+                <p className="text-sm text-[#F5F5F3]/25 mt-2 font-medium">{s.label}</p>
+              </div>
+            )
+          })}
         </div>
       </section>
 
-      {/* ══════════════════════════════════════ */}
-      {/* FEATURES — Bento Grid (like Ekklo)     */}
-      {/* ══════════════════════════════════════ */}
+      {/* ══════════════════════ FEATURES BENTO ══════════════════════ */}
       <section id="features" className="py-24 md:py-36 px-5 md:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16 md:mb-20">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/40 font-medium mb-6">
-              <Zap size={12} className="text-[#FF6B2B]" />
-              Fonctionnalites
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
+              <Zap size={12} className="text-[#FF6B2B]" /> Fonctionnalites
             </div>
             <h2 className="text-3xl md:text-[3.25rem] font-bold tracking-tight leading-tight mb-5">
               Tout ce dont tu as besoin.
-              <br />
-              <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">Rien de superflu.</span>
+              <br /><span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">Rien de superflu.</span>
             </h2>
-            <p className="text-[#F5F5F3]/35 text-lg max-w-xl mx-auto leading-relaxed">
-              Chaque fonctionnalite a ete pensee pour te faire gagner du temps et offrir une experience premium a tes clients.
-            </p>
+            <p className="text-[#F5F5F3]/30 text-lg max-w-xl mx-auto">Chaque feature est pensee pour te faire gagner du temps et impressionner tes clients.</p>
           </div>
 
-          {/* Bento grid */}
-          <div ref={featuresRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div ref={featuresRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
             {BENTO_FEATURES.map((f, i) => {
               const Icon = f.icon
-              const isLarge = f.size === 'large'
               return (
                 <div
                   key={i}
-                  className={`group relative rounded-2xl border border-white/[0.06] bg-[#161616] p-6 md:p-7 hover:border-[#FF6B2B]/20 transition-all duration-500 ${isLarge ? 'lg:col-span-2' : ''} ${featuresInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-                  style={{ transitionDelay: `${i * 80}ms` }}
+                  className={`group relative rounded-2xl border border-white/[0.05] bg-[#141414] p-5 md:p-6 hover:border-[#FF6B2B]/15 transition-all duration-500 overflow-hidden ${f.span} ${featuresInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                  style={{ transitionDelay: `${i * 60}ms` }}
                 >
-                  {/* Hover gradient */}
-                  <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative">
-                    <div className="w-11 h-11 rounded-xl bg-[#FF6B2B]/10 border border-[#FF6B2B]/10 flex items-center justify-center mb-5 group-hover:bg-[#FF6B2B]/15 group-hover:border-[#FF6B2B]/20 transition-all duration-500">
-                      <Icon size={20} className="text-[#FF6B2B]" />
+                    <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 border border-[#FF6B2B]/10 flex items-center justify-center mb-4 group-hover:bg-[#FF6B2B]/15 group-hover:scale-110 transition-all duration-500">
+                      <Icon size={18} className="text-[#FF6B2B]" />
                     </div>
-                    <h3 className="text-base font-semibold mb-2 text-[#F5F5F3]">{f.title}</h3>
-                    <p className="text-sm text-[#F5F5F3]/35 leading-relaxed">{f.desc}</p>
+                    <h3 className="text-sm font-semibold mb-1.5 text-[#F5F5F3]">{f.title}</h3>
+                    <p className="text-xs text-[#F5F5F3]/30 leading-relaxed">{f.desc}</p>
+                    {f.visual === 'hub' && <BentoVisualHub />}
+                    {f.visual === 'stats' && <BentoVisualStats />}
                   </div>
                 </div>
               )
@@ -644,34 +678,33 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════ */}
-      {/* SHOWCASES — Alternance image/texte     */}
-      {/* ══════════════════════════════════════ */}
+      {/* ══════════════════════ SHOWCASES ══════════════════════ */}
       <section className="py-12 md:py-24 px-5 md:px-8">
-        <div className="max-w-6xl mx-auto space-y-20 md:space-y-32">
+        <div className="max-w-6xl mx-auto space-y-24 md:space-y-40">
           {SHOWCASES.map((item, i) => {
             const isReversed = i % 2 === 1
             return (
-              <div key={i} className={`flex flex-col ${isReversed ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-10 md:gap-16`}>
-                {/* Text */}
+              <div key={i} className={`flex flex-col ${isReversed ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 md:gap-20`}>
                 <div className="flex-1 max-w-lg">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF6B2B]/10 border border-[#FF6B2B]/15 text-[10px] font-bold text-[#FF6B2B] uppercase tracking-wider mb-5">
-                    {item.badge}
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF6B2B]/10 border border-[#FF6B2B]/15 text-[10px] font-bold text-[#FF6B2B] uppercase tracking-wider mb-5">{item.badge}</div>
+                  <h3 className="text-2xl md:text-[2.25rem] font-bold tracking-tight mb-4 leading-tight">{item.title}</h3>
+                  <p className="text-[#F5F5F3]/35 text-base leading-relaxed mb-6">{item.desc}</p>
+                  {/* Metric highlight */}
+                  <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#FF6B2B]/[0.06] border border-[#FF6B2B]/10 mb-6">
+                    <span className="text-2xl font-bold text-[#FF6B2B]">{item.metric.value}</span>
+                    <span className="text-xs text-[#F5F5F3]/40">{item.metric.label}</span>
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-bold tracking-tight mb-4 leading-tight">{item.title}</h3>
-                  <p className="text-[#F5F5F3]/40 text-base leading-relaxed mb-6">{item.desc}</p>
-                  <ul className="space-y-3">
+                  <ul className="space-y-2.5">
                     {item.features.map((feat, j) => (
                       <li key={j} className="flex items-center gap-3">
                         <div className="w-5 h-5 rounded-md bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                          <Check size={12} className="text-[#FF6B2B]" />
+                          <Check size={11} className="text-[#FF6B2B]" />
                         </div>
-                        <span className="text-sm text-[#F5F5F3]/50">{feat}</span>
+                        <span className="text-sm text-[#F5F5F3]/40">{feat}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-                {/* Visual */}
                 <div className="flex-1 w-full max-w-md">
                   <ShowcaseVisual type={item.visual} />
                 </div>
@@ -681,41 +714,30 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════ */}
-      {/* HOW IT WORKS — 3 Steps                 */}
-      {/* ══════════════════════════════════════ */}
-      <section id="how" className="py-24 md:py-36 px-5 md:px-8 relative border-y border-white/[0.05]">
-        <div className="pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#FF6B2B]/[0.025] blur-[150px]" />
-
+      {/* ══════════════════════ HOW IT WORKS ══════════════════════ */}
+      <section id="how" className="py-24 md:py-36 px-5 md:px-8 relative border-y border-white/[0.04]">
+        <div className="pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#FF6B2B]/[0.02] blur-[150px]" />
         <div className="relative max-w-5xl mx-auto">
           <div className="text-center mb-16 md:mb-20">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/40 font-medium mb-6">
-              <Target size={12} className="text-[#FF6B2B]" />
-              Comment ca marche
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
+              <Target size={12} className="text-[#FF6B2B]" /> 3 etapes
             </div>
             <h2 className="text-3xl md:text-[3.25rem] font-bold tracking-tight leading-tight mb-5">
-              Operationnel en{' '}
-              <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">2 minutes</span>
+              Operationnel en <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">2 minutes</span>
             </h2>
-            <p className="text-[#F5F5F3]/35 text-lg max-w-lg mx-auto">
-              Pas de configuration complexe. Tu t'inscris, tu configures, c'est parti.
-            </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            {/* Connector line desktop */}
-            <div className="hidden md:block absolute top-16 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-[#FF6B2B]/20 to-transparent" />
-
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
+            <div className="hidden md:block absolute top-20 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-[#FF6B2B]/15 to-transparent" />
             {STEPS.map((s, i) => {
               const Icon = s.icon
               return (
-                <div key={i} className="relative rounded-2xl border border-white/[0.06] bg-[#161616] p-7 hover:border-[#FF6B2B]/15 transition-all duration-500 group text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 border border-[#FF6B2B]/15 flex items-center justify-center mx-auto mb-5 group-hover:bg-[#FF6B2B]/15 transition-all">
-                    <Icon size={24} className="text-[#FF6B2B]" />
+                <div key={i} className="relative rounded-2xl border border-white/[0.05] bg-[#141414] p-7 hover:border-[#FF6B2B]/15 transition-all duration-500 group text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/15 to-[#FF8F5E]/5 border border-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-500">
+                    <Icon size={26} className="text-[#FF6B2B]" />
                   </div>
-                  <span className="text-[10px] font-bold text-[#FF6B2B]/40 uppercase tracking-widest">Etape {s.num}</span>
+                  <span className="text-[10px] font-bold text-[#FF6B2B]/30 uppercase tracking-widest">Etape {s.num}</span>
                   <h3 className="text-lg font-semibold mt-2 mb-3 text-[#F5F5F3]">{s.title}</h3>
-                  <p className="text-sm text-[#F5F5F3]/35 leading-relaxed">{s.desc}</p>
+                  <p className="text-sm text-[#F5F5F3]/30 leading-relaxed">{s.desc}</p>
                 </div>
               )
             })}
@@ -723,105 +745,81 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════ */}
-      {/* TESTIMONIALS — Carousel style          */}
-      {/* ══════════════════════════════════════ */}
+      {/* ══════════════════════ TESTIMONIALS ══════════════════════ */}
       <section id="testimonials" className="py-24 md:py-36 px-5 md:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/40 font-medium mb-6">
-              <Star size={12} className="text-[#FF6B2B]" />
-              Temoignages
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
+              <Heart size={12} className="text-[#FF6B2B]" /> Temoignages
             </div>
             <h2 className="text-3xl md:text-[3.25rem] font-bold tracking-tight leading-tight mb-5">
-              Ils ont choisi{' '}
-              <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">Zevo</span>
+              Ils ont choisi <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">Zevo</span>
             </h2>
-            <p className="text-[#F5F5F3]/35 text-lg max-w-lg mx-auto">
-              Decouvre pourquoi des centaines de coachs nous font confiance au quotidien.
-            </p>
           </div>
-
-          {/* Cards grid with featured */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {TESTIMONIALS.map((t, i) => (
-              <div
-                key={i}
-                className={`rounded-2xl border bg-[#161616] p-6 flex flex-col transition-all duration-500 ${
-                  i === activeTestimonial
-                    ? 'border-[#FF6B2B]/25 shadow-[0_0_40px_rgba(255,107,43,0.06)]'
-                    : 'border-white/[0.06]'
-                }`}
-              >
-                {/* Stars */}
-                <div className="flex gap-0.5 mb-4">
-                  {Array.from({ length: t.rating }).map((_, j) => (
-                    <Star key={j} size={13} className="text-[#FF6B2B] fill-[#FF6B2B]" />
-                  ))}
-                </div>
-                <p className="text-sm text-[#F5F5F3]/50 leading-relaxed flex-1 mb-5">"{t.text}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-white/[0.05]">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#F5F5F3]">{t.name}</p>
-                    <p className="text-[11px] text-[#F5F5F3]/25">{t.role}</p>
-                  </div>
+          {/* Featured + grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Featured testimonial */}
+            <div className="rounded-2xl border-2 border-[#FF6B2B]/20 bg-gradient-to-br from-[#1A1A1A] to-[#141414] p-7 md:p-8 flex flex-col relative overflow-hidden">
+              <div className="pointer-events-none absolute top-0 right-0 w-40 h-40 bg-[#FF6B2B]/[0.04] blur-[60px] rounded-full" />
+              <div className="flex gap-0.5 mb-5">
+                {[1,2,3,4,5].map(j => <Star key={j} size={16} className="text-[#FF6B2B] fill-[#FF6B2B]" />)}
+              </div>
+              <p className="text-base md:text-lg text-[#F5F5F3]/60 leading-relaxed flex-1 mb-6 relative">
+                "{TESTIMONIALS[activeTesti].text}"
+              </p>
+              {/* Metric badge */}
+              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#FF6B2B]/[0.06] border border-[#FF6B2B]/10 mb-5 self-start">
+                <span className="text-xl font-bold text-[#FF6B2B]">{TESTIMONIALS[activeTesti].metric.value}</span>
+                <span className="text-xs text-[#F5F5F3]/35">{TESTIMONIALS[activeTesti].metric.label}</span>
+              </div>
+              <div className="flex items-center gap-3 pt-5 border-t border-white/[0.05]">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-[#FF6B2B]/20">{TESTIMONIALS[activeTesti].avatar}</div>
+                <div>
+                  <p className="text-sm font-semibold text-[#F5F5F3]">{TESTIMONIALS[activeTesti].name}</p>
+                  <p className="text-[11px] text-[#F5F5F3]/25">{TESTIMONIALS[activeTesti].role}</p>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Dots */}
-          <div className="flex items-center justify-center gap-2 mt-8">
-            {TESTIMONIALS.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveTestimonial(i)}
-                className={`rounded-full transition-all duration-300 ${
-                  i === activeTestimonial ? 'w-8 h-2 bg-[#FF6B2B]' : 'w-2 h-2 bg-white/[0.1] hover:bg-white/[0.2]'
-                }`}
-              />
-            ))}
+            </div>
+            {/* Smaller cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {TESTIMONIALS.map((t, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveTesti(i)}
+                  className={`rounded-2xl border p-5 text-left transition-all duration-300 ${i === activeTesti ? 'border-[#FF6B2B]/20 bg-[#1A1A1A]' : 'border-white/[0.05] bg-[#141414] hover:border-white/[0.1]'}`}
+                >
+                  <div className="flex gap-0.5 mb-3">
+                    {[1,2,3,4,5].map(j => <Star key={j} size={10} className="text-[#FF6B2B] fill-[#FF6B2B]" />)}
+                  </div>
+                  <p className="text-xs text-[#F5F5F3]/40 leading-relaxed line-clamp-3 mb-3">"{t.text}"</p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center text-white text-[8px] font-bold">{t.avatar.charAt(0)}</div>
+                    <span className="text-[11px] font-semibold text-[#F5F5F3]/50">{t.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════ */}
-      {/* PRICING — Toggle mensuel/annuel        */}
-      {/* ══════════════════════════════════════ */}
-      <section id="pricing" className="py-24 md:py-36 px-5 md:px-8 relative border-y border-white/[0.05]">
-        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full bg-[#FF6B2B]/[0.04] blur-[150px]" />
-
+      {/* ══════════════════════ PRICING ══════════════════════ */}
+      <section id="pricing" className="py-24 md:py-36 px-5 md:px-8 relative border-y border-white/[0.04]">
+        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full bg-[#FF6B2B]/[0.035] blur-[150px]" />
         <div className="relative max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/40 font-medium mb-6">
-              <CreditCard size={12} className="text-[#FF6B2B]" />
-              Tarifs
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
+              <CreditCard size={12} className="text-[#FF6B2B]" /> Tarifs transparents
             </div>
             <h2 className="text-3xl md:text-[3.25rem] font-bold tracking-tight leading-tight mb-5">
-              Simple, transparent,{' '}
-              <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">sans surprise</span>
+              Investis dans <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">ta croissance</span>
             </h2>
-            <p className="text-[#F5F5F3]/35 text-lg max-w-lg mx-auto mb-8">
-              14 jours d'essai gratuit. Sans engagement. Annulable a tout moment.
-            </p>
-
-            {/* Billing toggle */}
-            <div className="inline-flex items-center gap-3 p-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
-              <button
-                onClick={() => setBillingYearly(false)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${!billingYearly ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20' : 'text-[#F5F5F3]/40 hover:text-[#F5F5F3]/60'}`}
-              >
-                Mensuel
-              </button>
-              <button
-                onClick={() => setBillingYearly(true)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${billingYearly ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20' : 'text-[#F5F5F3]/40 hover:text-[#F5F5F3]/60'}`}
-              >
-                Annuel
-                {!billingYearly && <span className="text-[10px] text-emerald-400 font-bold">-20%</span>}
+            <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-8">Moins cher que ton cafe quotidien. Rentabilise des le premier client.</p>
+            {/* Toggle */}
+            <div className="inline-flex items-center gap-1 p-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
+              <button onClick={() => setBillingYearly(false)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${!billingYearly ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20' : 'text-[#F5F5F3]/35'}`}>Mensuel</button>
+              <button onClick={() => setBillingYearly(true)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${billingYearly ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20' : 'text-[#F5F5F3]/35'}`}>
+                Annuel {!billingYearly && <span className="text-[9px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded-full">-20%</span>}
               </button>
             </div>
           </div>
@@ -830,102 +828,53 @@ export default function LandingPage() {
             {PLANS.map((plan) => {
               const price = billingYearly ? plan.price.yearly : plan.price.monthly
               return (
-                <div
-                  key={plan.id}
-                  className={`relative rounded-2xl p-7 flex flex-col transition-all duration-500 ${
-                    plan.popular
-                      ? 'bg-[#1A1A1A] border-2 border-[#FF6B2B]/30 shadow-[0_0_80px_rgba(255,107,43,0.08)] scale-[1.02] md:scale-105'
-                      : 'bg-[#161616] border border-white/[0.06] hover:border-white/[0.1]'
-                  }`}
-                >
+                <div key={plan.id} className={`relative rounded-2xl p-7 flex flex-col transition-all duration-500 ${plan.popular ? 'bg-[#1A1A1A] border-2 border-[#FF6B2B]/25 shadow-[0_0_80px_rgba(255,107,43,0.07)] md:scale-[1.04]' : 'bg-[#141414] border border-white/[0.05] hover:border-white/[0.1]'}`}>
                   {plan.popular && (
                     <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                      <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg shadow-[#FF6B2B]/25">
-                        Le plus populaire
-                      </span>
+                      <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-[9px] font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg shadow-[#FF6B2B]/25">Le plus populaire</span>
                     </div>
                   )}
-
-                  <div className="mb-5">
-                    <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
-                    <p className="text-xs text-[#F5F5F3]/25">{plan.desc}</p>
-                  </div>
-
-                  <div className="flex items-baseline gap-1 mb-6">
+                  <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
+                  <p className="text-[11px] text-[#F5F5F3]/25 mb-5">{plan.desc}</p>
+                  <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-4xl font-bold">{price}</span>
-                    <span className="text-[#F5F5F3]/25 text-sm">{'\u20AC'}/mois</span>
+                    <span className="text-[#F5F5F3]/20 text-sm">{'\u20AC'}/mois</span>
                   </div>
-
-                  {billingYearly && (
-                    <p className="text-[10px] text-emerald-400/70 font-medium -mt-4 mb-5">
-                      Economise {(plan.price.monthly - plan.price.yearly) * 12}{'\u20AC'}/an
-                    </p>
-                  )}
-
-                  <ul className="space-y-3 mb-8 flex-1">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2.5">
-                        <Check size={14} className="text-[#FF6B2B] flex-shrink-0" />
-                        <span className="text-sm text-[#F5F5F3]/45">{f}</span>
-                      </li>
+                  {billingYearly && <p className="text-[10px] text-emerald-400/60 font-medium mb-5">Economise {(plan.price.monthly - plan.price.yearly) * 12}{'\u20AC'}/an</p>}
+                  {!billingYearly && <p className="text-[10px] text-[#F5F5F3]/15 mb-5">facture mensuellement</p>}
+                  <ul className="space-y-2.5 mb-7 flex-1">
+                    {plan.features.map(f => (
+                      <li key={f} className="flex items-center gap-2.5"><Check size={13} className="text-[#FF6B2B] flex-shrink-0" /><span className="text-sm text-[#F5F5F3]/40">{f}</span></li>
                     ))}
                   </ul>
-
-                  <button
-                    onClick={() => navigate('/register')}
-                    className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                      plan.popular
-                        ? 'bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white hover:shadow-lg hover:shadow-[#FF6B2B]/25'
-                        : 'bg-white/[0.05] text-[#F5F5F3] hover:bg-white/[0.08] border border-white/[0.08]'
-                    }`}
-                  >
-                    Commencer l'essai gratuit
+                  <button onClick={() => navigate('/register')} className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden group ${plan.popular ? 'bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white hover:shadow-lg hover:shadow-[#FF6B2B]/25' : 'bg-white/[0.04] text-[#F5F5F3] hover:bg-white/[0.07] border border-white/[0.06]'}`}>
+                    <span className="relative z-10">Essai gratuit 14 jours</span>
+                    {plan.popular && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.12] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />}
                   </button>
                 </div>
               )
             })}
           </div>
-
-          <p className="text-center text-xs text-[#F5F5F3]/20 mt-8">
-            Paiement securise via Stripe · Annulation en un clic · Pas de frais caches
-          </p>
+          <p className="text-center text-[11px] text-[#F5F5F3]/15 mt-8">Paiement securise Stripe · Sans engagement · Annulation en un clic</p>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════ */}
-      {/* FAQ — Accordion                        */}
-      {/* ══════════════════════════════════════ */}
+      {/* ══════════════════════ FAQ ══════════════════════ */}
       <section id="faq" className="py-24 md:py-36 px-5 md:px-8">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Questions frequentes
-            </h2>
-            <p className="text-[#F5F5F3]/30 text-base">
-              Une question ? On a surement la reponse.
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Questions frequentes</h2>
+            <p className="text-[#F5F5F3]/25 text-base">Une question ? On a probablement la reponse.</p>
           </div>
-
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {FAQS.map((faq, i) => (
-              <div
-                key={i}
-                className={`rounded-2xl border transition-all duration-300 ${
-                  openFaq === i ? 'border-[#FF6B2B]/15 bg-[#161616]' : 'border-white/[0.06] bg-[#161616]/50 hover:bg-[#161616]'
-                }`}
-              >
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-6 py-5 text-left"
-                >
+              <div key={i} className={`rounded-2xl border transition-all duration-300 ${openFaq === i ? 'border-[#FF6B2B]/15 bg-[#161616]' : 'border-white/[0.05] bg-[#141414]/50 hover:bg-[#141414]'}`}>
+                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between px-6 py-5 text-left">
                   <span className="text-sm font-medium text-[#F5F5F3] pr-4">{faq.q}</span>
-                  <ChevronDown
-                    size={16}
-                    className={`text-[#F5F5F3]/25 flex-shrink-0 transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-[#FF6B2B]' : ''}`}
-                  />
+                  <ChevronDown size={15} className={`text-[#F5F5F3]/20 flex-shrink-0 transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-[#FF6B2B]' : ''}`} />
                 </button>
                 <div className={`overflow-hidden transition-all duration-300 ${openFaq === i ? 'max-h-48 pb-5' : 'max-h-0'}`}>
-                  <p className="px-6 text-sm text-[#F5F5F3]/35 leading-relaxed">{faq.a}</p>
+                  <p className="px-6 text-sm text-[#F5F5F3]/30 leading-relaxed">{faq.a}</p>
                 </div>
               </div>
             ))}
@@ -933,114 +882,98 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════ */}
-      {/* FINAL CTA — Full-width gradient        */}
-      {/* ══════════════════════════════════════ */}
+      {/* ══════════════════════ FINAL CTA ══════════════════════ */}
       <section className="relative py-24 md:py-36 px-5 md:px-8 overflow-hidden">
-        {/* Gradient background */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#FF6B2B]/[0.06] via-[#FF6B2B]/[0.02] to-transparent" />
-        <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-[#FF6B2B]/[0.06] blur-[120px]" />
-
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#FF6B2B]/[0.06] via-[#FF6B2B]/[0.015] to-transparent" />
+        <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] rounded-full bg-[#FF6B2B]/[0.05] blur-[130px]" />
         <div className="relative max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 mb-8">
             <Flame size={14} className="text-[#FF6B2B]" />
             <span className="text-xs font-semibold text-[#FF6B2B]">Rejoinds 500+ coachs</span>
           </div>
-
           <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-6">
-            Pret a transformer
-            <br />
-            <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">ton coaching ?</span>
+            Pendant que tu hesites,
+            <br /><span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">d'autres coachs scalent.</span>
           </h2>
-          <p className="text-[#F5F5F3]/35 text-lg max-w-lg mx-auto mb-10 leading-relaxed">
-            Cree ton compte en 30 secondes et decouvre tout ce que Zevo peut faire pour toi. 14 jours gratuits, sans carte bancaire.
+          <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-10 leading-relaxed">
+            14 jours gratuits. Toutes les fonctionnalites. Zero risque. Ton espace t'attend deja.
           </p>
-
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={() => navigate('/register')}
-              className="group w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF6B2B]/30 transition-all duration-300 inline-flex items-center justify-center gap-2.5"
-            >
-              Commencer gratuitement
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />
+            <button onClick={() => navigate('/register')} className="group w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF6B2B]/30 transition-all duration-300 inline-flex items-center justify-center gap-2.5 relative overflow-hidden">
+              <span className="relative z-10 flex items-center gap-2.5">Commencer maintenant <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></span>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             </button>
-            <button
-              onClick={() => navigate('/login')}
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.08] text-[#F5F5F3]/50 font-medium text-base hover:bg-white/[0.03] hover:text-[#F5F5F3] transition-all"
-            >
-              J'ai deja un compte
-            </button>
+            <button onClick={() => navigate('/login')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.07] text-[#F5F5F3]/40 font-medium hover:bg-white/[0.03] hover:text-[#F5F5F3] transition-all">J'ai deja un compte</button>
           </div>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════ */}
-      {/* FOOTER                                 */}
-      {/* ══════════════════════════════════════ */}
-      <footer className="border-t border-white/[0.05] bg-[#0A0A0A]">
+      {/* ══════════════════════ FOOTER ══════════════════════ */}
+      <footer className="border-t border-white/[0.04] bg-[#0A0A0A]">
         <div className="max-w-6xl mx-auto px-5 md:px-8 py-14">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-8 mb-12">
-            {/* Brand */}
-            <div className="md:col-span-1">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-8 mb-12">
+            <div className="col-span-2 md:col-span-1">
               <ZevoLogo size="md" />
-              <p className="text-xs text-[#F5F5F3]/20 mt-3 leading-relaxed max-w-[200px]">
-                Le logiciel tout-en-un pour les coachs qui veulent scaler leur activite.
-              </p>
+              <p className="text-[11px] text-[#F5F5F3]/15 mt-3 leading-relaxed max-w-[200px]">Le logiciel tout-en-un pour les coachs qui veulent scaler.</p>
             </div>
-
-            {/* Produit */}
-            <div>
-              <p className="text-xs font-semibold text-[#F5F5F3]/40 uppercase tracking-wider mb-4">Produit</p>
-              <ul className="space-y-2.5">
-                {['Fonctionnalites', 'Tarifs', 'Temoignages', 'FAQ'].map((link, i) => (
-                  <li key={i}>
-                    <button
-                      onClick={() => scrollTo(['features', 'pricing', 'testimonials', 'faq'][i])}
-                      className="text-sm text-[#F5F5F3]/25 hover:text-[#F5F5F3]/50 transition-colors"
-                    >
-                      {link}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Ressources */}
-            <div>
-              <p className="text-xs font-semibold text-[#F5F5F3]/40 uppercase tracking-wider mb-4">Ressources</p>
-              <ul className="space-y-2.5">
-                {['Centre d\'aide', 'Blog', 'Changelog', 'Contact'].map((link, i) => (
-                  <li key={i}>
-                    <a href="#" className="text-sm text-[#F5F5F3]/25 hover:text-[#F5F5F3]/50 transition-colors">{link}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <p className="text-xs font-semibold text-[#F5F5F3]/40 uppercase tracking-wider mb-4">Legal</p>
-              <ul className="space-y-2.5">
-                {['Mentions legales', 'Confidentialite', 'CGV', 'Cookies'].map((link, i) => (
-                  <li key={i}>
-                    <a href="#" className="text-sm text-[#F5F5F3]/25 hover:text-[#F5F5F3]/50 transition-colors">{link}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {[
+              { title: 'Produit', links: ['Fonctionnalites', 'Tarifs', 'Temoignages', 'FAQ'], ids: ['features', 'pricing', 'testimonials', 'faq'] },
+              { title: 'Ressources', links: ['Centre d\'aide', 'Blog', 'Changelog', 'Contact'] },
+              { title: 'Legal', links: ['Mentions legales', 'Confidentialite', 'CGV', 'Cookies'] },
+            ].map((col, i) => (
+              <div key={i}>
+                <p className="text-[10px] font-semibold text-[#F5F5F3]/30 uppercase tracking-wider mb-4">{col.title}</p>
+                <ul className="space-y-2.5">
+                  {col.links.map((link, j) => (
+                    <li key={j}>
+                      {col.ids ? (
+                        <button onClick={() => scrollTo(col.ids[j])} className="text-sm text-[#F5F5F3]/20 hover:text-[#F5F5F3]/40 transition-colors">{link}</button>
+                      ) : (
+                        <a href="#" className="text-sm text-[#F5F5F3]/20 hover:text-[#F5F5F3]/40 transition-colors">{link}</a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-
-          {/* Bottom bar */}
-          <div className="pt-8 border-t border-white/[0.04] flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-[11px] text-[#F5F5F3]/15">&copy; {new Date().getFullYear()} Zevo. Tous droits reserves.</p>
-            <div className="flex items-center gap-2 text-[11px] text-[#F5F5F3]/15">
-              <span>Fait avec</span>
-              <Heart size={10} className="text-[#FF6B2B] fill-[#FF6B2B]" />
-              <span>pour les coachs</span>
-            </div>
+          <div className="pt-8 border-t border-white/[0.03] flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-[10px] text-[#F5F5F3]/10">&copy; {new Date().getFullYear()} Zevo. Tous droits reserves.</p>
+            <p className="text-[10px] text-[#F5F5F3]/10 flex items-center gap-1.5">Fait avec <Heart size={9} className="text-[#FF6B2B] fill-[#FF6B2B]" /> pour les coachs</p>
           </div>
         </div>
       </footer>
+
+      {/* ══════════════════════ CSS ANIMATIONS ══════════════════════ */}
+      <style>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+          animation: marquee 30s linear infinite;
+        }
+        @keyframes gradient-x {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .animate-gradient-x {
+          animation: gradient-x 4s ease infinite;
+        }
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 3s ease-in-out infinite;
+        }
+        .line-clamp-3 {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
     </div>
   )
 }
