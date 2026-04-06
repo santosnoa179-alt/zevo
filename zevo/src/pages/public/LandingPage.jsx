@@ -239,8 +239,8 @@ function ShowcaseVisual({ type }) {
   if (type === 'client') {
     return (
       <div className="relative">
-        <div className="rounded-2xl bg-[#141414] border border-white/[0.06] p-5 space-y-4">
-          <div className="flex items-center gap-3">
+        <div className="rounded-2xl bg-[#141414] border border-white/[0.06] p-5 space-y-4 shadow-[0_20px_60px_rgba(0,0,0,0.4)] noise-overlay">
+          <div className="flex items-center gap-3 relative">
             <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-[#FF6B2B]/20">JD</div>
             <div>
               <div className="text-sm font-semibold text-[#F5F5F3]">Julie Dupont</div>
@@ -286,8 +286,8 @@ function ShowcaseVisual({ type }) {
   if (type === 'program') {
     return (
       <div className="relative">
-        <div className="rounded-2xl bg-[#141414] border border-white/[0.06] p-5 space-y-3">
-          <div className="flex items-center justify-between mb-1">
+        <div className="rounded-2xl bg-[#141414] border border-white/[0.06] p-5 space-y-3 shadow-[0_20px_60px_rgba(0,0,0,0.4)] noise-overlay">
+          <div className="flex items-center justify-between mb-1 relative">
             <div className="text-sm font-semibold text-[#F5F5F3]">Programme Force</div>
             <div className="px-2 py-0.5 rounded-lg bg-[#FF6B2B]/10 text-[9px] text-[#FF6B2B] font-bold">Semaine 3/8</div>
           </div>
@@ -326,7 +326,7 @@ function ShowcaseVisual({ type }) {
   return (
     <div className="relative flex justify-center">
       <div className="w-[240px]">
-        <div className="rounded-[28px] border-2 border-white/[0.08] bg-[#0D0D0D] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+        <div className="rounded-[28px] border-2 border-white/[0.08] bg-[#0D0D0D] overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.6)]">
           <div className="flex items-center justify-between px-5 py-1.5 text-[8px] text-[#F5F5F3]/30">
             <span>9:41</span>
             <div className="w-16 h-4 rounded-full bg-white/[0.06]" />
@@ -493,9 +493,11 @@ export default function LandingPage() {
 
       {/* ══════════════════════ HERO ══════════════════════ */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center px-5 md:px-8 pt-24 pb-20">
-        {/* BG */}
-        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[800px] rounded-full bg-[#FF6B2B]/[0.05] blur-[180px]" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,black,transparent)]" />
+        {/* BG — multi-layer premium */}
+        <div className="pointer-events-none absolute top-[-200px] left-1/2 -translate-x-1/2 w-[1400px] h-[900px] rounded-full bg-[#FF6B2B]/[0.05] blur-[200px] animate-glow-pulse" />
+        <div className="pointer-events-none absolute top-[100px] right-[-200px] w-[600px] h-[600px] rounded-full bg-[#FF8F5E]/[0.03] blur-[150px]" />
+        <div className="pointer-events-none absolute bottom-[100px] left-[-200px] w-[500px] h-[500px] rounded-full bg-[#FF6B2B]/[0.02] blur-[130px]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_70%_50%_at_50%_40%,black,transparent)]" />
 
         <div className={`relative max-w-5xl mx-auto text-center transition-all duration-1000 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           {/* Social proof badge */}
@@ -547,8 +549,8 @@ export default function LandingPage() {
           </div>
 
           {/* Browser mockup */}
-          <div className="relative mx-auto max-w-4xl">
-            <div className="rounded-2xl md:rounded-3xl border border-white/[0.07] bg-[#161616] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.6)]">
+          <div className="relative mx-auto max-w-4xl animate-float">
+            <div className="rounded-2xl md:rounded-3xl border border-white/[0.07] bg-[#161616] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.6)] noise-overlay">
               <div className="flex items-center gap-2 px-4 py-2.5 bg-[#111] border-b border-white/[0.04]">
                 <div className="flex gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" /><div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" /><div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" /></div>
                 <div className="flex-1 flex justify-center"><div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.03] text-[10px] text-[#F5F5F3]/20 font-mono"><Lock size={7} /> app.zevo.coach</div></div>
@@ -665,7 +667,7 @@ export default function LandingPage() {
               return (
                 <div
                   key={i}
-                  className={`group relative rounded-2xl border border-white/[0.05] bg-[#141414] p-5 md:p-6 hover:border-[#FF6B2B]/15 transition-all duration-500 overflow-hidden ${f.span} ${featuresInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                  className={`group relative rounded-2xl border border-white/[0.06] glass-landing p-5 md:p-6 hover:border-[#FF6B2B]/20 hover:shadow-[0_8px_40px_rgba(255,107,43,0.04)] transition-all duration-500 overflow-hidden ${f.span} ${featuresInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
                   style={{ transitionDelay: `${i * 60}ms` }}
                 >
                   <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -712,7 +714,7 @@ export default function LandingPage() {
                     ))}
                   </ul>
                 </div>
-                <div className="flex-1 w-full max-w-md">
+                <div className={`flex-1 w-full max-w-md ${i % 2 === 0 ? 'animate-float' : 'animate-float-delayed'}`}>
                   <ShowcaseVisual type={item.visual} />
                 </div>
               </div>
@@ -738,8 +740,8 @@ export default function LandingPage() {
             {STEPS.map((s, i) => {
               const Icon = s.icon
               return (
-                <div key={i} className="relative rounded-2xl border border-white/[0.05] bg-[#141414] p-7 hover:border-[#FF6B2B]/15 transition-all duration-500 group text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/15 to-[#FF8F5E]/5 border border-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-500">
+                <div key={i} className="relative rounded-2xl border border-white/[0.06] glass-landing p-7 hover:border-[#FF6B2B]/20 hover:shadow-[0_8px_40px_rgba(255,107,43,0.04)] transition-all duration-500 group text-center noise-overlay">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/15 to-[#FF8F5E]/5 border border-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(255,107,43,0.15)] transition-all duration-500">
                     <Icon size={26} className="text-[#FF6B2B]" />
                   </div>
                   <span className="text-[10px] font-bold text-[#FF6B2B]/30 uppercase tracking-widest">Etape {s.num}</span>
@@ -766,8 +768,8 @@ export default function LandingPage() {
           {/* Featured + grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Featured testimonial */}
-            <div className="rounded-2xl border-2 border-[#FF6B2B]/20 bg-gradient-to-br from-[#1A1A1A] to-[#141414] p-7 md:p-8 flex flex-col relative overflow-hidden">
-              <div className="pointer-events-none absolute top-0 right-0 w-40 h-40 bg-[#FF6B2B]/[0.04] blur-[60px] rounded-full" />
+            <div className="rounded-2xl border-2 border-[#FF6B2B]/20 glass-landing p-7 md:p-8 flex flex-col relative overflow-hidden noise-overlay shadow-[0_8px_60px_rgba(255,107,43,0.06)]">
+              <div className="pointer-events-none absolute top-0 right-0 w-60 h-60 bg-[#FF6B2B]/[0.05] blur-[80px] rounded-full animate-glow-pulse" />
               <div className="flex gap-0.5 mb-5">
                 {[1,2,3,4,5].map(j => <Star key={j} size={16} className="text-[#FF6B2B] fill-[#FF6B2B]" />)}
               </div>
@@ -835,7 +837,7 @@ export default function LandingPage() {
             {PLANS.map((plan) => {
               const price = billingYearly ? plan.price.yearly : plan.price.monthly
               return (
-                <div key={plan.id} className={`relative rounded-2xl p-7 flex flex-col transition-all duration-500 ${plan.popular ? 'bg-[#1A1A1A] border-2 border-[#FF6B2B]/25 shadow-[0_0_80px_rgba(255,107,43,0.07)] md:scale-[1.04]' : 'bg-[#141414] border border-white/[0.05] hover:border-white/[0.1]'}`}>
+                <div key={plan.id} className={`relative rounded-2xl p-7 flex flex-col transition-all duration-500 noise-overlay ${plan.popular ? 'glass-landing border-2 border-[#FF6B2B]/25 shadow-[0_0_80px_rgba(255,107,43,0.08)] md:scale-[1.04]' : 'glass-landing border border-white/[0.06] hover:border-white/[0.12] hover:shadow-[0_8px_40px_rgba(0,0,0,0.3)]'}`}>
                   {plan.popular && (
                     <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                       <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-[9px] font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg shadow-[#FF6B2B]/25">Le plus populaire</span>
@@ -895,8 +897,8 @@ export default function LandingPage() {
                 key={i}
                 className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
                   openFaq === i
-                    ? 'border-[#FF6B2B]/20 bg-[#1A1A1A] shadow-[0_0_30px_rgba(255,107,43,0.04)]'
-                    : 'border-white/[0.06] bg-[#151515] hover:border-white/[0.1] hover:bg-[#181818]'
+                    ? 'border-[#FF6B2B]/20 glass-landing shadow-[0_4px_30px_rgba(255,107,43,0.06)]'
+                    : 'border-white/[0.06] glass-landing hover:border-white/[0.1] hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
                 }`}
               >
                 <button
@@ -935,7 +937,8 @@ export default function LandingPage() {
           </div>
 
           {/* CTA under FAQ */}
-          <div className="mt-10 rounded-2xl border border-white/[0.06] bg-gradient-to-r from-[#151515] to-[#1A1A1A] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="mt-10 rounded-2xl border border-white/[0.06] glass-landing p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden noise-overlay">
+            <div className="pointer-events-none absolute top-0 right-0 w-40 h-40 bg-[#FF6B2B]/[0.04] blur-[60px] rounded-full" />
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-[#FF6B2B]/10 border border-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
                 <PhoneCall size={20} className="text-[#FF6B2B]" />
@@ -958,9 +961,11 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════ FINAL CTA ══════════════════════ */}
-      <section className="relative py-24 md:py-36 px-5 md:px-8 overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#FF6B2B]/[0.06] via-[#FF6B2B]/[0.015] to-transparent" />
-        <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] rounded-full bg-[#FF6B2B]/[0.05] blur-[130px]" />
+      <section className="relative py-28 md:py-40 px-5 md:px-8 overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#FF6B2B]/[0.08] via-[#FF6B2B]/[0.02] to-transparent" />
+        <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] rounded-full bg-[#FF6B2B]/[0.06] blur-[150px] animate-glow-pulse" />
+        <div className="pointer-events-none absolute top-1/4 left-[10%] w-[300px] h-[300px] rounded-full bg-[#FF8F5E]/[0.03] blur-[100px]" />
+        <div className="pointer-events-none absolute top-1/4 right-[10%] w-[300px] h-[300px] rounded-full bg-[#FF6B2B]/[0.03] blur-[100px]" />
         <div className="relative max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 mb-8">
             <Flame size={14} className="text-[#FF6B2B]" />
@@ -986,7 +991,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════ FOOTER ══════════════════════ */}
-      <footer className="border-t border-white/[0.04] bg-[#0A0A0A]">
+      <footer className="border-t border-white/[0.04] bg-[#080808] relative noise-overlay">
         <div className="max-w-6xl mx-auto px-5 md:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-8 mb-12">
             <div className="col-span-2 md:col-span-1">
@@ -1021,35 +1026,84 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* ══════════════════════ CSS ANIMATIONS ══════════════════════ */}
+      {/* ══════════════════════ PREMIUM CSS ══════════════════════ */}
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
-        .animate-marquee {
-          animation: marquee 30s linear infinite;
-        }
+        .animate-marquee { animation: marquee 30s linear infinite; }
+
         @keyframes gradient-x {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
         }
-        .animate-gradient-x {
-          animation: gradient-x 4s ease infinite;
-        }
+        .animate-gradient-x { animation: gradient-x 4s ease infinite; }
+
         @keyframes bounce-slow {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-6px); }
         }
-        .animate-bounce-slow {
-          animation: bounce-slow 3s ease-in-out infinite;
+        .animate-bounce-slow { animation: bounce-slow 3s ease-in-out infinite; }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          33% { transform: translateY(-8px) rotate(0.5deg); }
+          66% { transform: translateY(4px) rotate(-0.5deg); }
         }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float 6s ease-in-out 2s infinite; }
+
+        @keyframes glow-pulse {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        .animate-glow-pulse { animation: glow-pulse 4s ease-in-out infinite; }
+
+        @keyframes reveal-up {
+          from { opacity: 0; transform: translateY(40px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+
         .line-clamp-3 {
           display: -webkit-box;
           -webkit-line-clamp: 3;
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
+
+        /* Premium glass card */
+        .glass-landing {
+          background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Noise texture overlay */
+        .noise-overlay::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+          pointer-events: none;
+          border-radius: inherit;
+          z-index: 0;
+        }
+
+        /* Shimmer on pricing popular */
+        .shimmer-border {
+          background: linear-gradient(90deg, transparent 0%, rgba(255,107,43,0.15) 50%, transparent 100%);
+          background-size: 200% 100%;
+          animation: shimmer 3s ease-in-out infinite;
+        }
+
+        /* Smooth scroll */
+        html { scroll-behavior: smooth; }
       `}</style>
     </div>
   )
