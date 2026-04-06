@@ -9,7 +9,8 @@ import {
   Crown, Flame, Activity,
   FileText, Paintbrush, UserPlus, CalendarDays,
   Lock, Bell, Utensils, CheckCircle,
-  ArrowUpRight, Trophy, Rocket, Eye, ChevronRight
+  ArrowUpRight, Trophy, Rocket, Eye, ChevronRight,
+  Video, HelpCircle, PhoneCall
 } from 'lucide-react'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
 
@@ -462,6 +463,9 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="hidden md:flex items-center gap-3">
+            <button onClick={() => navigate('/demo')} className="px-4 py-2 text-sm font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] transition-colors flex items-center gap-1.5">
+              <Video size={13} /> Demo
+            </button>
             <button onClick={() => navigate('/login')} className="px-4 py-2 text-sm font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] transition-colors">Se connecter</button>
             <button onClick={() => navigate('/register')} className="group px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-sm font-semibold hover:shadow-lg hover:shadow-[#FF6B2B]/25 transition-all duration-300 flex items-center gap-2">
               Essai gratuit <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
@@ -476,6 +480,9 @@ export default function LandingPage() {
                 <button key={l.id} onClick={() => scrollTo(l.id)} className="block w-full text-left text-lg font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] py-3.5 border-b border-white/[0.04]">{l.label}</button>
               ))}
               <div className="pt-6 space-y-3">
+                <button onClick={() => { setMenuOpen(false); navigate('/demo') }} className="w-full py-3.5 rounded-xl border border-white/[0.08] text-[#F5F5F3]/50 text-sm font-medium flex items-center justify-center gap-2">
+                  <Video size={14} className="text-[#FF6B2B]" /> Demander une demo
+                </button>
                 <button onClick={() => { setMenuOpen(false); navigate('/login') }} className="block w-full text-center text-sm text-[#F5F5F3]/50 py-3">Se connecter</button>
                 <button onClick={() => { setMenuOpen(false); navigate('/register') }} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-sm font-semibold">Commencer gratuitement</button>
               </div>
@@ -528,8 +535,8 @@ export default function LandingPage() {
               {/* Shine effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             </button>
-            <button onClick={() => scrollTo('features')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.08] text-[#F5F5F3]/50 font-medium text-base hover:bg-white/[0.03] hover:text-[#F5F5F3] hover:border-white/[0.12] transition-all duration-300 flex items-center justify-center gap-2">
-              <Play size={15} className="text-[#FF6B2B]" /> Voir la demo
+            <button onClick={() => navigate('/demo')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.08] text-[#F5F5F3]/50 font-medium text-base hover:bg-white/[0.03] hover:text-[#F5F5F3] hover:border-white/[0.12] transition-all duration-300 flex items-center justify-center gap-2">
+              <Video size={15} className="text-[#FF6B2B]" /> Demander une demo
             </button>
           </div>
 
@@ -860,24 +867,92 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════ FAQ ══════════════════════ */}
-      <section id="faq" className="py-24 md:py-36 px-5 md:px-8">
-        <div className="max-w-2xl mx-auto">
+      <section id="faq" className="py-24 md:py-36 px-5 md:px-8 relative">
+        {/* Background glow */}
+        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#FF6B2B]/[0.02] blur-[150px]" />
+
+        <div className="relative max-w-4xl mx-auto">
+          {/* Header */}
           <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Questions frequentes</h2>
-            <p className="text-[#F5F5F3]/25 text-base">Une question ? On a probablement la reponse.</p>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
+              <HelpCircle size={12} className="text-[#FF6B2B]" />
+              FAQ
+            </div>
+            <h2 className="text-3xl md:text-[3.25rem] font-bold tracking-tight leading-tight mb-4">
+              Des questions ?
+              <br />
+              <span className="bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] bg-clip-text text-transparent">On a les reponses.</span>
+            </h2>
+            <p className="text-[#F5F5F3]/25 text-base max-w-md mx-auto">
+              Tout ce que tu dois savoir avant de te lancer. Et si tu ne trouves pas, demande-nous en demo.
+            </p>
           </div>
-          <div className="space-y-2">
+
+          {/* FAQ grid — 2 colonnes */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {FAQS.map((faq, i) => (
-              <div key={i} className={`rounded-2xl border transition-all duration-300 ${openFaq === i ? 'border-[#FF6B2B]/15 bg-[#161616]' : 'border-white/[0.05] bg-[#141414]/50 hover:bg-[#141414]'}`}>
-                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between px-6 py-5 text-left">
-                  <span className="text-sm font-medium text-[#F5F5F3] pr-4">{faq.q}</span>
-                  <ChevronDown size={15} className={`text-[#F5F5F3]/20 flex-shrink-0 transition-transform duration-300 ${openFaq === i ? 'rotate-180 text-[#FF6B2B]' : ''}`} />
+              <div
+                key={i}
+                className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
+                  openFaq === i
+                    ? 'border-[#FF6B2B]/20 bg-[#1A1A1A] shadow-[0_0_30px_rgba(255,107,43,0.04)]'
+                    : 'border-white/[0.06] bg-[#151515] hover:border-white/[0.1] hover:bg-[#181818]'
+                }`}
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-start gap-3.5 px-5 py-5 text-left"
+                >
+                  {/* Number badge */}
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold transition-all duration-300 ${
+                    openFaq === i
+                      ? 'bg-[#FF6B2B]/15 text-[#FF6B2B]'
+                      : 'bg-white/[0.04] text-[#F5F5F3]/20'
+                  }`}>
+                    {String(i + 1).padStart(2, '0')}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className={`text-sm font-medium block pr-2 transition-colors duration-300 ${
+                      openFaq === i ? 'text-[#F5F5F3]' : 'text-[#F5F5F3]/70'
+                    }`}>{faq.q}</span>
+                  </div>
+                  <ChevronDown
+                    size={15}
+                    className={`flex-shrink-0 mt-1 transition-all duration-300 ${
+                      openFaq === i ? 'rotate-180 text-[#FF6B2B]' : 'text-[#F5F5F3]/15'
+                    }`}
+                  />
                 </button>
-                <div className={`overflow-hidden transition-all duration-300 ${openFaq === i ? 'max-h-48 pb-5' : 'max-h-0'}`}>
-                  <p className="px-6 text-sm text-[#F5F5F3]/30 leading-relaxed">{faq.a}</p>
+                <div className={`transition-all duration-300 ease-out ${
+                  openFaq === i ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
+                } overflow-hidden`}>
+                  <div className="px-5 pb-5 pl-[52px]">
+                    <p className="text-sm text-[#F5F5F3]/40 leading-relaxed">{faq.a}</p>
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* CTA under FAQ */}
+          <div className="mt-10 rounded-2xl border border-white/[0.06] bg-gradient-to-r from-[#151515] to-[#1A1A1A] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#FF6B2B]/10 border border-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                <PhoneCall size={20} className="text-[#FF6B2B]" />
+              </div>
+              <div>
+                <p className="text-base font-semibold text-[#F5F5F3]">Encore des questions ?</p>
+                <p className="text-sm text-[#F5F5F3]/30">Reserve une demo gratuite et on en discute en live.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/demo')}
+              className="group w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-sm font-semibold hover:shadow-lg hover:shadow-[#FF6B2B]/25 transition-all flex items-center justify-center gap-2"
+            >
+              <Video size={15} />
+              Demander une demo
+              <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+            </button>
           </div>
         </div>
       </section>
@@ -903,7 +978,9 @@ export default function LandingPage() {
               <span className="relative z-10 flex items-center gap-2.5">Commencer maintenant <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             </button>
-            <button onClick={() => navigate('/login')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.07] text-[#F5F5F3]/40 font-medium hover:bg-white/[0.03] hover:text-[#F5F5F3] transition-all">J'ai deja un compte</button>
+            <button onClick={() => navigate('/demo')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.07] text-[#F5F5F3]/40 font-medium hover:bg-white/[0.03] hover:text-[#F5F5F3] transition-all flex items-center justify-center gap-2">
+              <Video size={15} className="text-[#FF6B2B]" /> Demander une demo
+            </button>
           </div>
         </div>
       </section>

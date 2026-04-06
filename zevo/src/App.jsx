@@ -29,6 +29,7 @@ const LandingPage = lazy(() => import('./pages/public/LandingPage'))
 const LoginPage = lazy(() => import('./pages/public/LoginPage'))
 const InvitePage = lazy(() => import('./pages/public/InvitePage'))
 const PricingPage = lazy(() => import('./pages/public/PricingPage'))
+const DemoPage = lazy(() => import('./pages/public/DemoPage'))
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'))
 
 // ── Pages client (lazy) ──
@@ -84,6 +85,7 @@ export default function App() {
             <Route path="/register" element={<LoginPage />} />
             <Route path="/invite/:token" element={<InvitePage />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/demo" element={<DemoPage />} />
 
             {/* Landing page publique */}
             <Route path="/" element={<LandingPage />} />
