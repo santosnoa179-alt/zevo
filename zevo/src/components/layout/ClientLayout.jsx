@@ -53,6 +53,7 @@ export function ClientLayout() {
 
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingChecked, setOnboardingChecked] = useState(false)
+  const [clientActif, setClientActif] = useState(true)
   const [notifications, setNotifications] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -127,12 +128,15 @@ export function ClientLayout() {
     const checkOnboarding = async () => {
       const { data } = await supabase
         .from('clients')
-        .select('onboarding_complete')
+        .select('onboarding_complete, actif')
         .eq('id', user.id)
         .single()
 
       if (data && !data.onboarding_complete) {
         setShowOnboarding(true)
+      }
+      if (data) {
+        setClientActif(data.actif === true)
       }
       setOnboardingChecked(true)
     }
@@ -352,7 +356,25 @@ export function ClientLayout() {
 
       {/* Main content — pb-28 pour laisser place à la floating nav */}
       <main className={`flex-1 overflow-auto ${hideBottomNav ? '' : 'pb-28'} md:pb-0 md:ml-56`}>
-        <Outlet />
+        {!clientActif && location.pathname !== '/app/abonnement' ? (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mb-5">
+              <CreditCard size={28} className="text-[#FF6B2B]" />
+            </div>
+            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Abonnement requis</h2>
+            <p className="text-[var(--text-muted)] text-sm max-w-sm mb-6">
+              Pour accéder à tes programmes, séances et contenus, souscris à une offre de ton coach.
+            </p>
+            <button
+              onClick={() => navigate('/app/abonnement')}
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white font-semibold text-sm hover:opacity-90 transition-opacity"
+            >
+              Voir les offres
+            </button>
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </main>
 
       {/* ═══════ FLOATING BOTTOM NAV — iOS/Apple Fitness Style ═══════ */}

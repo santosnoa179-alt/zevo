@@ -128,13 +128,41 @@ export default async function handler(req, res) {
         break
       }
 
-      // Paiement échoué
+      // Paiement échoué → désactiver le client
       case 'payment_intent.payment_failed': {
         const pi = stripeEvent.data.object
+        const { client_id, coach_id } = pi.metadata || {}
+
         await supabase
           .from('paiements_clients')
           .update({ statut: 'echoue' })
           .eq('stripe_payment_intent_id', pi.id)
+
+        // Désactiver le client
+        if (client_id && coach_id) {
+          await supabase
+            .from('clients')
+            .update({ actif: false })
+            .eq('id', client_id)
+            .eq('coach_id', coach_id)
+          console.log(`[connect-webhook] Client ${client_id} désactivé après paiement échoué`)
+        }
+        break
+      }
+
+      // Abonnement client annulé → désactiver le client
+      case 'customer.subscription.deleted': {
+        const subscription = stripeEvent.data.object
+        const { client_id, coach_id } = subscription.metadata || {}
+
+        if (client_id && coach_id) {
+          await supabase
+            .from('clients')
+            .update({ actif: false })
+            .eq('id', client_id)
+            .eq('coach_id', coach_id)
+          console.log(`[connect-webhook] Client ${client_id} désactivé après annulation abonnement`)
+        }
         break
       }
 
