@@ -398,7 +398,7 @@ export default function CoachGlobalCalendarPage() {
     e.stopPropagation()
     setDetailEvent(evt)
     setEditingNotes(false)
-    setEditNotesValue(evt.notes || '')
+    setEditNotesValue(evt.notes || evt.notes_client || '')
   }
 
   // ── Sauvegarder les notes éditées d'un event ──
@@ -1152,17 +1152,22 @@ export default function CoachGlobalCalendarPage() {
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="text-[var(--text-muted)]" />
                     <span className="text-sm text-[var(--text-primary)]">
-                      {new Date(detailEvent.event_date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      {new Date(detailEvent.event_date || detailEvent.date_debut).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock size={14} className="text-[var(--text-muted)]" />
-                    <span className="text-sm text-[var(--text-primary)]">{formatHHmm(detailEvent.event_date)}</span>
+                    <span className="text-sm text-[var(--text-primary)]">
+                      {detailEvent.date_debut
+                        ? `${formatHHmm(detailEvent.date_debut)} → ${formatHHmm(detailEvent.date_fin)}`
+                        : formatHHmm(detailEvent.event_date)
+                      }
+                    </span>
                   </div>
-                  {getClientName(detailEvent.client_id) && (
+                  {getClientName(detailEvent.client_id || detailEvent._clientId) && (
                     <div className="flex items-center gap-2">
                       <User size={14} className="text-[var(--text-muted)]" />
-                      <span className="text-sm text-[var(--text-primary)]">{getClientName(detailEvent.client_id)}</span>
+                      <span className="text-sm text-[var(--text-primary)]">{getClientName(detailEvent.client_id || detailEvent._clientId)}</span>
                     </div>
                   )}
                 </div>
@@ -1214,8 +1219,8 @@ export default function CoachGlobalCalendarPage() {
                     </div>
                   ) : (
                     <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl p-4 min-h-[60px]">
-                      {detailEvent.notes ? (
-                        <p className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">{detailEvent.notes}</p>
+                      {(detailEvent.notes || detailEvent.notes_client) ? (
+                        <p className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">{detailEvent.notes || detailEvent.notes_client}</p>
                       ) : (
                         <div className="flex items-center gap-2 justify-center py-2">
                           <FileText size={14} className="text-[var(--text-muted)]" />

@@ -6,7 +6,7 @@ import {
   CalendarPlus, X, Loader2, Clock, ChevronLeft, ChevronRight, MessageSquare, Check
 } from 'lucide-react'
 
-const JOURS_SHORT = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+const JOURS_SHORT = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
 
 export default function ClientBookingModal({ open, onClose, coachId }) {
   const { user } = useAuth()
@@ -243,12 +243,10 @@ export default function ClientBookingModal({ open, onClose, coachId }) {
 
                 {/* Grille jours */}
                 <div className="grid grid-cols-7 gap-1.5">
-                  {JOURS_SHORT.map(j => (
-                    <div key={j} className="text-center text-[9px] font-semibold text-[var(--text-muted)] uppercase pb-1">{j}</div>
-                  ))}
                   {visibleDays.map((day, i) => {
                     const hasSlots = dayHasSlots(day)
                     const isSelected = selectedDate && day.getTime() === selectedDate.getTime()
+                    const jourLabel = day.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '')
                     return (
                       <button
                         key={i}
@@ -259,7 +257,7 @@ export default function ClientBookingModal({ open, onClose, coachId }) {
                           setStep('slot')
                         }}
                         disabled={!hasSlots}
-                        className={`aspect-square rounded-xl text-sm font-semibold transition-all flex flex-col items-center justify-center gap-0.5 ${
+                        className={`rounded-xl text-center py-2.5 transition-all flex flex-col items-center justify-center gap-0.5 ${
                           isSelected
                             ? 'bg-[#06b6d4] text-white'
                             : hasSlots
@@ -267,8 +265,9 @@ export default function ClientBookingModal({ open, onClose, coachId }) {
                             : 'text-[var(--text-muted)] opacity-30 cursor-not-allowed'
                         }`}
                       >
-                        <span>{day.getDate()}</span>
-                        {hasSlots && <div className="w-1 h-1 rounded-full bg-[#06b6d4]" />}
+                        <span className={`text-[9px] uppercase font-semibold ${isSelected ? 'text-white/70' : 'text-[var(--text-muted)]'}`}>{jourLabel}</span>
+                        <span className="text-sm font-bold">{day.getDate()}</span>
+                        {hasSlots && !isSelected && <div className="w-1 h-1 rounded-full bg-[#06b6d4]" />}
                       </button>
                     )
                   })}
