@@ -131,9 +131,10 @@ export default function ClientCalendarPage() {
     clientReservations.forEach(r => {
       const dateStr = r.date_debut ? toLocalDateStr(r.date_debut) : ''
       items.push({
-        id: `r-${r.id}`, type: 'reservation', dateStr,
+        id: `r-${r.id}`, type: 'event', dateStr,
         title: 'Réservation',
-        color: '#06b6d4', isCompleted: false, original: r,
+        color: '#06b6d4', isCompleted: false,
+        original: { ...r, event_type: 'reservation', title: 'Réservation', event_date: r.date_debut },
       })
     })
     return items
