@@ -71,6 +71,8 @@ export function usePlanLimits() {
   const [clientCount, setClientCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
+  const [isTrial, setIsTrial] = useState(false)
+
   useEffect(() => {
     if (!user) return
 
@@ -78,7 +80,7 @@ export function usePlanLimits() {
       const [coachRes, clientsRes] = await Promise.all([
         supabase
           .from('coaches')
-          .select('plan')
+          .select('plan, trial_ends_at, subscription_status')
           .eq('id', user.id)
           .single(),
         supabase
@@ -87,7 +89,19 @@ export function usePlanLimits() {
           .eq('coach_id', user.id),
       ])
 
-      setPlan(coachRes.data?.plan || 'starter')
+      const data = coachRes.data
+      const trialActive = data?.trial_ends_at && new Date(data.trial_ends_at) > new Date()
+      const hasSubscription = data?.subscription_status === 'active'
+
+      // Pendant le trial → accès unlimited, sinon plan normal
+      if (trialActive && !hasSubscription) {
+        setPlan('unlimited')
+        setIsTrial(true)
+      } else {
+        setPlan(data?.plan || 'starter')
+        setIsTrial(false)
+      }
+
       setClientCount(clientsRes.count || 0)
       setLoading(false)
     }
@@ -117,6 +131,7 @@ export function usePlanLimits() {
 
   return {
     plan,
+    isTrial,
     loading,
     config,
     clientCount,

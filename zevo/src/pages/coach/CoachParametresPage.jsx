@@ -56,7 +56,7 @@ export default function CoachParametresPage() {
     const load = async () => {
       const { data } = await supabase
         .from('coaches')
-        .select('prenom, nom, message_bienvenue, modules, plan, stripe_customer_id, stripe_account_id, stripe_onboarding_complete')
+        .select('prenom, nom, message_bienvenue, modules, plan, stripe_customer_id, stripe_account_id, stripe_onboarding_complete, trial_ends_at, subscription_status')
         .eq('id', user.id)
         .single()
 
@@ -64,7 +64,10 @@ export default function CoachParametresPage() {
         setCoachPrenom(data.prenom || '')
         setCoachNom(data.nom || '')
         setMessageBienvenue(data.message_bienvenue || '')
-        setPlan(data.plan || 'starter')
+        // Si en période d'essai sans abonnement actif → afficher "none"
+        const trialActive = data.trial_ends_at && new Date(data.trial_ends_at) > new Date()
+        const hasSubscription = data.subscription_status === 'active'
+        setPlan(trialActive && !hasSubscription ? 'none' : (data.plan || 'starter'))
         setStripeCustomerId(data.stripe_customer_id || null)
         setStripeAccountId(data.stripe_account_id || null)
         setStripeOnboardingComplete(data.stripe_onboarding_complete || false)
@@ -356,8 +359,11 @@ export default function CoachParametresPage() {
 
         <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-surface)]/50">
           <div>
-            <p className="text-[var(--text-primary)] text-sm font-medium capitalize">Plan {plan}</p>
+            <p className="text-[var(--text-primary)] text-sm font-medium capitalize">
+              {plan === 'none' ? 'Aucun abonnement' : `Plan ${plan}`}
+            </p>
             <p className="text-[var(--text-muted)] text-xs">
+              {plan === 'none' && 'Période d\'essai en cours · Toutes les fonctionnalités'}
               {plan === 'starter' && '29€/mois · 5 clients'}
               {plan === 'pro' && '49€/mois · 50 clients'}
               {plan === 'unlimited' && '79€/mois · Illimité'}

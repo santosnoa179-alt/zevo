@@ -564,7 +564,7 @@ export function CoachLayout() {
                 </div>
               </div>
               <button
-                onClick={() => navigate('/coach/abonnements')}
+                onClick={() => navigate('/pricing')}
                 className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-lg shadow-[#FF6B2B]/20"
               >
                 Choisir un plan
