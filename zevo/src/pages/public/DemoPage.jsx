@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, CalendarDays, Clock, Users, CheckCircle,
+  ArrowLeft, ArrowRight, CalendarDays, Clock, Users, CheckCircle,
   Star, Shield, Zap, Video, MessageCircle, Sparkles,
   ChevronRight, Play, Heart
 } from 'lucide-react'
