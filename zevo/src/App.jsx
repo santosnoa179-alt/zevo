@@ -33,18 +33,18 @@ const DemoPage = lazy(() => import('./pages/public/DemoPage'))
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'))
 
 // ── Pages features publiques (lazy) ──
-const CalendrierPage = lazy(() => import('./pages/public/features/CalendrierPage'))
-const EntrainementPage = lazy(() => import('./pages/public/features/EntrainementPage'))
-const ProgrammesPage = lazy(() => import('./pages/public/features/ProgrammesPage'))
-const NutritionPage = lazy(() => import('./pages/public/features/NutritionPage'))
-const BibliothequePage = lazy(() => import('./pages/public/features/BibliothequePage'))
-const HubClientPage = lazy(() => import('./pages/public/features/HubClientPage'))
-const MessageriePage = lazy(() => import('./pages/public/features/MessageriePage'))
-const FormulairesPage = lazy(() => import('./pages/public/features/FormulairesPage'))
-const StatistiquesPage = lazy(() => import('./pages/public/features/StatistiquesPage'))
-const AppBuilderPage = lazy(() => import('./pages/public/features/AppBuilderPage'))
-const PaiementsPage = lazy(() => import('./pages/public/features/PaiementsPage'))
-const ProspectsPage = lazy(() => import('./pages/public/features/ProspectsPage'))
+const FeatureCalendrier = lazy(() => import('./pages/public/features/CalendrierPage'))
+const FeatureEntrainement = lazy(() => import('./pages/public/features/EntrainementPage'))
+const FeatureProgrammes = lazy(() => import('./pages/public/features/ProgrammesPage'))
+const FeatureNutrition = lazy(() => import('./pages/public/features/NutritionPage'))
+const FeatureBibliotheque = lazy(() => import('./pages/public/features/BibliothequePage'))
+const FeatureHubClient = lazy(() => import('./pages/public/features/HubClientPage'))
+const FeatureMessagerie = lazy(() => import('./pages/public/features/MessageriePage'))
+const FeatureFormulaires = lazy(() => import('./pages/public/features/FormulairesPage'))
+const FeatureStatistiques = lazy(() => import('./pages/public/features/StatistiquesPage'))
+const FeatureAppBuilder = lazy(() => import('./pages/public/features/AppBuilderPage'))
+const FeaturePaiements = lazy(() => import('./pages/public/features/PaiementsPage'))
+const FeatureProspects = lazy(() => import('./pages/public/features/ProspectsPage'))
 
 // ── Pages client (lazy) ──
 const DashboardPage = lazy(() => import('./pages/client/DashboardPage'))
@@ -100,18 +100,18 @@ export default function App() {
             <Route path="/invite/:token" element={<InvitePage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/demo" element={<DemoPage />} />
-            <Route path="/features/calendrier" element={<CalendrierPage />} />
-            <Route path="/features/entrainement" element={<EntrainementPage />} />
-            <Route path="/features/programmes" element={<ProgrammesPage />} />
-            <Route path="/features/nutrition" element={<NutritionPage />} />
-            <Route path="/features/bibliotheque" element={<BibliothequePage />} />
-            <Route path="/features/hub-client" element={<HubClientPage />} />
-            <Route path="/features/messagerie" element={<MessageriePage />} />
-            <Route path="/features/formulaires" element={<FormulairesPage />} />
-            <Route path="/features/statistiques" element={<StatistiquesPage />} />
-            <Route path="/features/app-builder" element={<AppBuilderPage />} />
-            <Route path="/features/paiements" element={<PaiementsPage />} />
-            <Route path="/features/prospects" element={<ProspectsPage />} />
+            <Route path="/features/calendrier" element={<FeatureCalendrier />} />
+            <Route path="/features/entrainement" element={<FeatureEntrainement />} />
+            <Route path="/features/programmes" element={<FeatureProgrammes />} />
+            <Route path="/features/nutrition" element={<FeatureNutrition />} />
+            <Route path="/features/bibliotheque" element={<FeatureBibliotheque />} />
+            <Route path="/features/hub-client" element={<FeatureHubClient />} />
+            <Route path="/features/messagerie" element={<FeatureMessagerie />} />
+            <Route path="/features/formulaires" element={<FeatureFormulaires />} />
+            <Route path="/features/statistiques" element={<FeatureStatistiques />} />
+            <Route path="/features/app-builder" element={<FeatureAppBuilder />} />
+            <Route path="/features/paiements" element={<FeaturePaiements />} />
+            <Route path="/features/prospects" element={<FeatureProspects />} />
 
             {/* Landing page publique */}
             <Route path="/" element={<LandingPage />} />
