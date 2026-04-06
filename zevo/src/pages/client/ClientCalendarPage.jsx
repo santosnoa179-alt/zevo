@@ -5,9 +5,10 @@ import { usePageTransition } from '../../hooks/useAnimations'
 import {
   Calendar, ChevronLeft, ChevronRight, Dumbbell, CheckCircle2,
   Loader2, Clock, X, FileText, Phone, CheckSquare, Users as UsersIcon,
-  Star, Play, ArrowRight
+  Star, Play, ArrowRight, CalendarPlus, CalendarCheck
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import ClientBookingModal from '../../components/ClientBookingModal'
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
@@ -19,6 +20,7 @@ const EVENT_TYPES = {
   note:    { label: 'Note',       icon: FileText,     color: '#f59e0b' },
   perso:   { label: 'Personnel',  icon: Star,         color: '#ec4899' },
   autre:   { label: 'Autre',      icon: Calendar,     color: '#64748b' },
+  reservation: { label: 'Réservation', icon: CalendarCheck, color: '#06b6d4' },
 }
 
 // ── Date helpers ──
@@ -100,6 +102,9 @@ export default function ClientCalendarPage() {
   const [selectedDay, setSelectedDay] = useState(null)
   const [exercices, setExercices] = useState([])
   const [loadingExos, setLoadingExos] = useState(false)
+  const [bookingOpen, setBookingOpen] = useState(false)
+  const [coachId, setCoachId] = useState(null)
+  const [clientReservations, setClientReservations] = useState([])
 
   const today = new Date()
 
@@ -123,16 +128,26 @@ export default function ClientCalendarPage() {
         color: evType.color, isCompleted: false, original: e,
       })
     })
+    clientReservations.forEach(r => {
+      const dateStr = r.date_debut ? toLocalDateStr(r.date_debut) : ''
+      items.push({
+        id: `r-${r.id}`, type: 'reservation', dateStr,
+        title: 'Réservation',
+        color: '#06b6d4', isCompleted: false, original: r,
+      })
+    })
     return items
-  }, [seances, events])
+  }, [seances, events, clientReservations])
 
   const fetchData = useCallback(async (silent = false) => {
     if (!user) return
     if (!silent) setLoading(true)
 
-    const [seancesRes, eventsRes] = await Promise.all([
+    const [seancesRes, eventsRes, clientRes, reservRes] = await Promise.all([
       supabase.from('seances').select('*').eq('client_id', user.id).eq('is_template', false).order('date_prevue', { ascending: true }),
       supabase.from('coach_events').select('*').eq('client_id', user.id).order('event_date', { ascending: true }),
+      supabase.from('clients').select('coach_id').eq('id', user.id).maybeSingle(),
+      supabase.from('reservations').select('*').eq('client_id', user.id).eq('statut', 'confirmee').order('date_debut', { ascending: true }),
     ])
 
     if (seancesRes.error) console.error('[ClientCalendar] Erreur séances:', seancesRes.error)
@@ -140,6 +155,8 @@ export default function ClientCalendarPage() {
 
     setSeances(seancesRes.data || [])
     setEvents(eventsRes.data || [])
+    setClientReservations(reservRes.data || [])
+    if (clientRes.data?.coach_id) setCoachId(clientRes.data.coach_id)
     if (!silent) setLoading(false)
   }, [user])
 
@@ -803,6 +820,24 @@ export default function ClientCalendarPage() {
       {renderSeanceModal()}
       {renderEventModal()}
       {renderDayModal()}
+
+      {/* ── Bouton flottant Réserver ── */}
+      {coachId && (
+        <button
+          onClick={() => setBookingOpen(true)}
+          className="fixed bottom-24 right-5 z-30 flex items-center gap-2 px-5 py-3 rounded-2xl text-white text-sm font-semibold shadow-lg active:scale-[0.95] transition-all"
+          style={{ background: 'linear-gradient(135deg, #06b6d4, #0891b2)', boxShadow: '0 6px 20px rgba(6,182,212,0.35)' }}
+        >
+          <CalendarPlus size={18} /> Réserver
+        </button>
+      )}
+
+      {/* ── Modal Booking ── */}
+      <ClientBookingModal
+        open={bookingOpen}
+        onClose={() => { setBookingOpen(false); fetchData(true) }}
+        coachId={coachId}
+      />
     </div>
   )
 }

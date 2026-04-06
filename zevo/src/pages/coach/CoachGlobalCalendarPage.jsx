@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import {
-  Calendar, ChevronLeft, ChevronRight, Plus, Clock, User,
+  Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, CalendarCheck,
   Dumbbell, X, CheckSquare, Phone, FileText, Users as UsersIcon,
   Star, Loader2, Filter, Edit3, ExternalLink, AlignLeft, Save, Trash2
 } from 'lucide-react'
 import { useToast } from '../../components/ui/Toast'
+import CoachDisponibilites from '../../components/CoachDisponibilites'
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const JOURS_FULL = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
@@ -20,6 +21,7 @@ const EVENT_TYPES = [
   { id: 'note', label: 'Note', icon: FileText, color: '#f59e0b' },
   { id: 'perso', label: 'Personnel', icon: Star, color: '#ec4899' },
   { id: 'autre', label: 'Autre', icon: Calendar, color: '#64748b' },
+  { id: 'reservation', label: 'Réservation', icon: CalendarCheck, color: '#06b6d4' },
 ]
 
 // ── Date helpers ──
@@ -136,6 +138,8 @@ export default function CoachGlobalCalendarPage() {
   const [editingNotes, setEditingNotes] = useState(false)      // Mode édition notes event
   const [editNotesValue, setEditNotesValue] = useState('')
   const [savingNotes, setSavingNotes] = useState(false)
+  const [dispoOpen, setDispoOpen] = useState(false)           // Modal disponibilités
+  const [reservations, setReservations] = useState([])         // Réservations
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -173,7 +177,7 @@ export default function CoachGlobalCalendarPage() {
     const startISO = start.toISOString().slice(0, 10) // YYYY-MM-DD pour date_prevue (type date)
     const endISO = end.toISOString().slice(0, 10)
 
-    const [seancesRes, eventsRes, clientsRes] = await Promise.all([
+    const [seancesRes, eventsRes, clientsRes, reservRes] = await Promise.all([
       supabase
         .from('seances')
         .select('id, titre, date_prevue, client_id, is_completed, is_template')
@@ -195,6 +199,14 @@ export default function CoachGlobalCalendarPage() {
         .select('id, profiles(nom)')
         .eq('coach_id', user.id)
         .eq('actif', true),
+      supabase
+        .from('reservations')
+        .select('id, client_id, date_debut, date_fin, statut, notes_client, notes_coach')
+        .eq('coach_id', user.id)
+        .eq('statut', 'confirmee')
+        .gte('date_debut', start.toISOString())
+        .lte('date_debut', end.toISOString())
+        .order('date_debut', { ascending: true }),
     ])
 
     if (seancesRes.error) console.error('[Calendar] Erreur fetch séances:', seancesRes.error.message)
@@ -220,6 +232,7 @@ export default function CoachGlobalCalendarPage() {
     setSeances(enrichedSeances)
     setEvents(eventsRes.data ?? [])
     setClients(clientsRes.data ?? [])
+    setReservations(reservRes.data ?? [])
     setLoading(false)
   }, [user?.id, getDateRange])
 
@@ -284,8 +297,11 @@ export default function CoachGlobalCalendarPage() {
     const dayEvents = events
       .filter(e => isSameDay(new Date(e.event_date), date))
       .map(e => ({ ...e, _type: 'event', _time: e.event_date, _clientId: e.client_id }))
+    const dayReservs = reservations
+      .filter(r => isSameDay(new Date(r.date_debut), date))
+      .map(r => ({ ...r, _type: 'reservation', _time: r.date_debut, _clientId: r.client_id, event_type: 'reservation', title: 'Réservation' }))
 
-    let items = [...daySeances, ...dayEvents].sort((a, b) => new Date(a._time) - new Date(b._time))
+    let items = [...daySeances, ...dayEvents, ...dayReservs].sort((a, b) => new Date(a._time) - new Date(b._time))
 
     // Apply filters
     if (filterClient) items = items.filter(i => i._clientId === filterClient)
@@ -490,13 +506,21 @@ export default function CoachGlobalCalendarPage() {
               <p className="text-[11px] text-[var(--text-muted)] hidden sm:block">Planifiez et suivez vos sessions</p>
             </div>
           </div>
-          <button
-            onClick={openNewModal}
-            className="flex items-center justify-center gap-2 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.97]"
-            style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 4px 14px rgba(255,107,43,0.25)' }}
-          >
-            <Plus className="w-4 h-4" /> Nouvel événement
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setDispoOpen(true)}
+              className="flex items-center justify-center gap-2 text-[var(--text-secondary)] text-sm font-semibold px-4 py-2.5 rounded-xl border border-[var(--border-base)] hover:bg-[var(--bg-surface)] transition-all active:scale-[0.97]"
+            >
+              <Clock className="w-4 h-4" /> Disponibilités
+            </button>
+            <button
+              onClick={openNewModal}
+              className="flex items-center justify-center gap-2 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.97]"
+              style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 4px 14px rgba(255,107,43,0.25)' }}
+            >
+              <Plus className="w-4 h-4" /> Nouvel événement
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1224,6 +1248,9 @@ export default function CoachGlobalCalendarPage() {
           </>
         )
       })()}
+
+      {/* ═══════ MODAL DISPONIBILITÉS ═══════ */}
+      <CoachDisponibilites open={dispoOpen} onClose={() => { setDispoOpen(false); fetchData(true) }} />
     </div>
   )
 }
