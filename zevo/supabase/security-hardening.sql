@@ -28,19 +28,20 @@ drop policy if exists "invitations_select_by_token" on invitations;
 
 -- On garde invitations_select pour coach + admin
 -- Pour la page /invite/:token, on utilise une fonction sécurisée
-create or replace function get_invitation_by_token(p_token uuid)
+create or replace function get_invitation_by_token(p_token text)
 returns table (
   id uuid,
   coach_id uuid,
   email text,
-  statut text,
+  acceptee boolean,
+  expires_at timestamptz,
   created_at timestamptz
 )
 language sql
 security definer
 set search_path = public
 as $$
-  select id, coach_id, email, statut, created_at
+  select id, coach_id, email, acceptee, expires_at, created_at
   from invitations
   where token = p_token
   limit 1;

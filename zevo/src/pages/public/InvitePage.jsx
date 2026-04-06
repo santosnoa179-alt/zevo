@@ -30,8 +30,13 @@ export default function InvitePage() {
       // Vérifier que l'invitation est valide et non expirée
       const data = rpcData?.[0] || null
       const error = rpcError || (!data ? { message: 'Token invalide' } : null)
-      if (data && data.statut !== 'en_attente') {
+      if (data && data.acceptee === true) {
         setError('Cette invitation a déjà été utilisée.')
+        setLoading(false)
+        return
+      }
+      if (data && data.expires_at && new Date(data.expires_at) < new Date()) {
+        setError('Ce lien d\'invitation a expiré.')
         setLoading(false)
         return
       }
