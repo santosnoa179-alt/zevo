@@ -32,6 +32,13 @@ const PricingPage = lazy(() => import('./pages/public/PricingPage'))
 const DemoPage = lazy(() => import('./pages/public/DemoPage'))
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'))
 
+// ── Pages features publiques (lazy) ──
+const CalendrierPage = lazy(() => import('./pages/public/features/CalendrierPage'))
+const EntrainementPage = lazy(() => import('./pages/public/features/EntrainementPage'))
+const ProgrammesPage = lazy(() => import('./pages/public/features/ProgrammesPage'))
+const NutritionPage = lazy(() => import('./pages/public/features/NutritionPage'))
+const BibliothequePage = lazy(() => import('./pages/public/features/BibliothequePage'))
+
 // ── Pages client (lazy) ──
 const DashboardPage = lazy(() => import('./pages/client/DashboardPage'))
 const HabitudesPage = lazy(() => import('./pages/client/HabitudesPage'))
@@ -86,6 +93,11 @@ export default function App() {
             <Route path="/invite/:token" element={<InvitePage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/demo" element={<DemoPage />} />
+            <Route path="/features/calendrier" element={<CalendrierPage />} />
+            <Route path="/features/entrainement" element={<EntrainementPage />} />
+            <Route path="/features/programmes" element={<ProgrammesPage />} />
+            <Route path="/features/nutrition" element={<NutritionPage />} />
+            <Route path="/features/bibliotheque" element={<BibliothequePage />} />
 
             {/* Landing page publique */}
             <Route path="/" element={<LandingPage />} />

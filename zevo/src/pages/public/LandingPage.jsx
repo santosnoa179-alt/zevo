@@ -19,11 +19,12 @@ import { ZevoLogo } from '../../components/ui/ZevoLogo'
 // ══════════════════════════════════════════════════════════
 
 const NAV_LINKS = [
-  { label: 'Fonctionnalites', id: 'features' },
-  { label: 'Comment ca marche', id: 'how' },
+  { label: 'Calendrier', path: '/features/calendrier' },
+  { label: 'Entrainement', path: '/features/entrainement' },
+  { label: 'Programmes', path: '/features/programmes' },
+  { label: 'Nutrition', path: '/features/nutrition' },
+  { label: 'Bibliotheque', path: '/features/bibliotheque' },
   { label: 'Tarifs', id: 'pricing' },
-  { label: 'Temoignages', id: 'testimonials' },
-  { label: 'FAQ', id: 'faq' },
 ]
 
 const BENTO_FEATURES = [
@@ -459,7 +460,7 @@ export default function LandingPage() {
           <ZevoLogo size="md" />
           <div className="hidden lg:flex items-center gap-8">
             {NAV_LINKS.map(l => (
-              <button key={l.id} onClick={() => scrollTo(l.id)} className="text-[13px] text-[#F5F5F3]/40 hover:text-[#F5F5F3] transition-colors duration-300 font-medium">{l.label}</button>
+              <button key={l.label} onClick={() => l.path ? navigate(l.path) : scrollTo(l.id)} className="text-[13px] text-[#F5F5F3]/40 hover:text-[#F5F5F3] transition-colors duration-300 font-medium">{l.label}</button>
             ))}
           </div>
           <div className="hidden md:flex items-center gap-3">
@@ -477,7 +478,7 @@ export default function LandingPage() {
           <div className="md:hidden fixed inset-0 top-[60px] bg-[#0D0D0D]/98 backdrop-blur-2xl z-40">
             <div className="p-6 space-y-1">
               {NAV_LINKS.map((l, i) => (
-                <button key={l.id} onClick={() => scrollTo(l.id)} className="block w-full text-left text-lg font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] py-3.5 border-b border-white/[0.04]">{l.label}</button>
+                <button key={l.label} onClick={() => { setMenuOpen(false); l.path ? navigate(l.path) : scrollTo(l.id) }} className="block w-full text-left text-lg font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] py-3.5 border-b border-white/[0.04]">{l.label}</button>
               ))}
               <div className="pt-6 space-y-3">
                 <button onClick={() => { setMenuOpen(false); navigate('/demo') }} className="w-full py-3.5 rounded-xl border border-white/[0.08] text-[#F5F5F3]/50 text-sm font-medium flex items-center justify-center gap-2">
@@ -999,7 +1000,7 @@ export default function LandingPage() {
               <p className="text-[11px] text-[#F5F5F3]/15 mt-3 leading-relaxed max-w-[200px]">Le logiciel tout-en-un pour les coachs qui veulent scaler.</p>
             </div>
             {[
-              { title: 'Produit', links: ['Fonctionnalites', 'Tarifs', 'Temoignages', 'FAQ'], ids: ['features', 'pricing', 'testimonials', 'faq'] },
+              { title: 'Produit', links: ['Calendrier', 'Programmes', 'Nutrition', 'Bibliotheque', 'Tarifs'], paths: ['/features/calendrier', '/features/programmes', '/features/nutrition', '/features/bibliotheque', null], ids: [null, null, null, null, 'pricing'] },
               { title: 'Ressources', links: ['Centre d\'aide', 'Blog', 'Changelog', 'Contact'] },
               { title: 'Legal', links: ['Mentions legales', 'Confidentialite', 'CGV', 'Cookies'] },
             ].map((col, i) => (
@@ -1008,7 +1009,9 @@ export default function LandingPage() {
                 <ul className="space-y-2.5">
                   {col.links.map((link, j) => (
                     <li key={j}>
-                      {col.ids ? (
+                      {col.paths && col.paths[j] ? (
+                        <button onClick={() => navigate(col.paths[j])} className="text-sm text-[#F5F5F3]/20 hover:text-[#F5F5F3]/40 transition-colors">{link}</button>
+                      ) : col.ids && col.ids[j] ? (
                         <button onClick={() => scrollTo(col.ids[j])} className="text-sm text-[#F5F5F3]/20 hover:text-[#F5F5F3]/40 transition-colors">{link}</button>
                       ) : (
                         <a href="#" className="text-sm text-[#F5F5F3]/20 hover:text-[#F5F5F3]/40 transition-colors">{link}</a>
