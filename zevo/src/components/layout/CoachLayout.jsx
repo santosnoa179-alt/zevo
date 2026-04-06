@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Users, UserPlus, CalendarDays,
   Dumbbell, Apple, Activity, Video,
-  Receipt, UsersRound, Zap, Bell, Lock,
+  Receipt, UsersRound, Zap, Bell, Lock, Trash2,
   Search, MessageCircle, Rocket, LogOut, Menu, X,
   Settings, ChevronDown, ChevronLeft, BookOpen, Layers, ClipboardList,
   FileText, BarChart3, CreditCard, Paintbrush, Send, Mic,
@@ -223,6 +223,19 @@ export function CoachLayout() {
     if (unreadIds.length === 0) return
     await supabase.from('notifications').update({ is_read: true }).in('id', unreadIds)
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+  }
+
+  // ── Supprimer une notification ──
+  const deleteNotif = async (id) => {
+    await supabase.from('notifications').delete().eq('id', id)
+    setNotifications(prev => prev.filter(n => n.id !== id))
+  }
+
+  // ── Tout effacer ──
+  const clearAllNotifs = async () => {
+    if (!user || notifications.length === 0) return
+    await supabase.from('notifications').delete().eq('coach_id', user.id)
+    setNotifications([])
   }
 
   const handleLogout = async () => {
@@ -452,11 +465,6 @@ export function CoachLayout() {
             {/* Theme toggle */}
             <ThemeToggle size="sm" />
 
-            {/* Recherche */}
-            <button className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-colors">
-              <Search size={17} />
-            </button>
-
             {/* Notifications */}
             <div className="relative">
               <button
@@ -488,14 +496,24 @@ export function CoachLayout() {
                           </span>
                         )}
                       </div>
-                      {unreadCount > 0 && (
-                        <button
-                          className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-                          onClick={markAllAsRead}
-                        >
-                          Tout marquer comme lu
-                        </button>
-                      )}
+                      <div className="flex items-center gap-3">
+                        {unreadCount > 0 && (
+                          <button
+                            className="text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                            onClick={markAllAsRead}
+                          >
+                            Tout lire
+                          </button>
+                        )}
+                        {notifications.length > 0 && (
+                          <button
+                            className="text-[11px] text-red-400 hover:text-red-300 transition-colors"
+                            onClick={clearAllNotifs}
+                          >
+                            Tout effacer
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Liste */}
@@ -529,10 +547,10 @@ export function CoachLayout() {
                             : new Date(n.created_at).toLocaleDateString('fr-FR')
 
                           return (
-                            <button
+                            <div
                               key={n.id}
                               onClick={() => { if (!n.is_read) markAsRead(n.id) }}
-                              className={`w-full flex items-start gap-3 px-5 py-4 hover:bg-[var(--border-subtle)] transition-colors text-left border-b border-[var(--border-subtle)] ${!n.is_read ? 'bg-[var(--border-subtle)]' : ''}`}
+                              className={`group w-full flex items-start gap-3 px-5 py-4 hover:bg-[var(--border-subtle)] transition-colors text-left border-b border-[var(--border-subtle)] cursor-pointer ${!n.is_read ? 'bg-[var(--border-subtle)]' : ''}`}
                             >
                               <div className={`w-9 h-9 rounded-xl ${cfg.iconBg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
                                 <IconComp size={16} className={cfg.iconColor} />
@@ -548,7 +566,14 @@ export function CoachLayout() {
                                 <p className="text-[var(--text-secondary)] text-[11px] mt-0.5 leading-relaxed">{n.message}</p>
                                 <p className="text-[var(--text-muted)] text-[10px] mt-1 font-medium">{timeLabel}</p>
                               </div>
-                            </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); deleteNotif(n.id) }}
+                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all flex-shrink-0 mt-0.5"
+                                title="Supprimer"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
                           )
                         })
                       )}
