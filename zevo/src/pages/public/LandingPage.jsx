@@ -412,6 +412,7 @@ function SocialProofPopup({ visible, name }) {
 export default function LandingPage() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [featuresExpanded, setFeaturesExpanded] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState(null)
   const [scrolled, setScrolled] = useState(false)
@@ -543,31 +544,54 @@ export default function LandingPage() {
           <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 text-[#F5F5F3]/60">{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
         </div>
         {menuOpen && (
-          <div className="md:hidden fixed inset-0 top-[60px] bg-[#0D0D0D]/98 backdrop-blur-2xl z-40">
-            <div className="p-6 space-y-1">
-              <p className="text-[10px] font-semibold text-[#F5F5F3]/20 uppercase tracking-wider mb-2 px-1">Fonctionnalites</p>
-              {FEATURE_NAV.map((f) => {
-                const Icon = f.icon
-                return (
-                  <button key={f.path} onClick={() => { setMenuOpen(false); navigate(f.path) }} className="flex items-center gap-3 w-full text-left py-2.5 border-b border-white/[0.04]">
-                    <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                      <Icon size={13} className="text-[#FF6B2B]" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-[#F5F5F3]/60">{f.label}</p>
-                      <p className="text-[10px] text-[#F5F5F3]/20">{f.desc}</p>
-                    </div>
-                  </button>
-                )
-              })}
-              <button onClick={() => { setMenuOpen(false); scrollTo('pricing') }} className="block w-full text-left text-lg font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] py-3.5 border-b border-white/[0.04]">Tarifs</button>
-              <button onClick={() => { setMenuOpen(false); scrollTo('faq') }} className="block w-full text-left text-lg font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] py-3.5 border-b border-white/[0.04]">FAQ</button>
+          <div className="md:hidden fixed inset-0 top-[60px] bg-[#0D0D0D]/98 backdrop-blur-2xl z-40 overflow-y-auto">
+            <div className="p-5 pb-10">
+              {/* Fonctionnalites — accordion compact */}
+              <button
+                onClick={() => setFeaturesExpanded(!featuresExpanded)}
+                className="flex items-center justify-between w-full py-3.5 border-b border-white/[0.06]"
+              >
+                <span className="text-[15px] font-semibold text-[#F5F5F3]/70">Fonctionnalites</span>
+                <ChevronDown size={16} className={`text-[#F5F5F3]/30 transition-transform duration-300 ${featuresExpanded ? 'rotate-180' : ''}`} />
+              </button>
+
+              {featuresExpanded && (
+                <div className="grid grid-cols-2 gap-1.5 py-3">
+                  {FEATURE_NAV.map((f) => {
+                    const Icon = f.icon
+                    return (
+                      <button
+                        key={f.path}
+                        onClick={() => { setMenuOpen(false); setFeaturesExpanded(false); navigate(f.path) }}
+                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-[#FF6B2B]/15 transition-all active:scale-[0.97]"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                          <Icon size={12} className="text-[#FF6B2B]" />
+                        </div>
+                        <span className="text-[12px] font-medium text-[#F5F5F3]/50 truncate">{f.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Nav links */}
+              <button onClick={() => { setMenuOpen(false); navigate('/pricing') }} className="flex items-center justify-between w-full py-3.5 border-b border-white/[0.06]">
+                <span className="text-[15px] font-semibold text-[#F5F5F3]/70">Tarifs</span>
+                <ArrowUpRight size={14} className="text-[#F5F5F3]/20" />
+              </button>
+              <button onClick={() => { setMenuOpen(false); scrollTo('faq') }} className="flex items-center justify-between w-full py-3.5 border-b border-white/[0.06]">
+                <span className="text-[15px] font-semibold text-[#F5F5F3]/70">FAQ</span>
+                <ChevronDown size={14} className="text-[#F5F5F3]/20" />
+              </button>
+
+              {/* CTAs */}
               <div className="pt-6 space-y-3">
-                <button onClick={() => { setMenuOpen(false); navigate('/demo') }} className="w-full py-3.5 rounded-xl border border-white/[0.08] text-[#F5F5F3]/50 text-sm font-medium flex items-center justify-center gap-2">
+                <button onClick={() => { setMenuOpen(false); navigate('/demo') }} className="w-full py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-[#F5F5F3]/60 text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
                   <Video size={14} className="text-[#FF6B2B]" /> Demander une demo
                 </button>
-                <button onClick={() => { setMenuOpen(false); navigate('/login') }} className="block w-full text-center text-sm text-[#F5F5F3]/50 py-3">Se connecter</button>
-                <button onClick={() => { setMenuOpen(false); navigate('/register') }} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-sm font-semibold">Commencer gratuitement</button>
+                <button onClick={() => { setMenuOpen(false); navigate('/register') }} className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-sm font-semibold active:scale-[0.98] transition-transform">Commencer gratuitement</button>
+                <button onClick={() => { setMenuOpen(false); navigate('/login') }} className="block w-full text-center text-[13px] text-[#F5F5F3]/30 py-2">Deja un compte ? Se connecter</button>
               </div>
             </div>
           </div>
