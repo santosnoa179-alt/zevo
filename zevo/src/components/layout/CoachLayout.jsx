@@ -275,7 +275,7 @@ export function CoachLayout() {
       {/* ── Menu mobile overlay ── */}
       {menuOpen && (
         <div className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-[var(--bg-elevated)] backdrop-blur-sm overflow-y-auto overscroll-contain" style={{ top: 'calc(53px + env(safe-area-inset-top, 0px))' }}>
-          <nav className="p-4">
+          <nav className="p-4" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}>
             {NAV_SECTIONS.map((section, si) => (
               <div key={si} className={si > 0 ? 'mt-4' : ''}>
                 {section.title && (
