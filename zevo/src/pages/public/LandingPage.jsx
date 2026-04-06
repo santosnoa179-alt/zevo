@@ -18,13 +18,19 @@ import { ZevoLogo } from '../../components/ui/ZevoLogo'
 // DATA
 // ══════════════════════════════════════════════════════════
 
-const NAV_LINKS = [
-  { label: 'Calendrier', path: '/features/calendrier' },
-  { label: 'Entrainement', path: '/features/entrainement' },
-  { label: 'Programmes', path: '/features/programmes' },
-  { label: 'Nutrition', path: '/features/nutrition' },
-  { label: 'Bibliotheque', path: '/features/bibliotheque' },
-  { label: 'Tarifs', id: 'pricing' },
+const FEATURE_NAV = [
+  { icon: Dumbbell, label: 'Entrainement', desc: 'Suivi en temps reel', path: '/features/entrainement' },
+  { icon: ClipboardList, label: 'Programmes', desc: 'Multi-semaines, drag & drop', path: '/features/programmes' },
+  { icon: Utensils, label: 'Nutrition', desc: 'Plans alimentaires & macros', path: '/features/nutrition' },
+  { icon: CalendarDays, label: 'Calendrier', desc: 'Reservations & planning', path: '/features/calendrier' },
+  { icon: Users, label: 'Hub Client', desc: 'Fiche client 360', path: '/features/hub-client' },
+  { icon: MessageCircle, label: 'Messagerie', desc: 'Chat temps reel', path: '/features/messagerie' },
+  { icon: BookOpen, label: 'Bibliotheque', desc: 'Ressources & videos', path: '/features/bibliotheque' },
+  { icon: ClipboardList, label: 'Formulaires', desc: 'Bilans & questionnaires', path: '/features/formulaires' },
+  { icon: BarChart3, label: 'Statistiques', desc: 'Rapports & analytics', path: '/features/statistiques' },
+  { icon: Paintbrush, label: 'App Builder', desc: 'Branding personnalise', path: '/features/app-builder' },
+  { icon: CreditCard, label: 'Paiements', desc: 'Stripe & abonnements', path: '/features/paiements' },
+  { icon: UserPlus, label: 'CRM Prospects', desc: 'Pipeline commercial', path: '/features/prospects' },
 ]
 
 const BENTO_FEATURES = [
@@ -406,6 +412,7 @@ function SocialProofPopup({ visible, name }) {
 export default function LandingPage() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [billingYearly, setBillingYearly] = useState(false)
@@ -458,10 +465,50 @@ export default function LandingPage() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-[#0D0D0D]/70 backdrop-blur-2xl border-b border-white/[0.06] py-3' : 'bg-transparent py-5'}`}>
         <div className="max-w-7xl mx-auto px-5 md:px-8 flex items-center justify-between">
           <ZevoLogo size="md" />
-          <div className="hidden lg:flex items-center gap-8">
-            {NAV_LINKS.map(l => (
-              <button key={l.label} onClick={() => l.path ? navigate(l.path) : scrollTo(l.id)} className="text-[13px] text-[#F5F5F3]/40 hover:text-[#F5F5F3] transition-colors duration-300 font-medium">{l.label}</button>
-            ))}
+          <div className="hidden lg:flex items-center gap-6">
+            {/* Fonctionnalites dropdown */}
+            <div className="relative"
+              onMouseEnter={() => setDropdownOpen(true)}
+              onMouseLeave={() => setDropdownOpen(false)}
+            >
+              <button className="flex items-center gap-1.5 text-[13px] text-[#F5F5F3]/40 hover:text-[#F5F5F3] transition-colors duration-300 font-medium py-2">
+                Fonctionnalites <ChevronDown size={12} className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {dropdownOpen && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-[680px]">
+                  <div className="rounded-2xl border border-white/[0.08] bg-[#141414]/95 backdrop-blur-2xl shadow-2xl shadow-black/50 overflow-hidden">
+                    <div className="p-2 grid grid-cols-3 gap-0.5">
+                      {FEATURE_NAV.map((f) => {
+                        const Icon = f.icon
+                        return (
+                          <button
+                            key={f.path}
+                            onClick={() => { setDropdownOpen(false); navigate(f.path) }}
+                            className="group flex items-start gap-3 px-3.5 py-3 rounded-xl hover:bg-white/[0.04] transition-all text-left"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 border border-[#FF6B2B]/[0.08] flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-[#FF6B2B]/15 transition-colors">
+                              <Icon size={14} className="text-[#FF6B2B]" />
+                            </div>
+                            <div>
+                              <p className="text-[12px] font-semibold text-[#F5F5F3]/70 group-hover:text-[#F5F5F3] transition-colors">{f.label}</p>
+                              <p className="text-[10px] text-[#F5F5F3]/25 group-hover:text-[#F5F5F3]/35 transition-colors leading-snug">{f.desc}</p>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <div className="border-t border-white/[0.05] px-4 py-3 flex items-center justify-between bg-white/[0.015]">
+                      <span className="text-[10px] text-[#F5F5F3]/20">12 fonctionnalites incluses</span>
+                      <button onClick={() => { setDropdownOpen(false); navigate('/pricing') }} className="text-[10px] font-medium text-[#FF6B2B] hover:text-[#FF8F5E] transition-colors flex items-center gap-1">
+                        Voir les tarifs <ArrowRight size={10} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <button onClick={() => scrollTo('pricing')} className="text-[13px] text-[#F5F5F3]/40 hover:text-[#F5F5F3] transition-colors duration-300 font-medium">Tarifs</button>
+            <button onClick={() => scrollTo('faq')} className="text-[13px] text-[#F5F5F3]/40 hover:text-[#F5F5F3] transition-colors duration-300 font-medium">FAQ</button>
           </div>
           <div className="hidden md:flex items-center gap-3">
             <button onClick={() => navigate('/demo')} className="px-4 py-2 text-sm font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] transition-colors flex items-center gap-1.5">
@@ -477,9 +524,23 @@ export default function LandingPage() {
         {menuOpen && (
           <div className="md:hidden fixed inset-0 top-[60px] bg-[#0D0D0D]/98 backdrop-blur-2xl z-40">
             <div className="p-6 space-y-1">
-              {NAV_LINKS.map((l, i) => (
-                <button key={l.label} onClick={() => { setMenuOpen(false); l.path ? navigate(l.path) : scrollTo(l.id) }} className="block w-full text-left text-lg font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] py-3.5 border-b border-white/[0.04]">{l.label}</button>
-              ))}
+              <p className="text-[10px] font-semibold text-[#F5F5F3]/20 uppercase tracking-wider mb-2 px-1">Fonctionnalites</p>
+              {FEATURE_NAV.map((f) => {
+                const Icon = f.icon
+                return (
+                  <button key={f.path} onClick={() => { setMenuOpen(false); navigate(f.path) }} className="flex items-center gap-3 w-full text-left py-2.5 border-b border-white/[0.04]">
+                    <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                      <Icon size={13} className="text-[#FF6B2B]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-[#F5F5F3]/60">{f.label}</p>
+                      <p className="text-[10px] text-[#F5F5F3]/20">{f.desc}</p>
+                    </div>
+                  </button>
+                )
+              })}
+              <button onClick={() => { setMenuOpen(false); scrollTo('pricing') }} className="block w-full text-left text-lg font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] py-3.5 border-b border-white/[0.04]">Tarifs</button>
+              <button onClick={() => { setMenuOpen(false); scrollTo('faq') }} className="block w-full text-left text-lg font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] py-3.5 border-b border-white/[0.04]">FAQ</button>
               <div className="pt-6 space-y-3">
                 <button onClick={() => { setMenuOpen(false); navigate('/demo') }} className="w-full py-3.5 rounded-xl border border-white/[0.08] text-[#F5F5F3]/50 text-sm font-medium flex items-center justify-center gap-2">
                   <Video size={14} className="text-[#FF6B2B]" /> Demander une demo
@@ -1000,7 +1061,7 @@ export default function LandingPage() {
               <p className="text-[11px] text-[#F5F5F3]/15 mt-3 leading-relaxed max-w-[200px]">Le logiciel tout-en-un pour les coachs qui veulent scaler.</p>
             </div>
             {[
-              { title: 'Produit', links: ['Calendrier', 'Programmes', 'Nutrition', 'Bibliotheque', 'Tarifs'], paths: ['/features/calendrier', '/features/programmes', '/features/nutrition', '/features/bibliotheque', null], ids: [null, null, null, null, 'pricing'] },
+              { title: 'Produit', links: ['Entrainement', 'Programmes', 'Nutrition', 'Calendrier', 'Tarifs'], paths: ['/features/entrainement', '/features/programmes', '/features/nutrition', '/features/calendrier', null], ids: [null, null, null, null, 'pricing'] },
               { title: 'Ressources', links: ['Centre d\'aide', 'Blog', 'Changelog', 'Contact'] },
               { title: 'Legal', links: ['Mentions legales', 'Confidentialite', 'CGV', 'Cookies'] },
             ].map((col, i) => (

@@ -38,6 +38,13 @@ const EntrainementPage = lazy(() => import('./pages/public/features/Entrainement
 const ProgrammesPage = lazy(() => import('./pages/public/features/ProgrammesPage'))
 const NutritionPage = lazy(() => import('./pages/public/features/NutritionPage'))
 const BibliothequePage = lazy(() => import('./pages/public/features/BibliothequePage'))
+const HubClientPage = lazy(() => import('./pages/public/features/HubClientPage'))
+const MessageriePage = lazy(() => import('./pages/public/features/MessageriePage'))
+const FormulairesPage = lazy(() => import('./pages/public/features/FormulairesPage'))
+const StatistiquesPage = lazy(() => import('./pages/public/features/StatistiquesPage'))
+const AppBuilderPage = lazy(() => import('./pages/public/features/AppBuilderPage'))
+const PaiementsPage = lazy(() => import('./pages/public/features/PaiementsPage'))
+const ProspectsPage = lazy(() => import('./pages/public/features/ProspectsPage'))
 
 // ── Pages client (lazy) ──
 const DashboardPage = lazy(() => import('./pages/client/DashboardPage'))
@@ -98,6 +105,13 @@ export default function App() {
             <Route path="/features/programmes" element={<ProgrammesPage />} />
             <Route path="/features/nutrition" element={<NutritionPage />} />
             <Route path="/features/bibliotheque" element={<BibliothequePage />} />
+            <Route path="/features/hub-client" element={<HubClientPage />} />
+            <Route path="/features/messagerie" element={<MessageriePage />} />
+            <Route path="/features/formulaires" element={<FormulairesPage />} />
+            <Route path="/features/statistiques" element={<StatistiquesPage />} />
+            <Route path="/features/app-builder" element={<AppBuilderPage />} />
+            <Route path="/features/paiements" element={<PaiementsPage />} />
+            <Route path="/features/prospects" element={<ProspectsPage />} />
 
             {/* Landing page publique */}
             <Route path="/" element={<LandingPage />} />
