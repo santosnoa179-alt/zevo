@@ -2,7 +2,7 @@
   "name": "Zevo",
   "short_name": "Zevo",
   "description": "Plateforme SaaS de coaching bien-être",
-  "start_url": "/",
+  "start_url": "/login",
   "display": "standalone",
   "background_color": "#0D0D0D",
   "theme_color": "#FF6B2B",
