@@ -6,12 +6,12 @@ import { useAuth } from '../../hooks/useAuth'
 import { getStripe } from '../../lib/stripe'
 import { useToast } from '../../components/ui/Toast'
 
-// Définition des 3 plans
+// Définition des 3 plans avec prix mensuel et annuel
 const PLANS = [
   {
     id: 'starter',
     name: 'Starter',
-    price: 29,
+    price: { monthly: 29, yearly: 24 },
     icon: Zap,
     description: '5 clients, idéal pour démarrer',
     features: [
@@ -30,7 +30,7 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: 49,
+    price: { monthly: 49, yearly: 39 },
     icon: Star,
     popular: true,
     description: '50 clients, App Builder, rapports auto',
@@ -47,7 +47,7 @@ const PLANS = [
   {
     id: 'unlimited',
     name: 'Unlimited',
-    price: 79,
+    price: { monthly: 79, yearly: 65 },
     icon: Crown,
     description: 'Clients illimités, tout inclus',
     features: [
@@ -65,6 +65,7 @@ export default function PricingPage() {
   const { user } = useAuth()
   const toast = useToast()
   const [loadingPlan, setLoadingPlan] = useState(null)
+  const [billingYearly, setBillingYearly] = useState(false)
 
   // Crée une session Stripe Checkout et redirige vers la page de paiement
   const handleSelectPlan = async (planId) => {
@@ -76,17 +77,20 @@ export default function PricingPage() {
     setLoadingPlan(planId)
 
     try {
-      // Appel à l'API Vercel pour créer la session Stripe
       const res = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planId, email: user.email, userId: user.id }),
+        body: JSON.stringify({
+          plan: planId,
+          billing: billingYearly ? 'yearly' : 'monthly',
+          email: user.email,
+          userId: user.id,
+        }),
       })
 
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur serveur')
 
-      // Redirection vers Stripe Checkout
       if (data.url) {
         window.location.href = data.url
       } else if (data.sessionId) {
@@ -121,9 +125,38 @@ export default function PricingPage() {
           Tout ce qu'il faut pour{' '}
           <span className="text-[#FF6B2B]">scaler ton coaching</span>
         </h1>
-        <p className="text-[var(--text-secondary)] text-lg max-w-xl mx-auto">
-          Un abonnement mensuel adapté à ton activité. Sans engagement, annulable à tout moment.
+        <p className="text-[var(--text-secondary)] text-lg max-w-xl mx-auto mb-8">
+          Un abonnement adapté à ton activité. Sans engagement, annulable à tout moment.
         </p>
+
+        {/* Toggle mensuel / annuel */}
+        <div className="inline-flex items-center bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-1">
+          <button
+            onClick={() => setBillingYearly(false)}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+              !billingYearly
+                ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+            }`}
+          >
+            Mensuel
+          </button>
+          <button
+            onClick={() => setBillingYearly(true)}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+              billingYearly
+                ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+            }`}
+          >
+            Annuel
+            {!billingYearly && (
+              <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
+                -20%
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Cards pricing */}
@@ -131,6 +164,8 @@ export default function PricingPage() {
         {PLANS.map((plan) => {
           const Icon = plan.icon
           const isLoading = loadingPlan === plan.id
+          const price = billingYearly ? plan.price.yearly : plan.price.monthly
+          const savings = (plan.price.monthly - plan.price.yearly) * 12
 
           return (
             <div
@@ -171,9 +206,14 @@ export default function PricingPage() {
               {/* Prix */}
               <div className="mb-6">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">{plan.price}€</span>
+                  <span className="text-4xl font-bold">{price}€</span>
                   <span className="text-[var(--text-muted)] text-sm">/mois</span>
                 </div>
+                {billingYearly && (
+                  <p className="text-xs text-emerald-400/80 font-medium mt-1">
+                    Facturé {price * 12}€/an · Économise {savings}€/an
+                  </p>
+                )}
               </div>
 
               {/* Features */}
