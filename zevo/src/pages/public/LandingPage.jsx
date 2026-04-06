@@ -458,8 +458,29 @@ export default function LandingPage() {
   const scrollTo = (id) => { setMenuOpen(false); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }) }
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-[#F5F5F3] overflow-x-hidden">
+    <div className="min-h-screen bg-[#0D0D0D] text-[#F5F5F3] overflow-x-hidden relative">
       <SocialProofPopup visible={showPopup} name={popupName} />
+
+      {/* ══════════════════════ WATERMARK LOGO ══════════════════════ */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 88 88"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] opacity-[0.025]"
+        >
+          <defs>
+            <clipPath id="wm-clip-lp">
+              <polygon points="0,0 88,0 88,61.6 61.6,88 0,88"/>
+            </clipPath>
+          </defs>
+          <rect width="88" height="88" rx="18" fill="#FF6B2B" clipPath="url(#wm-clip-lp)"/>
+          <rect x="12" y="12" width="64" height="11" fill="white"/>
+          <polygon points="71,23 76,12 17,44 12,44" fill="white"/>
+          <rect x="12" y="44" width="64" height="11" fill="white"/>
+          <polygon points="12,55 17,44 76,75 71,75" fill="white"/>
+          <rect x="12" y="65" width="64" height="11" fill="white"/>
+        </svg>
+      </div>
 
       {/* ══════════════════════ NAVBAR ══════════════════════ */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-[#0D0D0D]/70 backdrop-blur-2xl border-b border-white/[0.06] py-3' : 'bg-transparent py-5'}`}>

@@ -43,7 +43,28 @@ export default function FeaturePageLayout({
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-[#F5F5F3]">
+    <div className="min-h-screen bg-[#0A0A0A] text-[#F5F5F3] relative">
+
+      {/* ── Watermark logo ── */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 88 88"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-[0.025]"
+        >
+          <defs>
+            <clipPath id="wm-clip">
+              <polygon points="0,0 88,0 88,61.6 61.6,88 0,88"/>
+            </clipPath>
+          </defs>
+          <rect width="88" height="88" rx="18" fill="#FF6B2B" clipPath="url(#wm-clip)"/>
+          <rect x="12" y="12" width="64" height="11" fill="white"/>
+          <polygon points="71,23 76,12 17,44 12,44" fill="white"/>
+          <rect x="12" y="44" width="64" height="11" fill="white"/>
+          <polygon points="12,55 17,44 76,75 71,75" fill="white"/>
+          <rect x="12" y="65" width="64" height="11" fill="white"/>
+        </svg>
+      </div>
 
       {/* ── Navbar ── */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A]/60 backdrop-blur-2xl border-b border-white/[0.06]">
