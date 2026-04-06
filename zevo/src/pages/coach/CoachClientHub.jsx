@@ -6012,15 +6012,26 @@ export default function CoachClientHub() {
   const chargerClients = useCallback(async () => {
     if (!user) return
     setLoading(true)
-    const { data } = await supabase
-      .from('clients')
-      .select('id, created_at, actif, profiles(nom, prenom, email, avatar_url)')
-      .eq('coach_id', user.id)
-      .order('created_at', { ascending: false })
+    const [clientsRes, paiementsRes] = await Promise.all([
+      supabase
+        .from('clients')
+        .select('id, created_at, actif, profiles(nom, prenom, email, avatar_url)')
+        .eq('coach_id', user.id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('paiements_clients')
+        .select('client_id, statut, offres_coaching(titre, frequence, prix)')
+        .eq('coach_id', user.id)
+        .eq('statut', 'paye')
+        .order('date_paiement', { ascending: false }),
+    ])
+    const data = clientsRes.data
+    const paiements = paiementsRes.data ?? []
 
     const cl = (data || []).map((c, i) => ({
       ...c,
       couleurAvatar: AVATAR_COLORS[i % AVATAR_COLORS.length],
+      dernierPaiement: paiements.find(p => p.client_id === c.id) ?? null,
     }))
     setClients(cl)
     // Auto-select first client only on desktop (md+)
@@ -6378,16 +6389,20 @@ export default function CoachClientHub() {
                     <p className={`text-sm font-semibold truncate ${isSelected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                       {name}
                     </p>
-                    <p className="text-[var(--text-muted)] text-[11px] truncate mt-0.5">{c.profiles?.email}</p>
+                    {c.dernierPaiement ? (
+                      <p className="text-emerald-500 text-[10px] font-medium truncate mt-0.5">
+                        {c.dernierPaiement.offres_coaching?.titre || 'Offre'}{c.dernierPaiement.offres_coaching?.prix ? ` · ${(c.dernierPaiement.offres_coaching.prix / 100).toFixed(0)}€` : ''}
+                      </p>
+                    ) : (
+                      <p className="text-[var(--text-muted)] text-[10px] truncate mt-0.5">{c.actif ? c.profiles?.email : 'Non abonné'}</p>
+                    )}
                   </div>
 
-                  {/* Pastille actif */}
-                  {c.actif && (
-                    <div className="relative flex-shrink-0">
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                      <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-30" />
-                    </div>
-                  )}
+                  {/* Pastille statut */}
+                  <div className="relative flex-shrink-0">
+                    <div className={`w-2.5 h-2.5 rounded-full ${c.actif ? 'bg-emerald-500' : 'bg-[var(--text-muted)]/40'}`} />
+                    {c.actif && <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-30" />}
+                  </div>
                 </button>
               )
             })

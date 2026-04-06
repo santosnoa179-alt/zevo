@@ -10,7 +10,7 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import { useToast } from '../../components/ui/Toast'
-import { UserPlus, Search, ChevronRight, Mail, Users, Lock, ArrowUpRight } from 'lucide-react'
+import { UserPlus, Search, ChevronRight, Mail, Users, Lock, ArrowUpRight, CreditCard } from 'lucide-react'
 
 // Avatar avec fallback initiales
 function Avatar({ nom, prenom, avatarUrl, couleur }) {
@@ -69,16 +69,18 @@ export default function CoachClientsPage() {
     il7j.setDate(il7j.getDate() - 7)
     const dateMin = il7j.toISOString().split('T')[0]
 
-    const [logsRes, habsRes, sommeilRes, humeurRes, invRes] = await Promise.all([
+    const [logsRes, habsRes, sommeilRes, humeurRes, invRes, paiementsRes] = await Promise.all([
       supabase.from('habitudes_log').select('client_id, date').in('client_id', clientIds).gte('date', dateMin),
       supabase.from('habitudes').select('id, client_id').in('client_id', clientIds).eq('actif', true),
       supabase.from('sommeil_log').select('client_id, date, qualite').in('client_id', clientIds).eq('date', today),
       supabase.from('humeur_log').select('client_id, date, score').in('client_id', clientIds).eq('date', today),
       supabase.from('invitations').select('*').eq('coach_id', user.id).eq('acceptee', false).order('created_at', { ascending: false }),
+      supabase.from('paiements_clients').select('client_id, montant, statut, offre_id, date_paiement, offres_coaching(titre, frequence, prix)').eq('coach_id', user.id).order('date_paiement', { ascending: false }),
     ])
 
     const logs = logsRes.data ?? []
     const habs = habsRes.data ?? []
+    const paiements = paiementsRes.data ?? []
 
     const enrichis = clientsData.map((c, idx) => {
       const clientHabs = habs.filter(h => h.client_id === c.id)
@@ -90,11 +92,14 @@ export default function CoachClientsPage() {
         sommeil, humeur, sport: null,
       })
       const logsClient = logs.filter(l => l.client_id === c.id).sort((a, b) => b.date.localeCompare(a.date))
+      // Dernier paiement du client
+      const dernierPaiement = paiements.find(p => p.client_id === c.id) ?? null
       return {
         ...c,
         score,
         derniereActivite: logsClient[0]?.date ?? null,
         couleurAvatar: COULEURS_AVATAR[idx % COULEURS_AVATAR.length],
+        dernierPaiement,
       }
     })
 
@@ -219,6 +224,41 @@ export default function CoachClientsPage() {
         <div className="space-y-2">
           {clientsFiltres.map((c) => {
             const couleur = couleurScore(c.score)
+            const p = c.dernierPaiement
+            const FREQ_LABELS = { unique: '', mensuel: '/mois', trimestriel: '/trim', annuel: '/an' }
+            let badgeStatut = null
+            if (p?.statut === 'paye') {
+              const offreTitre = p.offres_coaching?.titre || 'Offre'
+              const freq = FREQ_LABELS[p.offres_coaching?.frequence] || ''
+              const prix = p.offres_coaching?.prix ? `${(p.offres_coaching.prix / 100).toFixed(0)}€${freq}` : ''
+              badgeStatut = (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full truncate max-w-[140px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+                  {offreTitre}{prix ? ` · ${prix}` : ''}
+                </span>
+              )
+            } else if (p?.statut === 'en_attente') {
+              badgeStatut = (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                  En attente
+                </span>
+              )
+            } else if (p?.statut === 'echoue') {
+              badgeStatut = (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                  Paiement échoué
+                </span>
+              )
+            } else if (!c.actif) {
+              badgeStatut = (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-[var(--bg-surface)] text-[var(--text-muted)] px-2 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] flex-shrink-0" />
+                  Non abonné
+                </span>
+              )
+            }
             return (
               <Card key={c.id}
                 className="cursor-pointer hover:border-[var(--border-base)] transition-colors"
@@ -235,9 +275,12 @@ export default function CoachClientsPage() {
                     <p className="text-[var(--text-primary)] text-sm font-medium truncate">
                       {[c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || c.profiles?.email}
                     </p>
-                    {(c.profiles?.prenom || c.profiles?.nom) && (
-                      <p className="text-[var(--text-muted)] text-xs truncate">{c.profiles.email}</p>
-                    )}
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {(c.profiles?.prenom || c.profiles?.nom) && (
+                        <p className="text-[var(--text-muted)] text-xs truncate">{c.profiles.email}</p>
+                      )}
+                    </div>
+                    {badgeStatut && <div className="mt-1">{badgeStatut}</div>}
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-sm font-bold" style={{ color: couleur }}>{c.score}/100</p>
