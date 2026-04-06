@@ -11,9 +11,23 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>Zevo</title>
+    <!-- Preconnect aux APIs externes pour accélérer les requêtes -->
+    <link rel="preconnect" href="https://pairqvridvjdktnuvwud.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://pairqvridvjdktnuvwud.supabase.co" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="dns-prefetch" href="https://js.stripe.com" />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Splash screen inline — visible instantanément pendant le chargement JS -->
+    <div id="root">
+      <div id="splash" style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0D0D0D;">
+        <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation:pulse 1.5s ease-in-out infinite">
+          <rect width="40" height="40" rx="10" fill="#FF6B2B"/>
+          <path d="M10 13h20M10 20h20M10 27h20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+    <style>@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}</style>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

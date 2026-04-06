@@ -2,83 +2,73 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 
+// Cache global — évite de relancer les requêtes Supabase
+// à chaque composant qui appelle useRole()
+const roleCache = { userId: null, role: null }
+
 // Détecte le rôle de l'utilisateur connecté
 // Cascade : admins → profiles.role
-// .maybeSingle() partout pour éviter les erreurs si 0 résultats
 export function useRole() {
   const { user } = useAuth()
-  const [role, setRole] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const fetchIdRef = useRef(0) // Anti-race condition
+  const [role, setRole] = useState(() => {
+    // Initialiser depuis le cache si même user
+    if (user?.id && roleCache.userId === user.id) return roleCache.role
+    return null
+  })
+  const [loading, setLoading] = useState(() => {
+    // Pas de loading si déjà en cache
+    if (user?.id && roleCache.userId === user.id && roleCache.role) return false
+    return true
+  })
+  const fetchIdRef = useRef(0)
 
   useEffect(() => {
-    // Pas de user → pas de rôle
     if (!user) {
-      console.log('useRole — pas de user, reset')
       setRole(null)
+      setLoading(false)
+      roleCache.userId = null
+      roleCache.role = null
+      return
+    }
+
+    // Cache hit — pas besoin de refetch
+    if (roleCache.userId === user.id && roleCache.role) {
+      setRole(roleCache.role)
       setLoading(false)
       return
     }
 
-    // CRITIQUE : remettre loading à true AVANT de lancer la query
-    // Sans ça, ProtectedRoute voit loading=false + role=null et redirige
     setLoading(true)
     setRole(null)
 
     const currentFetchId = ++fetchIdRef.current
 
     const detecterRole = async () => {
-      console.log('useRole — début détection pour', user.id)
-
       try {
-        // 1. Vérifier la table admins
-        const { data: adminRow, error: adminError } = await supabase
-          .from('admins')
-          .select('id')
-          .eq('id', user.id)
-          .maybeSingle()
-
-        // Si un autre effect a démarré entre-temps, abandonner
-        if (currentFetchId !== fetchIdRef.current) return
-
-        if (adminError) {
-          console.error('useRole — erreur requête admins:', adminError)
-          // On continue vers profiles, on ne bloque pas
-        }
-
-        if (adminRow) {
-          console.log('useRole — rôle résolu: admin')
-          setRole('admin')
-          setLoading(false)
-          return
-        }
-
-        // 2. Lire le rôle depuis profiles
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .maybeSingle()
+        // Requêtes en PARALLÈLE au lieu de séquentiel
+        const [adminResult, profileResult] = await Promise.all([
+          supabase.from('admins').select('id').eq('id', user.id).maybeSingle(),
+          supabase.from('profiles').select('role').eq('id', user.id).maybeSingle(),
+        ])
 
         // Anti-race
         if (currentFetchId !== fetchIdRef.current) return
 
-        if (profileError) {
-          console.error('useRole — erreur requête profiles:', profileError)
-          setRole(null)
-          setLoading(false)
-          return
+        let resolvedRole = null
+
+        if (adminResult.data) {
+          resolvedRole = 'admin'
+        } else if (profileResult.data?.role) {
+          resolvedRole = profileResult.data.role
         }
 
-        if (profileData?.role) {
-          console.log('useRole — rôle résolu:', profileData.role)
-          setRole(profileData.role)
-        } else {
-          console.warn('useRole — aucun rôle trouvé pour', user.id)
-          setRole(null)
-        }
+        // Mettre en cache
+        roleCache.userId = user.id
+        roleCache.role = resolvedRole
+
+        setRole(resolvedRole)
       } catch (err) {
-        console.error('useRole — erreur inattendue:', err)
+        console.error('useRole — erreur:', err)
         if (currentFetchId !== fetchIdRef.current) return
         setRole(null)
       }
@@ -87,7 +77,7 @@ export function useRole() {
     }
 
     detecterRole()
-  }, [user?.id]) // dépend de user.id, pas de la ref user entière
+  }, [user?.id])
 
   return { role, loading }
 }

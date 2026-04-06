@@ -4,11 +4,11 @@ import { AuthProvider } from './hooks/useAuth'
 import { ProtectedRoute } from './components/layout/ProtectedRoute'
 import { PlanGate } from './components/PlanGate'
 
-// Layouts — chargés immédiatement (nécessaires au rendu initial)
-import { ClientLayout } from './components/layout/ClientLayout'
-import { CoachLayout } from './components/layout/CoachLayout'
-import { CoachGuard } from './components/layout/CoachGuard'
-import { AdminLayout } from './components/layout/AdminLayout'
+// Layouts — lazy-loaded (chargés uniquement quand on accède à la section)
+const ClientLayout = lazy(() => import('./components/layout/ClientLayout').then(m => ({ default: m.ClientLayout })))
+const CoachLayout = lazy(() => import('./components/layout/CoachLayout').then(m => ({ default: m.CoachLayout })))
+const CoachGuard = lazy(() => import('./components/layout/CoachGuard').then(m => ({ default: m.CoachGuard })))
+const AdminLayout = lazy(() => import('./components/layout/AdminLayout').then(m => ({ default: m.AdminLayout })))
 
 // Fallback skeleton pendant le chargement lazy
 function PageLoader() {
