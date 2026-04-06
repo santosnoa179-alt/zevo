@@ -93,9 +93,13 @@ export default function AbonnementPage() {
 
     try {
       // Appel à l'API Vercel pour créer une session Stripe Connect
+      const { data: { session: authSession } } = await supabase.auth.getSession()
       const res = await fetch('/api/client-checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authSession?.access_token}`,
+        },
         body: JSON.stringify({ offreId: offre.id, clientId: user.id }),
       })
 

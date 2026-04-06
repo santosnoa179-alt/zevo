@@ -206,9 +206,7 @@ export default async function handler(req, res) {
     console.log(`[webhook] Signature valide — Event: ${stripeEvent.type} (${stripeEvent.id})`)
   } catch (err) {
     console.error('[webhook] Signature invalide:', err.message)
-    console.error('[webhook] Secret utilisé (4 premiers chars):', process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 4) + '...')
-    console.error('[webhook] Sig header:', sig?.substring(0, 30) + '...')
-    return res.status(400).json({ error: `Signature invalide: ${err.message}` })
+    return res.status(400).json({ error: 'Signature invalide' })
   }
 
   // ── Traitement de l'événement ──
@@ -359,7 +357,7 @@ export default async function handler(req, res) {
     console.error('[webhook] ERREUR CRITIQUE traitement event:', err.message)
     console.error('[webhook] Stack:', err.stack)
     // Retourner 200 pour éviter les retries Stripe infinis sur erreurs de logique
-    return res.status(200).json({ received: true, error: err.message })
+    return res.status(200).json({ received: true })
   }
 
   console.log('[webhook] ── Traitement terminé avec succès ──')

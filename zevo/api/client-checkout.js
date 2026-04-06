@@ -9,34 +9,67 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
+const ALLOWED_ORIGINS = [
+  'https://zevo-one.vercel.app',
+  'https://www.zevo-one.vercel.app',
+  process.env.NEXT_PUBLIC_SITE_URL,
+].filter(Boolean)
+
+function setCors(req, res) {
+  const origin = req.headers.origin
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+}
+
+// Vérifie le JWT Supabase et retourne l'utilisateur
+async function verifyAuth(req) {
+  const authHeader = req.headers.authorization
+  if (!authHeader?.startsWith('Bearer ')) return null
+  const token = authHeader.replace('Bearer ', '')
+  const { data: { user }, error } = await supabase.auth.getUser(token)
+  if (error || !user) return null
+  return user
+}
+
+export default async function handler(req, res) {
+  setCors(req, res)
 
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
+    // Vérifier l'authentification
+    const user = await verifyAuth(req)
+    if (!user) {
+      return res.status(401).json({ error: 'Non autorisé' })
+    }
+
     const { offreId, clientId } = req.body
 
     if (!offreId || !clientId) {
       return res.status(400).json({ error: 'offreId et clientId requis' })
     }
 
+    // Vérifier que le client est bien l'utilisateur authentifié
+    if (user.id !== clientId) {
+      return res.status(403).json({ error: 'Accès interdit' })
+    }
+
     // Charger l'offre
     const { data: offre, error: offreError } = await supabase
       .from('offres_coaching')
-      .select('*')
+      .select('id, coach_id, titre, description, prix, frequence')
       .eq('id', offreId)
       .single()
 
     if (offreError || !offre) {
-      console.error('Erreur chargement offre:', offreError)
       return res.status(404).json({ error: 'Offre introuvable' })
     }
 
-    // Charger le coach separement pour eviter les problemes de FK
+    // Charger le coach
     const { data: coach, error: coachError } = await supabase
       .from('coaches')
       .select('stripe_account_id, stripe_onboarding_complete')
@@ -44,7 +77,6 @@ export default async function handler(req, res) {
       .single()
 
     if (coachError || !coach) {
-      console.error('Erreur chargement coach:', coachError)
       return res.status(404).json({ error: 'Coach introuvable' })
     }
 
@@ -53,8 +85,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Coach non connecté à Stripe' })
     }
 
-    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '')
-    const siteUrl = origin || process.env.NEXT_PUBLIC_SITE_URL || 'https://zevo-one.vercel.app'
+    const siteUrl = ALLOWED_ORIGINS[0] || 'https://zevo-one.vercel.app'
 
     const sessionParams = {
       payment_method_types: ['card'],
@@ -92,8 +123,8 @@ export default async function handler(req, res) {
       { stripeAccount: stripeAccountId }
     )
 
-    // Créer un paiement en attente (utiliser payment_intent si disponible, sinon session.id)
-    const { error: insertError } = await supabase
+    // Créer un paiement en attente
+    await supabase
       .from('paiements_clients')
       .insert({
         client_id: clientId,
@@ -104,13 +135,9 @@ export default async function handler(req, res) {
         stripe_payment_intent_id: session.payment_intent || session.id,
       })
 
-    if (insertError) {
-      console.error('Erreur insert paiement:', insertError)
-    }
-
     return res.status(200).json({ url: session.url })
   } catch (error) {
     console.error('Erreur client-checkout:', error)
-    return res.status(500).json({ error: error.message })
+    return res.status(500).json({ error: 'Erreur interne du serveur' })
   }
 }

@@ -1,8 +1,14 @@
 // Vercel Serverless Function — Crée une session Stripe Checkout
 // Abonnement mensuel ou annuel selon le plan choisi (starter / pro / unlimited)
 import Stripe from 'stripe'
+import { createClient } from '@supabase/supabase-js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+const supabase = createClient(
+  process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+)
 
 const PRICE_IDS = {
   starter: {
@@ -19,12 +25,27 @@ const PRICE_IDS = {
   },
 }
 
+async function verifyAuth(req) {
+  const authHeader = req.headers.authorization
+  if (!authHeader?.startsWith('Bearer ')) return null
+  const token = authHeader.replace('Bearer ', '')
+  const { data: { user }, error } = await supabase.auth.getUser(token)
+  if (error || !user) return null
+  return user
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
+    // Vérifier l'authentification
+    const user = await verifyAuth(req)
+    if (!user) {
+      return res.status(401).json({ error: 'Non autorisé' })
+    }
+
     const { plan, billing = 'monthly', email, userId } = req.body
 
     if (!['starter', 'pro', 'unlimited'].includes(plan)) {
@@ -36,21 +57,21 @@ export default async function handler(req, res) {
     }
 
     if (!userId) {
-      return res.status(400).json({ error: 'userId requis pour associer l\'abonnement' })
+      return res.status(400).json({ error: 'userId requis' })
+    }
+
+    // Vérifier que userId correspond à l'utilisateur authentifié
+    if (user.id !== userId) {
+      return res.status(403).json({ error: 'Accès interdit' })
     }
 
     const subscriptionPriceId = PRICE_IDS[plan]?.[billing]
 
     if (!subscriptionPriceId) {
-      return res.status(500).json({ error: `Prix Stripe non configuré pour ${plan} (${billing}). Vérifiez les variables d'environnement.` })
+      return res.status(500).json({ error: 'Configuration prix manquante' })
     }
 
-    // Utiliser l'origin de la requête (domaine exact du navigateur)
-    // Évite le bug VERCEL_URL qui retourne la preview URL au lieu du domaine principal
-    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '')
-    const siteUrl = origin || process.env.NEXT_PUBLIC_SITE_URL || 'https://zevo-one.vercel.app'
-
-    console.log(`[create-checkout] userId: ${userId}, plan: ${plan}, billing: ${billing}, email: ${email || 'N/A'}`)
+    const siteUrl = 'https://zevo-one.vercel.app'
 
     const sessionParams = {
       mode: 'subscription',
@@ -58,20 +79,16 @@ export default async function handler(req, res) {
       line_items: [
         { price: subscriptionPriceId, quantity: 1 },
       ],
-      // Metadata sur la subscription (pour subscription.updated / deleted)
       subscription_data: {
         metadata: { plan, billing, supabase_user_id: userId },
       },
-      // Metadata sur la session elle-même (pour checkout.session.completed)
       metadata: { plan, billing, supabase_user_id: userId },
-      // ID de référence client (lisible directement sur l'objet session)
       client_reference_id: userId,
       success_url: `${siteUrl}/coach/parametres?checkout=success&plan=${plan}`,
       cancel_url: `${siteUrl}/pricing`,
       allow_promotion_codes: true,
     }
 
-    // Pré-remplir l'email si disponible
     if (email) {
       sessionParams.customer_email = email
     }
@@ -81,6 +98,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ sessionId: session.id, url: session.url })
   } catch (err) {
     console.error('Erreur Stripe Checkout:', err)
-    return res.status(500).json({ error: err.message })
+    return res.status(500).json({ error: 'Erreur interne du serveur' })
   }
 }

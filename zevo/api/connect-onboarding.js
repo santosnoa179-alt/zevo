@@ -9,20 +9,52 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
-export default async function handler(req, res) {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*')
+const ALLOWED_ORIGINS = [
+  'https://zevo-one.vercel.app',
+  'https://www.zevo-one.vercel.app',
+  process.env.NEXT_PUBLIC_SITE_URL,
+].filter(Boolean)
+
+function setCors(req, res) {
+  const origin = req.headers.origin
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+}
+
+async function verifyAuth(req) {
+  const authHeader = req.headers.authorization
+  if (!authHeader?.startsWith('Bearer ')) return null
+  const token = authHeader.replace('Bearer ', '')
+  const { data: { user }, error } = await supabase.auth.getUser(token)
+  if (error || !user) return null
+  return user
+}
+
+export default async function handler(req, res) {
+  setCors(req, res)
 
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
+    // Vérifier l'authentification
+    const user = await verifyAuth(req)
+    if (!user) {
+      return res.status(401).json({ error: 'Non autorisé' })
+    }
+
     const { coachId } = req.body
 
     if (!coachId) {
       return res.status(400).json({ error: 'coachId requis' })
+    }
+
+    // Vérifier que le coach est bien l'utilisateur authentifié
+    if (user.id !== coachId) {
+      return res.status(403).json({ error: 'Accès interdit' })
     }
 
     // Vérifier si le coach a déjà un compte Stripe Connect
@@ -45,9 +77,7 @@ export default async function handler(req, res) {
         .eq('id', coachId)
     }
 
-    // Générer le lien d'onboarding
-    const origin = req.headers.origin || req.headers.referer?.replace(/\/$/, '')
-    const siteUrl = origin || process.env.NEXT_PUBLIC_SITE_URL || 'https://zevo-one.vercel.app'
+    const siteUrl = ALLOWED_ORIGINS[0] || 'https://zevo-one.vercel.app'
 
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
@@ -59,6 +89,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ url: accountLink.url })
   } catch (error) {
     console.error('Erreur connect-onboarding:', error)
-    return res.status(500).json({ error: error.message })
+    return res.status(500).json({ error: 'Erreur interne du serveur' })
   }
 }

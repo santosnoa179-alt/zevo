@@ -125,9 +125,13 @@ export default function CoachParametresPage() {
     if (!stripeCustomerId) return
     setPortalLoading(true)
     try {
+      const { data: { session: authSession } } = await supabase.auth.getSession()
       const res = await fetch('/api/create-portal-session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authSession?.access_token}`,
+        },
         body: JSON.stringify({ customerId: stripeCustomerId }),
       })
       const { url, error } = await res.json()
@@ -158,9 +162,13 @@ export default function CoachParametresPage() {
   const handleConnectStripe = async () => {
     setConnectLoading(true)
     try {
+      const { data: { session: authSession2 } } = await supabase.auth.getSession()
       const res = await fetch('/api/connect-onboarding', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authSession2?.access_token}`,
+        },
         body: JSON.stringify({ coachId: user.id }),
       })
       const { url, error } = await res.json()

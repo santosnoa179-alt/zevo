@@ -182,6 +182,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ received: true })
   } catch (error) {
     console.error('Erreur traitement webhook Connect:', error)
-    return res.status(500).json({ error: error.message })
+    return res.status(500).json({ error: 'Erreur interne du serveur' })
   }
 }

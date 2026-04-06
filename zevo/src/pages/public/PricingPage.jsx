@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Check, Zap, Star, Crown, ArrowLeft, Loader2 } from 'lucide-react'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
 import { useAuth } from '../../hooks/useAuth'
+import { supabase } from '../../lib/supabase'
 import { getStripe } from '../../lib/stripe'
 import { useToast } from '../../components/ui/Toast'
 
@@ -77,9 +78,13 @@ export default function PricingPage() {
     setLoadingPlan(planId)
 
     try {
+      const { data: { session: authSession } } = await supabase.auth.getSession()
       const res = await fetch('/api/create-checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authSession?.access_token}`,
+        },
         body: JSON.stringify({
           plan: planId,
           billing: billingYearly ? 'yearly' : 'monthly',

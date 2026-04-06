@@ -23,14 +23,18 @@ export default function InvitePage() {
   // Vérifie la validité du token au chargement
   useEffect(() => {
     const checkToken = async () => {
-      // Requete sans join pour eviter les problemes de RLS/FK
-      const { data, error } = await supabase
-        .from('invitations')
-        .select('*')
-        .eq('token', token)
-        .eq('acceptee', false)
-        .gt('expires_at', new Date().toISOString())
-        .single()
+      // Utilise la fonction RPC sécurisée (pas de select * sur invitations)
+      const { data: rpcData, error: rpcError } = await supabase
+        .rpc('get_invitation_by_token', { p_token: token })
+
+      // Vérifier que l'invitation est valide et non expirée
+      const data = rpcData?.[0] || null
+      const error = rpcError || (!data ? { message: 'Token invalide' } : null)
+      if (data && data.statut !== 'en_attente') {
+        setError('Cette invitation a déjà été utilisée.')
+        setLoading(false)
+        return
+      }
 
       if (error || !data) {
         console.error('[InvitePage] Token invalide:', error)

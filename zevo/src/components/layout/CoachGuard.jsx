@@ -35,7 +35,7 @@ export function CoachGuard({ children }) {
 
     if (error) {
       console.error('CoachGuard: erreur requête coaches:', error)
-      return { abonnementActif: true, onboardingDone: true, stripeCustomerId: null }
+      return { abonnementActif: false, onboardingDone: false, stripeCustomerId: null }
     }
 
     if (data) {
@@ -179,9 +179,13 @@ export function CoachGuard({ children }) {
     if (stripeCustomerId) {
       setPortalLoading(true)
       try {
+        const { data: { session: authSession } } = await supabase.auth.getSession()
         const res = await fetch('/api/create-portal-session', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authSession?.access_token}`,
+          },
           body: JSON.stringify({ customerId: stripeCustomerId }),
         })
         const { url, error } = await res.json()
