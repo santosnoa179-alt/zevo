@@ -504,7 +504,10 @@ export default function MessagesClientPage() {
       <header className="shrink-0 relative z-10">
         {/* Ambient glow behind header */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#FF6B2B]/[0.03] to-transparent pointer-events-none" />
-        <div className="relative px-4 py-3 border-b border-[var(--border-base)] bg-[var(--bg-base)]/95 backdrop-blur-xl">
+        <div
+          className="relative px-4 py-3 border-b border-[var(--border-base)] bg-[var(--bg-base)]/95 backdrop-blur-xl"
+          style={{ paddingTop: 'max(12px, env(safe-area-inset-top, 0px))' }}
+        >
           <div className="flex items-center gap-3">
             {/* Back button — mobile only */}
             <button
