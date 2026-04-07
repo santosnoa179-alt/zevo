@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
 import { Send, Mic, ChevronDown, Check, CheckCheck, ArrowLeft, Phone, MessageCircle } from 'lucide-react'
 import { AudioBubble, VoiceRecorder } from '../../components/chat/VoiceMessage'
+import { ImageBubble, FileBubble, FilePickerButton } from '../../components/chat/FileMessage'
 import { useNavigate } from 'react-router-dom'
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -34,6 +35,31 @@ function isSameDay(a, b) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function Bulle({ message, estMoi, showTail, coachInitials, coachColor }) {
+  // Image message
+  if (message.image_url) {
+    return (
+      <ImageBubble
+        imageUrl={message.image_url}
+        contenu={message.contenu}
+        estMoi={estMoi}
+        createdAt={message.created_at}
+      />
+    )
+  }
+
+  // File message (PDF, video, etc.)
+  if (message.file_url) {
+    return (
+      <FileBubble
+        fileUrl={message.file_url}
+        fileName={message.file_name}
+        fileType={message.file_type}
+        estMoi={estMoi}
+        createdAt={message.created_at}
+      />
+    )
+  }
+
   if (message.audio_url) {
     return (
       <AudioBubble
@@ -128,6 +154,7 @@ export default function MessagesClientPage() {
   const [texte, setTexte] = useState('')
   const [envoi, setEnvoi] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
   const bottomRef = useRef(null)
   const scrollRef = useRef(null)
@@ -338,6 +365,78 @@ export default function MessagesClientPage() {
     setIsRecording(false)
   }
 
+  // ── Send file/image message ──
+  const envoyerFichier = async (file) => {
+    if (!coachId || uploading) return
+
+    // Vérifier taille (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Fichier trop volumineux (10 MB max)')
+      return
+    }
+
+    setUploading(true)
+
+    const isImage = file.type.startsWith('image/')
+    const ext = file.name.split('.').pop()
+    const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
+
+    // Upload vers Supabase Storage
+    const { error: uploadErr } = await supabase.storage
+      .from('messages-fichiers')
+      .upload(fileName, file, { contentType: file.type, upsert: false })
+
+    if (uploadErr) {
+      toast.error('Erreur lors de l\'upload du fichier')
+      setUploading(false)
+      return
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('messages-fichiers')
+      .getPublicUrl(fileName)
+
+    const publicUrl = urlData?.publicUrl
+    if (!publicUrl) {
+      toast.error('Erreur lors de la récupération du lien')
+      setUploading(false)
+      return
+    }
+
+    const msg = {
+      coach_id: coachId,
+      client_id: user.id,
+      sender_id: user.id,
+      receiver_id: coachId,
+      expediteur: 'client',
+      contenu: isImage ? 'Photo' : file.name,
+      ...(isImage ? { image_url: publicUrl } : { file_url: publicUrl, file_name: file.name }),
+      file_type: file.type,
+    }
+
+    const tempId = `temp-${Date.now()}`
+    setMessages(prev => [...prev, { ...msg, id: tempId, created_at: new Date().toISOString(), lu: false }])
+
+    const { data, error } = await supabase.from('messages').insert(msg).select().single()
+
+    if (error) {
+      toast.error('Erreur lors de l\'envoi')
+      setMessages(prev => prev.filter(m => m.id !== tempId))
+    } else if (data) {
+      setMessages(prev => prev.map(m => m.id === tempId ? data : m))
+      supabase.from('notifications').insert({
+        coach_id: coachId,
+        client_id: user.id,
+        titre: 'Nouveau message',
+        message: isImage ? '📷 Photo reçue' : `📎 ${file.name}`,
+        type: 'message',
+        destinataire: 'coach',
+      }).then(() => {})
+    }
+
+    setUploading(false)
+  }
+
   // ── Coach display info ──
   const coachName = coachInfo
     ? [coachInfo.prenom, coachInfo.nom].filter(Boolean).join(' ') || coachInfo.nom_app || 'Mon coach'
@@ -535,6 +634,9 @@ export default function MessagesClientPage() {
             <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />
           ) : (
             <div className="flex items-end gap-2">
+              {/* Bouton fichier/photo */}
+              <FilePickerButton onFileSelected={envoyerFichier} uploading={uploading} />
+
               <div className="flex-1 relative">
                 <input
                   ref={inputRef}
