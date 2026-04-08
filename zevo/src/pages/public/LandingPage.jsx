@@ -419,10 +419,6 @@ export default function LandingPage() {
   const [billingYearly, setBillingYearly] = useState(false)
   const [activeTesti, setActiveTesti] = useState(0)
 
-  // Social proof popup
-  const [showPopup, setShowPopup] = useState(false)
-  const [popupName, setPopupName] = useState('')
-
   // Intersection observers
   const statsRef = useRef(null)
   const statsInView = useInView(statsRef)
@@ -437,19 +433,6 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Social proof popup timer
-  useEffect(() => {
-    const show = () => {
-      const name = SOCIAL_PROOF_NAMES[Math.floor(Math.random() * SOCIAL_PROOF_NAMES.length)]
-      setPopupName(name)
-      setShowPopup(true)
-      setTimeout(() => setShowPopup(false), 4000)
-    }
-    const first = setTimeout(show, 8000)
-    const interval = setInterval(show, 25000)
-    return () => { clearTimeout(first); clearInterval(interval) }
-  }, [])
-
   // Auto-rotate testimonials
   useEffect(() => {
     const interval = setInterval(() => setActiveTesti(p => (p + 1) % TESTIMONIALS.length), 5000)
@@ -460,8 +443,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#060606] text-[#F5F5F3] overflow-x-hidden relative">
-      <SocialProofPopup visible={showPopup} name={popupName} />
-
       {/* ══════════════════════ WATERMARK LOGO ══════════════════════ */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <svg

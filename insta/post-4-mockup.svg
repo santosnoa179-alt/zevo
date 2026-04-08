@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <defs>
+    <linearGradient id="bgGrad4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A1A"/>
+    </linearGradient>
+    <linearGradient id="orangeGrad4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF6B2B"/>
+      <stop offset="100%" stop-color="#FF9A6C"/>
+    </linearGradient>
+    <linearGradient id="glowGrad4" x1="0.5" y1="1" x2="0.5" y2="0">
+      <stop offset="0%" stop-color="#FF6B2B" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#FF6B2B" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="logoClip4">
+      <polygon points="0,0 88,0 88,61.6 61.6,88 0,88"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#bgGrad4)"/>
+
+  <!-- Bottom glow -->
+  <ellipse cx="540" cy="1080" rx="700" ry="400" fill="url(#glowGrad4)"/>
+
+  <!-- Logo top left -->
+  <g transform="translate(60, 50) scale(0.7)">
+    <rect width="88" height="88" rx="18" fill="#FF6B2B" clip-path="url(#logoClip4)"/>
+    <rect x="12" y="12" width="64" height="11" fill="white"/>
+    <polygon points="71,23 76,12 17,44 12,44" fill="white"/>
+    <rect x="12" y="44" width="64" height="11" fill="white"/>
+    <polygon points="12,55 17,44 76,75 71,75" fill="white"/>
+    <rect x="12" y="65" width="64" height="11" fill="white"/>
+  </g>
+  <text x="135" y="96" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="32" fill="white" letter-spacing="2">ZEVO</text>
+
+  <!-- Headline -->
+  <text x="540" y="170" text-anchor="middle" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="48" fill="white" letter-spacing="-1">GERE TES CLIENTS</text>
+  <text x="540" y="230" text-anchor="middle" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="48" fill="white" letter-spacing="-1">COMME UN <tspan fill="#FF6B2B">PRO</tspan></text>
+
+  <!-- Phone mockup - Client Profile view -->
+  <rect x="80" y="290" width="420" height="720" rx="36" fill="#1E1E1E" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+
+  <!-- Phone 1 header -->
+  <rect x="80" y="290" width="420" height="65" rx="36" fill="#1E1E1E"/>
+  <rect x="80" y="330" width="420" height="25" fill="#1E1E1E"/>
+  <circle cx="290" cy="318" r="6" fill="rgba(255,255,255,0.1)"/>
+
+  <!-- Client profile header -->
+  <rect x="100" y="360" width="380" height="120" rx="16" fill="#2A2A2A"/>
+  <circle cx="160" cy="420" r="32" fill="#FF6B2B"/>
+  <text x="150" y="428" font-family="Arial, sans-serif" font-weight="700" font-size="22" fill="white">L</text>
+  <text x="210" y="405" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="white">Lucas Martin</text>
+  <text x="210" y="430" font-family="Arial, sans-serif" font-size="13" fill="rgba(245,245,243,0.4)">Suivi perso · Actif depuis 3 mois</text>
+  <rect x="210" y="445" width="60" height="22" rx="11" fill="#22c55e" fill-opacity="0.15"/>
+  <text x="225" y="460" font-family="Arial, sans-serif" font-weight="600" font-size="11" fill="#22c55e">Actif</text>
+
+  <!-- Stats row -->
+  <rect x="100" y="495" width="120" height="70" rx="12" fill="#2A2A2A"/>
+  <text x="115" y="520" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.5)">Poids</text>
+  <text x="115" y="548" font-family="Arial, sans-serif" font-weight="800" font-size="24" fill="white">78.5</text>
+  <text x="175" y="548" font-family="Arial, sans-serif" font-size="13" fill="rgba(245,245,243,0.4)">kg</text>
+
+  <rect x="230" y="495" width="120" height="70" rx="12" fill="#2A2A2A"/>
+  <text x="245" y="520" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.5)">Seances</text>
+  <text x="245" y="548" font-family="Arial, sans-serif" font-weight="800" font-size="24" fill="#FF6B2B">24</text>
+
+  <rect x="360" y="495" width="120" height="70" rx="12" fill="#2A2A2A"/>
+  <text x="375" y="520" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.5)">Humeur</text>
+  <text x="375" y="548" font-family="Arial, sans-serif" font-weight="800" font-size="24" fill="#f59e0b">😊</text>
+
+  <!-- Progress chart mockup -->
+  <rect x="100" y="580" width="380" height="140" rx="12" fill="#2A2A2A"/>
+  <text x="120" y="610" font-family="Arial, sans-serif" font-weight="700" font-size="14" fill="white">Progression poids</text>
+  <!-- Chart line -->
+  <polyline points="130,700 180,690 230,685 280,670 330,660 380,650 430,640 460,635" fill="none" stroke="#FF6B2B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="460" cy="635" r="4" fill="#FF6B2B"/>
+  <!-- Chart baseline -->
+  <line x1="130" y1="710" x2="460" y2="710" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <!-- Programme -->
+  <rect x="100" y="735" width="380" height="60" rx="12" fill="#2A2A2A"/>
+  <rect x="115" y="749" width="32" height="32" rx="8" fill="#FF6B2B" fill-opacity="0.12"/>
+  <text x="125" y="771" font-family="Arial, sans-serif" font-size="16" fill="#FF6B2B">🏋️</text>
+  <text x="160" y="766" font-family="Arial, sans-serif" font-weight="600" font-size="14" fill="white">Full Body - Semaine 8</text>
+  <text x="160" y="783" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.4)">3/4 seances completees</text>
+  <!-- Progress bar -->
+  <rect x="345" y="760" width="120" height="6" rx="3" fill="rgba(255,255,255,0.08)"/>
+  <rect x="345" y="760" width="90" height="6" rx="3" fill="#FF6B2B"/>
+
+  <!-- Repas -->
+  <rect x="100" y="810" width="380" height="60" rx="12" fill="#2A2A2A"/>
+  <rect x="115" y="824" width="32" height="32" rx="8" fill="#22c55e" fill-opacity="0.12"/>
+  <text x="125" y="846" font-family="Arial, sans-serif" font-size="16" fill="#22c55e">🥗</text>
+  <text x="160" y="841" font-family="Arial, sans-serif" font-weight="600" font-size="14" fill="white">Plan Nutrition - Seche</text>
+  <text x="160" y="858" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.4)">2100 kcal · P180 G210 L65</text>
+
+  <!-- Phone mockup 2 - Chat view -->
+  <rect x="580" y="290" width="420" height="720" rx="36" fill="#1E1E1E" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+
+  <!-- Phone 2 header -->
+  <rect x="580" y="290" width="420" height="65" rx="36" fill="#1E1E1E"/>
+  <rect x="580" y="330" width="420" height="25" fill="#1E1E1E"/>
+  <circle cx="790" cy="318" r="6" fill="rgba(255,255,255,0.1)"/>
+
+  <!-- Chat header -->
+  <rect x="580" y="355" width="420" height="55" fill="#2A2A2A"/>
+  <circle cx="625" cy="382" r="16" fill="#3b82f6"/>
+  <text x="620" y="388" font-family="Arial, sans-serif" font-weight="700" font-size="12" fill="white">S</text>
+  <text x="650" y="380" font-family="Arial, sans-serif" font-weight="700" font-size="15" fill="white">Sophie Durand</text>
+  <text x="650" y="396" font-family="Arial, sans-serif" font-size="11" fill="#22c55e">En ligne</text>
+
+  <!-- Chat messages -->
+  <!-- Coach message -->
+  <rect x="610" y="430" width="260" height="50" rx="14" fill="#FF6B2B" fill-opacity="0.15"/>
+  <text x="625" y="452" font-family="Arial, sans-serif" font-size="13" fill="rgba(245,245,243,0.8)">Super seance aujourd'hui !</text>
+  <text x="625" y="470" font-family="Arial, sans-serif" font-size="13" fill="rgba(245,245,243,0.8)">On augmente les charges ? 💪</text>
+
+  <!-- Client message -->
+  <rect x="720" y="495" width="260" height="35" rx="14" fill="#2A2A2A"/>
+  <text x="735" y="518" font-family="Arial, sans-serif" font-size="13" fill="rgba(245,245,243,0.8)">Oui je suis prete ! 🔥</text>
+
+  <!-- Coach message with image -->
+  <rect x="610" y="545" width="260" height="155" rx="14" fill="#FF6B2B" fill-opacity="0.15"/>
+  <rect x="622" y="557" width="236" height="110" rx="8" fill="#2A2A2A"/>
+  <text x="700" y="605" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.3)">📄 Programme Semaine 9.pdf</text>
+  <text x="700" y="625" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="rgba(245,245,243,0.2)">Partage de fichier</text>
+  <text x="625" y="690" font-family="Arial, sans-serif" font-size="13" fill="rgba(245,245,243,0.8)">Voila ton programme !</text>
+
+  <!-- Client message -->
+  <rect x="720" y="715" width="260" height="35" rx="14" fill="#2A2A2A"/>
+  <text x="735" y="738" font-family="Arial, sans-serif" font-size="13" fill="rgba(245,245,243,0.8)">Merci coach ! 🙏</text>
+
+  <!-- Voice message -->
+  <rect x="610" y="765" width="220" height="40" rx="20" fill="#FF6B2B" fill-opacity="0.15"/>
+  <circle cx="635" cy="785" r="12" fill="#FF6B2B"/>
+  <polygon points="631,780 631,790 641,785" fill="white"/>
+  <rect x="660" y="781" width="8" height="8" rx="2" fill="rgba(245,245,243,0.4)"/>
+  <rect x="672" y="778" width="8" height="14" rx="2" fill="rgba(245,245,243,0.4)"/>
+  <rect x="684" y="780" width="8" height="10" rx="2" fill="rgba(245,245,243,0.4)"/>
+  <rect x="696" y="776" width="8" height="18" rx="2" fill="rgba(245,245,243,0.4)"/>
+  <rect x="708" y="782" width="8" height="6" rx="2" fill="rgba(245,245,243,0.4)"/>
+  <rect x="720" y="779" width="8" height="12" rx="2" fill="rgba(245,245,243,0.4)"/>
+  <text x="790" y="790" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.3)">0:12</text>
+
+  <!-- Chat input -->
+  <rect x="600" y="915" width="380" height="45" rx="22" fill="#2A2A2A"/>
+  <text x="625" y="943" font-family="Arial, sans-serif" font-size="14" fill="rgba(245,245,243,0.3)">Message...</text>
+  <circle cx="950" cy="937" r="16" fill="#FF6B2B"/>
+  <polygon points="945,932 945,942 955,937" fill="white"/>
+
+  <!-- Bottom CTA -->
+  <rect x="310" y="1010" width="460" height="40" rx="20" fill="url(#orangeGrad4)" fill-opacity="0.8"/>
+  <text x="540" y="1037" text-anchor="middle" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="18" fill="white">zevo-one.vercel.app</text>
+</svg>

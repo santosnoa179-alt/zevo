@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <defs>
+    <linearGradient id="bgGrad3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A1A"/>
+    </linearGradient>
+    <linearGradient id="orangeGrad3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF6B2B"/>
+      <stop offset="100%" stop-color="#FF9A6C"/>
+    </linearGradient>
+    <linearGradient id="proGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FF6B2B"/>
+      <stop offset="100%" stop-color="#FF4500"/>
+    </linearGradient>
+    <clipPath id="logoClip3">
+      <polygon points="0,0 88,0 88,61.6 61.6,88 0,88"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#bgGrad3)"/>
+
+  <!-- Subtle grid -->
+  <line x1="360" y1="0" x2="360" y2="1080" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  <line x1="720" y1="0" x2="720" y2="1080" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+
+  <!-- Logo top left -->
+  <g transform="translate(60, 50) scale(0.7)">
+    <rect width="88" height="88" rx="18" fill="#FF6B2B" clip-path="url(#logoClip3)"/>
+    <rect x="12" y="12" width="64" height="11" fill="white"/>
+    <polygon points="71,23 76,12 17,44 12,44" fill="white"/>
+    <rect x="12" y="44" width="64" height="11" fill="white"/>
+    <polygon points="12,55 17,44 76,75 71,75" fill="white"/>
+    <rect x="12" y="65" width="64" height="11" fill="white"/>
+  </g>
+  <text x="135" y="96" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="32" fill="white" letter-spacing="2">ZEVO</text>
+
+  <!-- Headline -->
+  <text x="540" y="190" text-anchor="middle" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="52" fill="white" letter-spacing="-1">DES PRIX SIMPLES,</text>
+  <text x="540" y="255" text-anchor="middle" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="52" fill="#FF6B2B" letter-spacing="-1">SANS SURPRISE.</text>
+
+  <!-- Free Plan Card -->
+  <rect x="60" y="310" width="460" height="420" rx="24" fill="#1E1E1E" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="290" y="370" text-anchor="middle" font-family="'SF Pro Display', Arial, sans-serif" font-weight="700" font-size="24" fill="rgba(245,245,243,0.5)" letter-spacing="3">STARTER</text>
+  <text x="290" y="440" text-anchor="middle" font-family="'SF Pro Display', Arial, sans-serif" font-weight="900" font-size="72" fill="white">0€</text>
+  <text x="290" y="475" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.4)">/mois · pour toujours</text>
+
+  <line x1="100" y1="505" x2="480" y2="505" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <text x="120" y="545" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.6)">✓  Jusqu'a 5 clients</text>
+  <text x="120" y="580" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.6)">✓  Programmes sport</text>
+  <text x="120" y="615" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.6)">✓  Suivi basique</text>
+  <text x="120" y="650" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.6)">✓  Messagerie</text>
+  <text x="120" y="685" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.35)">✗  Paiements en ligne</text>
+
+  <!-- Pro Plan Card -->
+  <rect x="560" y="310" width="460" height="420" rx="24" fill="#1E1E1E" stroke="#FF6B2B" stroke-width="2"/>
+  <!-- Popular badge -->
+  <rect x="680" y="295" width="120" height="30" rx="15" fill="url(#proGrad)"/>
+  <text x="740" y="315" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="12" fill="white" letter-spacing="1">POPULAIRE</text>
+
+  <text x="790" y="370" text-anchor="middle" font-family="'SF Pro Display', Arial, sans-serif" font-weight="700" font-size="24" fill="#FF6B2B" letter-spacing="3">PRO</text>
+  <text x="790" y="440" text-anchor="middle" font-family="'SF Pro Display', Arial, sans-serif" font-weight="900" font-size="72" fill="white">29€</text>
+  <text x="790" y="475" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.4)">/mois · 14 jours gratuits</text>
+
+  <line x1="600" y1="505" x2="980" y2="505" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <text x="620" y="545" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.6)">✓  Clients illimites</text>
+  <text x="620" y="580" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.6)">✓  Programmes sport + nutrition</text>
+  <text x="620" y="615" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.6)">✓  Suivi 360° complet</text>
+  <text x="620" y="650" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.6)">✓  Paiements Stripe</text>
+  <text x="620" y="685" font-family="Arial, sans-serif" font-size="18" fill="rgba(245,245,243,0.6)">✓  Calendrier &amp; reservations</text>
+
+  <!-- Bottom CTA -->
+  <rect x="310" y="790" width="460" height="56" rx="28" fill="url(#orangeGrad3)"/>
+  <text x="540" y="826" text-anchor="middle" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="22" fill="white">Essaie gratuitement 14 jours →</text>
+
+  <!-- Comparison text -->
+  <text x="540" y="900" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="rgba(245,245,243,0.4)">Pas de carte bancaire requise pour commencer</text>
+
+  <!-- Bottom stats -->
+  <rect x="160" y="940" width="1" height="40" fill="rgba(255,255,255,0.06)"/>
+  <text x="100" y="955" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="white">0%</text>
+  <text x="100" y="980" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="rgba(245,245,243,0.4)">Commission</text>
+
+  <rect x="360" y="940" width="1" height="40" fill="rgba(255,255,255,0.06)"/>
+  <text x="270" y="955" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="white">100%</text>
+  <text x="270" y="980" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="rgba(245,245,243,0.4)">Tes revenus</text>
+
+  <rect x="560" y="940" width="1" height="40" fill="rgba(255,255,255,0.06)"/>
+  <text x="460" y="955" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="#FF6B2B">∞</text>
+  <text x="460" y="980" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="rgba(245,245,243,0.4)">Clients (Pro)</text>
+
+  <text x="640" y="955" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="#22c55e">SSL</text>
+  <text x="640" y="980" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="rgba(245,245,243,0.4)">Securise</text>
+
+  <text x="540" y="1040" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="rgba(245,245,243,0.3)">zevo-one.vercel.app</text>
+</svg>

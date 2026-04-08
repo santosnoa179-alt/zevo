@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0D0D0D"/>
+      <stop offset="100%" stop-color="#1A1A1A"/>
+    </linearGradient>
+    <linearGradient id="orangeGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF6B2B"/>
+      <stop offset="100%" stop-color="#FF9A6C"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#FF6B2B" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#FF6B2B" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="logoClip">
+      <polygon points="0,0 88,0 88,61.6 61.6,88 0,88"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1080" height="1080" fill="url(#bgGrad)"/>
+
+  <!-- Glow effect top -->
+  <ellipse cx="540" cy="0" rx="600" ry="400" fill="url(#glowGrad)"/>
+
+  <!-- Logo Zevo petit en haut -->
+  <g transform="translate(470, 60) scale(1.6)">
+    <rect width="88" height="88" rx="18" fill="#FF6B2B" clip-path="url(#logoClip)"/>
+    <rect x="12" y="12" width="64" height="11" fill="white"/>
+    <polygon points="71,23 76,12 17,44 12,44" fill="white"/>
+    <rect x="12" y="44" width="64" height="11" fill="white"/>
+    <polygon points="12,55 17,44 76,75 71,75" fill="white"/>
+    <rect x="12" y="65" width="64" height="11" fill="white"/>
+  </g>
+
+  <!-- Headline -->
+  <text x="540" y="280" text-anchor="middle" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="72" fill="white" letter-spacing="-2">TON COACHING,</text>
+  <text x="540" y="360" text-anchor="middle" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="72" fill="#FF6B2B" letter-spacing="-2">DIGITALISE.</text>
+
+  <!-- Subtitle -->
+  <text x="540" y="420" text-anchor="middle" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="400" font-size="28" fill="rgba(245,245,243,0.6)">Sport · Nutrition · Suivi · Paiements</text>
+
+  <!-- Mockup phone frame -->
+  <rect x="290" y="480" width="500" height="520" rx="32" fill="#1E1E1E" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+
+  <!-- Phone header bar -->
+  <rect x="290" y="480" width="500" height="60" rx="32" fill="#1E1E1E"/>
+  <rect x="290" y="510" width="500" height="30" fill="#1E1E1E"/>
+  <circle cx="540" cy="505" r="8" fill="rgba(255,255,255,0.1)"/>
+
+  <!-- App content mockup - Dashboard -->
+  <rect x="310" y="540" width="460" height="50" rx="12" fill="#2A2A2A"/>
+  <text x="330" y="572" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="white">Tableau de bord</text>
+  <circle cx="740" cy="565" r="16" fill="#FF6B2B" opacity="0.2"/>
+  <text x="735" y="571" font-family="Arial, sans-serif" font-weight="700" font-size="14" fill="#FF6B2B">3</text>
+
+  <!-- Stats cards -->
+  <rect x="310" y="605" width="145" height="80" rx="12" fill="#2A2A2A"/>
+  <text x="325" y="635" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.5)">Clients actifs</text>
+  <text x="325" y="668" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="white">24</text>
+
+  <rect x="467" y="605" width="145" height="80" rx="12" fill="#2A2A2A"/>
+  <text x="482" y="635" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.5)">Revenus</text>
+  <text x="482" y="668" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="#22c55e">2.4k€</text>
+
+  <rect x="624" y="605" width="145" height="80" rx="12" fill="#2A2A2A"/>
+  <text x="639" y="635" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.5)">Seances</text>
+  <text x="639" y="668" font-family="Arial, sans-serif" font-weight="800" font-size="28" fill="#FF6B2B">48</text>
+
+  <!-- Client list -->
+  <rect x="310" y="700" width="460" height="55" rx="10" fill="#2A2A2A"/>
+  <circle cx="345" cy="727" r="18" fill="#FF6B2B"/>
+  <text x="339" y="733" font-family="Arial, sans-serif" font-weight="700" font-size="14" fill="white">L</text>
+  <text x="375" y="723" font-family="Arial, sans-serif" font-weight="600" font-size="15" fill="white">Lucas Martin</text>
+  <text x="375" y="742" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.4)">Suivi perso · 49€/mois</text>
+  <circle cx="745" cy="727" r="5" fill="#22c55e"/>
+
+  <rect x="310" y="765" width="460" height="55" rx="10" fill="#2A2A2A"/>
+  <circle cx="345" cy="792" r="18" fill="#3b82f6"/>
+  <text x="339" y="798" font-family="Arial, sans-serif" font-weight="700" font-size="14" fill="white">S</text>
+  <text x="375" y="788" font-family="Arial, sans-serif" font-weight="600" font-size="15" fill="white">Sophie Durand</text>
+  <text x="375" y="807" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.4)">Programme 12 sem. · 89€/mois</text>
+  <circle cx="745" cy="792" r="5" fill="#22c55e"/>
+
+  <rect x="310" y="830" width="460" height="55" rx="10" fill="#2A2A2A"/>
+  <circle cx="345" cy="857" r="18" fill="#a855f7"/>
+  <text x="339" y="863" font-family="Arial, sans-serif" font-weight="700" font-size="14" fill="white">M</text>
+  <text x="375" y="853" font-family="Arial, sans-serif" font-weight="600" font-size="15" fill="white">Marc Leroy</text>
+  <text x="375" y="872" font-family="Arial, sans-serif" font-size="11" fill="rgba(245,245,243,0.4)">Nutrition + Sport · 69€/mois</text>
+  <circle cx="745" cy="857" r="5" fill="#f59e0b"/>
+
+  <!-- Bottom CTA badge -->
+  <rect x="350" y="930" width="380" height="50" rx="25" fill="url(#orangeGrad)"/>
+  <text x="540" y="962" text-anchor="middle" font-family="'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="20" fill="white">Essai gratuit 14 jours →</text>
+
+  <!-- Bottom subtle text -->
+  <text x="540" y="1040" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="rgba(245,245,243,0.3)">zevo-one.vercel.app</text>
+</svg>
