@@ -84,6 +84,7 @@ const SHOWCASES = [
     features: ['Fiche client unifiee', 'Score bien-etre auto', 'Alertes desengagement', 'Historique complet'],
     visual: 'client',
     metric: { value: '3s', label: 'pour voir l\'essentiel' },
+    screenshot: '/screenshots/hub-client.png',
   },
   {
     badge: 'Programmation',
@@ -92,6 +93,7 @@ const SHOWCASES = [
     features: ['Drag & drop', 'Videos demo', 'Suivi temps reel', 'Templates'],
     visual: 'program',
     metric: { value: '4h', label: 'gagnees par semaine' },
+    screenshot: '/screenshots/programme.png',
   },
   {
     badge: 'Ton app',
@@ -100,6 +102,7 @@ const SHOWCASES = [
     features: ['Branding complet', 'Modules au choix', 'Preview live', 'Experience premium'],
     visual: 'app',
     metric: { value: '100%', label: 'a ton image' },
+    screenshot: '/screenshots/app-builder.png',
   },
 ]
 
@@ -160,11 +163,6 @@ const FAQS = [
   { q: 'Ca marche sur mobile ?', a: '100% responsive. Smartphone, tablette, desktop — tout fonctionne partout.' },
 ]
 
-const SOCIAL_PROOF_NAMES = [
-  'Julien D.', 'Amira K.', 'Paul R.', 'Laura M.', 'Kevin T.', 'Sofia B.', 'Marc L.', 'Chloe V.',
-  'Antoine P.', 'Yasmine N.', 'Hugo F.', 'Leila S.', 'Nathan G.', 'Emma C.', 'Dylan H.', 'Ines A.',
-]
-
 // ══════════════════════════════════════════════════════════
 // HOOKS
 // ══════════════════════════════════════════════════════════
@@ -185,16 +183,17 @@ function useInView(ref, opts = {}) {
 
 function useAnimatedCounter(target, inView, duration = 2000) {
   const [count, setCount] = useState(0)
+  const hasDecimal = target.includes('.')
   useEffect(() => {
     if (!inView) return
-    const num = parseInt(target.replace(/[^0-9]/g, ''), 10)
+    const num = parseFloat(target.replace(/[^0-9.]/g, ''))
     if (isNaN(num)) { setCount(target); return }
     let start = 0
     const step = num / (duration / 16)
     const timer = setInterval(() => {
       start += step
       if (start >= num) { setCount(num); clearInterval(timer) }
-      else setCount(Math.floor(start))
+      else setCount(hasDecimal ? Math.round(start * 10) / 10 : Math.floor(start))
     }, 16)
     return () => clearInterval(timer)
   }, [inView, target, duration])
@@ -242,7 +241,27 @@ function BentoVisualStats() {
   )
 }
 
-function ShowcaseVisual({ type }) {
+function ShowcaseVisual({ type, screenshot }) {
+  // If a real screenshot exists, use it inside a device frame
+  const [imgError, setImgError] = useState(false)
+  const hasScreenshot = screenshot && !imgError
+
+  if (hasScreenshot) {
+    return (
+      <div className="relative">
+        <div className="rounded-2xl bg-[#0c0c0c] border border-white/[0.06] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+          <div className="flex items-center gap-2 px-4 py-2 bg-[#111] border-b border-white/[0.04]">
+            <div className="flex gap-1.5"><div className="w-2 h-2 rounded-full bg-[#FF5F57]" /><div className="w-2 h-2 rounded-full bg-[#FEBC2E]" /><div className="w-2 h-2 rounded-full bg-[#28C840]" /></div>
+            <div className="flex-1 flex justify-center"><div className="flex items-center gap-1.5 px-3 py-0.5 rounded-lg bg-white/[0.03] text-[9px] text-[#F5F5F3]/20 font-mono"><Lock size={7} /> app.zevo.coach</div></div>
+          </div>
+          <img src={screenshot} alt="Zevo app" className="w-full" onError={() => setImgError(true)} />
+        </div>
+        <div className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 w-[80%] h-24 bg-[#FF5C1A]/[0.06] blur-[60px] rounded-full" />
+      </div>
+    )
+  }
+
+  // Fallback visuals
   if (type === 'client') {
     return (
       <div className="relative">
@@ -279,7 +298,6 @@ function ShowcaseVisual({ type }) {
             </div>
           </div>
         </div>
-        {/* Floating notification */}
         <div className="absolute -top-3 -right-3 px-3 py-2 rounded-xl bg-[#111111] border border-emerald-500/20 shadow-xl shadow-black/30 flex items-center gap-2 animate-bounce-slow">
           <div className="w-5 h-5 rounded-full bg-emerald-500/15 flex items-center justify-center">
             <CheckCircle size={12} className="text-emerald-400" />
@@ -298,7 +316,6 @@ function ShowcaseVisual({ type }) {
             <div className="text-sm font-semibold text-[#F5F5F3]">Programme Force</div>
             <div className="px-2 py-0.5 rounded-lg bg-[#FF5C1A]/10 text-[9px] text-[#FF5C1A] font-bold">Semaine 3/8</div>
           </div>
-          {/* Progress bar */}
           <div className="h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
             <div className="h-full rounded-full bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] w-[37.5%] transition-all" />
           </div>
@@ -320,7 +337,6 @@ function ShowcaseVisual({ type }) {
             </div>
           ))}
         </div>
-        {/* Floating badge */}
         <div className="absolute -bottom-3 -left-3 px-3 py-2 rounded-xl bg-[#111111] border border-[#FF5C1A]/20 shadow-xl shadow-black/30 flex items-center gap-2">
           <Flame size={14} className="text-[#FF5C1A]" />
           <span className="text-[10px] font-bold text-[#FF5C1A]">7 jours de suite !</span>
@@ -329,7 +345,7 @@ function ShowcaseVisual({ type }) {
     )
   }
 
-  // App builder
+  // App builder — phone
   return (
     <div className="relative flex justify-center">
       <div className="w-[240px]">
@@ -381,26 +397,7 @@ function ShowcaseVisual({ type }) {
           </div>
         </div>
       </div>
-      {/* Phone glow */}
       <div className="pointer-events-none absolute inset-0 -bottom-10 bg-[#FF5C1A]/[0.04] blur-[50px] rounded-full" />
-    </div>
-  )
-}
-
-// Social proof notification popup
-function SocialProofPopup({ visible, name }) {
-  return (
-    <div className={`fixed bottom-6 left-6 z-40 transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-      <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#111111]/90 backdrop-blur-xl border border-white/[0.08] shadow-2xl shadow-black/50">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF5C1A] to-[#FF7A42] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-          {name?.charAt(0)}
-        </div>
-        <div>
-          <p className="text-xs font-semibold text-[#F5F5F3]">{name} vient de s'inscrire</p>
-          <p className="text-[10px] text-[#F5F5F3]/30">Il y a quelques instants</p>
-        </div>
-        <Sparkles size={14} className="text-[#FF5C1A] flex-shrink-0" />
-      </div>
     </div>
   )
 }
@@ -441,27 +438,23 @@ export default function LandingPage() {
 
   const scrollTo = (id) => { setMenuOpen(false); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }) }
 
+  // Font helpers
+  const clash = "'Clash Display', 'Inter', sans-serif"
+  const instrument = "'Instrument Sans', 'Inter', sans-serif"
+
   return (
-    <div className="min-h-screen bg-[#060606] text-[#F5F5F3] overflow-x-hidden relative">
-      {/* ══════════════════════ WATERMARK LOGO ══════════════════════ */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 88 88"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] opacity-[0.025]"
-        >
-          <defs>
-            <clipPath id="wm-clip-lp">
-              <polygon points="0,0 88,0 88,61.6 61.6,88 0,88"/>
-            </clipPath>
-          </defs>
-          <rect width="88" height="88" rx="18" fill="#FF5C1A" clipPath="url(#wm-clip-lp)"/>
-          <rect x="12" y="12" width="64" height="11" fill="white"/>
-          <polygon points="71,23 76,12 17,44 12,44" fill="white"/>
-          <rect x="12" y="44" width="64" height="11" fill="white"/>
-          <polygon points="12,55 17,44 76,75 71,75" fill="white"/>
-          <rect x="12" y="65" width="64" height="11" fill="white"/>
-        </svg>
+    <div className="min-h-screen bg-[#060606] text-[#F5F5F3] overflow-x-hidden relative" style={{ fontFamily: instrument }}>
+
+      {/* ══════════════════════ BACKGROUND MESH ══════════════════════ */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        {/* Gradient mesh — large organic blobs */}
+        <div className="absolute top-[-20%] left-[-10%] w-[700px] h-[700px] rounded-full bg-[#FF5C1A]/[0.04] blur-[200px] animate-glow-pulse" />
+        <div className="absolute top-[30%] right-[-15%] w-[600px] h-[600px] rounded-full bg-[#FF7A42]/[0.025] blur-[180px]" />
+        <div className="absolute bottom-[10%] left-[20%] w-[500px] h-[500px] rounded-full bg-[#FF5C1A]/[0.02] blur-[160px]" />
+        {/* Subtle grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:72px_72px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_30%,black,transparent)]" />
+        {/* Noise */}
+        <div className="absolute inset-0 noise-overlay opacity-40" />
       </div>
 
       {/* ══════════════════════ NAVBAR ══════════════════════ */}
@@ -469,12 +462,11 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-5 md:px-8 flex items-center justify-between">
           <ZevoLogo size="md" />
           <div className="hidden lg:flex items-center gap-6">
-            {/* Fonctionnalites dropdown */}
             <div className="relative"
               onMouseEnter={() => setDropdownOpen(true)}
               onMouseLeave={() => setDropdownOpen(false)}
             >
-              <button className="flex items-center gap-1.5 text-[13px] text-[#F5F5F3]/40 hover:text-[#F5F5F3] transition-colors duration-300 font-medium py-2">
+              <button className="flex items-center gap-1.5 text-[13px] text-[#F5F5F3]/40 hover:text-[#F5F5F3] transition-colors duration-300 font-medium py-2" style={{ fontFamily: instrument }}>
                 Fonctionnalites <ChevronDown size={12} className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {dropdownOpen && (
@@ -502,7 +494,7 @@ export default function LandingPage() {
                     </div>
                     <div className="border-t border-white/[0.05] px-4 py-3 flex items-center justify-between bg-white/[0.015]">
                       <span className="text-[10px] text-[#F5F5F3]/20">12 fonctionnalites incluses</span>
-                      <button onClick={() => { setDropdownOpen(false); navigate('/pricing') }} className="text-[10px] font-medium text-[#FF5C1A] hover:text-[#FF7A42] transition-colors flex items-center gap-1">
+                      <button onClick={() => { setDropdownOpen(false); scrollTo('pricing') }} className="text-[10px] font-medium text-[#FF5C1A] hover:text-[#FF7A42] transition-colors flex items-center gap-1">
                         Voir les tarifs <ArrowRight size={10} />
                       </button>
                     </div>
@@ -527,25 +519,16 @@ export default function LandingPage() {
         {menuOpen && (
           <div className="md:hidden fixed inset-0 top-[60px] bg-[#060606]/98 backdrop-blur-2xl z-40 overflow-y-auto">
             <div className="p-5 pb-10">
-              {/* Fonctionnalites — accordion compact */}
-              <button
-                onClick={() => setFeaturesExpanded(!featuresExpanded)}
-                className="flex items-center justify-between w-full py-3.5 border-b border-white/[0.06]"
-              >
+              <button onClick={() => setFeaturesExpanded(!featuresExpanded)} className="flex items-center justify-between w-full py-3.5 border-b border-white/[0.06]">
                 <span className="text-[15px] font-semibold text-[#F5F5F3]/70">Fonctionnalites</span>
                 <ChevronDown size={16} className={`text-[#F5F5F3]/30 transition-transform duration-300 ${featuresExpanded ? 'rotate-180' : ''}`} />
               </button>
-
               {featuresExpanded && (
                 <div className="grid grid-cols-2 gap-1.5 py-3">
                   {FEATURE_NAV.map((f) => {
                     const Icon = f.icon
                     return (
-                      <button
-                        key={f.path}
-                        onClick={() => { setMenuOpen(false); setFeaturesExpanded(false); navigate(f.path) }}
-                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-[#FF5C1A]/15 transition-all active:scale-[0.97]"
-                      >
+                      <button key={f.path} onClick={() => { setMenuOpen(false); setFeaturesExpanded(false); navigate(f.path) }} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-[#FF5C1A]/15 transition-all active:scale-[0.97]">
                         <div className="w-7 h-7 rounded-lg bg-[#FF5C1A]/10 flex items-center justify-center flex-shrink-0">
                           <Icon size={12} className="text-[#FF5C1A]" />
                         </div>
@@ -555,9 +538,7 @@ export default function LandingPage() {
                   })}
                 </div>
               )}
-
-              {/* Nav links */}
-              <button onClick={() => { setMenuOpen(false); navigate('/pricing') }} className="flex items-center justify-between w-full py-3.5 border-b border-white/[0.06]">
+              <button onClick={() => { setMenuOpen(false); scrollTo('pricing') }} className="flex items-center justify-between w-full py-3.5 border-b border-white/[0.06]">
                 <span className="text-[15px] font-semibold text-[#F5F5F3]/70">Tarifs</span>
                 <ArrowUpRight size={14} className="text-[#F5F5F3]/20" />
               </button>
@@ -565,8 +546,6 @@ export default function LandingPage() {
                 <span className="text-[15px] font-semibold text-[#F5F5F3]/70">FAQ</span>
                 <ChevronDown size={14} className="text-[#F5F5F3]/20" />
               </button>
-
-              {/* CTAs */}
               <div className="pt-6 space-y-3">
                 <button onClick={() => { setMenuOpen(false); navigate('/demo') }} className="w-full py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-[#F5F5F3]/60 text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
                   <Video size={14} className="text-[#FF5C1A]" /> Demander une demo
@@ -579,66 +558,74 @@ export default function LandingPage() {
         )}
       </nav>
 
-      {/* ══════════════════════ HERO ══════════════════════ */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center px-5 md:px-8 pt-24 pb-20">
-        {/* BG — multi-layer premium */}
-        <div className="pointer-events-none absolute top-[-200px] left-1/2 -translate-x-1/2 w-[1400px] h-[900px] rounded-full bg-[#FF5C1A]/[0.05] blur-[200px] animate-glow-pulse" />
-        <div className="pointer-events-none absolute top-[100px] right-[-200px] w-[600px] h-[600px] rounded-full bg-[#FF7A42]/[0.03] blur-[150px]" />
-        <div className="pointer-events-none absolute bottom-[100px] left-[-200px] w-[500px] h-[500px] rounded-full bg-[#FF5C1A]/[0.02] blur-[130px]" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_70%_50%_at_50%_40%,black,transparent)]" />
-
-        <div className={`relative max-w-5xl mx-auto text-center transition-all duration-1000 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          {/* Social proof badge */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06] mb-8 hover:bg-white/[0.06] transition-colors cursor-default">
-            <div className="flex -space-x-1.5">
-              {['#FF5C1A', '#3B82F6', '#10B981', '#F59E0B'].map((c, i) => (
-                <div key={i} className="w-5 h-5 rounded-full border-2 border-[#060606] flex items-center justify-center text-[7px] font-bold text-white" style={{ backgroundColor: c, zIndex: 4 - i }}>
-                  {['L', 'S', 'T', 'M'][i]}
-                </div>
-              ))}
+      {/* ══════════════════════ HERO — ASYMMETRIC ══════════════════════ */}
+      <section ref={heroRef} className="relative min-h-screen flex items-center px-5 md:px-8 pt-28 pb-16">
+        <div className={`relative max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center transition-all duration-1000 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          {/* LEFT — Text */}
+          <div className="max-w-xl">
+            {/* Social proof badge */}
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06] mb-8 hover:bg-white/[0.06] transition-colors cursor-default">
+              <div className="flex -space-x-1.5">
+                {['#FF5C1A', '#3B82F6', '#10B981', '#F59E0B'].map((c, i) => (
+                  <div key={i} className="w-5 h-5 rounded-full border-2 border-[#060606] flex items-center justify-center text-[7px] font-bold text-white" style={{ backgroundColor: c, zIndex: 4 - i }}>
+                    {['L', 'S', 'T', 'M'][i]}
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-0.5">
+                {[1,2,3,4,5].map(i => <Star key={i} size={10} className="text-[#FF5C1A] fill-[#FF5C1A]" />)}
+              </div>
+              <span className="text-xs font-medium text-[#F5F5F3]/40">Aime par <strong className="text-[#F5F5F3]/70">500+</strong> coachs</span>
             </div>
-            <div className="flex gap-0.5">
-              {[1,2,3,4,5].map(i => <Star key={i} size={10} className="text-[#FF5C1A] fill-[#FF5C1A]" />)}
+
+            <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold tracking-tight leading-[1.05] mb-7" style={{ fontFamily: clash }}>
+              <span className="block text-[#F5F5F3]">Arrete de jongler</span>
+              <span className="block text-[#F5F5F3]">entre 10 outils.</span>
+              <span className="block mt-2">
+                <span className="hero-outline-text">Scale</span>{' '}
+                <span className="bg-gradient-to-r from-[#FF5C1A] via-[#FF7A42] to-[#FF5C1A] bg-clip-text text-transparent bg-[size:200%] animate-gradient-x">ton coaching.</span>
+              </span>
+            </h1>
+
+            <p className="text-base md:text-lg text-[#F5F5F3]/35 max-w-md mb-10 leading-relaxed" style={{ fontFamily: instrument }}>
+              Clients, programmes, nutrition, paiements, messagerie — tout dans <strong className="text-[#F5F5F3]/60">une seule plateforme</strong> pensee pour les coachs qui veulent grandir.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-start gap-4 mb-6">
+              <button onClick={() => navigate('/register')} className="group w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF5C1A]/30 transition-all duration-300 flex items-center justify-center gap-2.5 relative overflow-hidden">
+                <span className="relative z-10 flex items-center gap-2.5">
+                  Commencer gratuitement
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+              </button>
+              <button onClick={() => navigate('/demo')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.08] text-[#F5F5F3]/50 font-medium text-base hover:bg-white/[0.03] hover:text-[#F5F5F3] hover:border-white/[0.12] transition-all duration-300 flex items-center justify-center gap-2">
+                <Video size={15} className="text-[#FF5C1A]" /> Demander une demo
+              </button>
             </div>
-            <span className="text-xs font-medium text-[#F5F5F3]/40">Aime par <strong className="text-[#F5F5F3]/70">500+</strong> coachs</span>
+
+            <div className="flex items-center gap-5 text-[#F5F5F3]/20 text-xs">
+              <span className="flex items-center gap-1.5"><Shield size={12} /> Sans carte bancaire</span>
+              <span className="flex items-center gap-1.5"><Clock size={12} /> Setup 2 min</span>
+              <span className="flex items-center gap-1.5"><Zap size={12} /> 14 jours gratuits</span>
+            </div>
           </div>
 
-          <h1 className="text-[clamp(2.5rem,7vw,4.75rem)] font-bold tracking-tight leading-[1.08] mb-7">
-            <span className="block">Arrete de jongler entre</span>
-            <span className="block">10 outils.{' '}
-              <span className="relative inline-block">
-                <span className="bg-gradient-to-r from-[#FF5C1A] via-[#FF7A42] to-[#FF5C1A] bg-clip-text text-transparent bg-[size:200%] animate-gradient-x">Scale ton coaching.</span>
-              </span>
-            </span>
-          </h1>
+          {/* RIGHT — Browser mockup */}
+          <div className="relative animate-float lg:translate-y-4">
+            {/* Floating badges around mockup */}
+            <div className="hidden lg:flex absolute -top-6 -left-8 z-10 items-center gap-2 px-3.5 py-2 rounded-xl bg-[#111]/90 backdrop-blur-xl border border-white/[0.08] shadow-2xl animate-bounce-slow">
+              <Users size={14} className="text-[#3B82F6]" />
+              <span className="text-[11px] font-semibold text-[#F5F5F3]/70">24 clients actifs</span>
+            </div>
+            <div className="hidden lg:flex absolute -bottom-4 -right-6 z-10 items-center gap-2 px-3.5 py-2 rounded-xl bg-[#111]/90 backdrop-blur-xl border border-emerald-500/20 shadow-2xl animate-bounce-slow" style={{ animationDelay: '1.5s' }}>
+              <TrendingUp size={14} className="text-emerald-400" />
+              <span className="text-[11px] font-semibold text-emerald-400">+18% ce mois</span>
+            </div>
 
-          <p className="text-base md:text-xl text-[#F5F5F3]/35 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Clients, programmes, nutrition, paiements, messagerie — tout dans <strong className="text-[#F5F5F3]/60">une seule plateforme</strong> pensee pour les coachs qui veulent grandir.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-5">
-            <button onClick={() => navigate('/register')} className="group w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF5C1A]/30 transition-all duration-300 flex items-center justify-center gap-2.5 relative overflow-hidden">
-              <span className="relative z-10 flex items-center gap-2.5">
-                Commencer gratuitement
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />
-              </span>
-              {/* Shine effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-            </button>
-            <button onClick={() => navigate('/demo')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.08] text-[#F5F5F3]/50 font-medium text-base hover:bg-white/[0.03] hover:text-[#F5F5F3] hover:border-white/[0.12] transition-all duration-300 flex items-center justify-center gap-2">
-              <Video size={15} className="text-[#FF5C1A]" /> Demander une demo
-            </button>
-          </div>
-
-          <div className="flex items-center justify-center gap-5 text-[#F5F5F3]/20 text-xs mb-16 md:mb-20">
-            <span className="flex items-center gap-1.5"><Shield size={12} /> Sans carte bancaire</span>
-            <span className="flex items-center gap-1.5"><Clock size={12} /> Setup 2 min</span>
-            <span className="flex items-center gap-1.5"><Zap size={12} /> 14 jours gratuits</span>
-          </div>
-
-          {/* Browser mockup */}
-          <div className="relative mx-auto max-w-4xl animate-float">
-            <div className="rounded-2xl md:rounded-3xl border border-white/[0.07] bg-[#0c0c0c] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.6)] noise-overlay">
+            <div className="rounded-2xl md:rounded-3xl border border-white/[0.07] bg-[#0c0c0c] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.6)] relative">
+              {/* Gradient border glow */}
+              <div className="absolute inset-0 rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#FF5C1A]/10 via-transparent to-[#FF7A42]/5 pointer-events-none" />
               <div className="flex items-center gap-2 px-4 py-2.5 bg-[#111] border-b border-white/[0.04]">
                 <div className="flex gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" /><div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" /><div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" /></div>
                 <div className="flex-1 flex justify-center"><div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.03] text-[10px] text-[#F5F5F3]/20 font-mono"><Lock size={7} /> app.zevo.coach</div></div>
@@ -646,7 +633,7 @@ export default function LandingPage() {
               <div className="p-4 md:p-7">
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <p className="text-sm md:text-base font-bold text-[#F5F5F3]">Bonjour, Coach</p>
+                    <p className="text-sm md:text-base font-bold text-[#F5F5F3]" style={{ fontFamily: clash }}>Bonjour, Coach</p>
                     <p className="text-[10px] text-[#F5F5F3]/25">Lundi 7 Avril 2026</p>
                   </div>
                   <div className="hidden md:flex gap-2">
@@ -660,7 +647,7 @@ export default function LandingPage() {
                     { l: 'Retention', v: '94%', t: '+2%', c: '#10B981', ic: TrendingUp },
                     { l: 'Revenu', v: '3 240\u20AC', t: '+18%', c: '#F59E0B', ic: CreditCard },
                   ].map((k, i) => (
-                    <div key={i} className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3">
+                    <div key={i} className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3 hover:border-white/[0.08] transition-colors">
                       <div className="flex items-center justify-between mb-1.5">
                         <k.ic size={13} style={{ color: k.c }} />
                         <span className="text-[8px] text-emerald-400 font-bold">{k.t}</span>
@@ -695,58 +682,70 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            <div className="pointer-events-none absolute -bottom-24 left-1/2 -translate-x-1/2 w-[60%] h-40 bg-[#FF5C1A]/[0.05] blur-[100px] rounded-full" />
+            <div className="pointer-events-none absolute -bottom-24 left-1/2 -translate-x-1/2 w-[60%] h-40 bg-[#FF5C1A]/[0.06] blur-[100px] rounded-full" />
           </div>
         </div>
       </section>
 
-      {/* ══════════════════════ LOGOS + STATS ══════════════════════ */}
-      <section className="border-y border-white/[0.04] bg-[#050505]">
-        <div className="py-6 border-b border-white/[0.03] overflow-hidden relative">
-          <p className="text-center text-[9px] uppercase tracking-[0.25em] text-[#F5F5F3]/15 font-semibold mb-5">Utilise par des coachs certifies</p>
-          {/* Infinite marquee */}
+      {/* ══════════════════════ STATS — FULL WIDTH BAND ══════════════════════ */}
+      <section className="relative border-y border-white/[0.04] overflow-hidden">
+        {/* Accent line at top */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FF5C1A]/30 to-transparent" />
+
+        <div className="py-6 border-b border-white/[0.03] overflow-hidden relative bg-[#050505]">
+          <p className="text-center text-[9px] uppercase tracking-[0.25em] text-[#F5F5F3]/15 font-semibold mb-5" style={{ fontFamily: instrument }}>Utilise par des coachs certifies</p>
           <div className="relative">
             <div className="flex gap-16 animate-marquee whitespace-nowrap">
               {[...Array(2)].flatMap((_, r) =>
                 ['CrossFit', 'BPJEPS', 'STAPS', 'FitPro', 'CoachHub', 'TrainMe', 'SportEasy', 'MyCoach'].map((n, i) => (
-                  <span key={`${r}-${i}`} className="text-sm font-bold text-[#F5F5F3]/[0.12] tracking-wider">{n}</span>
+                  <span key={`${r}-${i}`} className="text-sm font-bold text-[#F5F5F3]/[0.12] tracking-wider" style={{ fontFamily: clash }}>{n}</span>
                 ))
               )}
             </div>
           </div>
         </div>
-        <div ref={statsRef} className="max-w-6xl mx-auto px-5 md:px-8 py-14 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            { value: '500', suffix: '+', label: 'Coachs actifs' },
-            { value: '12000', suffix: '+', label: 'Clients suivis' },
-            { value: '4.8', suffix: '/5', label: 'Note moyenne' },
-            { value: '98', suffix: '%', label: 'Satisfaction' },
-          ].map((s, i) => {
-            const count = useAnimatedCounter(s.value, statsInView)
-            return (
-              <div key={i} className="text-center">
-                <p className={`text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent transition-all duration-700 ${statsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`} style={{ transitionDelay: `${i * 100}ms` }}>
-                  {typeof count === 'number' ? count.toLocaleString('fr-FR') : count}{s.suffix}
-                </p>
-                <p className="text-sm text-[#F5F5F3]/25 mt-2 font-medium">{s.label}</p>
-              </div>
-            )
-          })}
+
+        <div ref={statsRef} className="max-w-7xl mx-auto px-5 md:px-8 py-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0">
+            {[
+              { value: '500', suffix: '+', label: 'Coachs actifs', icon: Users },
+              { value: '12000', suffix: '+', label: 'Clients suivis', icon: Heart },
+              { value: '4.8', suffix: '/5', label: 'Note moyenne', icon: Star },
+              { value: '98', suffix: '%', label: 'Satisfaction', icon: Trophy },
+            ].map((s, i) => {
+              const count = useAnimatedCounter(s.value, statsInView)
+              const Icon = s.icon
+              return (
+                <div key={i} className={`text-center relative ${i < 3 ? 'md:border-r md:border-white/[0.04]' : ''}`}>
+                  <div className={`transition-all duration-700 ${statsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`} style={{ transitionDelay: `${i * 100}ms` }}>
+                    <div className="w-10 h-10 rounded-xl bg-[#FF5C1A]/[0.06] border border-[#FF5C1A]/10 flex items-center justify-center mx-auto mb-3">
+                      <Icon size={18} className="text-[#FF5C1A]" />
+                    </div>
+                    <p className="text-3xl md:text-5xl font-bold bg-gradient-to-b from-[#F5F5F3] to-[#F5F5F3]/60 bg-clip-text text-transparent" style={{ fontFamily: clash }}>
+                      {typeof count === 'number' ? count.toLocaleString('fr-FR') : count}{s.suffix}
+                    </p>
+                    <p className="text-sm text-[#F5F5F3]/25 mt-2 font-medium">{s.label}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </section>
 
       {/* ══════════════════════ FEATURES BENTO ══════════════════════ */}
       <section id="features" className="py-24 md:py-36 px-5 md:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16 md:mb-20">
+          {/* Left-aligned header */}
+          <div className="max-w-2xl mb-16 md:mb-20">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
               <Zap size={12} className="text-[#FF5C1A]" /> Fonctionnalites
             </div>
-            <h2 className="text-3xl md:text-[3.25rem] font-bold tracking-tight leading-tight mb-5">
+            <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-[1.1] mb-5" style={{ fontFamily: clash }}>
               Tout ce dont tu as besoin.
               <br /><span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">Rien de superflu.</span>
             </h2>
-            <p className="text-[#F5F5F3]/30 text-lg max-w-xl mx-auto">Chaque feature est pensee pour te faire gagner du temps et impressionner tes clients.</p>
+            <p className="text-[#F5F5F3]/30 text-lg">Chaque feature est pensee pour te faire gagner du temps et impressionner tes clients.</p>
           </div>
 
           <div ref={featuresRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -755,15 +754,17 @@ export default function LandingPage() {
               return (
                 <div
                   key={i}
-                  className={`group relative rounded-2xl border border-white/[0.06] glass-landing p-5 md:p-6 hover:border-[#FF5C1A]/20 hover:shadow-[0_8px_40px_rgba(255,107,43,0.04)] transition-all duration-500 overflow-hidden ${f.span} ${featuresInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                  className={`group relative rounded-2xl border border-white/[0.06] p-5 md:p-6 transition-all duration-500 overflow-hidden ${f.span} ${featuresInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} bento-card`}
                   style={{ transitionDelay: `${i * 60}ms` }}
                 >
-                  <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#FF5C1A]/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="relative">
-                    <div className="w-10 h-10 rounded-xl bg-[#FF5C1A]/10 border border-[#FF5C1A]/10 flex items-center justify-center mb-4 group-hover:bg-[#FF5C1A]/15 group-hover:scale-110 transition-all duration-500">
+                  {/* Gradient border on hover */}
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 gradient-border-glow" />
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#FF5C1A]/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative z-[1]">
+                    <div className="w-10 h-10 rounded-xl bg-[#FF5C1A]/10 border border-[#FF5C1A]/10 flex items-center justify-center mb-4 group-hover:bg-[#FF5C1A]/15 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(255,92,26,0.15)] transition-all duration-500">
                       <Icon size={18} className="text-[#FF5C1A]" />
                     </div>
-                    <h3 className="text-sm font-semibold mb-1.5 text-[#F5F5F3]">{f.title}</h3>
+                    <h3 className="text-sm font-semibold mb-1.5 text-[#F5F5F3]" style={{ fontFamily: clash }}>{f.title}</h3>
                     <p className="text-xs text-[#F5F5F3]/30 leading-relaxed">{f.desc}</p>
                     {f.visual === 'hub' && <BentoVisualHub />}
                     {f.visual === 'stats' && <BentoVisualStats />}
@@ -775,35 +776,40 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════ SHOWCASES ══════════════════════ */}
+      {/* ══════════════════════ SHOWCASES — ZIGZAG + OFFSET ══════════════════════ */}
       <section className="py-12 md:py-24 px-5 md:px-8">
-        <div className="max-w-6xl mx-auto space-y-24 md:space-y-40">
+        <div className="max-w-6xl mx-auto space-y-32 md:space-y-48">
           {SHOWCASES.map((item, i) => {
             const isReversed = i % 2 === 1
             return (
-              <div key={i} className={`flex flex-col ${isReversed ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 md:gap-20`}>
-                <div className="flex-1 max-w-lg">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF5C1A]/10 border border-[#FF5C1A]/15 text-[10px] font-bold text-[#FF5C1A] uppercase tracking-wider mb-5">{item.badge}</div>
-                  <h3 className="text-2xl md:text-[2.25rem] font-bold tracking-tight mb-4 leading-tight">{item.title}</h3>
-                  <p className="text-[#F5F5F3]/35 text-base leading-relaxed mb-6">{item.desc}</p>
-                  {/* Metric highlight */}
-                  <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#FF5C1A]/[0.06] border border-[#FF5C1A]/10 mb-6">
-                    <span className="text-2xl font-bold text-[#FF5C1A]">{item.metric.value}</span>
-                    <span className="text-xs text-[#F5F5F3]/40">{item.metric.label}</span>
+              <div key={i} className="relative">
+                {/* Decorative blob behind each showcase */}
+                <div className={`pointer-events-none absolute ${isReversed ? 'left-[-200px]' : 'right-[-200px]'} top-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[#FF5C1A]/[0.02] blur-[150px]`} />
+
+                <div className={`relative flex flex-col ${isReversed ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 md:gap-20`}>
+                  <div className="flex-1 max-w-lg">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF5C1A]/10 border border-[#FF5C1A]/15 text-[10px] font-bold text-[#FF5C1A] uppercase tracking-wider mb-5">{item.badge}</div>
+                    <h3 className="text-2xl md:text-[2.5rem] font-bold tracking-tight mb-4 leading-[1.1]" style={{ fontFamily: clash }}>{item.title}</h3>
+                    <p className="text-[#F5F5F3]/35 text-base leading-relaxed mb-6">{item.desc}</p>
+                    {/* Metric highlight */}
+                    <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#FF5C1A]/[0.06] border border-[#FF5C1A]/10 mb-6">
+                      <span className="text-2xl font-bold text-[#FF5C1A]" style={{ fontFamily: clash }}>{item.metric.value}</span>
+                      <span className="text-xs text-[#F5F5F3]/40">{item.metric.label}</span>
+                    </div>
+                    <ul className="space-y-2.5">
+                      {item.features.map((feat, j) => (
+                        <li key={j} className="flex items-center gap-3">
+                          <div className="w-5 h-5 rounded-md bg-[#FF5C1A]/10 flex items-center justify-center flex-shrink-0">
+                            <Check size={11} className="text-[#FF5C1A]" />
+                          </div>
+                          <span className="text-sm text-[#F5F5F3]/40">{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="space-y-2.5">
-                    {item.features.map((feat, j) => (
-                      <li key={j} className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-md bg-[#FF5C1A]/10 flex items-center justify-center flex-shrink-0">
-                          <Check size={11} className="text-[#FF5C1A]" />
-                        </div>
-                        <span className="text-sm text-[#F5F5F3]/40">{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className={`flex-1 w-full max-w-md ${i % 2 === 0 ? 'animate-float' : 'animate-float-delayed'}`}>
-                  <ShowcaseVisual type={item.visual} />
+                  <div className={`flex-1 w-full max-w-md ${i % 2 === 0 ? 'animate-float' : 'animate-float-delayed'} ${isReversed ? 'md:-translate-x-4' : 'md:translate-x-4'}`}>
+                    <ShowcaseVisual type={item.visual} screenshot={item.screenshot} />
+                  </div>
                 </div>
               </div>
             )
@@ -811,30 +817,35 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════ HOW IT WORKS ══════════════════════ */}
+      {/* ══════════════════════ HOW IT WORKS — HORIZONTAL TIMELINE ══════════════════════ */}
       <section id="how" className="py-24 md:py-36 px-5 md:px-8 relative border-y border-white/[0.04]">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FF5C1A]/20 to-transparent" />
         <div className="pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#FF5C1A]/[0.02] blur-[150px]" />
         <div className="relative max-w-5xl mx-auto">
           <div className="text-center mb-16 md:mb-20">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
               <Target size={12} className="text-[#FF5C1A]" /> 3 etapes
             </div>
-            <h2 className="text-3xl md:text-[3.25rem] font-bold tracking-tight leading-tight mb-5">
+            <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-5" style={{ fontFamily: clash }}>
               Operationnel en <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">2 minutes</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
-            <div className="hidden md:block absolute top-20 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-[#FF5C1A]/15 to-transparent" />
+            {/* Connecting line */}
+            <div className="hidden md:block absolute top-20 left-[20%] right-[20%] h-px bg-gradient-to-r from-[#FF5C1A]/5 via-[#FF5C1A]/20 to-[#FF5C1A]/5" />
             {STEPS.map((s, i) => {
               const Icon = s.icon
               return (
-                <div key={i} className="relative rounded-2xl border border-white/[0.06] glass-landing p-7 hover:border-[#FF5C1A]/20 hover:shadow-[0_8px_40px_rgba(255,107,43,0.04)] transition-all duration-500 group text-center noise-overlay">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF5C1A]/15 to-[#FF7A42]/5 border border-[#FF5C1A]/10 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(255,107,43,0.15)] transition-all duration-500">
-                    <Icon size={26} className="text-[#FF5C1A]" />
+                <div key={i} className="relative rounded-2xl border border-white/[0.06] p-7 hover:border-[#FF5C1A]/20 transition-all duration-500 group text-center bento-card">
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 gradient-border-glow" />
+                  <div className="relative z-[1]">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF5C1A]/15 to-[#FF7A42]/5 border border-[#FF5C1A]/10 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(255,92,26,0.15)] transition-all duration-500">
+                      <Icon size={26} className="text-[#FF5C1A]" />
+                    </div>
+                    <span className="text-[10px] font-bold text-[#FF5C1A]/30 uppercase tracking-widest" style={{ fontFamily: clash }}>Etape {s.num}</span>
+                    <h3 className="text-lg font-semibold mt-2 mb-3 text-[#F5F5F3]" style={{ fontFamily: clash }}>{s.title}</h3>
+                    <p className="text-sm text-[#F5F5F3]/30 leading-relaxed">{s.desc}</p>
                   </div>
-                  <span className="text-[10px] font-bold text-[#FF5C1A]/30 uppercase tracking-widest">Etape {s.num}</span>
-                  <h3 className="text-lg font-semibold mt-2 mb-3 text-[#F5F5F3]">{s.title}</h3>
-                  <p className="text-sm text-[#F5F5F3]/30 leading-relaxed">{s.desc}</p>
                 </div>
               )
             })}
@@ -842,38 +853,42 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════ TESTIMONIALS ══════════════════════ */}
+      {/* ══════════════════════ TESTIMONIALS — HORIZONTAL SCROLL MOBILE ══════════════════════ */}
       <section id="testimonials" className="py-24 md:py-36 px-5 md:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          {/* Right-aligned header for variety */}
+          <div className="text-right mb-16 max-w-2xl ml-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
               <Heart size={12} className="text-[#FF5C1A]" /> Temoignages
             </div>
-            <h2 className="text-3xl md:text-[3.25rem] font-bold tracking-tight leading-tight mb-5">
+            <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-5" style={{ fontFamily: clash }}>
               Ils ont choisi <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">Zevo</span>
             </h2>
           </div>
+
           {/* Featured + grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Featured testimonial */}
-            <div className="rounded-2xl border-2 border-[#FF5C1A]/20 glass-landing p-7 md:p-8 flex flex-col relative overflow-hidden noise-overlay shadow-[0_8px_60px_rgba(255,107,43,0.06)]">
+            <div className="rounded-2xl border-2 border-[#FF5C1A]/20 p-7 md:p-8 flex flex-col relative overflow-hidden bento-card shadow-[0_8px_60px_rgba(255,92,26,0.06)]">
               <div className="pointer-events-none absolute top-0 right-0 w-60 h-60 bg-[#FF5C1A]/[0.05] blur-[80px] rounded-full animate-glow-pulse" />
-              <div className="flex gap-0.5 mb-5">
-                {[1,2,3,4,5].map(j => <Star key={j} size={16} className="text-[#FF5C1A] fill-[#FF5C1A]" />)}
-              </div>
-              <p className="text-base md:text-lg text-[#F5F5F3]/60 leading-relaxed flex-1 mb-6 relative">
-                "{TESTIMONIALS[activeTesti].text}"
-              </p>
-              {/* Metric badge */}
-              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#FF5C1A]/[0.06] border border-[#FF5C1A]/10 mb-5 self-start">
-                <span className="text-xl font-bold text-[#FF5C1A]">{TESTIMONIALS[activeTesti].metric.value}</span>
-                <span className="text-xs text-[#F5F5F3]/35">{TESTIMONIALS[activeTesti].metric.label}</span>
-              </div>
-              <div className="flex items-center gap-3 pt-5 border-t border-white/[0.05]">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF5C1A] to-[#FF7A42] flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-[#FF5C1A]/20">{TESTIMONIALS[activeTesti].avatar}</div>
-                <div>
-                  <p className="text-sm font-semibold text-[#F5F5F3]">{TESTIMONIALS[activeTesti].name}</p>
-                  <p className="text-[11px] text-[#F5F5F3]/25">{TESTIMONIALS[activeTesti].role}</p>
+              <div className="pointer-events-none absolute inset-0 rounded-2xl gradient-border-glow opacity-50" />
+              <div className="relative z-[1]">
+                <div className="flex gap-0.5 mb-5">
+                  {[1,2,3,4,5].map(j => <Star key={j} size={16} className="text-[#FF5C1A] fill-[#FF5C1A]" />)}
+                </div>
+                <p className="text-base md:text-lg text-[#F5F5F3]/60 leading-relaxed flex-1 mb-6">
+                  "{TESTIMONIALS[activeTesti].text}"
+                </p>
+                <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#FF5C1A]/[0.06] border border-[#FF5C1A]/10 mb-5 self-start">
+                  <span className="text-xl font-bold text-[#FF5C1A]" style={{ fontFamily: clash }}>{TESTIMONIALS[activeTesti].metric.value}</span>
+                  <span className="text-xs text-[#F5F5F3]/35">{TESTIMONIALS[activeTesti].metric.label}</span>
+                </div>
+                <div className="flex items-center gap-3 pt-5 border-t border-white/[0.05]">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF5C1A] to-[#FF7A42] flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-[#FF5C1A]/20">{TESTIMONIALS[activeTesti].avatar}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-[#F5F5F3]">{TESTIMONIALS[activeTesti].name}</p>
+                    <p className="text-[11px] text-[#F5F5F3]/25">{TESTIMONIALS[activeTesti].role}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -883,7 +898,7 @@ export default function LandingPage() {
                 <button
                   key={i}
                   onClick={() => setActiveTesti(i)}
-                  className={`rounded-2xl border p-5 text-left transition-all duration-300 ${i === activeTesti ? 'border-[#FF5C1A]/20 bg-[#111111]' : 'border-white/[0.05] bg-[#0c0c0c] hover:border-white/[0.1]'}`}
+                  className={`rounded-2xl border p-5 text-left transition-all duration-300 bento-card ${i === activeTesti ? 'border-[#FF5C1A]/20 !bg-[#111111]' : 'border-white/[0.05] hover:border-white/[0.1]'}`}
                 >
                   <div className="flex gap-0.5 mb-3">
                     {[1,2,3,4,5].map(j => <Star key={j} size={10} className="text-[#FF5C1A] fill-[#FF5C1A]" />)}
@@ -902,17 +917,17 @@ export default function LandingPage() {
 
       {/* ══════════════════════ PRICING ══════════════════════ */}
       <section id="pricing" className="py-24 md:py-36 px-5 md:px-8 relative border-y border-white/[0.04]">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FF5C1A]/20 to-transparent" />
         <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full bg-[#FF5C1A]/[0.035] blur-[150px]" />
         <div className="relative max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
               <CreditCard size={12} className="text-[#FF5C1A]" /> Tarifs transparents
             </div>
-            <h2 className="text-3xl md:text-[3.25rem] font-bold tracking-tight leading-tight mb-5">
+            <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-5" style={{ fontFamily: clash }}>
               Investis dans <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">ta croissance</span>
             </h2>
             <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-8">Moins cher que ton cafe quotidien. Rentabilise des le premier client.</p>
-            {/* Toggle */}
             <div className="inline-flex items-center gap-1 p-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
               <button onClick={() => setBillingYearly(false)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${!billingYearly ? 'bg-[#FF5C1A] text-white shadow-lg shadow-[#FF5C1A]/20' : 'text-[#F5F5F3]/35'}`}>Mensuel</button>
               <button onClick={() => setBillingYearly(true)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${billingYearly ? 'bg-[#FF5C1A] text-white shadow-lg shadow-[#FF5C1A]/20' : 'text-[#F5F5F3]/35'}`}>
@@ -925,29 +940,33 @@ export default function LandingPage() {
             {PLANS.map((plan) => {
               const price = billingYearly ? plan.price.yearly : plan.price.monthly
               return (
-                <div key={plan.id} className={`relative rounded-2xl p-7 flex flex-col transition-all duration-500 noise-overlay ${plan.popular ? 'glass-landing border-2 border-[#FF5C1A]/25 shadow-[0_0_80px_rgba(255,107,43,0.08)] md:scale-[1.04]' : 'glass-landing border border-white/[0.06] hover:border-white/[0.12] hover:shadow-[0_8px_40px_rgba(0,0,0,0.3)]'}`}>
+                <div key={plan.id} className={`relative rounded-2xl p-7 flex flex-col transition-all duration-500 bento-card ${plan.popular ? 'border-2 border-[#FF5C1A]/25 shadow-[0_0_80px_rgba(255,92,26,0.08)] md:scale-[1.04]' : 'border border-white/[0.06] hover:border-white/[0.12] hover:shadow-[0_8px_40px_rgba(0,0,0,0.3)]'}`}>
+                  {/* Gradient glow for popular */}
+                  {plan.popular && <div className="pointer-events-none absolute inset-0 rounded-2xl gradient-border-glow opacity-50" />}
                   {plan.popular && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-[2]">
                       <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white text-[9px] font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg shadow-[#FF5C1A]/25">Le plus populaire</span>
                     </div>
                   )}
-                  <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
-                  <p className="text-[11px] text-[#F5F5F3]/25 mb-5">{plan.desc}</p>
-                  <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-4xl font-bold">{price}</span>
-                    <span className="text-[#F5F5F3]/20 text-sm">{'\u20AC'}/mois</span>
+                  <div className="relative z-[1]">
+                    <h3 className="text-xl font-bold mb-1" style={{ fontFamily: clash }}>{plan.name}</h3>
+                    <p className="text-[11px] text-[#F5F5F3]/25 mb-5">{plan.desc}</p>
+                    <div className="flex items-baseline gap-1 mb-1">
+                      <span className="text-4xl font-bold" style={{ fontFamily: clash }}>{price}</span>
+                      <span className="text-[#F5F5F3]/20 text-sm">{'\u20AC'}/mois</span>
+                    </div>
+                    {billingYearly && <p className="text-[10px] text-emerald-400/60 font-medium mb-5">Economise {(plan.price.monthly - plan.price.yearly) * 12}{'\u20AC'}/an</p>}
+                    {!billingYearly && <p className="text-[10px] text-[#F5F5F3]/15 mb-5">facture mensuellement</p>}
+                    <ul className="space-y-2.5 mb-7 flex-1">
+                      {plan.features.map(f => (
+                        <li key={f} className="flex items-center gap-2.5"><Check size={13} className="text-[#FF5C1A] flex-shrink-0" /><span className="text-sm text-[#F5F5F3]/40">{f}</span></li>
+                      ))}
+                    </ul>
+                    <button onClick={() => navigate('/register')} className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden group ${plan.popular ? 'bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white hover:shadow-lg hover:shadow-[#FF5C1A]/25' : 'bg-white/[0.04] text-[#F5F5F3] hover:bg-white/[0.07] border border-white/[0.06]'}`}>
+                      <span className="relative z-10">Essai gratuit 14 jours</span>
+                      {plan.popular && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.12] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />}
+                    </button>
                   </div>
-                  {billingYearly && <p className="text-[10px] text-emerald-400/60 font-medium mb-5">Economise {(plan.price.monthly - plan.price.yearly) * 12}{'\u20AC'}/an</p>}
-                  {!billingYearly && <p className="text-[10px] text-[#F5F5F3]/15 mb-5">facture mensuellement</p>}
-                  <ul className="space-y-2.5 mb-7 flex-1">
-                    {plan.features.map(f => (
-                      <li key={f} className="flex items-center gap-2.5"><Check size={13} className="text-[#FF5C1A] flex-shrink-0" /><span className="text-sm text-[#F5F5F3]/40">{f}</span></li>
-                    ))}
-                  </ul>
-                  <button onClick={() => navigate('/register')} className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden group ${plan.popular ? 'bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white hover:shadow-lg hover:shadow-[#FF5C1A]/25' : 'bg-white/[0.04] text-[#F5F5F3] hover:bg-white/[0.07] border border-white/[0.06]'}`}>
-                    <span className="relative z-10">Essai gratuit 14 jours</span>
-                    {plan.popular && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.12] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />}
-                  </button>
                 </div>
               )
             })}
@@ -958,17 +977,13 @@ export default function LandingPage() {
 
       {/* ══════════════════════ FAQ ══════════════════════ */}
       <section id="faq" className="py-24 md:py-36 px-5 md:px-8 relative">
-        {/* Background glow */}
         <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#FF5C1A]/[0.02] blur-[150px]" />
-
         <div className="relative max-w-4xl mx-auto">
-          {/* Header */}
           <div className="text-center mb-14">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
-              <HelpCircle size={12} className="text-[#FF5C1A]" />
-              FAQ
+              <HelpCircle size={12} className="text-[#FF5C1A]" /> FAQ
             </div>
-            <h2 className="text-3xl md:text-[3.25rem] font-bold tracking-tight leading-tight mb-4">
+            <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-4" style={{ fontFamily: clash }}>
               Des questions ?
               <br />
               <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">On a les reponses.</span>
@@ -978,27 +993,23 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* FAQ grid — 2 colonnes */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {FAQS.map((faq, i) => (
               <div
                 key={i}
-                className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
+                className={`rounded-2xl border transition-all duration-300 overflow-hidden bento-card ${
                   openFaq === i
-                    ? 'border-[#FF5C1A]/20 glass-landing shadow-[0_4px_30px_rgba(255,107,43,0.06)]'
-                    : 'border-white/[0.06] glass-landing hover:border-white/[0.1] hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
+                    ? 'border-[#FF5C1A]/20 shadow-[0_4px_30px_rgba(255,92,26,0.06)]'
+                    : 'border-white/[0.06] hover:border-white/[0.1] hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
                 }`}
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-start gap-3.5 px-5 py-5 text-left"
                 >
-                  {/* Number badge */}
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold transition-all duration-300 ${
-                    openFaq === i
-                      ? 'bg-[#FF5C1A]/15 text-[#FF5C1A]'
-                      : 'bg-white/[0.04] text-[#F5F5F3]/20'
-                  }`}>
+                    openFaq === i ? 'bg-[#FF5C1A]/15 text-[#FF5C1A]' : 'bg-white/[0.04] text-[#F5F5F3]/20'
+                  }`} style={{ fontFamily: clash }}>
                     {String(i + 1).padStart(2, '0')}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1025,21 +1036,18 @@ export default function LandingPage() {
           </div>
 
           {/* CTA under FAQ */}
-          <div className="mt-10 rounded-2xl border border-white/[0.06] glass-landing p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden noise-overlay">
+          <div className="mt-10 rounded-2xl border border-white/[0.06] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden bento-card">
             <div className="pointer-events-none absolute top-0 right-0 w-40 h-40 bg-[#FF5C1A]/[0.04] blur-[60px] rounded-full" />
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 relative z-[1]">
               <div className="w-12 h-12 rounded-2xl bg-[#FF5C1A]/10 border border-[#FF5C1A]/10 flex items-center justify-center flex-shrink-0">
                 <PhoneCall size={20} className="text-[#FF5C1A]" />
               </div>
               <div>
-                <p className="text-base font-semibold text-[#F5F5F3]">Encore des questions ?</p>
+                <p className="text-base font-semibold text-[#F5F5F3]" style={{ fontFamily: clash }}>Encore des questions ?</p>
                 <p className="text-sm text-[#F5F5F3]/30">Reserve une demo gratuite et on en discute en live.</p>
               </div>
             </div>
-            <button
-              onClick={() => navigate('/demo')}
-              className="group w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white text-sm font-semibold hover:shadow-lg hover:shadow-[#FF5C1A]/25 transition-all flex items-center justify-center gap-2"
-            >
+            <button onClick={() => navigate('/demo')} className="relative z-[1] group w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white text-sm font-semibold hover:shadow-lg hover:shadow-[#FF5C1A]/25 transition-all flex items-center justify-center gap-2">
               <Video size={15} />
               Demander une demo
               <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
@@ -1054,14 +1062,18 @@ export default function LandingPage() {
         <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] rounded-full bg-[#FF5C1A]/[0.06] blur-[150px] animate-glow-pulse" />
         <div className="pointer-events-none absolute top-1/4 left-[10%] w-[300px] h-[300px] rounded-full bg-[#FF7A42]/[0.03] blur-[100px]" />
         <div className="pointer-events-none absolute top-1/4 right-[10%] w-[300px] h-[300px] rounded-full bg-[#FF5C1A]/[0.03] blur-[100px]" />
+
         <div className="relative max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FF5C1A]/10 border border-[#FF5C1A]/20 mb-8">
             <Flame size={14} className="text-[#FF5C1A]" />
             <span className="text-xs font-semibold text-[#FF5C1A]">Rejoinds 500+ coachs</span>
           </div>
-          <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-6">
-            Pendant que tu hesites,
-            <br /><span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">d'autres coachs scalent.</span>
+          <h2 className="text-3xl md:text-[3.75rem] font-bold tracking-tight leading-[1.08] mb-6" style={{ fontFamily: clash }}>
+            <span className="block">Pendant que tu hesites,</span>
+            <span className="block">
+              <span className="hero-outline-text">d'autres coachs</span>{' '}
+              <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">scalent.</span>
+            </span>
           </h2>
           <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-10 leading-relaxed">
             14 jours gratuits. Toutes les fonctionnalites. Zero risque. Ton espace t'attend deja.
@@ -1079,7 +1091,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════ FOOTER ══════════════════════ */}
-      <footer className="border-t border-white/[0.04] bg-[#050505] relative noise-overlay">
+      <footer className="border-t border-white/[0.04] bg-[#050505] relative">
         <div className="max-w-6xl mx-auto px-5 md:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-8 mb-12">
             <div className="col-span-2 md:col-span-1">
@@ -1092,7 +1104,7 @@ export default function LandingPage() {
               { title: 'Legal', links: ['Mentions legales', 'Confidentialite', 'CGV', 'Cookies'] },
             ].map((col, i) => (
               <div key={i}>
-                <p className="text-[10px] font-semibold text-[#F5F5F3]/30 uppercase tracking-wider mb-4">{col.title}</p>
+                <p className="text-[10px] font-semibold text-[#F5F5F3]/30 uppercase tracking-wider mb-4" style={{ fontFamily: clash }}>{col.title}</p>
                 <ul className="space-y-2.5">
                   {col.links.map((link, j) => (
                     <li key={j}>
@@ -1150,11 +1162,6 @@ export default function LandingPage() {
         }
         .animate-glow-pulse { animation: glow-pulse 4s ease-in-out infinite; }
 
-        @keyframes reveal-up {
-          from { opacity: 0; transform: translateY(40px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
         @keyframes shimmer {
           0% { background-position: -200% 0; }
           100% { background-position: 200% 0; }
@@ -1167,11 +1174,27 @@ export default function LandingPage() {
           overflow: hidden;
         }
 
-        /* Premium glass card */
-        .glass-landing {
-          background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+        /* Hero outline text — stroke effect */
+        .hero-outline-text {
+          -webkit-text-stroke: 1.5px rgba(255, 92, 26, 0.5);
+          color: transparent;
+        }
+        @media (min-width: 768px) {
+          .hero-outline-text {
+            -webkit-text-stroke: 2px rgba(255, 92, 26, 0.5);
+          }
+        }
+
+        /* Bento card — glassmorphism base */
+        .bento-card {
+          background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.008) 100%);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Gradient border glow — on hover via parent */
+        .gradient-border-glow {
+          background: linear-gradient(135deg, rgba(255,92,26,0.08) 0%, transparent 40%, transparent 60%, rgba(255,122,66,0.06) 100%);
         }
 
         /* Noise texture overlay */
@@ -1185,14 +1208,12 @@ export default function LandingPage() {
           z-index: 0;
         }
 
-        /* Shimmer on pricing popular */
         .shimmer-border {
-          background: linear-gradient(90deg, transparent 0%, rgba(255,107,43,0.15) 50%, transparent 100%);
+          background: linear-gradient(90deg, transparent 0%, rgba(255,92,26,0.15) 50%, transparent 100%);
           background-size: 200% 100%;
           animation: shimmer 3s ease-in-out infinite;
         }
 
-        /* Smooth scroll */
         html { scroll-behavior: smooth; }
       `}</style>
     </div>
