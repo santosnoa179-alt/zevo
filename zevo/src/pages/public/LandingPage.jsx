@@ -767,31 +767,29 @@ export default function LandingPage() {
 
         <div className="py-8 border-b border-white/[0.03] overflow-hidden relative bg-[#050505]">
           <p className="text-center text-[9px] uppercase tracking-[0.25em] text-[#F5F5F3]/15 font-semibold mb-6" style={{ fontFamily: instrument }}>Déjà utilisé par des coachs en salle, en ligne, en studio</p>
-          <div className="max-w-5xl mx-auto px-5 flex items-center justify-between gap-8 md:gap-12">
-            {[
-              { name: 'keepcool', text: 'keepcool', style: 'text-lg font-black lowercase tracking-tight' },
-              { name: 'orangebleue', text: "l'Orange Bleue", style: 'text-sm font-bold' },
-              { name: 'jims', text: '::JIMS', style: 'text-lg font-black tracking-wider' },
-              { name: 'neoness', text: 'neoness', style: 'text-base font-extrabold lowercase tracking-wide' },
-              { name: 'fitnesspark', text: 'FITNESS PARK', style: 'text-xs font-black uppercase tracking-[0.2em]' },
-              { name: 'gigafit', text: 'GIGAFIT', style: 'text-sm font-black uppercase tracking-wider' },
-              { name: 'basicfit', text: 'BASIC-FIT', style: 'text-base font-black uppercase tracking-tight' },
-            ].map((brand) => (
-              <span key={brand.name} className={`${brand.style} text-[#F5F5F3]/[0.15] hover:text-[#F5F5F3]/[0.25] transition-opacity duration-300 whitespace-nowrap select-none hidden sm:block`} style={{ fontFamily: clash }}>
-                {brand.text}
-              </span>
-            ))}
-            {/* Mobile: show only 4 */}
-            {[
-              { name: 'keepcool-m', text: 'keepcool', style: 'text-base font-black lowercase tracking-tight' },
-              { name: 'jims-m', text: '::JIMS', style: 'text-base font-black tracking-wider' },
-              { name: 'fitnesspark-m', text: 'FITNESS PARK', style: 'text-[10px] font-black uppercase tracking-[0.2em]' },
-              { name: 'basicfit-m', text: 'BASIC-FIT', style: 'text-sm font-black uppercase tracking-tight' },
-            ].map((brand) => (
-              <span key={brand.name} className={`${brand.style} text-[#F5F5F3]/[0.15] whitespace-nowrap select-none sm:hidden`} style={{ fontFamily: clash }}>
-                {brand.text}
-              </span>
-            ))}
+          <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+            <div className="flex gap-12 md:gap-16 animate-logo-scroll whitespace-nowrap">
+              {[...Array(3)].flatMap((_, r) =>
+                [
+                  { name: 'keepcool', src: '/logos/keepcool.svg', alt: 'Keepcool', w: 'w-20 md:w-24' },
+                  { name: 'orangebleue', src: '/logos/orangebleue.svg', alt: "L'Orange Bleue", w: 'w-10 md:w-12' },
+                  { name: 'jims', src: '/logos/jims.svg', alt: 'JIMS', w: 'w-16 md:w-20' },
+                  { name: 'neoness', src: '/logos/neoness.svg', alt: 'Neoness', w: 'w-16 md:w-20' },
+                  { name: 'fitnesspark', src: '/logos/fitnesspark.svg', alt: 'Fitness Park', w: 'w-20 md:w-28' },
+                  { name: 'gigafit', src: '/logos/gigafit.svg', alt: 'Gigafit', w: 'w-16 md:w-20' },
+                  { name: 'basicfit', src: '/logos/basicfit.svg', alt: 'Basic-Fit', w: 'w-16 md:w-20' },
+                  { name: 'onair', src: '/logos/onair.svg', alt: 'On Air', w: 'w-16 md:w-20' },
+                ].map((brand) => (
+                  <img
+                    key={`${r}-${brand.name}`}
+                    src={brand.src}
+                    alt={brand.alt}
+                    className={`${brand.w} h-6 md:h-8 object-contain opacity-[0.2] hover:opacity-[0.4] transition-opacity duration-300 select-none brightness-0 invert flex-shrink-0`}
+                    draggable={false}
+                  />
+                ))
+              )}
+            </div>
           </div>
         </div>
 
@@ -1353,6 +1351,12 @@ export default function LandingPage() {
           100% { transform: translateX(-50%); }
         }
         .animate-marquee { animation: marquee 30s linear infinite; }
+
+        @keyframes logo-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-33.333%); }
+        }
+        .animate-logo-scroll { animation: logo-scroll 25s linear infinite; }
 
         @keyframes gradient-x {
           0%, 100% { background-position: 0% 50%; }
