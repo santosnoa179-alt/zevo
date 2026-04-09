@@ -13,154 +13,156 @@ import {
   Video, HelpCircle, PhoneCall
 } from 'lucide-react'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
+import SEO from '../../components/SEO'
 
 // ══════════════════════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════════════════════
 
 const FEATURE_NAV = [
-  { icon: Dumbbell, label: 'Entrainement', desc: 'Suivi en temps reel', path: '/features/entrainement' },
-  { icon: ClipboardList, label: 'Programmes', desc: 'Multi-semaines, drag & drop', path: '/features/programmes' },
-  { icon: Utensils, label: 'Nutrition', desc: 'Plans alimentaires & macros', path: '/features/nutrition' },
-  { icon: CalendarDays, label: 'Calendrier', desc: 'Reservations & planning', path: '/features/calendrier' },
-  { icon: Users, label: 'Hub Client', desc: 'Fiche client 360', path: '/features/hub-client' },
-  { icon: MessageCircle, label: 'Messagerie', desc: 'Chat temps reel', path: '/features/messagerie' },
-  { icon: BookOpen, label: 'Bibliotheque', desc: 'Ressources & videos', path: '/features/bibliotheque' },
-  { icon: ClipboardList, label: 'Formulaires', desc: 'Bilans & questionnaires', path: '/features/formulaires' },
-  { icon: BarChart3, label: 'Statistiques', desc: 'Rapports & analytics', path: '/features/statistiques' },
-  { icon: Paintbrush, label: 'App Builder', desc: 'Branding personnalise', path: '/features/app-builder' },
-  { icon: CreditCard, label: 'Paiements', desc: 'Stripe & abonnements', path: '/features/paiements' },
-  { icon: UserPlus, label: 'CRM Prospects', desc: 'Pipeline commercial', path: '/features/prospects' },
+  { icon: Dumbbell, label: 'Entrainement', desc: 'Seances guidees en direct', path: '/features/entrainement' },
+  { icon: ClipboardList, label: 'Programmes', desc: 'Cree en 5 min, suivi auto', path: '/features/programmes' },
+  { icon: Utensils, label: 'Nutrition', desc: 'Macros & plans alimentaires', path: '/features/nutrition' },
+  { icon: CalendarDays, label: 'Calendrier', desc: 'Reservations en un clic', path: '/features/calendrier' },
+  { icon: Users, label: 'Hub Client', desc: 'Chaque client en 3 secondes', path: '/features/hub-client' },
+  { icon: MessageCircle, label: 'Messagerie', desc: 'Chat integre, fini WhatsApp', path: '/features/messagerie' },
+  { icon: BookOpen, label: 'Bibliotheque', desc: 'Videos & ressources partagees', path: '/features/bibliotheque' },
+  { icon: ClipboardList, label: 'Formulaires', desc: 'Bilans & check-ins auto', path: '/features/formulaires' },
+  { icon: BarChart3, label: 'Statistiques', desc: 'Prouve tes resultats en PDF', path: '/features/statistiques' },
+  { icon: Paintbrush, label: 'App Builder', desc: 'Ton app a tes couleurs', path: '/features/app-builder' },
+  { icon: CreditCard, label: 'Paiements', desc: 'Encaissement Stripe auto', path: '/features/paiements' },
+  { icon: UserPlus, label: 'CRM Prospects', desc: 'Convertis plus de leads', path: '/features/prospects' },
 ]
 
 const BENTO_FEATURES = [
   {
-    icon: Users, title: 'Hub Client 360',
-    desc: 'Objectifs, mensurations, score bien-etre, historique. Chaque client a sa fiche complete.',
+    icon: Users, title: 'Connais chaque client en 3s',
+    desc: 'Score bien-etre, objectifs, mensurations, historique des seances. Fini les fichiers Excel disperses — tout est dans une fiche unique.',
     span: 'col-span-1 md:col-span-2 md:row-span-2', visual: 'hub',
   },
   {
-    icon: Dumbbell, title: 'Programmes',
-    desc: 'Multi-semaines, drag & drop, suivi live.',
+    icon: Dumbbell, title: 'Programmes en 5 min',
+    desc: 'Drag & drop, multi-semaines, suivi live. Tes clients voient leur progression en temps reel.',
     span: 'col-span-1', visual: null,
   },
   {
-    icon: MessageCircle, title: 'Messagerie',
-    desc: 'Chat temps reel + notifications push.',
+    icon: MessageCircle, title: 'Messagerie integree',
+    desc: 'Chat, audio, fichiers. Reponds a tes clients sans quitter Zevo. Fini WhatsApp pro.',
     span: 'col-span-1', visual: null,
   },
   {
-    icon: BarChart3, title: 'Statistiques & Rapports',
-    desc: 'Dashboards, graphiques, PDF automatiques. Mesure tout ce qui compte.',
+    icon: BarChart3, title: 'Prouve tes resultats',
+    desc: 'Dashboards clairs, graphiques automatiques, export PDF. Montre l\'impact concret de ton coaching a chaque client.',
     span: 'col-span-1 md:col-span-2', visual: 'stats',
   },
   {
-    icon: Utensils, title: 'Nutrition',
-    desc: 'Plans alimentaires, macros, repas.',
+    icon: Utensils, title: 'Nutrition en 2 clics',
+    desc: 'Plans alimentaires, macros, repas. Le suivi nutritionnel que tes clients attendent vraiment.',
     span: 'col-span-1', visual: null,
   },
   {
-    icon: Paintbrush, title: 'App Builder',
-    desc: 'Ton logo, tes couleurs, tes modules.',
+    icon: Paintbrush, title: 'Ton app, ta marque',
+    desc: 'Logo, couleurs, modules. Tes clients pensent utiliser ta propre application.',
     span: 'col-span-1', visual: null,
   },
   {
-    icon: ClipboardList, title: 'Formulaires',
-    desc: 'Questionnaires & bilans automatises.',
+    icon: ClipboardList, title: 'Bilans automatises',
+    desc: 'Check-in hebdo, bilan initial, questionnaire satisfaction. Zero paperasse, tout est automatique.',
     span: 'col-span-1', visual: null,
   },
   {
-    icon: CreditCard, title: 'Paiements Stripe',
-    desc: 'Offres, encaissement auto, facturation.',
+    icon: CreditCard, title: 'Encaisse en automatique',
+    desc: 'Stripe connecte en 1 clic. Tu fixes tes prix, tes clients paient, l\'argent tombe. Zero relance.',
     span: 'col-span-1', visual: null,
   },
 ]
 
 const SHOWCASES = [
   {
-    badge: 'Suivi client',
-    title: 'Chaque client merite une attention sur-mesure',
-    desc: 'Objectifs, mensurations, score bien-etre, historique des seances. Tout est centralise dans une fiche unique. Tu sais exactement ou en est chaque client en 3 secondes.',
-    features: ['Fiche client unifiee', 'Score bien-etre auto', 'Alertes desengagement', 'Historique complet'],
+    badge: 'Suivi client coaching',
+    title: 'Fini les tableurs. Connais chaque client en un coup d\'oeil.',
+    desc: 'Score bien-etre, objectifs, seances realisees, mensurations — tout centralise dans une fiche unique. Tu reperes un client en difficulte en 3 secondes, pas en 30 minutes.',
+    features: ['Fiche client 360 unifiee', 'Score bien-etre automatique', 'Alertes desengagement', 'Historique complet des seances'],
     visual: 'client',
-    metric: { value: '3s', label: 'pour voir l\'essentiel' },
+    metric: { value: '3s', label: 'pour scanner un client' },
     screenshot: '/screenshots/hub-client.png',
   },
   {
-    badge: 'Programmation',
-    title: 'Des programmes que tes clients adorent suivre',
-    desc: 'Interface intuitive, exercices avec demos, validation en temps reel. Tes clients restent motives, tu gagnes des heures chaque semaine.',
-    features: ['Drag & drop', 'Videos demo', 'Suivi temps reel', 'Templates'],
+    badge: 'Programme sport en ligne',
+    title: 'Des programmes que tes clients terminent vraiment',
+    desc: 'Interface claire, exercices avec videos, validation en temps reel. Le taux de completion explose parce que l\'experience client est addictive.',
+    features: ['Drag & drop intuitif', 'Videos demo integrees', 'Validation live', 'Templates reutilisables'],
     visual: 'program',
-    metric: { value: '4h', label: 'gagnees par semaine' },
+    metric: { value: '5h', label: 'gagnees par semaine' },
     screenshot: '/screenshots/programme.png',
   },
   {
-    badge: 'Ton app',
+    badge: 'Application coach sportif',
     title: 'Tes clients pensent que c\'est TON app',
-    desc: 'Avec l\'App Builder, personnalise tout : logo, couleurs, modules. L\'experience est 100% a ton image. Tes clients ne savent meme pas que c\'est Zevo.',
-    features: ['Branding complet', 'Modules au choix', 'Preview live', 'Experience premium'],
+    desc: 'Ton logo, tes couleurs, tes modules. L\'experience est 100% brandee a ton image. Augmente ta valeur percue et justifie des tarifs 40% plus eleves.',
+    features: ['Branding complet', 'Modules au choix', 'Preview en temps reel', 'Experience client premium'],
     visual: 'app',
-    metric: { value: '100%', label: 'a ton image' },
+    metric: { value: '+40%', label: 'de valeur percue' },
     screenshot: '/screenshots/app-builder.png',
   },
 ]
 
 const STEPS = [
-  { num: '01', title: 'Cree ton compte', desc: '30 secondes. Pas de carte bancaire. Toutes les fonctionnalites pendant 14 jours.', icon: Rocket },
-  { num: '02', title: 'Configure & invite', desc: 'Ajoute tes clients, cree tes premiers programmes. L\'onboarding te guide.', icon: Paintbrush },
-  { num: '03', title: 'Scale ton coaching', desc: 'Tes clients progressent, tu mesures tout, tu scales. Simple.', icon: TrendingUp },
+  { num: '01', title: 'Cree ton espace', desc: '30 secondes chrono. Sans carte bancaire. Acces complet a toutes les fonctionnalites pendant 14 jours.', icon: Rocket },
+  { num: '02', title: 'Importe tes clients', desc: 'Invite par email ou lien. Tes clients accedent a leur espace en 1 minute. L\'onboarding te guide pas a pas.', icon: Paintbrush },
+  { num: '03', title: 'Automatise et scale', desc: 'Tes clients progressent, tu mesures l\'impact, tu augmentes tes tarifs. Le cercle vertueux du coaching digital.', icon: TrendingUp },
 ]
 
 const TESTIMONIALS = [
   {
-    name: 'Lucas Martin', role: 'Coach sportif · Paris', avatar: 'LM',
-    text: 'J\'ai double mon nombre de clients en 3 mois. Le Hub Client me fait gagner un temps fou. Mes clients adorent l\'experience.',
+    name: 'Julien Morel', role: 'Coach sportif · Paris', avatar: 'JM',
+    text: 'Avant Zevo, je passais 2h par jour sur mes tableurs. Maintenant le suivi client coaching est automatise. J\'ai pris 12 clients de plus sans embaucher personne.',
     metric: { value: 'x2', label: 'clients en 3 mois' }, rating: 5,
   },
   {
-    name: 'Sarah Khelifi', role: 'Coach nutrition · Lyon', avatar: 'SK',
-    text: 'Les formulaires automatiques et le suivi nutritionnel ont change ma facon de travailler. Je ne reviendrais en arriere pour rien au monde.',
-    metric: { value: '4h', label: 'gagnees/semaine' }, rating: 5,
+    name: 'Camille Rousseau', role: 'Coach nutrition · Lyon', avatar: 'CR',
+    text: 'Mes clients adorent recevoir leur programme sport en ligne directement dans l\'app. Le taux de completion a explose. Je ne reviendrais en arriere pour rien au monde.',
+    metric: { value: '5h', label: 'gagnees/semaine' }, rating: 5,
   },
   {
-    name: 'Thomas Renaud', role: 'Preparateur physique · Bordeaux', avatar: 'TR',
-    text: 'Les rapports PDF automatiques m\'ont fait gagner des heures. Mes athletes voient leur progression, ca les motive enormement.',
+    name: 'Romain Dubois', role: 'Preparateur physique · Bordeaux', avatar: 'RD',
+    text: 'La facturation automatique m\'a libere un temps fou. Plus de relances, plus d\'impayes. Et les rapports PDF impressionnent mes athletes a chaque bilan.',
     metric: { value: '98%', label: 'retention clients' }, rating: 5,
   },
   {
-    name: 'Marie Petit', role: 'Coach holistique · Nantes', avatar: 'MP',
-    text: 'L\'App Builder est genial. Mes clients pensent que j\'ai ma propre app. Ca a transforme l\'image de mon business completement.',
-    metric: { value: '+45%', label: 'revenue en 2 mois' }, rating: 5,
+    name: 'Lea Fontaine', role: 'Coach bien-etre · Nantes', avatar: 'LF',
+    text: 'L\'App Builder a tout change. Mes clients pensent que c\'est ma propre application coach sportif. J\'ai augmente mes tarifs de 35% et personne n\'a bronche.',
+    metric: { value: '+35%', label: 'sur ses tarifs' }, rating: 5,
   },
 ]
 
 const PLANS = [
   {
     id: 'starter', name: 'Starter', price: { monthly: 29, yearly: 24 },
-    desc: 'Pour demarrer ton activite',
-    features: ['5 clients', 'Dashboard complet', 'Messagerie temps reel', 'Programmes & seances', 'Formulaires', 'Bibliotheque', 'CRM prospects', 'Support email'],
+    desc: 'Lance ton activite de coaching digital',
+    features: ['5 clients actifs', 'Dashboard coach complet', 'Messagerie integree', 'Programmes & seances', 'Formulaires & bilans', 'Bibliotheque de ressources', 'CRM prospects', 'Support email 24h'],
   },
   {
     id: 'pro', name: 'Pro', price: { monthly: 49, yearly: 39 }, popular: true,
-    desc: 'Pour scaler serieusement',
-    features: ['50 clients', 'Tout le Starter', 'App Builder (branding)', 'Rapports PDF auto', 'Statistiques avancees', 'Plans nutritionnels', 'Support prioritaire'],
+    desc: 'Scale et automatise ton business',
+    features: ['50 clients actifs', 'Tout le Starter +', 'App Builder (ton branding)', 'Rapports PDF automatiques', 'Statistiques avancees', 'Plans nutritionnels complets', 'Support prioritaire'],
   },
   {
     id: 'unlimited', name: 'Unlimited', price: { monthly: 79, yearly: 65 },
-    desc: 'Zero limite',
-    features: ['Clients illimites', 'Tout le Pro', 'Automatisation', 'API & webhooks', 'Support dedie'],
+    desc: 'Coaching sans aucune limite',
+    features: ['Clients illimites', 'Tout le Pro +', 'Automatisation avancee', 'API & webhooks', 'Support dedie sous 2h'],
   },
 ]
 
 const FAQS = [
-  { q: 'L\'essai gratuit est-il vraiment sans engagement ?', a: 'Oui, 14 jours gratuits avec TOUTES les fonctionnalites. Aucune carte bancaire. Tu peux annuler en un clic, tes donnees sont conservees 30 jours.' },
-  { q: 'Mes clients doivent-ils payer pour utiliser Zevo ?', a: 'Non. Tes clients accedent gratuitement a leur espace via un lien d\'invitation. Ils n\'ont rien a payer.' },
-  { q: 'Puis-je personnaliser l\'app a mes couleurs ?', a: 'Oui ! L\'App Builder (plan Pro) te permet de mettre ton logo, tes couleurs, tes modules. Tes clients ont l\'impression d\'utiliser ta propre application.' },
-  { q: 'Comment fonctionnent les paiements ?', a: 'Tu connectes Stripe en un clic. Tu crees des offres avec ton prix, tes clients paient directement. L\'argent arrive sur ton compte.' },
-  { q: 'Puis-je migrer mes clients ?', a: 'Oui, invite-les par email ou lien. Creation de compte en moins d\'une minute.' },
-  { q: 'Y a-t-il un engagement ?', a: 'Non. Sans engagement. Upgrade, downgrade ou annule a tout moment. Zero frais caches.' },
-  { q: 'Ca marche sur mobile ?', a: '100% responsive. Smartphone, tablette, desktop — tout fonctionne partout.' },
+  { q: 'L\'essai gratuit est vraiment sans carte bancaire ?', a: 'Oui. 14 jours avec TOUTES les fonctionnalites du logiciel coach sportif. Zero carte bancaire demandee. Tu annules en un clic si tu veux, tes donnees restent 30 jours.' },
+  { q: 'Mes clients doivent payer pour utiliser l\'app ?', a: 'Non. Tes clients accedent gratuitement a leur espace coaching via un simple lien d\'invitation. Ils n\'ont rien a debourser.' },
+  { q: 'En quoi Zevo est different des autres logiciels de coaching ?', a: 'Zevo est la seule plateforme coaching en France qui reunit suivi client, programmes sport en ligne, nutrition, paiements et branding dans une seule app. Pas 5 outils, un seul.' },
+  { q: 'Comment fonctionne la facturation coach sportif ?', a: 'Tu connectes Stripe en un clic. Tu crees tes offres au prix que tu veux. Tes clients paient directement. L\'argent arrive sur ton compte. Zero relance manuelle.' },
+  { q: 'Puis-je personnaliser l\'app a mes couleurs ?', a: 'Oui. L\'App Builder te permet de mettre ton logo, ta palette, tes modules. Tes clients pensent utiliser ta propre application coach sportif.' },
+  { q: 'Combien de temps pour migrer mes clients ?', a: 'Invite-les par email ou lien. Ils creent leur compte en moins d\'une minute. La plupart des coachs migrent en un apres-midi.' },
+  { q: 'Y a-t-il un engagement ?', a: 'Zero engagement. Upgrade, downgrade ou annule a tout moment. Pas de frais caches, pas de mauvaise surprise.' },
+  { q: 'Ca fonctionne sur mobile ?', a: '100% responsive et optimise mobile. Smartphone, tablette, desktop — tes clients s\'entrainent depuis n\'importe ou en France.' },
 ]
 
 // ══════════════════════════════════════════════════════════
@@ -444,6 +446,11 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#060606] text-[#F5F5F3] overflow-x-hidden relative" style={{ fontFamily: instrument }}>
+      <SEO
+        title="Logiciel coach sportif tout-en-un"
+        description="Gere tes clients, programmes sport en ligne, paiements et nutrition dans une seule app coach sportif. Essai gratuit 14 jours sans CB. 500+ coachs en France."
+        url="/"
+      />
 
       {/* ══════════════════════ BACKGROUND MESH ══════════════════════ */}
       <div className="fixed inset-0 pointer-events-none z-0">
@@ -548,9 +555,9 @@ export default function LandingPage() {
               </button>
               <div className="pt-6 space-y-3">
                 <button onClick={() => { setMenuOpen(false); navigate('/demo') }} className="w-full py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-[#F5F5F3]/60 text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
-                  <Video size={14} className="text-[#FF5C1A]" /> Demander une demo
+                  <Video size={14} className="text-[#FF5C1A]" /> Voir la demo
                 </button>
-                <button onClick={() => { setMenuOpen(false); navigate('/register') }} className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white text-sm font-semibold active:scale-[0.98] transition-transform">Commencer gratuitement</button>
+                <button onClick={() => { setMenuOpen(false); navigate('/register') }} className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white text-sm font-semibold active:scale-[0.98] transition-transform">Tester gratuitement</button>
                 <button onClick={() => { setMenuOpen(false); navigate('/login') }} className="block w-full text-center text-[13px] text-[#F5F5F3]/30 py-2">Deja un compte ? Se connecter</button>
               </div>
             </div>
@@ -575,32 +582,32 @@ export default function LandingPage() {
               <div className="flex gap-0.5">
                 {[1,2,3,4,5].map(i => <Star key={i} size={10} className="text-[#FF5C1A] fill-[#FF5C1A]" />)}
               </div>
-              <span className="text-xs font-medium text-[#F5F5F3]/40">Aime par <strong className="text-[#F5F5F3]/70">500+</strong> coachs</span>
+              <span className="text-xs font-medium text-[#F5F5F3]/40">Adopte par <strong className="text-[#F5F5F3]/70">500+</strong> coachs en France</span>
             </div>
 
             <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold tracking-tight leading-[1.05] mb-7" style={{ fontFamily: clash }}>
-              <span className="block text-[#F5F5F3]">Arrete de jongler</span>
-              <span className="block text-[#F5F5F3]">entre 10 outils.</span>
+              <span className="block text-[#F5F5F3]">Libere-toi de tes</span>
+              <span className="block text-[#F5F5F3]">tableurs.</span>
               <span className="block mt-2">
-                <span className="hero-outline-text">Scale</span>{' '}
+                <span className="hero-outline-text">Digitalise</span>{' '}
                 <span className="bg-gradient-to-r from-[#FF5C1A] via-[#FF7A42] to-[#FF5C1A] bg-clip-text text-transparent bg-[size:200%] animate-gradient-x">ton coaching.</span>
               </span>
             </h1>
 
             <p className="text-base md:text-lg text-[#F5F5F3]/35 max-w-md mb-10 leading-relaxed" style={{ fontFamily: instrument }}>
-              Clients, programmes, nutrition, paiements, messagerie — tout dans <strong className="text-[#F5F5F3]/60">une seule plateforme</strong> pensee pour les coachs qui veulent grandir.
+              Le logiciel coach sportif qui remplace 10 outils. Suivi client, programmes, nutrition, facturation — <strong className="text-[#F5F5F3]/60">tout dans une seule app</strong>. Gagne 5h par semaine.
             </p>
 
             <div className="flex flex-col sm:flex-row items-start gap-4 mb-6">
               <button onClick={() => navigate('/register')} className="group w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF5C1A]/30 transition-all duration-300 flex items-center justify-center gap-2.5 relative overflow-hidden">
                 <span className="relative z-10 flex items-center gap-2.5">
-                  Commencer gratuitement
+                  Teste gratuitement 14 jours
                   <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
               </button>
               <button onClick={() => navigate('/demo')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.08] text-[#F5F5F3]/50 font-medium text-base hover:bg-white/[0.03] hover:text-[#F5F5F3] hover:border-white/[0.12] transition-all duration-300 flex items-center justify-center gap-2">
-                <Video size={15} className="text-[#FF5C1A]" /> Demander une demo
+                <Video size={15} className="text-[#FF5C1A]" /> Voir la demo
               </button>
             </div>
 
@@ -693,7 +700,7 @@ export default function LandingPage() {
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FF5C1A]/30 to-transparent" />
 
         <div className="py-6 border-b border-white/[0.03] overflow-hidden relative bg-[#050505]">
-          <p className="text-center text-[9px] uppercase tracking-[0.25em] text-[#F5F5F3]/15 font-semibold mb-5" style={{ fontFamily: instrument }}>Utilise par des coachs certifies</p>
+          <p className="text-center text-[9px] uppercase tracking-[0.25em] text-[#F5F5F3]/15 font-semibold mb-5" style={{ fontFamily: instrument }}>La plateforme coaching choisie par les pros en France</p>
           <div className="relative">
             <div className="flex gap-16 animate-marquee whitespace-nowrap">
               {[...Array(2)].flatMap((_, r) =>
@@ -708,10 +715,10 @@ export default function LandingPage() {
         <div ref={statsRef} className="max-w-7xl mx-auto px-5 md:px-8 py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0">
             {[
-              { value: '500', suffix: '+', label: 'Coachs actifs', icon: Users },
-              { value: '12000', suffix: '+', label: 'Clients suivis', icon: Heart },
-              { value: '4.8', suffix: '/5', label: 'Note moyenne', icon: Star },
-              { value: '98', suffix: '%', label: 'Satisfaction', icon: Trophy },
+              { value: '500', suffix: '+', label: 'Coachs actifs en France', icon: Users },
+              { value: '12000', suffix: '+', label: 'Clients suivis chaque mois', icon: Heart },
+              { value: '4.8', suffix: '/5', label: 'Note satisfaction coach', icon: Star },
+              { value: '98', suffix: '%', label: 'Taux de retention client', icon: Trophy },
             ].map((s, i) => {
               const count = useAnimatedCounter(s.value, statsInView)
               const Icon = s.icon
@@ -742,10 +749,10 @@ export default function LandingPage() {
               <Zap size={12} className="text-[#FF5C1A]" /> Fonctionnalites
             </div>
             <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-[1.1] mb-5" style={{ fontFamily: clash }}>
-              Tout ce dont tu as besoin.
-              <br /><span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">Rien de superflu.</span>
+              12 outils reunis en un seul.
+              <br /><span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">Zero compromis.</span>
             </h2>
-            <p className="text-[#F5F5F3]/30 text-lg">Chaque feature est pensee pour te faire gagner du temps et impressionner tes clients.</p>
+            <p className="text-[#F5F5F3]/30 text-lg">Chaque fonctionnalite te fait gagner du temps concret. Pas de gadget, que de l'essentiel pour ton activite de coaching.</p>
           </div>
 
           <div ref={featuresRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -827,7 +834,7 @@ export default function LandingPage() {
               <Target size={12} className="text-[#FF5C1A]" /> 3 etapes
             </div>
             <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-5" style={{ fontFamily: clash }}>
-              Operationnel en <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">2 minutes</span>
+              Ton logiciel coach sportif pret en <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">2 minutes</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
@@ -862,7 +869,7 @@ export default function LandingPage() {
               <Heart size={12} className="text-[#FF5C1A]" /> Temoignages
             </div>
             <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-5" style={{ fontFamily: clash }}>
-              Ils ont choisi <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">Zevo</span>
+              500+ coachs ont <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">automatise</span>
             </h2>
           </div>
 
@@ -925,9 +932,9 @@ export default function LandingPage() {
               <CreditCard size={12} className="text-[#FF5C1A]" /> Tarifs transparents
             </div>
             <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-5" style={{ fontFamily: clash }}>
-              Investis dans <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">ta croissance</span>
+              Rentabilise des <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">le premier client</span>
             </h2>
-            <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-8">Moins cher que ton cafe quotidien. Rentabilise des le premier client.</p>
+            <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-8">Moins cher qu'un cafe par jour. Chaque plan inclut tout ce dont un coach a besoin pour gerer et scaler son activite.</p>
             <div className="inline-flex items-center gap-1 p-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
               <button onClick={() => setBillingYearly(false)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${!billingYearly ? 'bg-[#FF5C1A] text-white shadow-lg shadow-[#FF5C1A]/20' : 'text-[#F5F5F3]/35'}`}>Mensuel</button>
               <button onClick={() => setBillingYearly(true)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${billingYearly ? 'bg-[#FF5C1A] text-white shadow-lg shadow-[#FF5C1A]/20' : 'text-[#F5F5F3]/35'}`}>
@@ -971,7 +978,7 @@ export default function LandingPage() {
               )
             })}
           </div>
-          <p className="text-center text-[11px] text-[#F5F5F3]/15 mt-8">Paiement securise Stripe · Sans engagement · Annulation en un clic</p>
+          <p className="text-center text-[11px] text-[#F5F5F3]/15 mt-8">Facturation coach sportif securisee par Stripe · Sans engagement · Annulation en un clic</p>
         </div>
       </section>
 
@@ -984,12 +991,12 @@ export default function LandingPage() {
               <HelpCircle size={12} className="text-[#FF5C1A]" /> FAQ
             </div>
             <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-4" style={{ fontFamily: clash }}>
-              Des questions ?
+              Questions frequentes
               <br />
-              <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">On a les reponses.</span>
+              <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">sur le logiciel Zevo</span>
             </h2>
             <p className="text-[#F5F5F3]/25 text-base max-w-md mx-auto">
-              Tout ce que tu dois savoir avant de te lancer. Et si tu ne trouves pas, demande-nous en demo.
+              Tout ce que tu dois savoir sur notre logiciel de gestion coaching avant de te lancer.
             </p>
           </div>
 
@@ -1043,13 +1050,13 @@ export default function LandingPage() {
                 <PhoneCall size={20} className="text-[#FF5C1A]" />
               </div>
               <div>
-                <p className="text-base font-semibold text-[#F5F5F3]" style={{ fontFamily: clash }}>Encore des questions ?</p>
-                <p className="text-sm text-[#F5F5F3]/30">Reserve une demo gratuite et on en discute en live.</p>
+                <p className="text-base font-semibold text-[#F5F5F3]" style={{ fontFamily: clash }}>Besoin d'un avis personnalise ?</p>
+                <p className="text-sm text-[#F5F5F3]/30">Reserve une demo gratuite de 15 min. On te montre le logiciel en live.</p>
               </div>
             </div>
             <button onClick={() => navigate('/demo')} className="relative z-[1] group w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white text-sm font-semibold hover:shadow-lg hover:shadow-[#FF5C1A]/25 transition-all flex items-center justify-center gap-2">
               <Video size={15} />
-              Demander une demo
+              Voir la demo
               <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
@@ -1066,25 +1073,25 @@ export default function LandingPage() {
         <div className="relative max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FF5C1A]/10 border border-[#FF5C1A]/20 mb-8">
             <Flame size={14} className="text-[#FF5C1A]" />
-            <span className="text-xs font-semibold text-[#FF5C1A]">Rejoinds 500+ coachs</span>
+            <span className="text-xs font-semibold text-[#FF5C1A]">Rejoins 500+ coachs en France</span>
           </div>
           <h2 className="text-3xl md:text-[3.75rem] font-bold tracking-tight leading-[1.08] mb-6" style={{ fontFamily: clash }}>
             <span className="block">Pendant que tu hesites,</span>
             <span className="block">
               <span className="hero-outline-text">d'autres coachs</span>{' '}
-              <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">scalent.</span>
+              <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">automatisent.</span>
             </span>
           </h2>
           <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-10 leading-relaxed">
-            14 jours gratuits. Toutes les fonctionnalites. Zero risque. Ton espace t'attend deja.
+            14 jours gratuits. Tout le logiciel coach sportif, sans carte bancaire. Ton espace est pret en 30 secondes.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button onClick={() => navigate('/register')} className="group w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF5C1A]/30 transition-all duration-300 inline-flex items-center justify-center gap-2.5 relative overflow-hidden">
-              <span className="relative z-10 flex items-center gap-2.5">Commencer maintenant <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></span>
+              <span className="relative z-10 flex items-center gap-2.5">Lancer mon essai gratuit <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             </button>
             <button onClick={() => navigate('/demo')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.07] text-[#F5F5F3]/40 font-medium hover:bg-white/[0.03] hover:text-[#F5F5F3] transition-all flex items-center justify-center gap-2">
-              <Video size={15} className="text-[#FF5C1A]" /> Demander une demo
+              <Video size={15} className="text-[#FF5C1A]" /> Voir la demo
             </button>
           </div>
         </div>
@@ -1096,7 +1103,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-8 mb-12">
             <div className="col-span-2 md:col-span-1">
               <ZevoLogo size="md" />
-              <p className="text-[11px] text-[#F5F5F3]/15 mt-3 leading-relaxed max-w-[200px]">Le logiciel tout-en-un pour les coachs qui veulent scaler.</p>
+              <p className="text-[11px] text-[#F5F5F3]/15 mt-3 leading-relaxed max-w-[200px]">Le logiciel coach sportif tout-en-un. Suivi client, programmes et facturation en une seule app.</p>
             </div>
             {[
               { title: 'Produit', links: ['Entrainement', 'Programmes', 'Nutrition', 'Calendrier', 'Tarifs'], paths: ['/features/entrainement', '/features/programmes', '/features/nutrition', '/features/calendrier', null], ids: [null, null, null, null, 'pricing'] },

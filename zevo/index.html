@@ -4,14 +4,130 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0D0D0D" />
-    <meta name="description" content="Zevo — Plateforme SaaS de coaching bien-être" />
+
+    <!-- SEO — Meta essentiels -->
+    <title>Logiciel coach sportif tout-en-un | Zevo</title>
+    <meta name="description" content="Gere tes clients, programmes sport en ligne, paiements et nutrition dans une seule app coach sportif. Essai gratuit 14 jours sans CB. 500+ coachs en France." />
+    <meta name="keywords" content="logiciel coach sportif, application coach sportif, suivi client coaching, programme sport en ligne, logiciel gestion coaching, plateforme coaching France, facturation coach sportif, app coach bien-etre" />
+    <meta name="author" content="Zevo" />
+    <link rel="canonical" href="https://zevo-one.vercel.app/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://zevo-one.vercel.app/" />
+    <meta property="og:title" content="Zevo — Le logiciel qui libere les coachs sportifs" />
+    <meta property="og:description" content="Suivi client, programmes sport en ligne, facturation automatique. Tout ton coaching dans une seule plateforme. Teste gratuitement pendant 14 jours." />
+    <meta property="og:image" content="https://zevo-one.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="Zevo" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Zevo — Le logiciel qui libere les coachs sportifs" />
+    <meta name="twitter:description" content="Suivi client, programmes sport en ligne, facturation automatique. Tout ton coaching dans une seule plateforme." />
+    <meta name="twitter:image" content="https://zevo-one.vercel.app/og-image.png" />
+
+    <!-- Theme & PWA -->
+    <meta name="theme-color" content="#060606" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Zevo" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <title>Zevo</title>
-    <!-- Preconnect aux APIs externes pour accélérer les requêtes -->
+
+    <!-- Schema.org JSON-LD — SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Zevo",
+      "url": "https://zevo-one.vercel.app",
+      "description": "Logiciel coach sportif tout-en-un : suivi client coaching, programmes sport en ligne, plans nutritionnels, facturation automatique Stripe. La plateforme coaching en France pour les coachs qui veulent scaler.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Starter",
+          "price": "29",
+          "priceCurrency": "EUR",
+          "priceValidUntil": "2027-12-31",
+          "availability": "https://schema.org/InStock"
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": "49",
+          "priceCurrency": "EUR",
+          "priceValidUntil": "2027-12-31",
+          "availability": "https://schema.org/InStock"
+        },
+        {
+          "@type": "Offer",
+          "name": "Unlimited",
+          "price": "79",
+          "priceCurrency": "EUR",
+          "priceValidUntil": "2027-12-31",
+          "availability": "https://schema.org/InStock"
+        }
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "500",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "screenshot": "https://zevo-one.vercel.app/og-image.png"
+    }
+    </script>
+
+    <!-- Schema.org JSON-LD — FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "L'essai gratuit est vraiment sans carte bancaire ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oui. 14 jours avec toutes les fonctionnalites du logiciel coach sportif. Zero carte bancaire demandee."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "En quoi Zevo est different des autres logiciels de coaching ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Zevo est la seule plateforme coaching en France qui reunit suivi client, programmes sport en ligne, nutrition, paiements et branding dans une seule app."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment fonctionne la facturation coach sportif ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Tu connectes Stripe en un clic. Tu crees tes offres au prix que tu veux. Tes clients paient directement. L'argent arrive sur ton compte."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Puis-je personnaliser l'app a mes couleurs ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oui. L'App Builder te permet de mettre ton logo, ta palette, tes modules. Tes clients pensent utiliser ta propre application coach sportif."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Preconnect aux APIs externes -->
     <link rel="preconnect" href="https://pairqvridvjdktnuvwud.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://pairqvridvjdktnuvwud.supabase.co" />
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
@@ -21,11 +137,11 @@
     <link rel="dns-prefetch" href="https://js.stripe.com" />
   </head>
   <body>
-    <!-- Splash screen inline — visible instantanément pendant le chargement JS -->
+    <!-- Splash screen inline — visible instantanement pendant le chargement JS -->
     <div id="root">
-      <div id="splash" style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0D0D0D;">
+      <div id="splash" style="display:flex;align-items:center;justify-content:center;height:100vh;background:#060606;">
         <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation:pulse 1.5s ease-in-out infinite">
-          <rect width="40" height="40" rx="10" fill="#FF6B2B"/>
+          <rect width="40" height="40" rx="10" fill="#FF5C1A"/>
           <path d="M10 13h20M10 20h20M10 27h20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
       </div>

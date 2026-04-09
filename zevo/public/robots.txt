@@ -1,0 +1,12 @@
+# Zevo — Logiciel coach sportif
+# https://zevo-one.vercel.app
+
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /coach/
+Disallow: /admin/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://zevo-one.vercel.app/sitemap.xml
