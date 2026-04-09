@@ -417,6 +417,7 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
   const [billingYearly, setBillingYearly] = useState(false)
   const [activeTesti, setActiveTesti] = useState(0)
+  const [compareMode, setCompareMode] = useState('sans') // 'sans' | 'avec'
 
   // Intersection observers
   const statsRef = useRef(null)
@@ -565,56 +566,117 @@ export default function LandingPage() {
         )}
       </nav>
 
-      {/* ══════════════════════ HERO — TEXT TOP + FULL-WIDTH MOCKUP ══════════════════════ */}
+      {/* ══════════════════════ HERO — TEXT LEFT + STATS RIGHT ══════════════════════ */}
       <section ref={heroRef} className="relative px-5 md:px-8 pt-28 pb-16">
         <div className={`relative max-w-7xl mx-auto w-full transition-all duration-1000 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          {/* TOP — Text centered-left */}
-          <div className="max-w-2xl mb-14 md:mb-20">
-            {/* Social proof badge */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06] mb-8 hover:bg-white/[0.06] transition-colors cursor-default">
-              <div className="flex -space-x-1.5">
-                {['#FF5C1A', '#3B82F6', '#10B981', '#F59E0B'].map((c, i) => (
-                  <div key={i} className="w-5 h-5 rounded-full border-2 border-[#060606] flex items-center justify-center text-[7px] font-bold text-white" style={{ backgroundColor: c, zIndex: 4 - i }}>
-                    {['L', 'S', 'T', 'M'][i]}
-                  </div>
-                ))}
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-12 lg:gap-16 mb-14 md:mb-20">
+            {/* LEFT — Text */}
+            <div className="flex-1 max-w-2xl">
+              {/* Social proof badge */}
+              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06] mb-8 hover:bg-white/[0.06] transition-colors cursor-default">
+                <div className="flex -space-x-1.5">
+                  {['#FF5C1A', '#3B82F6', '#10B981', '#F59E0B'].map((c, i) => (
+                    <div key={i} className="w-5 h-5 rounded-full border-2 border-[#060606] flex items-center justify-center text-[7px] font-bold text-white" style={{ backgroundColor: c, zIndex: 4 - i }}>
+                      {['L', 'S', 'T', 'M'][i]}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-0.5">
+                  {[1,2,3,4,5].map(i => <Star key={i} size={10} className="text-[#FF5C1A] fill-[#FF5C1A]" />)}
+                </div>
+                <span className="text-xs font-medium text-[#F5F5F3]/40">Adopté par <strong className="text-[#F5F5F3]/70">500+</strong> coachs en France</span>
               </div>
-              <div className="flex gap-0.5">
-                {[1,2,3,4,5].map(i => <Star key={i} size={10} className="text-[#FF5C1A] fill-[#FF5C1A]" />)}
-              </div>
-              <span className="text-xs font-medium text-[#F5F5F3]/40">Adopté par <strong className="text-[#F5F5F3]/70">500+</strong> coachs en France</span>
-            </div>
 
-            <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold tracking-tight leading-[1.05] mb-7" style={{ fontFamily: clash }}>
-              <span className="block text-[#F5F5F3]">Libère-toi de tes</span>
-              <span className="block text-[#F5F5F3]">tableurs.</span>
-              <span className="block mt-2">
-                <span className="hero-outline-text">Digitalise</span>{' '}
-                <span className="bg-gradient-to-r from-[#FF5C1A] via-[#FF7A42] to-[#FF5C1A] bg-clip-text text-transparent bg-[size:200%] animate-gradient-x">ton coaching.</span>
-              </span>
-            </h1>
-
-            <p className="text-base md:text-lg text-[#F5F5F3]/35 max-w-md mb-10 leading-relaxed" style={{ fontFamily: instrument }}>
-              Le logiciel coach sportif qui remplace 10 outils. Suivi client, programmes, nutrition, facturation — <strong className="text-[#F5F5F3]/60">tout dans une seule app</strong>. Gagne 5h par semaine.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-start gap-4 mb-6">
-              <button onClick={() => navigate('/register')} className="group w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF5C1A]/30 transition-all duration-300 flex items-center justify-center gap-2.5 relative overflow-hidden">
-                <span className="relative z-10 flex items-center gap-2.5">
-                  Teste gratuitement 14 jours
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />
+              <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold tracking-tight leading-[1.05] mb-7" style={{ fontFamily: clash }}>
+                <span className="block text-[#F5F5F3]">Libère-toi de tes</span>
+                <span className="block text-[#F5F5F3]">tableurs.</span>
+                <span className="block mt-2">
+                  <span className="hero-outline-text">Digitalise</span>{' '}
+                  <span className="bg-gradient-to-r from-[#FF5C1A] via-[#FF7A42] to-[#FF5C1A] bg-clip-text text-transparent bg-[size:200%] animate-gradient-x">ton coaching.</span>
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              </button>
-              <button onClick={() => navigate('/demo')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.08] text-[#F5F5F3]/50 font-medium text-base hover:bg-white/[0.03] hover:text-[#F5F5F3] hover:border-white/[0.12] transition-all duration-300 flex items-center justify-center gap-2">
-                <Video size={15} className="text-[#FF5C1A]" /> Voir la démo
-              </button>
+              </h1>
+
+              <p className="text-base md:text-lg text-[#F5F5F3]/35 max-w-md mb-10 leading-relaxed" style={{ fontFamily: instrument }}>
+                Le logiciel coach sportif qui remplace 10 outils. Suivi client, programmes, nutrition, facturation — <strong className="text-[#F5F5F3]/60">tout dans une seule app</strong>. Gagne 5h par semaine.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-start gap-4 mb-6">
+                <button onClick={() => navigate('/register')} className="group w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF5C1A]/30 transition-all duration-300 flex items-center justify-center gap-2.5 relative overflow-hidden">
+                  <span className="relative z-10 flex items-center gap-2.5">
+                    Teste gratuitement 14 jours
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                </button>
+                <button onClick={() => navigate('/demo')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.08] text-[#F5F5F3]/50 font-medium text-base hover:bg-white/[0.03] hover:text-[#F5F5F3] hover:border-white/[0.12] transition-all duration-300 flex items-center justify-center gap-2">
+                  <Video size={15} className="text-[#FF5C1A]" /> Voir la démo
+                </button>
+              </div>
+
+              <div className="flex items-center gap-5 text-[#F5F5F3]/20 text-xs">
+                <span className="flex items-center gap-1.5"><Shield size={12} /> Sans carte bancaire</span>
+                <span className="flex items-center gap-1.5"><Clock size={12} /> Setup 2 min</span>
+                <span className="flex items-center gap-1.5"><Zap size={12} /> 14 jours gratuits</span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-5 text-[#F5F5F3]/20 text-xs">
-              <span className="flex items-center gap-1.5"><Shield size={12} /> Sans carte bancaire</span>
-              <span className="flex items-center gap-1.5"><Clock size={12} /> Setup 2 min</span>
-              <span className="flex items-center gap-1.5"><Zap size={12} /> 14 jours gratuits</span>
+            {/* RIGHT — Floating stats cards */}
+            <div className="hidden lg:block flex-shrink-0 w-[340px] relative">
+              <div className="relative space-y-4">
+                {/* Card 1 — Clients */}
+                <div className="rounded-2xl bg-[#0c0c0c] border border-white/[0.06] p-5 shadow-[0_8px_40px_rgba(0,0,0,0.4)] animate-float">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-[#FF5C1A]/10 border border-[#FF5C1A]/10 flex items-center justify-center">
+                        <Users size={16} className="text-[#FF5C1A]" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-[#F5F5F3]">Clients actifs</p>
+                        <p className="text-[9px] text-[#F5F5F3]/25">Ce mois-ci</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg">+3</span>
+                  </div>
+                  <p className="text-3xl font-bold text-[#F5F5F3]" style={{ fontFamily: clash }}>24</p>
+                  <div className="flex items-end gap-0.5 h-8 mt-2">
+                    {[18, 20, 19, 21, 20, 22, 21, 23, 22, 24].map((h, i) => (
+                      <div key={i} className="flex-1 rounded-t bg-gradient-to-t from-[#FF5C1A]/40 to-[#FF5C1A]/80" style={{ height: `${(h / 24) * 100}%` }} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Card 2 — Revenu */}
+                <div className="rounded-2xl bg-[#0c0c0c] border border-white/[0.06] p-5 shadow-[0_8px_40px_rgba(0,0,0,0.4)] animate-float-delayed ml-8">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/10 flex items-center justify-center">
+                        <TrendingUp size={16} className="text-emerald-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-[#F5F5F3]">Revenu mensuel</p>
+                        <p className="text-[9px] text-[#F5F5F3]/25">Avril 2026</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg">+18%</span>
+                  </div>
+                  <p className="text-3xl font-bold text-[#F5F5F3]" style={{ fontFamily: clash }}>3 240€</p>
+                </div>
+
+                {/* Card 3 — Notification */}
+                <div className="rounded-2xl bg-[#0c0c0c] border border-[#FF5C1A]/15 p-4 shadow-[0_8px_40px_rgba(0,0,0,0.4)] animate-float flex items-center gap-3 mr-4" style={{ animationDelay: '1s' }}>
+                  <div className="w-8 h-8 rounded-lg bg-[#FF5C1A]/15 flex items-center justify-center flex-shrink-0">
+                    <Bell size={14} className="text-[#FF5C1A]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-semibold text-[#F5F5F3]">Nouveau paiement reçu</p>
+                    <p className="text-[9px] text-[#F5F5F3]/25">Julie D. — Abonnement Pro · 49€</p>
+                  </div>
+                  <span className="text-[8px] text-[#F5F5F3]/15 flex-shrink-0">2 min</span>
+                </div>
+              </div>
+
+              {/* Background glow */}
+              <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-[#FF5C1A]/[0.04] blur-[120px]" />
             </div>
           </div>
 
@@ -703,16 +765,33 @@ export default function LandingPage() {
         {/* Accent line at top */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FF5C1A]/30 to-transparent" />
 
-        <div className="py-6 border-b border-white/[0.03] overflow-hidden relative bg-[#050505]">
-          <p className="text-center text-[9px] uppercase tracking-[0.25em] text-[#F5F5F3]/15 font-semibold mb-5" style={{ fontFamily: instrument }}>La plateforme coaching choisie par les pros en France</p>
-          <div className="relative">
-            <div className="flex gap-16 animate-marquee whitespace-nowrap">
-              {[...Array(2)].flatMap((_, r) =>
-                ['CrossFit', 'BPJEPS', 'STAPS', 'FitPro', 'CoachHub', 'TrainMe', 'SportEasy', 'MyCoach'].map((n, i) => (
-                  <span key={`${r}-${i}`} className="text-sm font-bold text-[#F5F5F3]/[0.12] tracking-wider" style={{ fontFamily: clash }}>{n}</span>
-                ))
-              )}
-            </div>
+        <div className="py-8 border-b border-white/[0.03] overflow-hidden relative bg-[#050505]">
+          <p className="text-center text-[9px] uppercase tracking-[0.25em] text-[#F5F5F3]/15 font-semibold mb-6" style={{ fontFamily: instrument }}>Déjà utilisé par des coachs en salle, en ligne, en studio</p>
+          <div className="max-w-5xl mx-auto px-5 flex items-center justify-between gap-8 md:gap-12">
+            {[
+              { name: 'keepcool', text: 'keepcool', style: 'text-lg font-black lowercase tracking-tight' },
+              { name: 'orangebleue', text: "l'Orange Bleue", style: 'text-sm font-bold' },
+              { name: 'jims', text: '::JIMS', style: 'text-lg font-black tracking-wider' },
+              { name: 'neoness', text: 'neoness', style: 'text-base font-extrabold lowercase tracking-wide' },
+              { name: 'fitnesspark', text: 'FITNESS PARK', style: 'text-xs font-black uppercase tracking-[0.2em]' },
+              { name: 'gigafit', text: 'GIGAFIT', style: 'text-sm font-black uppercase tracking-wider' },
+              { name: 'basicfit', text: 'BASIC-FIT', style: 'text-base font-black uppercase tracking-tight' },
+            ].map((brand) => (
+              <span key={brand.name} className={`${brand.style} text-[#F5F5F3]/[0.15] hover:text-[#F5F5F3]/[0.25] transition-opacity duration-300 whitespace-nowrap select-none hidden sm:block`} style={{ fontFamily: clash }}>
+                {brand.text}
+              </span>
+            ))}
+            {/* Mobile: show only 4 */}
+            {[
+              { name: 'keepcool-m', text: 'keepcool', style: 'text-base font-black lowercase tracking-tight' },
+              { name: 'jims-m', text: '::JIMS', style: 'text-base font-black tracking-wider' },
+              { name: 'fitnesspark-m', text: 'FITNESS PARK', style: 'text-[10px] font-black uppercase tracking-[0.2em]' },
+              { name: 'basicfit-m', text: 'BASIC-FIT', style: 'text-sm font-black uppercase tracking-tight' },
+            ].map((brand) => (
+              <span key={brand.name} className={`${brand.style} text-[#F5F5F3]/[0.15] whitespace-nowrap select-none sm:hidden`} style={{ fontFamily: clash }}>
+                {brand.text}
+              </span>
+            ))}
           </div>
         </div>
 
@@ -740,6 +819,134 @@ export default function LandingPage() {
                 </div>
               )
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════ SANS / AVEC ZEVO ══════════════════════ */}
+      <section className="py-24 md:py-36 px-5 md:px-8 relative">
+        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#FF5C1A]/[0.02] blur-[150px]" />
+        <div className="relative max-w-6xl mx-auto">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-12 lg:gap-20">
+
+            {/* LEFT — Cards stack */}
+            <div className="flex-1 w-full max-w-lg">
+              <div className={`space-y-3 transition-all duration-500 ${compareMode === 'sans' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 absolute pointer-events-none'}`}>
+                {[
+                  { icon: '📊', app: 'Excel', desc: 'Des tableurs à rallonge et des données à mettre à jour manuellement, tous les jours.' },
+                  { icon: '💳', app: 'Facturation manuelle', desc: 'Relances, oublis, erreurs… chaque encaissement devient une perte de temps.' },
+                  { icon: '💬', app: 'WhatsApp', desc: '"Coach, c\'est quoi mon programme déjà ?" — des messages non-stop, impossible de tout suivre.' },
+                  { icon: '📅', app: 'Organisation manuelle', desc: 'Tout planifier à la main, entre tes fichiers et tes notes, sans aucune automatisation.' },
+                  { icon: '📝', app: 'Google Forms', desc: 'Des bilans éparpillés, jamais reliés aux fiches clients. Zéro suivi structuré.' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] p-4 hover:bg-white/[0.05] transition-all" style={{ animationDelay: `${i * 80}ms` }}>
+                    <span className="text-xl flex-shrink-0 mt-0.5">{item.icon}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-[#F5F5F3] mb-0.5" style={{ fontFamily: clash }}>{item.app}</p>
+                      <p className="text-xs text-[#F5F5F3]/30 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className={`space-y-3 transition-all duration-500 ${compareMode === 'avec' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 absolute pointer-events-none'}`}>
+                {[
+                  { icon: Users, label: 'Hub Client 360', desc: 'Chaque client, ses objectifs, ses mensurations et son score bien-être — en 3 secondes.' },
+                  { icon: CreditCard, label: 'Paiement automatique', desc: 'Stripe connecté, tes clients paient en un clic. Zéro relance, zéro impayé.' },
+                  { icon: MessageCircle, label: 'Messagerie intégrée', desc: 'Chat, audio, fichiers — tout dans Zevo. Fini WhatsApp pro.' },
+                  { icon: CalendarDays, label: 'Calendrier intelligent', desc: 'Réservations en un clic, rappels automatiques, synchro agenda.' },
+                  { icon: ClipboardList, label: 'Bilans automatisés', desc: 'Check-ins hebdo, bilans initiaux, satisfaction — reliés à chaque fiche client.' },
+                ].map((item, i) => {
+                  const Icon = item.icon
+                  return (
+                    <div key={i} className="flex items-start gap-4 rounded-2xl bg-[#FF5C1A]/[0.04] border border-[#FF5C1A]/15 p-4 hover:bg-[#FF5C1A]/[0.06] transition-all" style={{ animationDelay: `${i * 80}ms` }}>
+                      <div className="w-9 h-9 rounded-xl bg-[#FF5C1A]/15 border border-[#FF5C1A]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Icon size={16} className="text-[#FF5C1A]" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[#F5F5F3] mb-0.5" style={{ fontFamily: clash }}>{item.label}</p>
+                        <p className="text-xs text-[#F5F5F3]/30 leading-relaxed">{item.desc}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* RIGHT — Title + Toggle + Pain points */}
+            <div className="flex-1 max-w-lg">
+              <h2 className="text-3xl md:text-[3.2rem] font-bold tracking-tight leading-[1.1] mb-6" style={{ fontFamily: clash }}>
+                Une seule app pour tout{' '}
+                <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">centraliser.</span>
+              </h2>
+
+              {/* Toggle */}
+              <div className="inline-flex items-center gap-0 p-1 rounded-full bg-white/[0.04] border border-white/[0.06] mb-8">
+                <button
+                  onClick={() => setCompareMode('sans')}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                    compareMode === 'sans'
+                      ? 'bg-white/[0.08] text-[#F5F5F3] shadow-lg'
+                      : 'text-[#F5F5F3]/35 hover:text-[#F5F5F3]/50'
+                  }`}
+                >
+                  <X size={14} /> Sans Zevo
+                </button>
+                <button
+                  onClick={() => setCompareMode('avec')}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                    compareMode === 'avec'
+                      ? 'bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white shadow-lg shadow-[#FF5C1A]/20'
+                      : 'text-[#F5F5F3]/35 hover:text-[#F5F5F3]/50'
+                  }`}
+                >
+                  <Check size={14} /> Avec Zevo
+                </button>
+              </div>
+
+              {/* Description + bullet points */}
+              <div className={`transition-all duration-500 ${compareMode === 'sans' ? 'opacity-100' : 'opacity-0 absolute pointer-events-none'}`}>
+                <p className="text-[#F5F5F3]/35 text-base mb-6">Un coaching dispersé, difficile à suivre et chronophage</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                  {[
+                    'Outils dispersés entre Excel, WhatsApp et PDF',
+                    'Aucune vision claire sur la progression des clients',
+                    'Paiements à relancer manuellement',
+                    'Suivi flou, peu précis, parfois inexistant',
+                    'Perte de professionnalisme perçue par les clients',
+                    'Perte de temps sur des tâches répétitives',
+                  ].map((point, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <div className="w-4 h-4 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <X size={9} className="text-red-400" />
+                      </div>
+                      <span className="text-sm text-[#F5F5F3]/40">{point}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className={`transition-all duration-500 ${compareMode === 'avec' ? 'opacity-100' : 'opacity-0 absolute pointer-events-none'}`}>
+                <p className="text-[#F5F5F3]/35 text-base mb-6">Tout ton coaching dans une seule plateforme, automatisé et pro</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                  {[
+                    'Tout centralisé dans une seule app',
+                    'Score bien-être et progression en temps réel',
+                    'Paiements automatiques via Stripe',
+                    'Suivi précis avec rapports PDF automatiques',
+                    'App brandée à ton image — valeur perçue x2',
+                    '5h gagnées par semaine en moyenne',
+                  ].map((point, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <div className="w-4 h-4 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Check size={9} className="text-emerald-400" />
+                      </div>
+                      <span className="text-sm text-[#F5F5F3]/40">{point}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

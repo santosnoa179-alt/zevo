@@ -4,8 +4,8 @@
     {
       "name": "dev",
       "runtimeExecutable": "/Users/noasantos/.nvm/versions/node/v24.14.0/bin/npx",
-      "runtimeArgs": ["serve", "dist", "-l", "4000", "--no-clipboard", "-s"],
-      "port": 4000
+      "runtimeArgs": ["vite", "--port", "5173"],
+      "port": 5173
     }
   ]
 }
