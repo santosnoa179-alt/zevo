@@ -47,7 +47,7 @@ function CalendarMockup() {
             </div>
             <div>
               <p className="text-[12px] font-semibold text-[#F5F5F3]/80">Semaine du 14 avril</p>
-              <p className="text-[10px] text-[#F5F5F3]/25">14 seances planifiees</p>
+              <p className="text-[10px] text-[#F5F5F3]/25">14 séances planifiées</p>
             </div>
           </div>
           <div className="hidden sm:flex items-center gap-2">
@@ -111,7 +111,7 @@ function CalendarMockup() {
               </div>
             ))}
           </div>
-          <p className="text-[9px] text-[#F5F5F3]/15">3 creneaux disponibles cette semaine</p>
+          <p className="text-[9px] text-[#F5F5F3]/15">3 créneaux disponibles cette semaine</p>
         </div>
       </div>
     </div>
@@ -124,7 +124,7 @@ function UseCaseSection() {
     {
       icon: UserCheck,
       title: 'Coaching individuel',
-      desc: 'Gere tes seances 1-on-1 avec des creneaux personnalises par client. Chaque client reserve en fonction de tes disponibilites reelles.',
+      desc: 'Gère tes séances 1-on-1 avec des créneaux personnalisés par client. Chaque client réserve en fonction de tes disponibilités réelles.',
       accent: '#FF6B2B',
     },
     {
@@ -135,8 +135,8 @@ function UseCaseSection() {
     },
     {
       icon: Monitor,
-      title: 'Suivi a distance',
-      desc: 'Organise tes consultations video et check-ins a distance avec rappels automatiques et lien de visio integre.',
+      title: 'Suivi à distance',
+      desc: 'Organise tes consultations vidéo et check-ins à distance avec rappels automatiques et lien de visio intégré.',
       accent: '#3B82F6',
     },
   ]
@@ -147,7 +147,7 @@ function UseCaseSection() {
       <div className="max-w-6xl mx-auto px-5 md:px-8 relative z-10">
         <div className="text-center mb-14">
           <p className="text-[11px] font-semibold text-[#FF6B2B] uppercase tracking-widest mb-3">Cas d'usage</p>
-          <h2 className="text-2xl md:text-4xl font-bold">Adapte a ton activite</h2>
+          <h2 className="text-2xl md:text-4xl font-bold">Adapté à ton activité</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {cases.map((c, i) => {
@@ -175,33 +175,33 @@ function UseCaseSection() {
 export default function CalendrierPage() {
   return (
     <FeaturePageLayout
-      badge="Calendrier & Reservations"
+      badge="Calendrier & Réservations"
       badgeIcon={CalendarDays}
       title="Ton planning,"
-      titleAccent="simplifie"
-      subtitle="Centralise ton emploi du temps, accepte les reservations en ligne et elimine les allers-retours. Tes clients reservent en autonomie, tu gardes le controle."
+      titleAccent="simplifié"
+      subtitle="Centralise ton emploi du temps, accepte les réservations en ligne et élimine les allers-retours. Tes clients réservent en autonomie, tu gardes le contrôle."
       stats={[
         { value: '-70%', label: 'de temps admin en moins' },
-        { value: '24/7', label: 'reservations en ligne' },
+        { value: '24/7', label: 'réservations en ligne' },
         { value: '0', label: 'no-show avec rappels' },
       ]}
       mockup={<CalendarMockup />}
       features={[
-        { icon: CalendarDays, title: 'Calendrier global', desc: 'Vue semaine, mois et jour avec tous tes creneaux, seances et disponibilites en un coup d\'oeil.' },
-        { icon: Globe, title: 'Reservation en ligne', desc: 'Tes clients reservent directement depuis ton lien personnalise. Plus besoin d\'echanger des messages.' },
-        { icon: Bell, title: 'Rappels automatiques', desc: 'Notifications par email et push avant chaque seance. Fini les oublis et les no-shows.' },
-        { icon: Repeat, title: 'Seances recurrentes', desc: 'Programme des seances qui se repetent automatiquement chaque semaine ou chaque mois.' },
-        { icon: CalendarCheck, title: 'Sync agenda', desc: 'Synchronise avec Google Calendar, Apple Calendar ou Outlook pour eviter les doublons.' },
-        { icon: Timer, title: 'Gestion des durees', desc: 'Definis des durees differentes par type de seance : 30min, 45min, 1h ou personnalise.' },
+        { icon: CalendarDays, title: 'Calendrier global', desc: 'Vue semaine, mois et jour avec tous tes créneaux, séances et disponibilités en un coup d\'œil.' },
+        { icon: Globe, title: 'Réservation en ligne', desc: 'Tes clients réservent directement depuis ton lien personnalisé. Plus besoin d\'échanger des messages.' },
+        { icon: Bell, title: 'Rappels automatiques', desc: 'Notifications par email et push avant chaque séance. Fini les oublis et les no-shows.' },
+        { icon: Repeat, title: 'Séances récurrentes', desc: 'Programme des séances qui se répètent automatiquement chaque semaine ou chaque mois.' },
+        { icon: CalendarCheck, title: 'Sync agenda', desc: 'Synchronise avec Google Calendar, Apple Calendar ou Outlook pour éviter les doublons.' },
+        { icon: Timer, title: 'Gestion des durées', desc: 'Définis des durées différentes par type de séance : 30min, 45min, 1h ou personnalisé.' },
       ]}
-      stepsTitle="Planifier n'a jamais ete aussi simple"
+      stepsTitle="Planifier n'a jamais été aussi simple"
       steps={[
-        { title: 'Definis tes disponibilites', desc: 'Configure tes creneaux libres par jour et par type de seance. Bloque les heures ou tu n\'es pas disponible.' },
-        { title: 'Tes clients reservent', desc: 'Partage ton lien de reservation. Tes clients choisissent un creneau libre et confirment en un clic.' },
-        { title: 'Gere tout depuis un seul ecran', desc: 'Visualise ta semaine, deplace des seances, annule ou replanifie. Tout est centralise.' },
+        { title: 'Définis tes disponibilités', desc: 'Configure tes créneaux libres par jour et par type de séance. Bloque les heures où tu n\'es pas disponible.' },
+        { title: 'Tes clients réservent', desc: 'Partage ton lien de réservation. Tes clients choisissent un créneau libre et confirment en un clic.' },
+        { title: 'Gère tout depuis un seul écran', desc: 'Visualise ta semaine, déplace des séances, annule ou replanifie. Tout est centralisé.' },
       ]}
       extraSection={<UseCaseSection />}
-      ctaTitle="Pret a simplifier"
+      ctaTitle="Prêt à simplifier"
       ctaAccent="ta planification"
     />
   )

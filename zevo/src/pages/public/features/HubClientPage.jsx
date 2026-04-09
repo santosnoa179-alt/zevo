@@ -38,7 +38,7 @@ function ClientProfileMockup() {
             </div>
             <div>
               <p className="text-xs font-semibold text-[#F5F5F3]/80">Fiche Client</p>
-              <p className="text-[10px] text-[#F5F5F3]/25">Vue complete 360</p>
+              <p className="text-[10px] text-[#F5F5F3]/25">Vue complète 360</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -76,7 +76,7 @@ function ClientProfileMockup() {
 
             {/* Wellbeing score */}
             <div className="rounded-xl border border-white/[0.06] bg-[#0F0F0F] p-4">
-              <p className="text-[10px] text-[#F5F5F3]/25 font-medium mb-3">Score bien-etre</p>
+              <p className="text-[10px] text-[#F5F5F3]/25 font-medium mb-3">Score bien-être</p>
               <div className="flex items-center justify-center">
                 <div className="relative w-24 h-24">
                   {/* Circular progress background */}
@@ -150,7 +150,7 @@ function ClientProfileMockup() {
             {/* Recent sessions */}
             <div className="rounded-xl border border-white/[0.06] bg-[#0F0F0F] p-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] text-[#F5F5F3]/25 font-medium">Seances recentes</p>
+                <p className="text-[10px] text-[#F5F5F3]/25 font-medium">Séances récentes</p>
                 <History size={12} className="text-[#F5F5F3]/15" />
               </div>
               <div className="space-y-2">
@@ -164,7 +164,7 @@ function ClientProfileMockup() {
                     </div>
                     <span className="text-[9px] text-[#F5F5F3]/15">{s.date}</span>
                     <span className={`text-[8px] font-semibold px-1.5 py-0.5 rounded ${s.status === 'done' ? 'text-green-400 bg-green-500/[0.06]' : 'text-red-400/60 bg-red-500/[0.06]'}`}>
-                      {s.status === 'done' ? 'Complete' : 'Manquee'}
+                      {s.status === 'done' ? 'Complété' : 'Manquée'}
                     </span>
                   </div>
                 ))}
@@ -184,28 +184,28 @@ export default function HubClientPage() {
       badgeIcon={Users}
       title="Chaque client,"
       titleAccent="une attention sur-mesure"
-      subtitle="Objectifs, mensurations, score bien-etre, historique. Tout est centralise dans une fiche client unique."
+      subtitle="Objectifs, mensurations, score bien-être, historique. Tout est centralisé dans une fiche client unique."
       stats={[
-        { value: '360\u00b0', label: 'VUE COMPLETE' },
-        { value: '< 5s', label: 'ACCES FICHE CLIENT' },
-        { value: '100%', label: 'DONNEES CENTRALISEES' },
+        { value: '360\u00b0', label: 'VUE COMPLÈTE' },
+        { value: '< 5s', label: 'ACCÈS FICHE CLIENT' },
+        { value: '100%', label: 'DONNÉES CENTRALISÉES' },
       ]}
       mockup={<ClientProfileMockup />}
       features={[
-        { icon: User, title: 'Fiche unifiee', desc: 'Toutes les informations d\'un client reunies sur une seule page. Plus besoin de chercher dans 5 outils differents.' },
-        { icon: Heart, title: 'Score bien-etre auto', desc: 'Un score calcule automatiquement a partir de l\'activite, du sommeil et des retours client.' },
-        { icon: AlertTriangle, title: 'Alertes desengagement', desc: 'Recois une alerte des qu\'un client commence a decrocher. Agis avant qu\'il ne parte.' },
-        { icon: History, title: 'Historique complet', desc: 'Retrouve chaque seance, chaque message, chaque bilan depuis le premier jour.' },
+        { icon: User, title: 'Fiche unifiée', desc: 'Toutes les informations d\'un client réunies sur une seule page. Plus besoin de chercher dans 5 outils différents.' },
+        { icon: Heart, title: 'Score bien-être auto', desc: 'Un score calculé automatiquement à partir de l\'activité, du sommeil et des retours client.' },
+        { icon: AlertTriangle, title: 'Alertes désengagement', desc: 'Reçois une alerte dès qu\'un client commence à décrocher. Agis avant qu\'il ne parte.' },
+        { icon: History, title: 'Historique complet', desc: 'Retrouve chaque séance, chaque message, chaque bilan depuis le premier jour.' },
         { icon: Ruler, title: 'Mensurations', desc: 'Suis l\'evolution du poids, des tours, de la masse grasse et musculaire au fil du temps.' },
-        { icon: Target, title: 'Objectifs tracking', desc: 'Definis des objectifs clairs et suis la progression de chaque client en temps reel.' },
+        { icon: Target, title: 'Objectifs tracking', desc: 'Définis des objectifs clairs et suis la progression de chaque client en temps réel.' },
       ]}
-      stepsTitle="Connais chaque client en 3 etapes"
+      stepsTitle="Connais chaque client en 3 étapes"
       steps={[
-        { title: 'Invite ton client', desc: 'Envoie un lien d\'invitation. Ton client cree son compte et sa fiche se genere automatiquement.' },
-        { title: 'La fiche se remplit', desc: 'Au fil des seances, bilans et echanges, la fiche client se complete toute seule avec les donnees pertinentes.' },
-        { title: 'Suis tout en un coup d\'oeil', desc: 'Score bien-etre, objectifs, mensurations, historique : tout est la, sur une seule page.' },
+        { title: 'Invite ton client', desc: 'Envoie un lien d\'invitation. Ton client crée son compte et sa fiche se génère automatiquement.' },
+        { title: 'La fiche se remplit', desc: 'Au fil des séances, bilans et échanges, la fiche client se complète toute seule avec les données pertinentes.' },
+        { title: 'Suis tout en un coup d\'œil', desc: 'Score bien-être, objectifs, mensurations, historique : tout est là, sur une seule page.' },
       ]}
-      ctaTitle="Pret a vraiment connaitre"
+      ctaTitle="Prêt à vraiment connaître"
       ctaAccent="tes clients"
     />
   )

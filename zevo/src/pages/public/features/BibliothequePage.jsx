@@ -9,16 +9,16 @@ function LibraryMockup() {
   const folders = [
     { name: 'Exercices Upper Body', count: 24, color: '#FF6B2B' },
     { name: 'Nutrition Plans', count: 12, color: '#FF8F5E' },
-    { name: 'Mobilite & Stretching', count: 18, color: '#FFB088' },
+    { name: 'Mobilité & Stretching', count: 18, color: '#FFB088' },
     { name: 'Onboarding Clients', count: 8, color: '#FF6B2B' },
   ]
 
   const files = [
     { name: 'Squat Technique Parfaite.mp4', type: 'video', size: '124 Mo', tag: 'Jambes', date: '2 jan', icon: Play },
-    { name: 'Plan Alimentaire Seche.pdf', type: 'pdf', size: '2.4 Mo', tag: 'Nutrition', date: '28 dec', icon: FileText },
+    { name: 'Plan Alimentaire Sèche.pdf', type: 'pdf', size: '2.4 Mo', tag: 'Nutrition', date: '28 dec', icon: FileText },
     { name: 'Programme PPL 12 Semaines.pdf', type: 'pdf', size: '1.8 Mo', tag: 'Programme', date: '25 dec', icon: FileText },
-    { name: 'Deadlift Roumain Demo.mp4', type: 'video', size: '89 Mo', tag: 'Dos', date: '22 dec', icon: Play },
-    { name: 'Guide Macro Debutant.pdf', type: 'doc', size: '3.1 Mo', tag: 'Nutrition', date: '20 dec', icon: FileText },
+    { name: 'Deadlift Roumain Démo.mp4', type: 'video', size: '89 Mo', tag: 'Dos', date: '22 dec', icon: Play },
+    { name: 'Guide Macro Débutant.pdf', type: 'doc', size: '3.1 Mo', tag: 'Nutrition', date: '20 dec', icon: FileText },
   ]
 
   const tagColors = {
@@ -39,7 +39,7 @@ function LibraryMockup() {
               <BookOpen size={14} className="text-[#FF6B2B]" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-[#F5F5F3]/80">Ma Bibliotheque</p>
+              <p className="text-xs font-semibold text-[#F5F5F3]/80">Ma Bibliothèque</p>
               <p className="text-[10px] text-[#F5F5F3]/25">62 fichiers  -  4 dossiers</p>
             </div>
           </div>
@@ -124,7 +124,7 @@ function LibraryMockup() {
 /* ── Extra: File type cards ── */
 function FileTypesSection() {
   const types = [
-    { icon: Video, label: 'Videos', formats: 'MP4, MOV, AVI, WebM', count: '28', gradient: 'from-[#FF6B2B]/15 to-[#FF6B2B]/5' },
+    { icon: Video, label: 'Vidéos', formats: 'MP4, MOV, AVI, WebM', count: '28', gradient: 'from-[#FF6B2B]/15 to-[#FF6B2B]/5' },
     { icon: FileText, label: 'Documents', formats: 'PDF, Word, Excel, PPT', count: '19', gradient: 'from-[#FF8F5E]/15 to-[#FF8F5E]/5' },
     { icon: Image, label: 'Images', formats: 'JPG, PNG, WebP, SVG', count: '11', gradient: 'from-[#FFB088]/15 to-[#FFB088]/5' },
     { icon: Link, label: 'Liens', formats: 'YouTube, Vimeo, Drive, URL', count: '4', gradient: 'from-[#FF6B2B]/15 to-[#FF6B2B]/5' },
@@ -135,7 +135,7 @@ function FileTypesSection() {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0E0E0E] to-transparent pointer-events-none" />
       <div className="max-w-5xl mx-auto px-5 md:px-8 relative z-10">
         <div className="text-center mb-14">
-          <p className="text-[11px] font-semibold text-[#FF6B2B] uppercase tracking-widest mb-3">Formats supportes</p>
+          <p className="text-[11px] font-semibold text-[#FF6B2B] uppercase tracking-widest mb-3">Formats supportés</p>
           <h2 className="text-2xl md:text-4xl font-bold">Tous tes fichiers, <span className="bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-[#FFB088] bg-clip-text text-transparent">un seul hub</span></h2>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -166,33 +166,33 @@ function FileTypesSection() {
 export default function BibliothequePage() {
   return (
     <FeaturePageLayout
-      badge="Bibliotheque & Ressources"
+      badge="Bibliothèque & Ressources"
       badgeIcon={BookOpen}
       title="Toutes tes ressources,"
       titleAccent="un seul endroit"
-      subtitle="Centralise videos, PDF, programmes et documents. Organise, tague et partage avec tes clients en quelques clics."
+      subtitle="Centralise vidéos, PDF, programmes et documents. Organise, tague et partage avec tes clients en quelques clics."
       stats={[
-        { value: '500+', label: 'FICHIERS SUPPORTES' },
-        { value: '4', label: 'TYPES DE MEDIAS' },
-        { value: '< 2s', label: 'RECHERCHE INSTANTANEE' },
+        { value: '500+', label: 'FICHIERS SUPPORTÉS' },
+        { value: '4', label: 'TYPES DE MÉDIAS' },
+        { value: '< 2s', label: 'RECHERCHE INSTANTANÉE' },
       ]}
       mockup={<LibraryMockup />}
       features={[
-        { icon: FolderOpen, title: 'Dossiers organises', desc: 'Cree une arborescence logique pour retrouver chaque fichier en un instant.' },
-        { icon: Video, title: 'Videos d\'exercices', desc: 'Uploade tes demos, tutos et replays. Lecture directe dans l\'app.' },
-        { icon: FileText, title: 'Documents PDF', desc: 'Plans alimentaires, programmes, fiches techniques. Tout au meme endroit.' },
-        { icon: Search, title: 'Recherche intelligente', desc: 'Trouve n\'importe quel fichier par nom, tag ou type en temps reel.' },
+        { icon: FolderOpen, title: 'Dossiers organisés', desc: 'Crée une arborescence logique pour retrouver chaque fichier en un instant.' },
+        { icon: Video, title: 'Vidéos d\'exercices', desc: 'Uploade tes démos, tutos et replays. Lecture directe dans l\'app.' },
+        { icon: FileText, title: 'Documents PDF', desc: 'Plans alimentaires, programmes, fiches techniques. Tout au même endroit.' },
+        { icon: Search, title: 'Recherche intelligente', desc: 'Trouve n\'importe quel fichier par nom, tag ou type en temps réel.' },
         { icon: Share2, title: 'Partage client', desc: 'Envoie les bons fichiers aux bons clients en un clic depuis la fiche.' },
-        { icon: Tag, title: 'Tags & categories', desc: 'Classe tes ressources par theme, niveau ou objectif pour un acces rapide.' },
+        { icon: Tag, title: 'Tags & catégories', desc: 'Classe tes ressources par thème, niveau ou objectif pour un accès rapide.' },
       ]}
-      stepsTitle="Centralise en 3 etapes"
+      stepsTitle="Centralise en 3 étapes"
       steps={[
-        { title: 'Uploade tes fichiers', desc: 'Glisse tes videos, PDF, images ou liens directement dans ta bibliotheque. Tous les formats courants sont acceptes.' },
-        { title: 'Organise avec des tags', desc: 'Ajoute des tags, cree des dossiers et structure ta bibliotheque pour retrouver chaque ressource instantanement.' },
-        { title: 'Partage a tes clients', desc: 'Associe les bonnes ressources aux bons clients. Ils y accedent directement depuis leur espace personnel.' },
+        { title: 'Uploade tes fichiers', desc: 'Glisse tes vidéos, PDF, images ou liens directement dans ta bibliothèque. Tous les formats courants sont acceptés.' },
+        { title: 'Organise avec des tags', desc: 'Ajoute des tags, crée des dossiers et structure ta bibliothèque pour retrouver chaque ressource instantanément.' },
+        { title: 'Partage à tes clients', desc: 'Associe les bonnes ressources aux bons clients. Ils y accèdent directement depuis leur espace personnel.' },
       ]}
       extraSection={<FileTypesSection />}
-      ctaTitle="Pret a centraliser"
+      ctaTitle="Prêt à centraliser"
       ctaAccent="tes ressources"
     />
   )

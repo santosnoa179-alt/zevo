@@ -8,7 +8,7 @@ import FeaturePageLayout from '../../../components/FeaturePageLayout'
 function WorkoutMockup() {
   const exercises = [
     {
-      name: 'Developpe couche',
+      name: 'Développé couché',
       muscle: 'Pectoraux',
       sets: [
         { set: 1, reps: 10, weight: 80, rpe: 7, done: true },
@@ -56,7 +56,7 @@ function WorkoutMockup() {
               <Dumbbell size={14} className="text-white" />
             </div>
             <div>
-              <p className="text-[12px] font-semibold text-[#F5F5F3]/80">Seance Push/Pull/Legs</p>
+              <p className="text-[12px] font-semibold text-[#F5F5F3]/80">Séance Push/Pull/Legs</p>
               <p className="text-[10px] text-[#F5F5F3]/25">Lucas M. - Mardi 15 avril</p>
             </div>
           </div>
@@ -76,7 +76,7 @@ function WorkoutMockup() {
         <div className="px-5 py-2 bg-[#111111]/40 border-b border-white/[0.04]">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[9px] text-[#F5F5F3]/20">Progression</span>
-            <span className="text-[9px] text-[#FF6B2B] font-medium">6/10 series</span>
+            <span className="text-[9px] text-[#FF6B2B] font-medium">6/10 séries</span>
           </div>
           <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
             <div className="h-full rounded-full bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] transition-all duration-500" style={{ width: '60%' }} />
@@ -98,7 +98,7 @@ function WorkoutMockup() {
                     </div>
                     <div>
                       <p className="text-[12px] font-semibold text-[#F5F5F3]/80">{ex.name}</p>
-                      <p className="text-[9px] text-[#F5F5F3]/20">{ex.muscle} - {ex.sets.length} series</p>
+                      <p className="text-[9px] text-[#F5F5F3]/20">{ex.muscle} - {ex.sets.length} séries</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -114,7 +114,7 @@ function WorkoutMockup() {
                 {/* Sets table */}
                 <div className="rounded-xl border border-white/[0.04] overflow-hidden">
                   <div className="grid grid-cols-5 gap-0 px-3 py-1.5 bg-white/[0.02] border-b border-white/[0.03]">
-                    {['Serie', 'Reps', 'Charge', 'RPE', ''].map((h, hi) => (
+                    {['Série', 'Reps', 'Charge', 'RPE', ''].map((h, hi) => (
                       <p key={hi} className={`text-[8px] uppercase font-semibold text-[#F5F5F3]/15 tracking-wider ${hi === 4 ? 'text-right' : ''}`}>{h}</p>
                     ))}
                   </div>
@@ -145,7 +145,7 @@ function WorkoutMockup() {
         <div className="px-5 py-3 border-t border-white/[0.06] bg-[#111111]/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Timer size={12} className="text-[#FF6B2B]" />
-            <span className="text-[10px] text-[#F5F5F3]/30">Repos entre series</span>
+            <span className="text-[10px] text-[#F5F5F3]/30">Repos entre séries</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-md bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 text-[11px] font-bold text-[#FF6B2B]">1:32</span>
@@ -163,18 +163,18 @@ function ComparisonSection() {
     { icon: XCircle, text: 'Notes papier ou Google Sheets' },
     { icon: XCircle, text: 'Pas de suivi des charges' },
     { icon: XCircle, text: 'Aucun historique de progression' },
-    { icon: XCircle, text: 'Chrono repos sur le telephone' },
+    { icon: XCircle, text: 'Chrono repos sur le téléphone' },
     { icon: XCircle, text: 'Le client oublie son programme' },
-    { icon: XCircle, text: 'Aucune donnee exploitable' },
+    { icon: XCircle, text: 'Aucune donnée exploitable' },
   ]
 
   const avec = [
-    { icon: CheckCircle, text: 'Tout centralise dans l\'app' },
+    { icon: CheckCircle, text: 'Tout centralisé dans l\'app' },
     { icon: CheckCircle, text: 'Suivi charge, reps, RPE en direct' },
     { icon: CheckCircle, text: 'Graphiques de progression auto' },
-    { icon: CheckCircle, text: 'Chrono repos integre et configurable' },
+    { icon: CheckCircle, text: 'Chrono repos intégré et configurable' },
     { icon: CheckCircle, text: 'Programme accessible partout' },
-    { icon: CheckCircle, text: 'Rapports detailles par client' },
+    { icon: CheckCircle, text: 'Rapports détaillés par client' },
   ]
 
   return (
@@ -183,7 +183,7 @@ function ComparisonSection() {
       <div className="max-w-5xl mx-auto px-5 md:px-8 relative z-10">
         <div className="text-center mb-14">
           <p className="text-[11px] font-semibold text-[#FF6B2B] uppercase tracking-widest mb-3">Comparaison</p>
-          <h2 className="text-2xl md:text-4xl font-bold">Avant vs Apres Zevo</h2>
+          <h2 className="text-2xl md:text-4xl font-bold">Avant vs Après Zevo</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Sans Zevo */}
@@ -240,34 +240,34 @@ function ComparisonSection() {
 export default function EntrainementPage() {
   return (
     <FeaturePageLayout
-      badge="Entrainement & Suivi"
+      badge="Entraînement & Suivi"
       badgeIcon={Dumbbell}
-      title="L'entrainement"
-      titleAccent="reinvente"
-      subtitle="Suis chaque serie, chaque rep, chaque charge en temps reel. Tes clients executent leur programme et tu gardes un oeil sur tout, meme a distance."
+      title="L'entraînement"
+      titleAccent="réinventé"
+      subtitle="Suis chaque série, chaque rep, chaque charge en temps réel. Tes clients exécutent leur programme et tu gardes un œil sur tout, même à distance."
       stats={[
-        { value: '100%', label: 'des seances tracees' },
+        { value: '100%', label: 'des séances tracées' },
         { value: '+34%', label: 'de progression moyenne' },
-        { value: '< 2s', label: 'pour logger une serie' },
+        { value: '< 2s', label: 'pour logger une série' },
       ]}
       mockup={<WorkoutMockup />}
       features={[
-        { icon: Zap, title: 'Suivi temps reel', desc: 'Vois chaque serie se completer en direct. Les donnees se synchronisent instantanement entre coach et client.' },
-        { icon: Timer, title: 'Chrono repos integre', desc: 'Timer de repos configurable par exercice. Le client sait exactement quand reprendre sa prochaine serie.' },
-        { icon: History, title: 'Historique performances', desc: 'Retrouve toutes les seances passees avec charges, reps et RPE. Analyse la progression sur des semaines ou des mois.' },
-        { icon: PlayCircle, title: 'Videos demo', desc: 'Associe une video de demonstration a chaque exercice pour que le client execute le mouvement parfaitement.' },
-        { icon: Target, title: 'Objectifs exercice', desc: 'Definis des objectifs de charge ou de reps pour chaque exercice et suis l\'atteinte en temps reel.' },
-        { icon: TrendingUp, title: 'Progression automatique', desc: 'Suggestions intelligentes d\'augmentation de charge basees sur les performances passees du client.' },
+        { icon: Zap, title: 'Suivi temps réel', desc: 'Vois chaque série se compléter en direct. Les données se synchronisent instantanément entre coach et client.' },
+        { icon: Timer, title: 'Chrono repos intégré', desc: 'Timer de repos configurable par exercice. Le client sait exactement quand reprendre sa prochaine série.' },
+        { icon: History, title: 'Historique performances', desc: 'Retrouve toutes les séances passées avec charges, reps et RPE. Analyse la progression sur des semaines ou des mois.' },
+        { icon: PlayCircle, title: 'Vidéos démo', desc: 'Associe une vidéo de démonstration à chaque exercice pour que le client exécute le mouvement parfaitement.' },
+        { icon: Target, title: 'Objectifs exercice', desc: 'Définis des objectifs de charge ou de reps pour chaque exercice et suis l\'atteinte en temps réel.' },
+        { icon: TrendingUp, title: 'Progression automatique', desc: 'Suggestions intelligentes d\'augmentation de charge basées sur les performances passées du client.' },
       ]}
-      stepsTitle="Du programme a l'execution"
+      stepsTitle="Du programme à l'exécution"
       steps={[
-        { title: 'Programme la seance', desc: 'Choisis les exercices, le nombre de series, les charges cibles et les temps de repos pour chaque client.' },
-        { title: 'Le client execute', desc: 'Ton client ouvre l\'app, lance sa seance et valide chaque serie avec la charge reelle et le RPE ressenti.' },
-        { title: 'Tu suis en direct', desc: 'Visualise la progression en temps reel, envoie des encouragements ou ajuste le programme a la volee.' },
+        { title: 'Programme la séance', desc: 'Choisis les exercices, le nombre de séries, les charges cibles et les temps de repos pour chaque client.' },
+        { title: 'Le client exécute', desc: 'Ton client ouvre l\'app, lance sa séance et valide chaque série avec la charge réelle et le RPE ressenti.' },
+        { title: 'Tu suis en direct', desc: 'Visualise la progression en temps réel, envoie des encouragements ou ajuste le programme à la volée.' },
       ]}
       extraSection={<ComparisonSection />}
-      ctaTitle="Pret a passer au"
-      ctaAccent="niveau superieur"
+      ctaTitle="Prêt à passer au"
+      ctaAccent="niveau supérieur"
     />
   )
 }

@@ -8,24 +8,24 @@ import FeaturePageLayout from '../../../components/FeaturePageLayout'
 function NutritionMockup() {
   const macros = [
     { label: 'Calories', value: '2 450', unit: 'kcal', color: '#FF6B2B', icon: Flame, pct: null },
-    { label: 'Proteines', value: '184', unit: 'g', color: '#3B82F6', icon: Beef, pct: '30%' },
+    { label: 'Protéines', value: '184', unit: 'g', color: '#3B82F6', icon: Beef, pct: '30%' },
     { label: 'Glucides', value: '276', unit: 'g', color: '#10B981', icon: Wheat, pct: '45%' },
     { label: 'Lipides', value: '68', unit: 'g', color: '#F59E0B', icon: Droplets, pct: '25%' },
   ]
 
   const meals = [
     {
-      name: 'Petit-dejeuner',
+      name: 'Petit-déjeuner',
       time: '07:30',
       cal: 580,
-      items: ['Flocons d\'avoine 80g', 'Banane', 'Whey 30g', 'Beurre cacahuete 15g'],
+      items: ['Flocons d\'avoine 80g', 'Banane', 'Whey 30g', 'Beurre cacahuète 15g'],
       done: true,
     },
     {
-      name: 'Dejeuner',
+      name: 'Déjeuner',
       time: '12:30',
       cal: 720,
-      items: ['Poulet grille 180g', 'Riz basmati 120g', 'Brocolis 150g', 'Huile olive 10ml'],
+      items: ['Poulet grillé 180g', 'Riz basmati 120g', 'Brocolis 150g', 'Huile olive 10ml'],
       done: true,
     },
     {
@@ -36,17 +36,17 @@ function NutritionMockup() {
       done: false,
     },
     {
-      name: 'Diner',
+      name: 'Dîner',
       time: '20:00',
       cal: 650,
       items: ['Saumon 160g', 'Patate douce 200g', 'Salade mixte', 'Vinaigrette'],
       done: false,
     },
     {
-      name: 'Pre-dodo',
+      name: 'Pré-dodo',
       time: '22:00',
       cal: 150,
-      items: ['Caseine 30g', 'Lait amande 200ml'],
+      items: ['Caséine 30g', 'Lait amande 200ml'],
       done: false,
     },
   ]
@@ -68,7 +68,7 @@ function NutritionMockup() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-md bg-[#10B981]/10 border border-[#10B981]/20 text-[10px] font-medium text-[#10B981]">Jour d'entrainement</span>
+            <span className="px-2.5 py-1 rounded-md bg-[#10B981]/10 border border-[#10B981]/20 text-[10px] font-medium text-[#10B981]">Jour d'entraînement</span>
           </div>
         </div>
 
@@ -99,7 +99,7 @@ function NutritionMockup() {
         {/* Consumed progress */}
         <div className="px-5 py-2.5 bg-[#111111]/40 border-b border-white/[0.04]">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] text-[#F5F5F3]/20">Consomme aujourd'hui</span>
+            <span className="text-[9px] text-[#F5F5F3]/20">Consommé aujourd'hui</span>
             <span className="text-[9px] text-[#FF6B2B] font-medium">1 300 / 2 450 kcal</span>
           </div>
           <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
@@ -145,7 +145,7 @@ function NutritionMockup() {
         <div className="px-5 py-3 border-t border-white/[0.04] bg-[#111111]/50 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <ShoppingCart size={10} className="text-[#FF6B2B]" />
-            <span className="text-[9px] text-[#F5F5F3]/20">Liste de courses generee</span>
+            <span className="text-[9px] text-[#F5F5F3]/20">Liste de courses générée</span>
           </div>
           <span className="text-[9px] text-[#F5F5F3]/15">Eau : 2.5L / 3L</span>
         </div>
@@ -158,19 +158,19 @@ function NutritionMockup() {
 function MacroBreakdownSection() {
   const macros = [
     {
-      name: 'Proteines',
+      name: 'Protéines',
       pct: '30%',
       color: '#3B82F6',
       icon: Beef,
-      desc: 'Essentielles pour la reparation et la croissance musculaire. Vise 1.6 a 2.2g par kilo de poids de corps pour tes clients en prise de masse.',
-      sources: ['Poulet', 'Poisson', 'Oeufs', 'Whey', 'Tofu'],
+      desc: 'Essentielles pour la réparation et la croissance musculaire. Vise 1.6 à 2.2g par kilo de poids de corps pour tes clients en prise de masse.',
+      sources: ['Poulet', 'Poisson', 'Œufs', 'Whey', 'Tofu'],
     },
     {
       name: 'Glucides',
       pct: '45%',
       color: '#10B981',
       icon: Wheat,
-      desc: 'Le carburant principal de l\'entrainement. Ajuste la quantite selon l\'intensite des seances : plus les jours d\'entrainement, moins les jours off.',
+      desc: 'Le carburant principal de l\'entraînement. Ajuste la quantité selon l\'intensité des séances : plus les jours d\'entraînement, moins les jours off.',
       sources: ['Riz', 'Patate douce', 'Avoine', 'Fruits', 'Pain complet'],
     },
     {
@@ -178,7 +178,7 @@ function MacroBreakdownSection() {
       pct: '25%',
       color: '#F59E0B',
       icon: Droplets,
-      desc: 'Indispensables pour les hormones et l\'absorption des vitamines. Privilegie les sources de qualite pour la sante et la performance.',
+      desc: 'Indispensables pour les hormones et l\'absorption des vitamines. Privilégie les sources de qualité pour la santé et la performance.',
       sources: ['Avocat', 'Huile olive', 'Noix', 'Saumon', 'Graines'],
     },
   ]
@@ -189,7 +189,7 @@ function MacroBreakdownSection() {
       <div className="max-w-6xl mx-auto px-5 md:px-8 relative z-10">
         <div className="text-center mb-14">
           <p className="text-[11px] font-semibold text-[#FF6B2B] uppercase tracking-widest mb-3">Macronutriments</p>
-          <h2 className="text-2xl md:text-4xl font-bold">Repartition intelligente</h2>
+          <h2 className="text-2xl md:text-4xl font-bold">Répartition intelligente</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {macros.map((m, i) => {
@@ -211,7 +211,7 @@ function MacroBreakdownSection() {
 
                   {/* Sources */}
                   <div>
-                    <p className="text-[9px] uppercase font-semibold text-[#F5F5F3]/15 tracking-wider mb-2">Sources recommandees</p>
+                    <p className="text-[9px] uppercase font-semibold text-[#F5F5F3]/15 tracking-wider mb-2">Sources recommandées</p>
                     <div className="flex flex-wrap gap-1.5">
                       {m.sources.map((s, si) => (
                         <span key={si} className="px-2.5 py-1 rounded-lg text-[10px] font-medium border" style={{ backgroundColor: `${m.color}08`, borderColor: `${m.color}15`, color: `${m.color}` }}>
@@ -237,30 +237,30 @@ export default function NutritionPage() {
       badge="Nutrition & Plans alimentaires"
       badgeIcon={Utensils}
       title="La nutrition,"
-      titleAccent="maitrisee"
-      subtitle="Cree des plans alimentaires personnalises avec calcul automatique des macros. Tes clients savent exactement quoi manger, repas par repas."
+      titleAccent="maîtrisée"
+      subtitle="Crée des plans alimentaires personnalisés avec calcul automatique des macros. Tes clients savent exactement quoi manger, repas par repas."
       stats={[
-        { value: '2 min', label: 'pour creer un plan' },
-        { value: '100%', label: 'macros calculees auto' },
-        { value: '+45%', label: 'd\'adherence nutritionnelle' },
+        { value: '2 min', label: 'pour créer un plan' },
+        { value: '100%', label: 'macros calculées auto' },
+        { value: '+45%', label: 'd\'adhérence nutritionnelle' },
       ]}
       mockup={<NutritionMockup />}
       features={[
-        { icon: Utensils, title: 'Plans alimentaires', desc: 'Compose des plans repas complets avec petit-dejeuner, dejeuner, collations et diner. Jour par jour ou par cycle.' },
-        { icon: Calculator, title: 'Calcul macros auto', desc: 'Les macronutriments sont calcules automatiquement en fonction des objectifs, du poids et du niveau d\'activite du client.' },
-        { icon: Copy, title: 'Templates reutilisables', desc: 'Cree des templates de plans alimentaires et duplique-les pour gagner du temps avec chaque nouveau client.' },
-        { icon: Target, title: 'Objectifs nutritionnels', desc: 'Definis des objectifs caloriques et macros adaptes : prise de masse, seche, maintien ou recomposition.' },
-        { icon: ShieldCheck, title: 'Regimes & allergies', desc: 'Gere les restrictions alimentaires : vegetarien, vegan, sans gluten, sans lactose, allergies specifiques.' },
-        { icon: ShoppingCart, title: 'Liste de courses', desc: 'Genere automatiquement une liste de courses a partir du plan alimentaire de la semaine. Pratique et precis.' },
+        { icon: Utensils, title: 'Plans alimentaires', desc: 'Compose des plans repas complets avec petit-déjeuner, déjeuner, collations et dîner. Jour par jour ou par cycle.' },
+        { icon: Calculator, title: 'Calcul macros auto', desc: 'Les macronutriments sont calculés automatiquement en fonction des objectifs, du poids et du niveau d\'activité du client.' },
+        { icon: Copy, title: 'Templates réutilisables', desc: 'Crée des templates de plans alimentaires et duplique-les pour gagner du temps avec chaque nouveau client.' },
+        { icon: Target, title: 'Objectifs nutritionnels', desc: 'Définis des objectifs caloriques et macros adaptés : prise de masse, sèche, maintien ou recomposition.' },
+        { icon: ShieldCheck, title: 'Régimes & allergies', desc: 'Gère les restrictions alimentaires : végétarien, vegan, sans gluten, sans lactose, allergies spécifiques.' },
+        { icon: ShoppingCart, title: 'Liste de courses', desc: 'Génère automatiquement une liste de courses à partir du plan alimentaire de la semaine. Pratique et précis.' },
       ]}
-      stepsTitle="La nutrition simplifiee"
+      stepsTitle="La nutrition simplifiée"
       steps={[
-        { title: 'Definis les objectifs', desc: 'Configure les besoins caloriques et la repartition macro de ton client en fonction de son profil et ses objectifs.' },
-        { title: 'Compose les repas', desc: 'Ajoute les aliments repas par repas avec les quantites. Les macros se calculent en temps reel au gramme pres.' },
-        { title: 'Assigne au client', desc: 'Ton client recoit son plan, voit ses repas du jour et coche ce qu\'il a mange. Tu suis son adherence.' },
+        { title: 'Définis les objectifs', desc: 'Configure les besoins caloriques et la répartition macro de ton client en fonction de son profil et ses objectifs.' },
+        { title: 'Compose les repas', desc: 'Ajoute les aliments repas par repas avec les quantités. Les macros se calculent en temps réel au gramme près.' },
+        { title: 'Assigne au client', desc: 'Ton client reçoit son plan, voit ses repas du jour et coche ce qu\'il a mangé. Tu suis son adhérence.' },
       ]}
       extraSection={<MacroBreakdownSection />}
-      ctaTitle="Pret a transformer la nutrition de"
+      ctaTitle="Prêt à transformer la nutrition de"
       ctaAccent="tes clients"
     />
   )

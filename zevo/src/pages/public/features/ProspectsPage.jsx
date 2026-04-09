@@ -13,7 +13,7 @@ function ProspectsMockup() {
       count: 4,
       cards: [
         { name: 'Julie Lefevre', source: 'Instagram', date: '6 avr.', icon: Instagram },
-        { name: 'Marc Fontaine', source: 'Bouche a oreille', date: '5 avr.', icon: Star },
+        { name: 'Marc Fontaine', source: 'Bouche à oreille', date: '5 avr.', icon: Star },
         { name: 'Sarah Nguyen', source: 'Site web', date: '4 avr.', icon: Radar },
       ],
     },
@@ -22,8 +22,8 @@ function ProspectsMockup() {
       color: '#F59E0B',
       count: 3,
       cards: [
-        { name: 'Romain Girard', source: 'Appel planifie', date: '5 avr.', icon: Phone },
-        { name: 'Camille Roux', source: 'Email envoye', date: '3 avr.', icon: Mail },
+        { name: 'Romain Girard', source: 'Appel planifié', date: '5 avr.', icon: Phone },
+        { name: 'Camille Roux', source: 'Email envoyé', date: '3 avr.', icon: Mail },
       ],
     },
     {
@@ -134,28 +134,28 @@ export default function ProspectsPage() {
       badgeIcon={UserPlus}
       title="Convertis plus,"
       titleAccent="prospecte mieux"
-      subtitle="Un pipeline commercial visuel pour suivre chaque prospect du premier contact a la signature."
+      subtitle="Un pipeline commercial visuel pour suivre chaque prospect du premier contact à la signature."
       stats={[
         { value: '+40%', label: 'taux de conversion' },
         { value: 'Pipeline', label: 'visuel' },
-        { value: '0', label: 'prospect oublie' },
+        { value: '0', label: 'prospect oublié' },
       ]}
       mockup={<ProspectsMockup />}
       features={[
-        { icon: Columns3, title: 'Pipeline visuel', desc: "Kanban drag & drop pour suivre chaque prospect. De 'Nouveau' a 'Converti' en un coup d'oeil." },
-        { icon: FileUser, title: 'Fiches prospects', desc: "Toutes les infos en un endroit : coordonnees, notes, historique. Ne perds jamais le fil." },
-        { icon: MessageSquare, title: 'Historique interactions', desc: "Chaque appel, email, message est trace. Reprends la conversation la ou tu l'as laissee." },
-        { icon: BellRing, title: 'Relances automatiques', desc: "Un prospect n'a pas repondu ? Le systeme te rappelle de le relancer au bon moment." },
-        { icon: Radar, title: 'Sources tracking', desc: "Sais d'ou viennent tes prospects : Instagram, bouche a oreille, site web. Investis la ou ca marche." },
+        { icon: Columns3, title: 'Pipeline visuel', desc: "Kanban drag & drop pour suivre chaque prospect. De 'Nouveau' à 'Converti' en un coup d'œil." },
+        { icon: FileUser, title: 'Fiches prospects', desc: "Toutes les infos en un endroit : coordonnées, notes, historique. Ne perds jamais le fil." },
+        { icon: MessageSquare, title: 'Historique interactions', desc: "Chaque appel, email, message est tracé. Reprends la conversation là où tu l'as laissée." },
+        { icon: BellRing, title: 'Relances automatiques', desc: "Un prospect n'a pas répondu ? Le système te rappelle de le relancer au bon moment." },
+        { icon: Radar, title: 'Sources tracking', desc: "Sais d'où viennent tes prospects : Instagram, bouche à oreille, site web. Investis là où ça marche." },
         { icon: TrendingUp, title: 'Conversion analytics', desc: "Taux de conversion, temps moyen, sources performantes. Optimise ton tunnel de vente." },
       ]}
       stepsTitle="Du prospect au client"
       steps={[
         { title: 'Ajoute un prospect', desc: "Nouveau contact ? Ajoute-le en 2 clics avec sa source d'acquisition. Il entre dans ton pipeline." },
-        { title: 'Suis ton pipeline', desc: "Deplace tes prospects dans le kanban au fil des echanges. Nouveau, En discussion, Converti — rien n'echappe." },
-        { title: 'Convertis en client', desc: "Le prospect signe ? Transforme-le en client en un clic. Il recoit son invitation et commence son coaching." },
+        { title: 'Suis ton pipeline', desc: "Déplace tes prospects dans le kanban au fil des échanges. Nouveau, En discussion, Converti — rien n'échappe." },
+        { title: 'Convertis en client', desc: "Le prospect signe ? Transforme-le en client en un clic. Il reçoit son invitation et commence son coaching." },
       ]}
-      ctaTitle="Pret a ne plus perdre de prospects"
+      ctaTitle="Prêt à ne plus perdre de prospects"
       ctaAccent="et convertir plus"
     />
   )

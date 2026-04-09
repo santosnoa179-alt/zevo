@@ -10,15 +10,15 @@ function ChatMockup() {
   const conversations = [
     { name: 'Marie Lefevre', initials: 'ML', lastMsg: 'Super, merci coach !', time: '14:32', unread: 0, active: true, online: true },
     { name: 'Thomas Dupont', initials: 'TD', lastMsg: 'J\'ai une question sur le programme...', time: '13:15', unread: 2, online: true },
-    { name: 'Julie Martin', initials: 'JM', lastMsg: 'Photo envoyee', time: '11:40', unread: 0, online: false },
+    { name: 'Julie Martin', initials: 'JM', lastMsg: 'Photo envoyée', time: '11:40', unread: 0, online: false },
     { name: 'Lucas Bernard', initials: 'LB', lastMsg: 'OK je fais ca demain', time: 'Hier', unread: 0, online: false },
-    { name: 'Emma Petit', initials: 'EP', lastMsg: 'Bilan envoye', time: 'Hier', unread: 1, online: true },
+    { name: 'Emma Petit', initials: 'EP', lastMsg: 'Bilan envoyé', time: 'Hier', unread: 1, online: true },
   ]
 
   const messages = [
-    { from: 'client', text: 'Salut coach ! J\'ai fait ma seance upper body ce matin', time: '14:20' },
+    { from: 'client', text: 'Salut coach ! J\'ai fait ma séance upper body ce matin', time: '14:20' },
     { from: 'client', text: 'Par contre j\'ai eu mal au coude sur le curl. C\'est normal ?', time: '14:21' },
-    { from: 'coach', text: 'Bravo pour la seance Marie ! Pour le coude, reduis un peu la charge et controle bien la descente. Si ca persiste on adapte le programme.', time: '14:28' },
+    { from: 'coach', text: 'Bravo pour la séance Marie ! Pour le coude, réduis un peu la charge et contrôle bien la descente. Si ça persiste on adapte le programme.', time: '14:28' },
     { from: 'client', text: 'Super, merci coach !', time: '14:32', read: true },
   ]
 
@@ -137,7 +137,7 @@ function ChatMockup() {
               <Paperclip size={15} className="text-[#F5F5F3]/15 hover:text-[#FF6B2B] cursor-pointer transition-colors flex-shrink-0" />
               <Image size={15} className="text-[#F5F5F3]/15 hover:text-[#FF6B2B] cursor-pointer transition-colors flex-shrink-0" />
               <div className="flex-1 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-                <span className="text-[11px] text-[#F5F5F3]/15 flex-1">Ecrire un message...</span>
+                <span className="text-[11px] text-[#F5F5F3]/15 flex-1">Écrire un message...</span>
                 <Smile size={13} className="text-[#F5F5F3]/15" />
               </div>
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center cursor-pointer hover:shadow-lg hover:shadow-[#FF6B2B]/20 transition-all flex-shrink-0">
@@ -158,28 +158,28 @@ export default function MessageriePage() {
       badgeIcon={MessageCircle}
       title="La communication,"
       titleAccent="fluide"
-      subtitle="Chat en temps reel avec tes clients. Plus besoin de jongler entre WhatsApp, email et SMS."
+      subtitle="Chat en temps réel avec tes clients. Plus besoin de jongler entre WhatsApp, email et SMS."
       stats={[
-        { value: 'Temps reel', label: 'MESSAGES INSTANTANES' },
-        { value: '100%', label: 'HISTORIQUE CONSERVE' },
+        { value: 'Temps réel', label: 'MESSAGES INSTANTANÉS' },
+        { value: '100%', label: 'HISTORIQUE CONSERVÉ' },
         { value: '0', label: 'MESSAGES PERDUS' },
       ]}
       mockup={<ChatMockup />}
       features={[
-        { icon: MessageCircle, title: 'Chat temps reel', desc: 'Messages instantanes avec tes clients. Fluidite et reactivite pour un suivi optimal.' },
-        { icon: Bell, title: 'Notifications push', desc: 'Recois une alerte des qu\'un client t\'envoie un message. Ne rate plus rien.' },
+        { icon: MessageCircle, title: 'Chat temps réel', desc: 'Messages instantanés avec tes clients. Fluidité et réactivité pour un suivi optimal.' },
+        { icon: Bell, title: 'Notifications push', desc: 'Reçois une alerte dès qu\'un client t\'envoie un message. Ne rate plus rien.' },
         { icon: Paperclip, title: 'Partage de fichiers', desc: 'Envoie photos, videos, PDF et documents directement dans la conversation.' },
-        { icon: UsersRound, title: 'Conversations groupees', desc: 'Cree des groupes pour les challenges, cours collectifs ou communautes.' },
+        { icon: UsersRound, title: 'Conversations groupées', desc: 'Crée des groupes pour les challenges, cours collectifs ou communautés.' },
         { icon: Search, title: 'Historique searchable', desc: 'Retrouve n\'importe quel message, fichier ou information en quelques secondes.' },
-        { icon: CheckCheck, title: 'Accuses de lecture', desc: 'Sache quand ton client a vu ton message. Plus de doute sur la reception.' },
+        { icon: CheckCheck, title: 'Accusés de lecture', desc: 'Sache quand ton client a vu ton message. Plus de doute sur la réception.' },
       ]}
       stepsTitle="Communique simplement"
       steps={[
-        { title: 'Ton client t\'ecrit', desc: 'Depuis son espace, ton client t\'envoie un message, une photo ou un document. Tout est centralise.' },
-        { title: 'Tu recois une notification', desc: 'Alerte push instantanee. Tu sais immediatement quand un client a besoin de toi.' },
-        { title: 'Reponds depuis l\'app', desc: 'Reponds directement depuis Zevo. Plus besoin de switcher entre 5 applications de messagerie.' },
+        { title: 'Ton client t\'écrit', desc: 'Depuis son espace, ton client t\'envoie un message, une photo ou un document. Tout est centralisé.' },
+        { title: 'Tu reçois une notification', desc: 'Alerte push instantanée. Tu sais immédiatement quand un client a besoin de toi.' },
+        { title: 'Réponds depuis l\'app', desc: 'Réponds directement depuis Zevo. Plus besoin de switcher entre 5 applications de messagerie.' },
       ]}
-      ctaTitle="Pret a simplifier"
+      ctaTitle="Prêt à simplifier"
       ctaAccent="ta communication"
     />
   )

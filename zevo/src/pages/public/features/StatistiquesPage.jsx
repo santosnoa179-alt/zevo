@@ -9,8 +9,8 @@ function StatsMockup() {
   const metrics = [
     { label: 'Revenus', value: '4 850', unit: '\u20ac', change: '+12%', icon: DollarSign, color: '#FF6B2B' },
     { label: 'Clients actifs', value: '47', unit: '', change: '+3', icon: Users, color: '#22C55E' },
-    { label: 'Retention', value: '94', unit: '%', change: '+2.1%', icon: Activity, color: '#A78BFA' },
-    { label: 'Seances / mois', value: '186', unit: '', change: '+8%', icon: CalendarDays, color: '#38BDF8' },
+    { label: 'Rétention', value: '94', unit: '%', change: '+2.1%', icon: Activity, color: '#A78BFA' },
+    { label: 'Séances / mois', value: '186', unit: '', change: '+8%', icon: CalendarDays, color: '#38BDF8' },
   ]
 
   const barData = [65, 78, 52, 88, 95, 72, 84]
@@ -65,7 +65,7 @@ function StatsMockup() {
           {/* Mini bar chart */}
           <div className="rounded-xl border border-white/[0.06] bg-[#141414] p-5">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-[11px] font-semibold text-[#F5F5F3]/50">Seances par jour</p>
+              <p className="text-[11px] font-semibold text-[#F5F5F3]/50">Séances par jour</p>
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E]" />
                 <span className="text-[9px] text-[#F5F5F3]/20">Cette semaine</span>
@@ -96,29 +96,29 @@ export default function StatistiquesPage() {
       badgeIcon={BarChart3}
       title="Mesure tout,"
       titleAccent="decide mieux"
-      subtitle="Dashboards, graphiques et rapports PDF automatiques. Chaque decision s'appuie sur des donnees concretes."
+      subtitle="Dashboards, graphiques et rapports PDF automatiques. Chaque décision s'appuie sur des données concrètes."
       stats={[
-        { value: '12+', label: 'metriques trackees' },
+        { value: '12+', label: 'métriques trackées' },
         { value: 'PDF', label: 'rapports auto' },
         { value: '100%', label: 'data-driven' },
       ]}
       mockup={<StatsMockup />}
       features={[
-        { icon: BarChart3, title: 'Dashboards temps reel', desc: "Visualise l'activite de ton business en un coup d'oeil. Revenus, clients, seances — tout est la." },
-        { icon: FileText, title: 'Rapports PDF auto', desc: "Genere des bilans PDF professionnels pour tes clients. Progression, metriques, recommandations." },
-        { icon: LineChart, title: 'Graphiques progression', desc: "Courbes d'evolution pour chaque client. Poids, performances, adherence — tout est trace." },
-        { icon: BellRing, title: 'Alertes desengagement', desc: "Detecte les clients qui decrochent avant qu'il ne soit trop tard. Notifications proactives." },
-        { icon: SlidersHorizontal, title: 'Metriques personnalisees', desc: "Choisis les KPIs qui comptent pour toi. Cree tes propres tableaux de bord sur mesure." },
-        { icon: Download, title: 'Export donnees', desc: "Exporte tes donnees en CSV ou PDF a tout moment. Tes donnees t'appartiennent." },
+        { icon: BarChart3, title: 'Dashboards temps réel', desc: "Visualise l'activité de ton business en un coup d'œil. Revenus, clients, séances — tout est là." },
+        { icon: FileText, title: 'Rapports PDF auto', desc: "Génère des bilans PDF professionnels pour tes clients. Progression, métriques, recommandations." },
+        { icon: LineChart, title: 'Graphiques progression', desc: "Courbes d'évolution pour chaque client. Poids, performances, adhérence — tout est tracé." },
+        { icon: BellRing, title: 'Alertes désengagement', desc: "Détecte les clients qui décrochent avant qu'il ne soit trop tard. Notifications proactives." },
+        { icon: SlidersHorizontal, title: 'Métriques personnalisées', desc: "Choisis les KPIs qui comptent pour toi. Crée tes propres tableaux de bord sur mesure." },
+        { icon: Download, title: 'Export données', desc: "Exporte tes données en CSV ou PDF à tout moment. Tes données t'appartiennent." },
       ]}
-      stepsTitle="De la donnee a la decision"
+      stepsTitle="De la donnée à la décision"
       steps={[
-        { title: 'Connecte tes donnees', desc: "Tes seances, paiements et clients remontent automatiquement. Zero saisie manuelle." },
-        { title: 'Visualise tes metriques', desc: "Dashboards clairs et intuitifs. Identifie les tendances et les opportunites en un instant." },
-        { title: 'Genere tes rapports', desc: "Exporte des bilans PDF pour tes clients ou pour toi. Decisions basees sur des faits, pas des intuitions." },
+        { title: 'Connecte tes données', desc: "Tes séances, paiements et clients remontent automatiquement. Zéro saisie manuelle." },
+        { title: 'Visualise tes métriques', desc: "Dashboards clairs et intuitifs. Identifie les tendances et les opportunités en un instant." },
+        { title: 'Génère tes rapports', desc: "Exporte des bilans PDF pour tes clients ou pour toi. Décisions basées sur des faits, pas des intuitions." },
       ]}
-      ctaTitle="Pret a piloter ton business"
-      ctaAccent="avec des donnees"
+      ctaTitle="Prêt à piloter ton business"
+      ctaAccent="avec des données"
     />
   )
 }

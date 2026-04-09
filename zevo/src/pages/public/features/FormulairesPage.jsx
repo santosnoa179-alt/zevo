@@ -9,9 +9,9 @@ import {
 function FormBuilderMockup() {
   const questions = [
     { type: 'text', label: 'Comment te sens-tu cette semaine ?', icon: AlignLeft, required: true },
-    { type: 'scale', label: 'Niveau d\'energie (1-10)', icon: SlidersHorizontal, value: 7, required: true },
-    { type: 'choice', label: 'As-tu respecte ton plan nutrition ?', icon: CircleDot, options: ['Oui completement', 'Partiellement', 'Non pas du tout'], selected: 0, required: false },
-    { type: 'number', label: 'Nombre de seances cette semaine', icon: Hash, required: true },
+    { type: 'scale', label: 'Niveau d\'énergie (1-10)', icon: SlidersHorizontal, value: 7, required: true },
+    { type: 'choice', label: 'As-tu respecté ton plan nutrition ?', icon: CircleDot, options: ['Oui complètement', 'Partiellement', 'Non pas du tout'], selected: 0, required: false },
+    { type: 'number', label: 'Nombre de séances cette semaine', icon: Hash, required: true },
   ]
 
   return (
@@ -48,11 +48,11 @@ function FormBuilderMockup() {
             <div className="space-y-1">
               {[
                 { icon: AlignLeft, label: 'Texte libre', active: false },
-                { icon: SlidersHorizontal, label: 'Echelle 1-10', active: true },
+                { icon: SlidersHorizontal, label: 'Échelle 1-10', active: true },
                 { icon: CircleDot, label: 'Choix multiple', active: false },
                 { icon: Hash, label: 'Nombre', active: false },
-                { icon: ListChecks, label: 'Cases a cocher', active: false },
-                { icon: Star, label: 'Notation etoiles', active: false },
+                { icon: ListChecks, label: 'Cases à cocher', active: false },
+                { icon: Star, label: 'Notation étoiles', active: false },
               ].map((qt, i) => {
                 const Icon = qt.icon
                 return (
@@ -104,7 +104,7 @@ function FormBuilderMockup() {
                         {/* Question preview */}
                         {q.type === 'text' && (
                           <div className="px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                            <span className="text-[10px] text-[#F5F5F3]/12">Le client ecrira sa reponse ici...</span>
+                            <span className="text-[10px] text-[#F5F5F3]/12">Le client écrira sa réponse ici...</span>
                           </div>
                         )}
                         {q.type === 'scale' && (
@@ -166,29 +166,29 @@ export default function FormulairesPage() {
       badge="Formulaires & Bilans"
       badgeIcon={ClipboardList}
       title="Des bilans"
-      titleAccent="automatises"
-      subtitle="Cree des questionnaires personnalises, envoie-les a tes clients et recupere les reponses automatiquement."
+      titleAccent="automatisés"
+      subtitle="Crée des questionnaires personnalisés, envoie-les à tes clients et récupère les réponses automatiquement."
       stats={[
         { value: '6', label: 'TYPES DE QUESTIONS' },
         { value: '4', label: 'TEMPLATES INCLUS' },
-        { value: '< 30s', label: 'POUR CREER UN BILAN' },
+        { value: '< 30s', label: 'POUR CRÉER UN BILAN' },
       ]}
       mockup={<FormBuilderMockup />}
       features={[
-        { icon: GripVertical, title: 'Builder drag & drop', desc: 'Construis tes formulaires visuellement. Glisse les questions, reorganise, personnalise sans coder.' },
-        { icon: LayoutTemplate, title: 'Templates de bilans', desc: 'Bilan hebdo, mensuel, onboarding, satisfaction : des modeles prets a l\'emploi et modifiables.' },
-        { icon: Send, title: 'Envoi automatique', desc: 'Programme l\'envoi de tes bilans a des dates precises. Le client recoit et repond depuis son espace.' },
-        { icon: FolderOpen, title: 'Reponses centralisees', desc: 'Toutes les reponses de tes clients reunies au meme endroit. Filtres par client, date ou formulaire.' },
-        { icon: BarChart3, title: 'Scoring automatique', desc: 'Les echelles et notations sont calculees automatiquement. Visualise les tendances en un clin d\'oeil.' },
+        { icon: GripVertical, title: 'Builder drag & drop', desc: 'Construis tes formulaires visuellement. Glisse les questions, réorganise, personnalise sans coder.' },
+        { icon: LayoutTemplate, title: 'Templates de bilans', desc: 'Bilan hebdo, mensuel, onboarding, satisfaction : des modèles prêts à l\'emploi et modifiables.' },
+        { icon: Send, title: 'Envoi automatique', desc: 'Programme l\'envoi de tes bilans à des dates précises. Le client reçoit et répond depuis son espace.' },
+        { icon: FolderOpen, title: 'Réponses centralisées', desc: 'Toutes les réponses de tes clients réunies au même endroit. Filtres par client, date ou formulaire.' },
+        { icon: BarChart3, title: 'Scoring automatique', desc: 'Les échelles et notations sont calculées automatiquement. Visualise les tendances en un clin d\'œil.' },
         { icon: FileDown, title: 'Export PDF', desc: 'Exporte les bilans en PDF propre pour tes archives ou pour les partager avec le client.' },
       ]}
       stepsTitle="Automatise tes bilans"
       steps={[
-        { title: 'Cree ton formulaire', desc: 'Choisis tes types de questions, personnalise le contenu et l\'ordre. Utilise un template ou pars de zero.' },
-        { title: 'Envoie a tes clients', desc: 'Selectionne les clients ou programme un envoi automatique. Ils recoivent le bilan dans leur espace.' },
-        { title: 'Analyse les reponses', desc: 'Les reponses arrivent en temps reel. Scores calcules, tendances visibles, donnees exploitables immediatement.' },
+        { title: 'Crée ton formulaire', desc: 'Choisis tes types de questions, personnalise le contenu et l\'ordre. Utilise un template ou pars de zéro.' },
+        { title: 'Envoie à tes clients', desc: 'Sélectionne les clients ou programme un envoi automatique. Ils reçoivent le bilan dans leur espace.' },
+        { title: 'Analyse les réponses', desc: 'Les réponses arrivent en temps réel. Scores calculés, tendances visibles, données exploitables immédiatement.' },
       ]}
-      ctaTitle="Pret a automatiser"
+      ctaTitle="Prêt à automatiser"
       ctaAccent="tes bilans"
     />
   )

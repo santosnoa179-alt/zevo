@@ -55,7 +55,7 @@ function ProgramMockup() {
   ]
 
   const weekSessions = [
-    { day: 'Lundi', name: 'Push - Pectoraux / Epaules', exercises: 6, duration: '55 min', done: true },
+    { day: 'Lundi', name: 'Push - Pectoraux / Épaules', exercises: 6, duration: '55 min', done: true },
     { day: 'Mardi', name: 'Pull - Dos / Biceps', exercises: 7, duration: '60 min', done: true },
     { day: 'Jeudi', name: 'Legs - Quadriceps / Ischios', exercises: 6, duration: '50 min', done: false },
     { day: 'Vendredi', name: 'Upper - Full haut du corps', exercises: 8, duration: '65 min', done: false },
@@ -75,7 +75,7 @@ function ProgramMockup() {
             </div>
             <div>
               <p className="text-[12px] font-semibold text-[#F5F5F3]/80">Programme Hypertrophie</p>
-              <p className="text-[10px] text-[#F5F5F3]/25">Lucas M. - 5 semaines - Intermediaire</p>
+              <p className="text-[10px] text-[#F5F5F3]/25">Lucas M. - 5 semaines - Intermédiaire</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -97,7 +97,7 @@ function ProgramMockup() {
 
         {/* Weeks timeline */}
         <div className="px-5 py-4 border-b border-white/[0.04]">
-          <p className="text-[9px] uppercase font-semibold text-[#F5F5F3]/15 tracking-wider mb-3">Periodisation</p>
+          <p className="text-[9px] uppercase font-semibold text-[#F5F5F3]/15 tracking-wider mb-3">Périodisation</p>
           <div className="overflow-x-auto -mx-5 px-5">
           <div className="flex gap-2 min-w-[500px]">
             {weeks.map((w) => (
@@ -172,7 +172,7 @@ function ProgramMockup() {
               <span className="text-[9px] text-[#F5F5F3]/20">Objectif : +4kg de masse maigre</span>
             </div>
           </div>
-          <span className="text-[9px] text-[#F5F5F3]/15">12 seances restantes</span>
+          <span className="text-[9px] text-[#F5F5F3]/15">12 séances restantes</span>
         </div>
       </div>
     </div>
@@ -187,28 +187,28 @@ export default function ProgrammesPage() {
       badgeIcon={ClipboardList}
       title="Des programmes"
       titleAccent="sur-mesure"
-      subtitle="Cree des programmes d'entrainement multi-semaines avec periodisation, assigne-les a tes clients et suis leur avancement en temps reel."
+      subtitle="Crée des programmes d'entraînement multi-semaines avec périodisation, assigne-les à tes clients et suis leur avancement en temps réel."
       stats={[
-        { value: '5 min', label: 'pour creer un programme' },
-        { value: '12 sem.', label: 'de periodisation max' },
+        { value: '5 min', label: 'pour créer un programme' },
+        { value: '12 sem.', label: 'de périodisation max' },
         { value: '100+', label: 'templates disponibles' },
       ]}
       mockup={<ProgramMockup />}
       features={[
-        { icon: Calendar, title: 'Multi-semaines', desc: 'Structure tes programmes sur plusieurs semaines avec des phases distinctes : volume, intensite, deload.' },
-        { icon: GripVertical, title: 'Drag & drop', desc: 'Reorganise les exercices et les seances par simple glisser-deposer. L\'interface la plus intuitive du marche.' },
-        { icon: Copy, title: 'Templates & duplication', desc: 'Duplique un programme existant, cree des templates reutilisables et gagne du temps sur chaque nouveau client.' },
-        { icon: Users, title: 'Assignation multi-clients', desc: 'Assigne le meme programme a plusieurs clients d\'un coup, puis personnalise les charges individuellement.' },
-        { icon: BarChart3, title: 'Periodisation', desc: 'Definis l\'intensite, le volume et le focus de chaque semaine pour une progression optimale et structuree.' },
-        { icon: TrendingUp, title: 'Suivi avancement', desc: 'Visualise en un coup d\'oeil ou en est chaque client dans son programme : seances faites, restantes, adherence.' },
+        { icon: Calendar, title: 'Multi-semaines', desc: 'Structure tes programmes sur plusieurs semaines avec des phases distinctes : volume, intensité, deload.' },
+        { icon: GripVertical, title: 'Drag & drop', desc: 'Réorganise les exercices et les séances par simple glisser-déposer. L\'interface la plus intuitive du marché.' },
+        { icon: Copy, title: 'Templates & duplication', desc: 'Duplique un programme existant, crée des templates réutilisables et gagne du temps sur chaque nouveau client.' },
+        { icon: Users, title: 'Assignation multi-clients', desc: 'Assigne le même programme à plusieurs clients d\'un coup, puis personnalise les charges individuellement.' },
+        { icon: BarChart3, title: 'Périodisation', desc: 'Définis l\'intensité, le volume et le focus de chaque semaine pour une progression optimale et structurée.' },
+        { icon: TrendingUp, title: 'Suivi avancement', desc: 'Visualise en un coup d\'œil où en est chaque client dans son programme : séances faites, restantes, adhérence.' },
       ]}
-      stepsTitle="Cree un programme en 3 etapes"
+      stepsTitle="Crée un programme en 3 étapes"
       steps={[
-        { title: 'Structure ton cycle', desc: 'Definis le nombre de semaines, les phases de periodisation et les objectifs de chaque bloc d\'entrainement.' },
-        { title: 'Ajoute les exercices', desc: 'Compose chaque seance avec les exercices, series, reps et temps de repos. Utilise le drag & drop pour organiser.' },
-        { title: 'Assigne et suis', desc: 'Attribue le programme a un ou plusieurs clients, puis suis leur avancement et leur adherence en direct.' },
+        { title: 'Structure ton cycle', desc: 'Définis le nombre de semaines, les phases de périodisation et les objectifs de chaque bloc d\'entraînement.' },
+        { title: 'Ajoute les exercices', desc: 'Compose chaque séance avec les exercices, séries, reps et temps de repos. Utilise le drag & drop pour organiser.' },
+        { title: 'Assigne et suis', desc: 'Attribue le programme à un ou plusieurs clients, puis suis leur avancement et leur adhérence en direct.' },
       ]}
-      ctaTitle="Pret a creer des"
+      ctaTitle="Prêt à créer des"
       ctaAccent="programmes pro"
     />
   )

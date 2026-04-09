@@ -10,16 +10,16 @@ import { ZevoLogo } from './ui/ZevoLogo'
 
 // ── Dropdown data (shared across all feature pages) ──
 const FEATURE_NAV = [
-  { icon: Dumbbell, label: 'Entrainement', desc: 'Suivi en temps reel', path: '/features/entrainement' },
+  { icon: Dumbbell, label: 'Entraînement', desc: 'Suivi en temps réel', path: '/features/entrainement' },
   { icon: ClipboardList, label: 'Programmes', desc: 'Multi-semaines, drag & drop', path: '/features/programmes' },
   { icon: Utensils, label: 'Nutrition', desc: 'Plans alimentaires & macros', path: '/features/nutrition' },
-  { icon: CalendarDays, label: 'Calendrier', desc: 'Reservations & planning', path: '/features/calendrier' },
+  { icon: CalendarDays, label: 'Calendrier', desc: 'Réservations & planning', path: '/features/calendrier' },
   { icon: Users, label: 'Hub Client', desc: 'Fiche client 360', path: '/features/hub-client' },
-  { icon: MessageCircle, label: 'Messagerie', desc: 'Chat temps reel', path: '/features/messagerie' },
-  { icon: BookOpen, label: 'Bibliotheque', desc: 'Ressources & videos', path: '/features/bibliotheque' },
+  { icon: MessageCircle, label: 'Messagerie', desc: 'Chat temps réel', path: '/features/messagerie' },
+  { icon: BookOpen, label: 'Bibliothèque', desc: 'Ressources & vidéos', path: '/features/bibliotheque' },
   { icon: ClipboardList, label: 'Formulaires', desc: 'Bilans & questionnaires', path: '/features/formulaires' },
   { icon: BarChart3, label: 'Statistiques', desc: 'Rapports & analytics', path: '/features/statistiques' },
-  { icon: Paintbrush, label: 'App Builder', desc: 'Branding personnalise', path: '/features/app-builder' },
+  { icon: Paintbrush, label: 'App Builder', desc: 'Branding personnalisé', path: '/features/app-builder' },
   { icon: CreditCard, label: 'Paiements', desc: 'Stripe & abonnements', path: '/features/paiements' },
   { icon: UserPlus, label: 'CRM Prospects', desc: 'Pipeline commercial', path: '/features/prospects' },
 ]
@@ -74,13 +74,13 @@ export default function FeaturePageLayout({
           </button>
 
           <div className="hidden lg:flex items-center gap-6">
-            {/* Fonctionnalites dropdown */}
+            {/* Fonctionnalités dropdown */}
             <div className="relative"
               onMouseEnter={() => setDropdownOpen(true)}
               onMouseLeave={() => setDropdownOpen(false)}
             >
               <button className="flex items-center gap-1.5 text-[13px] text-[#F5F5F3]/50 hover:text-[#F5F5F3] transition-colors font-medium py-2">
-                Fonctionnalites <ChevronDown size={12} className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                Fonctionnalités <ChevronDown size={12} className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Mega dropdown */}
@@ -108,7 +108,7 @@ export default function FeaturePageLayout({
                       })}
                     </div>
                     <div className="border-t border-white/[0.05] px-4 py-3 flex items-center justify-between bg-white/[0.015]">
-                      <span className="text-[10px] text-[#F5F5F3]/20">12 fonctionnalites incluses</span>
+                      <span className="text-[10px] text-[#F5F5F3]/20">12 fonctionnalités incluses</span>
                       <button onClick={() => { setDropdownOpen(false); navigate('/pricing') }} className="text-[10px] font-medium text-[#FF6B2B] hover:text-[#FF8F5E] transition-colors flex items-center gap-1">
                         Voir les tarifs <ArrowRight size={10} />
                       </button>
@@ -119,7 +119,7 @@ export default function FeaturePageLayout({
             </div>
 
             <button onClick={() => navigate('/pricing')} className="text-[13px] text-[#F5F5F3]/50 hover:text-[#F5F5F3] transition-colors font-medium">Tarifs</button>
-            <button onClick={() => navigate('/demo')} className="text-[13px] text-[#F5F5F3]/50 hover:text-[#F5F5F3] transition-colors font-medium">Demo</button>
+            <button onClick={() => navigate('/demo')} className="text-[13px] text-[#F5F5F3]/50 hover:text-[#F5F5F3] transition-colors font-medium">Démo</button>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -180,7 +180,7 @@ export default function FeaturePageLayout({
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.12] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             </button>
             <button onClick={() => navigate('/demo')} className="px-6 py-3 rounded-xl border border-white/[0.08] text-[#F5F5F3]/40 text-sm font-medium hover:bg-white/[0.03] hover:text-[#F5F5F3] hover:border-white/[0.12] transition-all flex items-center gap-2">
-              <Video size={14} className="text-[#FF6B2B]" /> Voir la demo
+              <Video size={14} className="text-[#FF6B2B]" /> Voir la démo
             </button>
           </div>
 
@@ -196,7 +196,7 @@ export default function FeaturePageLayout({
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0F0F0F] to-transparent pointer-events-none" />
           <div className="max-w-6xl mx-auto px-5 md:px-8 relative z-10">
             <div className="text-center mb-16">
-              <p className="text-[11px] font-semibold text-[#FF6B2B] uppercase tracking-widest mb-3">Fonctionnalites</p>
+              <p className="text-[11px] font-semibold text-[#FF6B2B] uppercase tracking-widest mb-3">Fonctionnalités</p>
               <h2 className="text-2xl md:text-4xl font-bold">Tout ce dont tu as besoin</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
@@ -227,7 +227,7 @@ export default function FeaturePageLayout({
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0E0E0E] to-transparent pointer-events-none" />
           <div className="max-w-4xl mx-auto px-5 md:px-8 relative z-10">
             <div className="text-center mb-16">
-              <p className="text-[11px] font-semibold text-[#FF6B2B] uppercase tracking-widest mb-3">Comment ca marche</p>
+              <p className="text-[11px] font-semibold text-[#FF6B2B] uppercase tracking-widest mb-3">Comment ça marche</p>
               <h2 className="text-2xl md:text-4xl font-bold">{stepsTitle || 'Simple comme 1, 2, 3'}</h2>
             </div>
             <div className="space-y-4">
@@ -259,20 +259,20 @@ export default function FeaturePageLayout({
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[200px] bg-[#FF6B2B]/[0.06] rounded-full blur-[100px] pointer-events-none" />
             <div className="relative z-10">
               <h2 className="text-2xl md:text-4xl font-bold mb-4">
-                {ctaTitle || 'Pret a passer au'}{' '}
+                {ctaTitle || 'Prêt à passer au'}{' '}
                 <span className="bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-[#FFB088] bg-clip-text text-transparent">
-                  {ctaAccent || 'niveau superieur'}
+                  {ctaAccent || 'niveau supérieur'}
                 </span>{' '}
                 ?
               </h2>
-              <p className="text-[#F5F5F3]/30 mb-8 max-w-md mx-auto text-sm">14 jours gratuits. Toutes les fonctionnalites. Sans carte bancaire.</p>
+              <p className="text-[#F5F5F3]/30 mb-8 max-w-md mx-auto text-sm">14 jours gratuits. Toutes les fonctionnalités. Sans carte bancaire.</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <button onClick={() => navigate('/register')} className="group px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white font-semibold hover:shadow-xl hover:shadow-[#FF6B2B]/25 transition-all inline-flex items-center gap-2 relative overflow-hidden">
                   <span className="relative z-10 flex items-center gap-2">Commencer gratuitement <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" /></span>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.12] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 </button>
                 <button onClick={() => navigate('/demo')} className="px-6 py-3.5 rounded-xl border border-white/[0.07] text-[#F5F5F3]/40 font-medium hover:bg-white/[0.03] hover:text-[#F5F5F3] transition-all flex items-center gap-2">
-                  <Video size={14} className="text-[#FF6B2B]" /> Voir une demo
+                  <Video size={14} className="text-[#FF6B2B]" /> Voir une démo
                 </button>
               </div>
             </div>
@@ -287,7 +287,7 @@ export default function FeaturePageLayout({
             <ZevoLogo size="sm" />
           </button>
           <div className="flex items-center gap-6">
-            {['Tarifs', 'Demo', 'Connexion'].map((l, i) => (
+            {['Tarifs', 'Démo', 'Connexion'].map((l, i) => (
               <button key={l} onClick={() => navigate(['pricing', 'demo', 'login'].map(p => '/' + p)[i])} className="text-[11px] text-[#F5F5F3]/15 hover:text-[#F5F5F3]/30 transition-colors">{l}</button>
             ))}
           </div>

@@ -8,11 +8,11 @@ import FeaturePageLayout from '../../../components/FeaturePageLayout'
 function AppBuilderMockup() {
   const brandColor = '#10B981'
   const modules = [
-    { label: 'Entrainement', active: true },
+    { label: 'Entraînement', active: true },
     { label: 'Nutrition', active: true },
     { label: 'Messagerie', active: true },
     { label: 'Calendrier', active: false },
-    { label: 'Bibliotheque', active: true },
+    { label: 'Bibliothèque', active: true },
     { label: 'Progression', active: false },
   ]
 
@@ -45,7 +45,7 @@ function AppBuilderMockup() {
                   <p className="text-[8px] text-[#F5F5F3]/25">Coach Marine D.</p>
                 </div>
               </div>
-              <p className="text-[10px] text-[#F5F5F3]/40">Bonjour <span className="text-[#F5F5F3]/60 font-medium">Lucas</span>, pret pour ta seance ?</p>
+              <p className="text-[10px] text-[#F5F5F3]/40">Bonjour <span className="text-[#F5F5F3]/60 font-medium">Lucas</span>, prêt pour ta séance ?</p>
             </div>
 
             {/* Quick actions */}
@@ -57,7 +57,7 @@ function AppBuilderMockup() {
                     <Layers size={12} style={{ color: brandColor }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-semibold text-[#F5F5F3]/70">Push / Epaules</p>
+                    <p className="text-[10px] font-semibold text-[#F5F5F3]/70">Push / Épaules</p>
                     <p className="text-[8px] text-[#F5F5F3]/20">6 exercices - 55 min</p>
                   </div>
                   <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: brandColor }}>
@@ -95,7 +95,7 @@ function AppBuilderMockup() {
 
             {/* Bottom nav */}
             <div className="border-t border-white/[0.04] px-5 py-3 flex items-center justify-around">
-              {['Accueil', 'Seances', 'Chat', 'Profil'].map((tab, i) => (
+              {['Accueil', 'Séances', 'Chat', 'Profil'].map((tab, i) => (
                 <span key={i} className={`text-[8px] ${i === 0 ? 'font-semibold' : 'font-normal'}`} style={{ color: i === 0 ? brandColor : 'rgba(245,245,243,0.15)' }}>{tab}</span>
               ))}
             </div>
@@ -114,14 +114,14 @@ function BeforeAfterSection() {
       <div className="max-w-5xl mx-auto px-5 md:px-8 relative z-10">
         <div className="text-center mb-14">
           <p className="text-[11px] font-semibold text-[#FF6B2B] uppercase tracking-widest mb-3">Transformation</p>
-          <h2 className="text-2xl md:text-4xl font-bold">Avant / Apres</h2>
+          <h2 className="text-2xl md:text-4xl font-bold">Avant / Après</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Before - Generic */}
           <div className="rounded-2xl border border-white/[0.06] bg-[#141414] p-6 md:p-8 relative overflow-hidden">
             <div className="absolute top-4 right-4">
-              <span className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-[9px] font-semibold text-[#F5F5F3]/20">Generique</span>
+              <span className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-[9px] font-semibold text-[#F5F5F3]/20">Générique</span>
             </div>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-[#333] border border-white/[0.08] flex items-center justify-center">
@@ -162,7 +162,7 @@ function BeforeAfterSection() {
             </div>
             <div className="space-y-2.5 relative z-10">
               <div className="h-8 rounded-lg bg-[#10B981]/10 border border-[#10B981]/15 flex items-center px-3">
-                <span className="text-[9px] font-medium text-[#10B981]/70">Seance du jour</span>
+                <span className="text-[9px] font-medium text-[#10B981]/70">Séance du jour</span>
               </div>
               <div className="h-8 rounded-lg bg-[#10B981]/[0.06] border border-[#10B981]/10 flex items-center px-3">
                 <span className="text-[9px] font-medium text-[#10B981]/50">Plan nutrition</span>
@@ -198,21 +198,21 @@ export default function AppBuilderPage() {
       mockup={<AppBuilderMockup />}
       features={[
         { icon: Image, title: 'Branding logo & couleurs', desc: "Upload ton logo, choisis ta couleur primaire. Ton identite visuelle partout dans l'app." },
-        { icon: ToggleRight, title: 'Modules au choix', desc: "Active ou desactive chaque module selon ton offre. Entrainement, nutrition, messagerie — a toi de composer." },
-        { icon: Eye, title: 'Preview live', desc: "Vois les changements en temps reel avant de publier. Ce que tu vois, c'est ce que tes clients verront." },
-        { icon: Crown, title: 'Experience premium', desc: "Tes clients decouvrent une app professionnelle a ton image. Ils pensent que c'est la tienne." },
-        { icon: Globe, title: 'Domaine personnalise', desc: "Connecte ton propre domaine pour une experience 100% branded. moncoaching.com — c'est toi." },
-        { icon: UserCheck, title: 'Onboarding a ta marque', desc: "Accueil personnalise pour chaque nouveau client. Premiere impression parfaite, a ton image." },
+        { icon: ToggleRight, title: 'Modules au choix', desc: "Active ou désactive chaque module selon ton offre. Entraînement, nutrition, messagerie — à toi de composer." },
+        { icon: Eye, title: 'Preview live', desc: "Vois les changements en temps réel avant de publier. Ce que tu vois, c'est ce que tes clients verront." },
+        { icon: Crown, title: 'Expérience premium', desc: "Tes clients découvrent une app professionnelle à ton image. Ils pensent que c'est la tienne." },
+        { icon: Globe, title: 'Domaine personnalisé', desc: "Connecte ton propre domaine pour une expérience 100% branded. moncoaching.com — c'est toi." },
+        { icon: UserCheck, title: 'Onboarding à ta marque', desc: "Accueil personnalisé pour chaque nouveau client. Première impression parfaite, à ton image." },
       ]}
       stepsTitle="Personnalise en 3 clics"
       steps={[
         { title: 'Uploade ton logo', desc: "Ajoute ton logo et ton nom de marque. L'app s'adapte instantanement a ton identite." },
-        { title: 'Choisis tes couleurs', desc: "Selectionne ta couleur primaire. Boutons, accents, icones — tout s'harmonise automatiquement." },
-        { title: 'Active tes modules', desc: "Coche les fonctionnalites que tu veux proposer. Publie et tes clients voient le changement immediatement." },
+        { title: 'Choisis tes couleurs', desc: "Sélectionne ta couleur primaire. Boutons, accents, icônes — tout s'harmonise automatiquement." },
+        { title: 'Active tes modules', desc: "Coche les fonctionnalités que tu veux proposer. Publie et tes clients voient le changement immédiatement." },
       ]}
       extraSection={<BeforeAfterSection />}
-      ctaTitle="Pret a creer ton app"
-      ctaAccent="a ton image"
+      ctaTitle="Prêt à créer ton app"
+      ctaAccent="à ton image"
     />
   )
 }
