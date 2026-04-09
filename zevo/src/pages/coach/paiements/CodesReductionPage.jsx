@@ -19,12 +19,14 @@ export default function CodesReductionPage() {
 
   const loadCodes = async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('codes_reduction')
-      .select('*')
-      .eq('coach_id', user.id)
-      .order('created_at', { ascending: false })
-    setCodes(data || [])
+    try {
+      const { data, error } = await supabase
+        .from('codes_reduction')
+        .select('*')
+        .eq('coach_id', user.id)
+        .order('created_at', { ascending: false })
+      if (!error) setCodes(data || [])
+    } catch { /* table pas encore créée */ }
     setLoading(false)
   }
 

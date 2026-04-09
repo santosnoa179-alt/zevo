@@ -19,12 +19,14 @@ export default function LiensPaiementPage() {
 
   const loadLiens = async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('liens_paiement')
-      .select('*')
-      .eq('coach_id', user.id)
-      .order('created_at', { ascending: false })
-    setLiens(data || [])
+    try {
+      const { data, error } = await supabase
+        .from('liens_paiement')
+        .select('*')
+        .eq('coach_id', user.id)
+        .order('created_at', { ascending: false })
+      if (!error) setLiens(data || [])
+    } catch { /* table pas encore créée */ }
     setLoading(false)
   }
 

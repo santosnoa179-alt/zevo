@@ -22,12 +22,14 @@ export default function FacturesPage() {
 
   const loadFactures = async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('factures')
-      .select('*, clients(prenom, nom), offres_coaching(titre)')
-      .eq('coach_id', user.id)
-      .order('date_emission', { ascending: false })
-    setFactures(data || [])
+    try {
+      const { data, error } = await supabase
+        .from('factures')
+        .select('*, clients(prenom, nom), offres_coaching(titre)')
+        .eq('coach_id', user.id)
+        .order('date_emission', { ascending: false })
+      if (!error) setFactures(data || [])
+    } catch { /* table pas encore créée */ }
     setLoading(false)
   }
 

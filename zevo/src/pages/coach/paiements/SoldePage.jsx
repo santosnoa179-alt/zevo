@@ -19,24 +19,26 @@ export default function SoldePage() {
   const loadData = async () => {
     setLoading(true)
 
-    const { data: coach } = await supabase
-      .from('coaches')
-      .select('solde_disponible, solde_en_attente, stripe_account_id')
-      .eq('id', user.id)
-      .maybeSingle()
+    try {
+      const { data: coach } = await supabase
+        .from('coaches')
+        .select('solde_disponible, solde_en_attente, stripe_account_id')
+        .eq('id', user.id)
+        .maybeSingle()
+      setSoldeDisponible(coach?.solde_disponible || 0)
+      setSoldeEnAttente(coach?.solde_en_attente || 0)
+      setStripeAccountId(coach?.stripe_account_id || null)
+    } catch { /* colonnes pas encore ajoutées */ }
 
-    setSoldeDisponible(coach?.solde_disponible || 0)
-    setSoldeEnAttente(coach?.solde_en_attente || 0)
-    setStripeAccountId(coach?.stripe_account_id || null)
-
-    const { data: virementsData } = await supabase
-      .from('virements_coach')
-      .select('*')
-      .eq('coach_id', user.id)
-      .order('date_virement', { ascending: false })
-      .limit(20)
-
-    setVirements(virementsData || [])
+    try {
+      const { data: virementsData, error } = await supabase
+        .from('virements_coach')
+        .select('*')
+        .eq('coach_id', user.id)
+        .order('date_virement', { ascending: false })
+        .limit(20)
+      if (!error) setVirements(virementsData || [])
+    } catch { /* table pas encore créée */ }
     setLoading(false)
   }
 

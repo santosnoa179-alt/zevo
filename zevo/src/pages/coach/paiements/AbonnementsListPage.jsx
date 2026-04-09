@@ -24,12 +24,14 @@ export default function AbonnementsListPage() {
 
   const loadAbonnements = async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('abonnements_clients')
-      .select('*, clients(prenom, nom, email), offres_coaching(titre)')
-      .eq('coach_id', user.id)
-      .order('created_at', { ascending: false })
-    setAbonnements(data || [])
+    try {
+      const { data, error } = await supabase
+        .from('abonnements_clients')
+        .select('*, clients(prenom, nom, email), offres_coaching(titre)')
+        .eq('coach_id', user.id)
+        .order('created_at', { ascending: false })
+      if (!error) setAbonnements(data || [])
+    } catch { /* table pas encore créée */ }
     setLoading(false)
   }
 

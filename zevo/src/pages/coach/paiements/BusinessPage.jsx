@@ -14,7 +14,6 @@ export default function BusinessPage() {
   const [period, setPeriod] = useState('semaine')
   const [loading, setLoading] = useState(true)
 
-  // Stats
   const [totalMois, setTotalMois] = useState(0)
   const [soldeDisponible, setSoldeDisponible] = useState(0)
   const [clientsActifs, setClientsActifs] = useState(0)
@@ -38,16 +37,17 @@ export default function BusinessPage() {
       .eq('coach_id', user.id)
       .eq('statut', 'paye')
       .gte('date_paiement', `${moisCourant}-01`)
-    const total = (paiementsMois || []).reduce((s, p) => s + (p.montant || 0), 0)
-    setTotalMois(total)
+    setTotalMois((paiementsMois || []).reduce((s, p) => s + (p.montant || 0), 0))
 
-    // ── Solde coach ──
-    const { data: coach } = await supabase
-      .from('coaches')
-      .select('solde_disponible, solde_en_attente')
-      .eq('id', user.id)
-      .maybeSingle()
-    setSoldeDisponible(coach?.solde_disponible || 0)
+    // ── Solde coach (graceful si colonne pas encore ajoutée) ──
+    try {
+      const { data: coach } = await supabase
+        .from('coaches')
+        .select('solde_disponible')
+        .eq('id', user.id)
+        .maybeSingle()
+      setSoldeDisponible(coach?.solde_disponible || 0)
+    } catch { setSoldeDisponible(0) }
 
     // ── Clients actifs ──
     const { count: nbClients } = await supabase
@@ -56,18 +56,29 @@ export default function BusinessPage() {
       .eq('coach_id', user.id)
     setClientsActifs(nbClients || 0)
 
-    // ── Abonnements actifs ──
-    const { count: nbAbos } = await supabase
-      .from('abonnements_clients')
-      .select('id', { count: 'exact', head: true })
-      .eq('coach_id', user.id)
-      .eq('statut', 'actif')
-    setAbosActifs(nbAbos || 0)
+    // ── Abonnements actifs (essaie la nouvelle table, sinon compte les paiements récurrents) ──
+    try {
+      const { count: nbAbos, error } = await supabase
+        .from('abonnements_clients')
+        .select('id', { count: 'exact', head: true })
+        .eq('coach_id', user.id)
+        .eq('statut', 'actif')
+      if (error) throw error
+      setAbosActifs(nbAbos || 0)
+    } catch {
+      // Fallback : compter les offres actives
+      const { count } = await supabase
+        .from('offres_coaching')
+        .select('id', { count: 'exact', head: true })
+        .eq('coach_id', user.id)
+        .eq('actif', true)
+      setAbosActifs(count || 0)
+    }
 
     // ── Derniers événements (paiements récents) ──
     const { data: derniersPaiements } = await supabase
       .from('paiements_clients')
-      .select('id, montant, statut, date_paiement, description, created_at, clients(prenom, nom)')
+      .select('id, montant, statut, date_paiement, created_at, clients(prenom, nom), offres_coaching(titre)')
       .eq('coach_id', user.id)
       .order('created_at', { ascending: false })
       .limit(5)
@@ -75,7 +86,6 @@ export default function BusinessPage() {
 
     // ── Données graphique ──
     await loadChartData()
-
     setLoading(false)
   }
 
@@ -84,7 +94,6 @@ export default function BusinessPage() {
     let startDate, labels, groupBy
 
     if (period === 'semaine') {
-      // 7 derniers jours
       startDate = new Date(now)
       startDate.setDate(startDate.getDate() - 6)
       labels = []
@@ -96,7 +105,6 @@ export default function BusinessPage() {
       }
       groupBy = 'day'
     } else if (period === 'mois') {
-      // 4 semaines
       startDate = new Date(now.getFullYear(), now.getMonth(), 1)
       labels = [
         { label: 'S1', from: 1, to: 7 },
@@ -106,7 +114,6 @@ export default function BusinessPage() {
       ]
       groupBy = 'week'
     } else {
-      // 12 mois
       startDate = new Date(now.getFullYear(), 0, 1)
       const moisNoms = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
       labels = moisNoms.map((label, i) => ({ label, month: i }))
@@ -119,37 +126,24 @@ export default function BusinessPage() {
       .eq('coach_id', user.id)
       .eq('statut', 'paye')
       .gte('date_paiement', startDate.toISOString())
-      .order('date_paiement', { ascending: true })
 
     const items = paiements || []
 
     if (groupBy === 'day') {
-      const grouped = labels.map(l => {
-        const dayTotal = items
-          .filter(p => p.date_paiement?.slice(0, 10) === l.date)
-          .reduce((s, p) => s + (p.montant || 0), 0)
-        return { label: l.label, value: dayTotal / 100 }
-      })
-      setChartData(grouped)
+      setChartData(labels.map(l => ({
+        label: l.label,
+        value: items.filter(p => p.date_paiement?.slice(0, 10) === l.date).reduce((s, p) => s + (p.montant || 0), 0) / 100
+      })))
     } else if (groupBy === 'week') {
-      const grouped = labels.map(l => {
-        const weekTotal = items
-          .filter(p => {
-            const day = new Date(p.date_paiement).getDate()
-            return day >= l.from && day <= l.to
-          })
-          .reduce((s, p) => s + (p.montant || 0), 0)
-        return { label: l.label, value: weekTotal / 100 }
-      })
-      setChartData(grouped)
+      setChartData(labels.map(l => ({
+        label: l.label,
+        value: items.filter(p => { const day = new Date(p.date_paiement).getDate(); return day >= l.from && day <= l.to }).reduce((s, p) => s + (p.montant || 0), 0) / 100
+      })))
     } else {
-      const grouped = labels.map(l => {
-        const monthTotal = items
-          .filter(p => new Date(p.date_paiement).getMonth() === l.month)
-          .reduce((s, p) => s + (p.montant || 0), 0)
-        return { label: l.label, value: monthTotal / 100 }
-      })
-      setChartData(grouped)
+      setChartData(labels.map(l => ({
+        label: l.label,
+        value: items.filter(p => new Date(p.date_paiement).getMonth() === l.month).reduce((s, p) => s + (p.montant || 0), 0) / 100
+      })))
     }
   }
 
@@ -162,7 +156,6 @@ export default function BusinessPage() {
     { icon: TicketPercent, label: 'Créer un code', desc: 'Code de réduction', path: '/coach/abonnements/codes', color: '#F59E0B' },
   ]
 
-  // Skeleton
   if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-6 max-w-5xl">
@@ -176,14 +169,13 @@ export default function BusinessPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl">
-
-      {/* ── Stats row ── */}
+      {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: 'Revenus ce mois', value: `${(totalMois / 100).toLocaleString('fr-FR')} €`, icon: TrendingUp, color: '#22C55E' },
           { label: 'Solde disponible', value: `${(soldeDisponible / 100).toLocaleString('fr-FR')} €`, icon: Wallet, color: '#F59E0B' },
           { label: 'Clients actifs', value: clientsActifs.toString(), icon: Users, color: '#3B82F6' },
-          { label: 'Abonnements', value: abosActifs.toString(), icon: RefreshCw, color: '#8B5CF6' },
+          { label: 'Produits actifs', value: abosActifs.toString(), icon: RefreshCw, color: '#8B5CF6' },
         ].map((stat, i) => {
           const Icon = stat.icon
           return (
@@ -201,10 +193,8 @@ export default function BusinessPage() {
         })}
       </div>
 
-      {/* ── Revenue chart + Quick actions ── */}
+      {/* Revenue chart + Quick actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        {/* Revenue chart */}
         <div className="lg:col-span-2 glass-card p-5">
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -215,36 +205,21 @@ export default function BusinessPage() {
             </div>
             <div className="flex gap-1 bg-[var(--bg-surface)] rounded-lg p-0.5">
               {['semaine', 'mois', 'annee'].map(p => (
-                <button
-                  key={p}
-                  onClick={() => setPeriod(p)}
-                  className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all ${
-                    period === p ? 'bg-[#F59E0B]/15 text-[#F59E0B]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                  }`}
-                >
+                <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all ${period === p ? 'bg-[#F59E0B]/15 text-[#F59E0B]' : 'text-[var(--text-muted)]'}`}>
                   {p === 'semaine' ? 'Semaine' : p === 'mois' ? 'Mois' : 'Année'}
                 </button>
               ))}
             </div>
           </div>
-
           {chartData.length === 0 ? (
             <div className="flex items-center justify-center h-44 text-[var(--text-muted)] text-sm">Aucune donnée</div>
           ) : (
             <div className="flex items-end gap-2 h-44">
               {chartData.map((d, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-                  <span className="text-[10px] font-semibold text-[var(--text-muted)]">
-                    {d.value > 0 ? `${d.value}€` : ''}
-                  </span>
+                  <span className="text-[10px] font-semibold text-[var(--text-muted)]">{d.value > 0 ? `${d.value}€` : ''}</span>
                   <div className="w-full relative" style={{ height: '140px' }}>
-                    <div
-                      className="absolute bottom-0 w-full rounded-t-md transition-all duration-500 hover:opacity-80"
-                      style={{
-                        height: `${Math.max((d.value / maxValue) * 100, 2)}%`,
-                        background: d.value > 0 ? 'linear-gradient(180deg, #F59E0B, #F59E0B80)' : 'var(--bg-surface)',
-                      }}
-                    />
+                    <div className="absolute bottom-0 w-full rounded-t-md transition-all duration-500" style={{ height: `${Math.max((d.value / maxValue) * 100, 2)}%`, background: d.value > 0 ? 'linear-gradient(180deg, #F59E0B, #F59E0B80)' : 'var(--bg-surface)' }} />
                   </div>
                   <span className="text-[10px] text-[var(--text-muted)] font-medium">{d.label}</span>
                 </div>
@@ -253,20 +228,14 @@ export default function BusinessPage() {
           )}
         </div>
 
-        {/* Quick actions */}
         <div className="glass-card p-5 flex flex-col">
           <h3 className="text-sm font-bold text-[var(--text-primary)] mb-1">Actions rapides</h3>
           <p className="text-[11px] text-[var(--text-muted)] mb-4">Créez en un clic</p>
-
           <div className="space-y-2 flex-1">
             {QUICK_ACTIONS.map((action, i) => {
               const Icon = action.icon
               return (
-                <button
-                  key={i}
-                  onClick={() => navigate(action.path)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[var(--text-muted)]/15 hover:bg-[var(--bg-surface)] transition-all group text-left"
-                >
+                <button key={i} onClick={() => navigate(action.path)} className="w-full flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[var(--text-muted)]/15 hover:bg-[var(--bg-surface)] transition-all group text-left">
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${action.color}15` }}>
                     <Icon size={16} style={{ color: action.color }} />
                   </div>
@@ -279,37 +248,27 @@ export default function BusinessPage() {
               )
             })}
           </div>
-
-          {/* Solde card */}
           <div className="mt-4 p-3 rounded-xl border border-[#F59E0B]/20 bg-[#F59E0B]/5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Solde disponible</p>
                 <p className="text-xl font-bold text-[var(--text-primary)] mt-0.5">{(soldeDisponible / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
               </div>
-              <button
-                onClick={() => navigate('/coach/abonnements/solde')}
-                className="px-3 py-1.5 rounded-lg text-[11px] font-semibold text-[#F59E0B] bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20 transition-colors"
-              >
-                Virement
-              </button>
+              <button onClick={() => navigate('/coach/abonnements/solde')} className="px-3 py-1.5 rounded-lg text-[11px] font-semibold text-[#F59E0B] bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20 transition-colors">Virement</button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Recent events ── */}
+      {/* Recent events */}
       <div className="glass-card overflow-hidden">
         <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-[var(--text-primary)]">Derniers événements</h3>
             <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Activité récente de paiement</p>
           </div>
-          <button onClick={() => navigate('/coach/abonnements/transactions')} className="text-[11px] text-[#F59E0B] font-semibold hover:underline">
-            Voir tout
-          </button>
+          <button onClick={() => navigate('/coach/abonnements/transactions')} className="text-[11px] text-[#F59E0B] font-semibold hover:underline">Voir tout</button>
         </div>
-
         {recentEvents.length === 0 ? (
           <div className="px-5 py-10 text-center">
             <CreditCard size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
@@ -319,10 +278,10 @@ export default function BusinessPage() {
           <div className="divide-y divide-[var(--border-base)]">
             {recentEvents.map(event => {
               const clientName = event.clients ? `${event.clients.prenom || ''} ${event.clients.nom || ''}`.trim() : 'Client'
+              const offreName = event.offres_coaching?.titre || ''
               const isPositive = event.statut === 'paye'
               const color = isPositive ? '#22C55E' : event.statut === 'rembourse' ? '#EF4444' : '#F59E0B'
               const EventIcon = isPositive ? CreditCard : event.statut === 'rembourse' ? ArrowDownRight : ShoppingBag
-
               const diff = Date.now() - new Date(event.created_at).getTime()
               const mins = Math.floor(diff / 60000)
               const hours = Math.floor(mins / 60)
@@ -338,7 +297,7 @@ export default function BusinessPage() {
                     <p className="text-[13px] font-medium text-[var(--text-primary)]">
                       {event.statut === 'paye' ? 'Paiement reçu' : event.statut === 'rembourse' ? 'Remboursement' : 'En attente'}
                     </p>
-                    <p className="text-[11px] text-[var(--text-muted)] truncate">{clientName}{event.description ? ` — ${event.description}` : ''}</p>
+                    <p className="text-[11px] text-[var(--text-muted)] truncate">{clientName}{offreName ? ` — ${offreName}` : ''}</p>
                   </div>
                   <div className="text-right shrink-0">
                     <p className={`text-[13px] font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
