@@ -85,7 +85,7 @@ const SHOWCASES = [
     features: ['Fiche client 360 unifiée', 'Score bien-être automatique', 'Alertes désengagement', 'Historique complet des séances'],
     visual: 'client',
     metric: { value: '3s', label: 'pour scanner un client' },
-    screenshot: '/screenshots/hub-client.png',
+    screenshot: null,
   },
   {
     badge: 'Programme sport en ligne',
@@ -94,7 +94,7 @@ const SHOWCASES = [
     features: ['Drag & drop intuitif', 'Vidéos démo intégrées', 'Validation live', 'Templates réutilisables'],
     visual: 'program',
     metric: { value: '5h', label: 'gagnées par semaine' },
-    screenshot: '/screenshots/programme.png',
+    screenshot: null,
   },
   {
     badge: 'Application coach sportif',
@@ -103,7 +103,7 @@ const SHOWCASES = [
     features: ['Branding complet', 'Modules au choix', 'Preview en temps réel', 'Expérience client premium'],
     visual: 'app',
     metric: { value: '+40%', label: 'de valeur perçue' },
-    screenshot: '/screenshots/app-builder.png',
+    screenshot: null,
   },
 ]
 
