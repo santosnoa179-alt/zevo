@@ -210,18 +210,18 @@ function BentoVisualHub() {
   return (
     <div className="mt-4 rounded-xl bg-[#111] border border-white/[0.05] p-3 space-y-2.5">
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF5C1A] to-[#FF7A42] flex items-center justify-center text-white text-[10px] font-bold">JD</div>
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF5C1A] to-[#FF7A42] flex items-center justify-center text-white text-[10px] font-bold">SD</div>
         <div className="flex-1">
-          <div className="text-xs font-semibold text-[#F5F5F3]">Julie Dupont</div>
-          <div className="text-[9px] text-[#F5F5F3]/25">Perte de poids · 3 mois</div>
+          <div className="text-xs font-semibold text-[#F5F5F3]">Sarah Dumont</div>
+          <div className="text-[9px] text-[#F5F5F3]/25">Remise en forme · 4 mois</div>
         </div>
         <div className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">Actif</div>
       </div>
       <div className="grid grid-cols-3 gap-1.5">
         {[
-          { v: '8.4', l: 'Bien-être', c: '#10B981' },
-          { v: '12/16', l: 'Séances', c: '#3B82F6' },
-          { v: '-3.2kg', l: 'Poids', c: '#FF5C1A' },
+          { v: '8.7', l: 'Bien-être', c: '#10B981' },
+          { v: '14/16', l: 'Séances', c: '#3B82F6' },
+          { v: '-4.8kg', l: 'Objectif', c: '#FF5C1A' },
         ].map((s, i) => (
           <div key={i} className="rounded-lg bg-white/[0.03] border border-white/[0.04] p-2 text-center">
             <p className="text-sm font-bold" style={{ color: s.c }}>{s.v}</p>
@@ -268,18 +268,21 @@ function ShowcaseVisual({ type, screenshot }) {
     return (
       <div className="relative">
         <div className="rounded-2xl bg-[#0c0c0c] border border-white/[0.06] p-5 space-y-4 shadow-[0_20px_60px_rgba(0,0,0,0.4)] noise-overlay">
+          {/* Client header with status */}
           <div className="flex items-center gap-3 relative">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#FF5C1A] to-[#FF7A42] flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-[#FF5C1A]/20">JD</div>
-            <div>
-              <div className="text-sm font-semibold text-[#F5F5F3]">Julie Dupont</div>
-              <div className="text-[10px] text-[#F5F5F3]/25">Objectif : Perte de poids · Depuis 3 mois</div>
+            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#FF5C1A] to-[#FF7A42] flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-[#FF5C1A]/20">SD</div>
+            <div className="flex-1">
+              <div className="text-sm font-semibold text-[#F5F5F3]">Sarah Dumont</div>
+              <div className="text-[10px] text-[#F5F5F3]/25">Remise en forme · Depuis 4 mois</div>
             </div>
+            <div className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-[9px] text-emerald-400 font-bold">Actif</div>
           </div>
+          {/* KPIs */}
           <div className="grid grid-cols-3 gap-2.5">
             {[
-              { label: 'Bien-être', val: '8.4/10', color: '#10B981', trend: '+0.6' },
-              { label: 'Séances', val: '12/16', color: '#3B82F6', trend: '75%' },
-              { label: 'Poids', val: '-3.2 kg', color: '#FF5C1A', trend: 'objectif' },
+              { label: 'Bien-être', val: '8.7/10', color: '#10B981', trend: '+1.2' },
+              { label: 'Séances', val: '14/16', color: '#3B82F6', trend: '87%' },
+              { label: 'Objectif', val: '-4.8 kg', color: '#FF5C1A', trend: 'atteint' },
             ].map((s, i) => (
               <div key={i} className="rounded-xl bg-white/[0.025] border border-white/[0.05] p-3 text-center">
                 <p className="text-lg font-bold" style={{ color: s.color }}>{s.val}</p>
@@ -288,16 +291,26 @@ function ShowcaseVisual({ type, screenshot }) {
               </div>
             ))}
           </div>
+          {/* Prochaine séance + historique */}
           <div className="rounded-xl bg-white/[0.025] border border-white/[0.05] p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-semibold text-[#F5F5F3]/40">Progression</span>
-              <span className="text-[9px] text-emerald-400 font-bold">En bonne voie</span>
+              <span className="text-[10px] font-semibold text-[#F5F5F3]/40">Progression poids</span>
+              <span className="text-[9px] text-emerald-400 font-bold">Objectif atteint ✓</span>
             </div>
             <div className="flex items-end gap-1 h-14">
-              {[30, 42, 38, 55, 50, 62, 58, 70, 65, 78, 72, 85].map((h, i) => (
-                <div key={i} className="flex-1 rounded-t" style={{ height: `${h}%`, background: `linear-gradient(to top, rgba(16,185,129,${0.2 + i * 0.05}), rgba(16,185,129,${0.1 + i * 0.04}))` }} />
+              {[85, 78, 72, 68, 62, 58, 52, 48, 42, 38, 32, 28].map((h, i) => (
+                <div key={i} className="flex-1 rounded-t" style={{ height: `${h}%`, background: `linear-gradient(to top, rgba(16,185,129,${0.3 + i * 0.05}), rgba(16,185,129,${0.15 + i * 0.04}))` }} />
               ))}
             </div>
+          </div>
+          {/* Notes coach */}
+          <div className="rounded-xl bg-white/[0.025] border border-white/[0.05] p-3">
+            <div className="flex items-center gap-2 mb-1.5">
+              <FileText size={10} className="text-[#FF5C1A]" />
+              <span className="text-[10px] font-semibold text-[#F5F5F3]/40">Note du coach</span>
+              <span className="text-[8px] text-[#F5F5F3]/15 ml-auto">09/04</span>
+            </div>
+            <p className="text-[9px] text-[#F5F5F3]/30 leading-relaxed">Sarah progresse très bien. Augmenter charges sur squat la semaine prochaine. Moral au top.</p>
           </div>
         </div>
         <div className="absolute -top-3 -right-3 px-3 py-2 rounded-xl bg-[#111111] border border-emerald-500/20 shadow-xl shadow-black/30 flex items-center gap-2 animate-bounce-slow">
@@ -315,17 +328,21 @@ function ShowcaseVisual({ type, screenshot }) {
       <div className="relative">
         <div className="rounded-2xl bg-[#0c0c0c] border border-white/[0.06] p-5 space-y-3 shadow-[0_20px_60px_rgba(0,0,0,0.4)] noise-overlay">
           <div className="flex items-center justify-between mb-1 relative">
-            <div className="text-sm font-semibold text-[#F5F5F3]">Programme Force</div>
-            <div className="px-2 py-0.5 rounded-lg bg-[#FF5C1A]/10 text-[9px] text-[#FF5C1A] font-bold">Semaine 3/8</div>
+            <div>
+              <div className="text-sm font-semibold text-[#F5F5F3]">Hypertrophie — Haut du corps</div>
+              <div className="text-[9px] text-[#F5F5F3]/25 mt-0.5">Sarah D. · Séance 3/4 cette semaine</div>
+            </div>
+            <div className="px-2 py-0.5 rounded-lg bg-[#FF5C1A]/10 text-[9px] text-[#FF5C1A] font-bold">Sem. 6/12</div>
           </div>
           <div className="h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
-            <div className="h-full rounded-full bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] w-[37.5%] transition-all" />
+            <div className="h-full rounded-full bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] w-[50%] transition-all" />
           </div>
           {[
-            { name: 'Squat Back', sets: '4x8 @ 80kg', done: true },
-            { name: 'Bench Press', sets: '4x6 @ 70kg', done: true },
-            { name: 'Romanian DL', sets: '3x10 @ 60kg', done: false },
-            { name: 'Pull-ups lestes', sets: '4x8 @ +10kg', done: false },
+            { name: 'Développé couché', sets: '4×10 @ 65kg', done: true, rpe: '8' },
+            { name: 'Rowing barre', sets: '4×10 @ 60kg', done: true, rpe: '7' },
+            { name: 'Développé militaire', sets: '3×12 @ 35kg', done: true, rpe: '8.5' },
+            { name: 'Curl haltères', sets: '3×12 @ 14kg', done: false, rpe: null },
+            { name: 'Dips lestés', sets: '3×10 @ +10kg', done: false, rpe: null },
           ].map((ex, i) => (
             <div key={i} className={`flex items-center gap-3 rounded-xl border p-3 transition-all ${ex.done ? 'bg-emerald-500/[0.03] border-emerald-500/15' : 'bg-white/[0.015] border-white/[0.05]'}`}>
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${ex.done ? 'bg-emerald-500/15' : 'bg-white/[0.04]'}`}>
@@ -335,13 +352,13 @@ function ShowcaseVisual({ type, screenshot }) {
                 <p className="text-xs font-medium text-[#F5F5F3]">{ex.name}</p>
                 <p className="text-[10px] text-[#F5F5F3]/25">{ex.sets}</p>
               </div>
-              {ex.done && <span className="text-[9px] text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-500/10">Fait</span>}
+              {ex.done && <span className="text-[9px] text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-500/10">RPE {ex.rpe}</span>}
             </div>
           ))}
         </div>
         <div className="absolute -bottom-3 -left-3 px-3 py-2 rounded-xl bg-[#111111] border border-[#FF5C1A]/20 shadow-xl shadow-black/30 flex items-center gap-2">
           <Flame size={14} className="text-[#FF5C1A]" />
-          <span className="text-[10px] font-bold text-[#FF5C1A]">7 jours de suite !</span>
+          <span className="text-[10px] font-bold text-[#FF5C1A]">12 jours de suite !</span>
         </div>
       </div>
     )
@@ -358,38 +375,51 @@ function ShowcaseVisual({ type, screenshot }) {
             <div className="flex gap-1"><Activity size={7} /></div>
           </div>
           <div className="px-4 py-3.5 bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42]">
-            <p className="text-white text-xs font-bold">FitCoach Pro</p>
-            <p className="text-white/50 text-[9px]">Bonjour Julie !</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white text-xs font-bold">Thomas Coaching</p>
+                <p className="text-white/50 text-[9px]">Bonjour Sarah !</p>
+              </div>
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                <Bell size={10} className="text-white" />
+              </div>
+            </div>
           </div>
           <div className="p-3 space-y-2.5">
             <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <CalendarDays size={11} className="text-[#FF5C1A]" />
-                <span className="text-[10px] font-semibold text-[#F5F5F3]">Prochaine séance</span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <CalendarDays size={11} className="text-[#FF5C1A]" />
+                  <span className="text-[10px] font-semibold text-[#F5F5F3]">Séance du jour</span>
+                </div>
+                <span className="text-[8px] text-emerald-400 font-bold">Dans 2h</span>
               </div>
-              <p className="text-[9px] text-[#F5F5F3]/30">Upper Body · Aujourd'hui 18h</p>
+              <p className="text-[9px] text-[#F5F5F3]/40 font-medium">Hypertrophie — Haut du corps</p>
+              <p className="text-[8px] text-[#F5F5F3]/20 mt-0.5">5 exercices · ~55 min</p>
               <div className="mt-2 h-1 rounded-full bg-white/[0.05]">
-                <div className="h-full rounded-full bg-[#FF5C1A] w-[60%]" />
+                <div className="h-full rounded-full bg-[#FF5C1A] w-[50%]" />
               </div>
+              <p className="text-[7px] text-[#F5F5F3]/15 mt-1">Semaine 6/12</p>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-2.5 text-center">
                 <Heart size={12} className="text-emerald-400 mx-auto mb-1" />
-                <p className="text-sm font-bold text-[#F5F5F3]">8.4</p>
+                <p className="text-sm font-bold text-[#F5F5F3]">8.7</p>
                 <p className="text-[7px] text-[#F5F5F3]/25">Bien-être</p>
               </div>
               <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-2.5 text-center">
                 <Flame size={12} className="text-[#FF5C1A] mx-auto mb-1" />
-                <p className="text-sm font-bold text-[#F5F5F3]">7j</p>
+                <p className="text-sm font-bold text-[#F5F5F3]">12j</p>
                 <p className="text-[7px] text-[#F5F5F3]/25">Série</p>
               </div>
             </div>
             <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-3">
               <div className="flex items-center gap-2">
                 <MessageCircle size={11} className="text-[#3B82F6]" />
-                <span className="text-[10px] font-semibold text-[#F5F5F3]">Message du coach</span>
+                <span className="text-[10px] font-semibold text-[#F5F5F3]">Coach Thomas</span>
+                <span className="text-[7px] text-[#F5F5F3]/15 ml-auto">14:32</span>
               </div>
-              <p className="text-[9px] text-[#F5F5F3]/30 mt-1">"Super semaine Julie ! Continue..."</p>
+              <p className="text-[9px] text-[#F5F5F3]/30 mt-1">Bravo pour hier ! On augmente les charges aujourd'hui 💪</p>
             </div>
           </div>
           <div className="flex items-center justify-around py-2.5 border-t border-white/[0.05]">
@@ -635,12 +665,12 @@ export default function LandingPage() {
                         <p className="text-[9px] text-[#F5F5F3]/25">Ce mois-ci</p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg">+3</span>
+                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg">+5</span>
                   </div>
-                  <p className="text-3xl font-bold text-[#F5F5F3]" style={{ fontFamily: clash }}>24</p>
+                  <p className="text-3xl font-bold text-[#F5F5F3]" style={{ fontFamily: clash }}>32</p>
                   <div className="flex items-end gap-0.5 h-8 mt-2">
-                    {[18, 20, 19, 21, 20, 22, 21, 23, 22, 24].map((h, i) => (
-                      <div key={i} className="flex-1 rounded-t bg-gradient-to-t from-[#FF5C1A]/40 to-[#FF5C1A]/80" style={{ height: `${(h / 24) * 100}%` }} />
+                    {[20, 22, 23, 25, 24, 27, 26, 28, 30, 32].map((h, i) => (
+                      <div key={i} className="flex-1 rounded-t bg-gradient-to-t from-[#FF5C1A]/40 to-[#FF5C1A]/80" style={{ height: `${(h / 32) * 100}%` }} />
                     ))}
                   </div>
                 </div>
@@ -657,9 +687,9 @@ export default function LandingPage() {
                         <p className="text-[9px] text-[#F5F5F3]/25">Avril 2026</p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg">+18%</span>
+                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg">+24%</span>
                   </div>
-                  <p className="text-3xl font-bold text-[#F5F5F3]" style={{ fontFamily: clash }}>3 240€</p>
+                  <p className="text-3xl font-bold text-[#F5F5F3]" style={{ fontFamily: clash }}>4 870€</p>
                 </div>
 
                 {/* Card 3 — Notification */}
@@ -685,15 +715,15 @@ export default function LandingPage() {
             {/* Floating badges around mockup */}
             <div className="hidden md:flex absolute -top-5 left-12 z-10 items-center gap-2 px-3.5 py-2 rounded-xl bg-[#111]/90 backdrop-blur-xl border border-white/[0.08] shadow-2xl animate-bounce-slow">
               <Users size={14} className="text-[#3B82F6]" />
-              <span className="text-[11px] font-semibold text-[#F5F5F3]/70">24 clients actifs</span>
+              <span className="text-[11px] font-semibold text-[#F5F5F3]/70">32 clients actifs</span>
             </div>
             <div className="hidden md:flex absolute -bottom-4 right-12 z-10 items-center gap-2 px-3.5 py-2 rounded-xl bg-[#111]/90 backdrop-blur-xl border border-emerald-500/20 shadow-2xl animate-bounce-slow" style={{ animationDelay: '1.5s' }}>
               <TrendingUp size={14} className="text-emerald-400" />
-              <span className="text-[11px] font-semibold text-emerald-400">+18% ce mois</span>
+              <span className="text-[11px] font-semibold text-emerald-400">+24% ce mois</span>
             </div>
             <div className="hidden md:flex absolute top-1/2 -right-6 -translate-y-1/2 z-10 items-center gap-2 px-3.5 py-2 rounded-xl bg-[#111]/90 backdrop-blur-xl border border-[#FF5C1A]/20 shadow-2xl animate-bounce-slow" style={{ animationDelay: '3s' }}>
               <Sparkles size={14} className="text-[#FF5C1A]" />
-              <span className="text-[11px] font-semibold text-[#FF5C1A]">3 nouveaux clients</span>
+              <span className="text-[11px] font-semibold text-[#FF5C1A]">5 nouveaux clients</span>
             </div>
 
             <div className="rounded-2xl md:rounded-3xl border border-white/[0.07] bg-[#0c0c0c] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.6)] relative" role="img" aria-label="Tableau de bord Zevo — logiciel coach sportif avec suivi clients, statistiques et revenus">
@@ -704,51 +734,97 @@ export default function LandingPage() {
                 <div className="flex-1 flex justify-center"><div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.03] text-[10px] text-[#F5F5F3]/20 font-mono"><Lock size={7} /> app.zevo.coach</div></div>
               </div>
               <div className="p-4 md:p-7">
+                {/* Header */}
                 <div className="flex items-center justify-between mb-5">
-                  <div>
-                    <p className="text-sm md:text-base font-bold text-[#F5F5F3]" style={{ fontFamily: clash }}>Bonjour, Coach</p>
-                    <p className="text-[10px] text-[#F5F5F3]/25">Lundi 7 Avril 2026</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FF5C1A] to-[#FF7A42] flex items-center justify-center">
+                      <Flame size={16} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm md:text-base font-bold text-[#F5F5F3]" style={{ fontFamily: clash }}>Bonjour, Thomas</p>
+                      <p className="text-[10px] text-[#F5F5F3]/25">4 séances prévues — Mercredi 9 Avril</p>
+                    </div>
                   </div>
                   <div className="hidden md:flex gap-2">
-                    <div className="px-3 py-1.5 rounded-lg bg-[#FF5C1A]/10 text-[10px] text-[#FF5C1A] font-bold flex items-center gap-1.5"><Sparkles size={10} /> 3 clients en attente</div>
+                    <div className="px-3 py-1.5 rounded-lg bg-[#FF5C1A]/10 text-[10px] text-[#FF5C1A] font-bold flex items-center gap-1.5"><Sparkles size={10} /> 32 clients</div>
+                    <div className="px-3 py-1.5 rounded-lg bg-red-500/10 text-[10px] text-red-400 font-bold flex items-center gap-1.5"><Bell size={10} /> 3 en attente</div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-5">
+                {/* Stats cards row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-4">
                   {[
-                    { l: 'Clients', v: '24', t: '+3', c: '#FF5C1A', ic: Users },
-                    { l: 'Séances', v: '67', t: '+12%', c: '#3B82F6', ic: Dumbbell },
-                    { l: 'Rétention', v: '94%', t: '+2%', c: '#10B981', ic: TrendingUp },
-                    { l: 'Revenu', v: '3 240\u20AC', t: '+18%', c: '#F59E0B', ic: CreditCard },
+                    { l: 'Clients actifs', v: '32', t: '+5', c: '#FF5C1A', ic: Users },
+                    { l: 'Séances aujourd\'hui', v: '4', t: '', c: '#3B82F6', ic: CalendarDays },
+                    { l: 'Prospects', v: '8', t: '+3', c: '#10B981', ic: Target },
+                    { l: 'Revenus ce mois', v: '4 870\u20AC', t: '+24%', c: '#F59E0B', ic: CreditCard },
                   ].map((k, i) => (
                     <div key={i} className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3 hover:border-white/[0.08] transition-colors">
                       <div className="flex items-center justify-between mb-1.5">
                         <k.ic size={13} style={{ color: k.c }} />
-                        <span className="text-[8px] text-emerald-400 font-bold">{k.t}</span>
+                        {k.t && <span className="text-[8px] text-emerald-400 font-bold">{k.t}</span>}
                       </div>
                       <p className="text-lg font-bold text-[#F5F5F3]">{k.v}</p>
                       <p className="text-[9px] text-[#F5F5F3]/25">{k.l}</p>
                     </div>
                   ))}
                 </div>
+                {/* Activité du jour */}
+                <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3.5 mb-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap size={11} className="text-[#FF5C1A]" />
+                    <span className="text-[10px] font-semibold text-[#F5F5F3]/40">Activité du jour</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { v: '4', l: 'séances prévues', c: '#3B82F6', ic: Dumbbell },
+                      { v: '2', l: 'événements', c: '#FF5C1A', ic: CalendarDays },
+                      { v: '3', l: 'formulaires en attente', c: '#10B981', ic: ClipboardList },
+                    ].map((a, i) => (
+                      <div key={i} className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] border-l-2 p-2.5" style={{ borderLeftColor: a.c }}>
+                        <a.ic size={12} style={{ color: a.c }} />
+                        <div>
+                          <p className="text-sm font-bold text-[#F5F5F3]">{a.v}</p>
+                          <p className="text-[8px] text-[#F5F5F3]/25">{a.l}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Charts row */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
                   <div className="md:col-span-2 rounded-xl bg-white/[0.02] border border-white/[0.04] p-4">
-                    <span className="text-[10px] font-semibold text-[#F5F5F3]/30">Progression clients · 12 mois</span>
-                    <div className="flex items-end gap-1 h-20 mt-3">
-                      {[28, 35, 32, 48, 42, 56, 52, 65, 60, 72, 68, 82].map((h, i) => (
-                        <div key={i} className="flex-1 rounded-t" style={{ height: `${h}%`, background: `linear-gradient(to top, #FF5C1A${i >= 10 ? '' : Math.round(30 + i * 6).toString(16)}, #FF7A42${i >= 10 ? '' : Math.round(20 + i * 5).toString(16)})` }} />
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp size={11} className="text-[#FF5C1A]" />
+                        <span className="text-[10px] font-semibold text-[#F5F5F3]/40">Suivi des Revenus</span>
+                      </div>
+                      <span className="text-[10px] font-semibold text-[#F5F5F3]/20">6 derniers mois — Total : 18 420€</span>
+                    </div>
+                    <div className="flex items-end gap-1 h-20">
+                      {[
+                        { h: 25, l: 'Nov' }, { h: 30, l: 'Déc' }, { h: 35, l: 'Janv' },
+                        { h: 42, l: 'Fév' }, { h: 68, l: 'Mars' }, { h: 85, l: 'Avr' },
+                      ].map((bar, i) => (
+                        <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                          <div className="w-full rounded-t" style={{ height: `${bar.h}%`, background: i === 5 ? 'linear-gradient(to top, #FF5C1A, #FF7A42)' : `linear-gradient(to top, #FF5C1A40, #FF7A4230)` }} />
+                          <span className="text-[7px] text-[#F5F5F3]/15">{bar.l}</span>
+                        </div>
                       ))}
                     </div>
                   </div>
-                  <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 space-y-2.5">
+                  <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 space-y-2">
                     <span className="text-[10px] font-semibold text-[#F5F5F3]/30">Activité récente</span>
                     {[
-                      { t: 'Julie a validé sa séance', c: '#10B981' },
-                      { t: 'Nouveau prospect', c: '#FF5C1A' },
-                      { t: 'Paiement reçu 49\u20AC', c: '#F59E0B' },
+                      { t: 'Sarah a validé sa séance', c: '#10B981', time: '14:32' },
+                      { t: 'Paiement reçu 79€', c: '#F59E0B', time: '13:15' },
+                      { t: 'Marc — bilan complété', c: '#3B82F6', time: '12:40' },
+                      { t: 'Nouveau prospect inscrit', c: '#FF5C1A', time: '11:20' },
+                      { t: 'Léa — objectif atteint !', c: '#10B981', time: '10:05' },
                     ].map((a, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: a.c }} />
-                        <span className="text-[9px] text-[#F5F5F3]/35 truncate">{a.t}</span>
+                        <span className="text-[9px] text-[#F5F5F3]/35 truncate flex-1">{a.t}</span>
+                        <span className="text-[7px] text-[#F5F5F3]/15 flex-shrink-0">{a.time}</span>
                       </div>
                     ))}
                   </div>
