@@ -8,7 +8,8 @@ import {
   Settings, ChevronDown, ChevronLeft, BookOpen, Layers, ClipboardList,
   FileText, BarChart3, CreditCard, Paintbrush, Send, Mic,
   CheckCircle, Flame, TrendingDown, FolderOpen, Trophy, UtensilsCrossed,
-  Clock, Sparkles
+  Clock, Sparkles, Gauge, UserCheck, ListChecks, FileBarChart,
+  TrendingUp, Palette, SlidersHorizontal, Wallet, Target
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { usePlanLimits } from '../../hooks/usePlanLimits'
@@ -25,30 +26,30 @@ const NAV_SECTIONS = [
   {
     title: null,
     items: [
-      { to: '/coach/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
-      { to: '/coach/client-hub', icon: Users, label: 'Clients' },
-      { to: '/coach/calendar', icon: CalendarDays, label: 'Calendrier' },
-      { to: '/coach/messages', icon: MessageCircle, label: 'Messages', msgBadge: true },
-      { to: '/coach/prospects', icon: UserPlus, label: 'Prospects', badge: 'Nouveau' },
+      { to: '/coach/dashboard', icon: Gauge, label: 'Tableau de bord', color: '#3B82F6' },
+      { to: '/coach/client-hub', icon: Users, label: 'Clients', color: '#8B5CF6' },
+      { to: '/coach/calendar', icon: CalendarDays, label: 'Calendrier', color: '#10B981' },
+      { to: '/coach/messages', icon: MessageCircle, label: 'Messages', msgBadge: true, color: '#06B6D4' },
+      { to: '/coach/prospects', icon: Target, label: 'Prospects', badge: 'Nouveau', color: '#F59E0B' },
     ],
   },
   {
     title: 'RESSOURCES',
     items: [
-      { to: '/coach/sport', icon: Trophy, label: 'Sport' },
-      { to: '/coach/nutrition', icon: UtensilsCrossed, label: 'Nutrition' },
-      { to: '/coach/bibliotheque', icon: BookOpen, label: 'Bibliothèque' },
-      { to: '/coach/formulaires', icon: ClipboardList, label: 'Formulaires' },
-      { to: '/coach/rapports', icon: FileText, label: 'Rapports', planRequired: 'pro' },
-      { to: '/coach/statistiques', icon: BarChart3, label: 'Statistiques', planRequired: 'pro' },
+      { to: '/coach/sport', icon: Dumbbell, label: 'Sport', color: '#EF4444' },
+      { to: '/coach/nutrition', icon: UtensilsCrossed, label: 'Nutrition', color: '#22C55E' },
+      { to: '/coach/bibliotheque', icon: BookOpen, label: 'Bibliothèque', color: '#A78BFA' },
+      { to: '/coach/formulaires', icon: ListChecks, label: 'Formulaires', color: '#14B8A6' },
+      { to: '/coach/rapports', icon: FileBarChart, label: 'Rapports', planRequired: 'pro', color: '#F97316' },
+      { to: '/coach/statistiques', icon: TrendingUp, label: 'Statistiques', planRequired: 'pro', color: '#EC4899' },
     ],
   },
   {
     title: 'GESTION',
     items: [
-      { to: '/coach/abonnements', icon: CreditCard, label: 'Abonnements' },
-      { to: '/coach/app-builder', icon: Paintbrush, label: 'App Builder', planRequired: 'pro' },
-      { to: '/coach/parametres', icon: Settings, label: 'Paramètres' },
+      { to: '/coach/abonnements', icon: Wallet, label: 'Abonnements', color: '#F59E0B' },
+      { to: '/coach/app-builder', icon: Palette, label: 'App Builder', planRequired: 'pro', color: '#FF6B2B' },
+      { to: '/coach/parametres', icon: SlidersHorizontal, label: 'Paramètres', color: '#6B7280' },
     ],
   },
 ]
@@ -346,54 +347,96 @@ export function CoachLayout() {
       {/* ══════════════════════════════════════ */}
       <aside className="hidden md:flex w-64 flex-shrink-0 bg-[var(--bg-elevated)] border-r border-[var(--border-base)] flex-col sticky top-0 h-screen">
 
-        {/* Logo */}
-        <div className="px-5 py-5 border-b border-[var(--border-base)]">
-          <ZevoLogo size="md" className="text-[var(--text-primary)]" />
-          <p className="text-[var(--text-muted)] text-[10px] font-medium mt-1.5 tracking-wide">Espace coach</p>
+        {/* Logo + Plan */}
+        <div className="px-5 pt-5 pb-4 relative">
+          <div className="flex items-center justify-between">
+            <ZevoLogo size="md" className="text-[var(--text-primary)]" />
+            <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/15">
+              {coachPlan || 'Starter'}
+            </span>
+          </div>
+          {/* Gradient separator */}
+          <div className="absolute bottom-0 left-5 right-5 h-px bg-gradient-to-r from-[#FF6B2B]/30 via-[var(--border-base)] to-transparent" />
+        </div>
+
+        {/* Quick search trigger */}
+        <div className="px-3 pt-3 pb-2">
+          <button
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[var(--text-muted)]/20 hover:bg-[var(--bg-surface)] transition-all group"
+            onClick={() => {/* TODO: command palette */}}
+          >
+            <Search size={14} className="text-[var(--text-muted)] flex-shrink-0" />
+            <span className="text-[12px] text-[var(--text-muted)] flex-1 text-left">Rechercher...</span>
+            <kbd className="hidden lg:inline-flex items-center gap-0.5 text-[9px] text-[var(--text-muted)] bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded px-1.5 py-0.5 font-mono">
+              <span className="text-[10px]">⌘</span>K
+            </kbd>
+          </button>
         </div>
 
         {/* Navigation par sections */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-5">
+        <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-5 sidebar-nav">
           {NAV_SECTIONS.map((section, si) => (
             <div key={si}>
               {section.title && (
-                <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold px-3 mb-2">
-                  {section.title}
-                </p>
+                <div className="flex items-center gap-2 px-3 mb-2.5">
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-muted)] font-bold whitespace-nowrap">
+                    {section.title}
+                  </p>
+                  <div className="flex-1 h-px bg-[var(--border-base)]" />
+                </div>
               )}
               <ul className="space-y-0.5">
-                {section.items.map(({ to, icon: Icon, label, badge, msgBadge, planRequired }) => {
+                {section.items.map(({ to, icon: Icon, label, badge, msgBadge, planRequired, color }) => {
                   const isLocked = planRequired && (PLAN_RANK[coachPlan] || 1) < (PLAN_RANK[planRequired] || 1)
+                  const itemColor = color || '#FF6B2B'
                   return (
                   <li key={to}>
                     <NavLink
                       to={to}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all group ${
+                        `relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 group ${
                           isActive
                             ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]'
                             : isLocked
-                            ? 'text-[var(--text-muted)] opacity-50 hover:opacity-70 hover:bg-[var(--bg-surface)]'
-                            : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
+                            ? 'text-[var(--text-muted)] opacity-40 hover:opacity-60 hover:bg-[var(--bg-surface)]/50'
+                            : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]/50 hover:translate-x-0.5'
                         }`
                       }
                     >
                       {({ isActive }) => (
                         <>
-                          <Icon size={17} className={`flex-shrink-0 transition-colors ${isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]'}`} />
+                          {/* Active left accent bar */}
+                          {isActive && (
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full" style={{ backgroundColor: itemColor, boxShadow: `0 0 8px ${itemColor}60` }} />
+                          )}
+                          {/* Icon container with unique color */}
+                          <div
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                              isActive ? '' : 'group-hover:scale-105'
+                            }`}
+                            style={{
+                              backgroundColor: isActive ? `${itemColor}20` : `${itemColor}08`,
+                            }}
+                          >
+                            <Icon
+                              size={15}
+                              style={{ color: isActive ? itemColor : undefined }}
+                              className={`transition-all duration-200 ${isActive ? '' : 'text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]'}`}
+                            />
+                          </div>
                           <span className="flex-1">{label}</span>
                           {msgBadge && unreadMsgCount > 0 && (
-                            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
                               {unreadMsgCount > 9 ? '9+' : unreadMsgCount}
                             </span>
                           )}
                           {isLocked && (
-                            <span className="text-[9px] bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-base)] px-1.5 py-0.5 rounded-full font-bold uppercase">
+                            <span className="text-[8px] bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-base)] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider">
                               {planRequired === 'unlimited' ? 'Unlimited' : 'Pro'}
                             </span>
                           )}
                           {!isLocked && badge && (
-                            <span className="text-[9px] bg-[#FF6B2B] text-white px-1.5 py-0.5 rounded-full font-bold">
+                            <span className="text-[8px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] text-white px-2 py-0.5 rounded-full font-bold shadow-sm shadow-[#FF6B2B]/20">
                               {badge}
                             </span>
                           )}
@@ -409,36 +452,48 @@ export function CoachLayout() {
         </nav>
 
         {/* Bas de sidebar */}
-        <div className="px-3 pb-4 space-y-2 border-t border-[var(--border-base)] pt-3">
-          {/* Bouton Démarrage — uniquement si tutoriel pas encore fait */}
-          {coachProfile && !coachProfile.tutorial_coach_done && (
-            <button
-              onClick={() => setShowTutorial(true)}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-sm font-semibold hover:bg-[#FF6B2B]/15 transition-colors"
-            >
-              <Rocket size={15} />
-              Démarrage
-            </button>
-          )}
+        <div className="px-3 pb-4 space-y-2 relative">
+          {/* Gradient separator */}
+          <div className="absolute top-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-[var(--border-base)] to-transparent" />
 
-          {/* Profil coach */}
-          <button
-            onClick={() => navigate('/coach/parametres')}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--bg-surface)] transition-colors group"
-          >
-            <div className="w-8 h-8 rounded-full bg-[#FF6B2B]/15 flex items-center justify-center flex-shrink-0">
-              <span className="text-[#FF6B2B] text-xs font-bold">{coachInitials}</span>
-            </div>
-            <div className="flex-1 text-left min-w-0">
-              <p className="text-[var(--text-primary)] text-xs font-medium truncate">{coachName}</p>
-              <p className="text-[var(--text-muted)] text-[10px] truncate">{user?.email}</p>
-            </div>
-            <LogOut
-              size={14}
-              className="text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors flex-shrink-0 cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); handleLogout() }}
-            />
-          </button>
+          <div className="pt-3">
+            {/* Bouton Démarrage — uniquement si tutoriel pas encore fait */}
+            {coachProfile && !coachProfile.tutorial_coach_done && (
+              <button
+                onClick={() => setShowTutorial(true)}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mb-2 rounded-xl bg-gradient-to-r from-[#FF6B2B]/10 to-[#FF9A6C]/10 text-[#FF6B2B] text-sm font-semibold hover:from-[#FF6B2B]/15 hover:to-[#FF9A6C]/15 transition-all border border-[#FF6B2B]/10"
+              >
+                <Rocket size={15} />
+                Démarrage
+              </button>
+            )}
+
+            {/* Profil coach */}
+            <button
+              onClick={() => navigate('/coach/parametres')}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--bg-surface)]/70 transition-all duration-200 group"
+            >
+              {/* Avatar with gradient ring */}
+              <div className="relative flex-shrink-0">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C] p-[2px]">
+                  <div className="w-full h-full rounded-full bg-[var(--bg-elevated)] flex items-center justify-center">
+                    <span className="text-[#FF6B2B] text-[11px] font-bold">{coachInitials}</span>
+                  </div>
+                </div>
+                {/* Online indicator */}
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[var(--bg-elevated)]" />
+              </div>
+              <div className="flex-1 text-left min-w-0">
+                <p className="text-[var(--text-primary)] text-[12px] font-semibold truncate">{coachName}</p>
+                <p className="text-[var(--text-muted)] text-[10px] truncate">{user?.email}</p>
+              </div>
+              <LogOut
+                size={14}
+                className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 group-hover:text-[var(--text-secondary)] transition-all flex-shrink-0 cursor-pointer"
+                onClick={(e) => { e.stopPropagation(); handleLogout() }}
+              />
+            </button>
+          </div>
         </div>
       </aside>
 
