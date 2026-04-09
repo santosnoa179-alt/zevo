@@ -9,7 +9,10 @@ import {
   FileText, BarChart3, CreditCard, Paintbrush, Send, Mic,
   CheckCircle, Flame, TrendingDown, FolderOpen, Trophy, UtensilsCrossed,
   Clock, Sparkles, Gauge, UserCheck, ListChecks, FileBarChart,
-  TrendingUp, Palette, SlidersHorizontal, Wallet, Target
+  TrendingUp, Palette, SlidersHorizontal, Wallet, Target,
+  House, UserRound, CalendarRange, MessageSquareText, Magnet,
+  Cherry, BookMarked, ClipboardCheck, ChartNoAxesCombined,
+  ChartSpline, Landmark, Blocks, SlidersVertical
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { usePlanLimits } from '../../hooks/usePlanLimits'
@@ -26,30 +29,30 @@ const NAV_SECTIONS = [
   {
     title: null,
     items: [
-      { to: '/coach/dashboard', icon: Gauge, label: 'Tableau de bord', color: '#3B82F6' },
-      { to: '/coach/client-hub', icon: Users, label: 'Clients', color: '#8B5CF6' },
-      { to: '/coach/calendar', icon: CalendarDays, label: 'Calendrier', color: '#10B981' },
-      { to: '/coach/messages', icon: MessageCircle, label: 'Messages', msgBadge: true, color: '#06B6D4' },
-      { to: '/coach/prospects', icon: Target, label: 'Prospects', badge: 'Nouveau', color: '#F59E0B' },
+      { to: '/coach/dashboard', icon: House, label: 'Tableau de bord', color: '#3B82F6' },
+      { to: '/coach/client-hub', icon: UsersRound, label: 'Clients', color: '#8B5CF6' },
+      { to: '/coach/calendar', icon: CalendarRange, label: 'Calendrier', color: '#10B981' },
+      { to: '/coach/messages', icon: MessageSquareText, label: 'Messages', msgBadge: true, color: '#06B6D4' },
+      { to: '/coach/prospects', icon: Magnet, label: 'Prospects', badge: 'Nouveau', color: '#F59E0B' },
     ],
   },
   {
     title: 'RESSOURCES',
     items: [
       { to: '/coach/sport', icon: Dumbbell, label: 'Sport', color: '#EF4444' },
-      { to: '/coach/nutrition', icon: UtensilsCrossed, label: 'Nutrition', color: '#22C55E' },
-      { to: '/coach/bibliotheque', icon: BookOpen, label: 'Bibliothèque', color: '#A78BFA' },
-      { to: '/coach/formulaires', icon: ListChecks, label: 'Formulaires', color: '#14B8A6' },
-      { to: '/coach/rapports', icon: FileBarChart, label: 'Rapports', planRequired: 'pro', color: '#F97316' },
-      { to: '/coach/statistiques', icon: TrendingUp, label: 'Statistiques', planRequired: 'pro', color: '#EC4899' },
+      { to: '/coach/nutrition', icon: Cherry, label: 'Nutrition', color: '#22C55E' },
+      { to: '/coach/bibliotheque', icon: BookMarked, label: 'Bibliothèque', color: '#A78BFA' },
+      { to: '/coach/formulaires', icon: ClipboardCheck, label: 'Formulaires', color: '#14B8A6' },
+      { to: '/coach/rapports', icon: ChartNoAxesCombined, label: 'Rapports', planRequired: 'pro', color: '#F97316' },
+      { to: '/coach/statistiques', icon: ChartSpline, label: 'Statistiques', planRequired: 'pro', color: '#EC4899' },
     ],
   },
   {
     title: 'GESTION',
     items: [
-      { to: '/coach/abonnements', icon: Wallet, label: 'Abonnements', color: '#F59E0B' },
-      { to: '/coach/app-builder', icon: Palette, label: 'App Builder', planRequired: 'pro', color: '#FF6B2B' },
-      { to: '/coach/parametres', icon: SlidersHorizontal, label: 'Paramètres', color: '#6B7280' },
+      { to: '/coach/abonnements', icon: Landmark, label: 'Paiements', color: '#F59E0B' },
+      { to: '/coach/app-builder', icon: Blocks, label: 'App Builder', planRequired: 'pro', color: '#FF6B2B' },
+      { to: '/coach/parametres', icon: Settings, label: 'Paramètres', color: '#6B7280' },
     ],
   },
 ]
@@ -75,7 +78,15 @@ const PAGE_TITLES = {
   '/coach/formulaires': 'Formulaires',
   '/coach/rapports': 'Rapports',
   '/coach/statistiques': 'Statistiques',
-  '/coach/abonnements': 'Abonnements',
+  '/coach/abonnements': 'Paiements',
+  '/coach/abonnements/transactions': 'Transactions',
+  '/coach/abonnements/solde': 'Solde',
+  '/coach/abonnements/abonnements': 'Abonnements',
+  '/coach/abonnements/factures': 'Factures',
+  '/coach/abonnements/produits': 'Produits',
+  '/coach/abonnements/liens': 'Liens de paiement',
+  '/coach/abonnements/codes': 'Codes de réduction',
+  '/coach/abonnements/parametres': 'Paramètres paiement',
   '/coach/app-builder': 'App Builder',
   '/coach/parametres': 'Paramètres',
   '/coach/calendar': 'Calendrier',
@@ -297,30 +308,40 @@ export function CoachLayout() {
                     {section.title}
                   </p>
                 )}
-                <ul className="space-y-0.5">
-                  {section.items.map(({ to, icon: Icon, label, planRequired }) => {
+                <ul className="space-y-1">
+                  {section.items.map(({ to, icon: Icon, label, planRequired, color }) => {
                     const isLocked = planRequired && (PLAN_RANK[coachPlan] || 1) < (PLAN_RANK[planRequired] || 1)
+                    const itemColor = color || '#FF6B2B'
                     return (
                     <li key={to}>
                       <NavLink
                         to={to}
                         onClick={() => setMenuOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                          `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                             isActive
-                              ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
+                              ? 'text-[var(--text-primary)]'
                               : isLocked
                               ? 'text-[var(--text-muted)] opacity-50'
                               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]'
                           }`
                         }
                       >
-                        <Icon size={18} />
-                        <span className="flex-1">{label}</span>
-                        {isLocked && (
-                          <span className="text-[9px] bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-base)] px-1.5 py-0.5 rounded-full font-bold uppercase">
-                            {planRequired === 'unlimited' ? 'Unlimited' : 'Pro'}
-                          </span>
+                        {({ isActive }) => (
+                          <>
+                            <div
+                              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                              style={{ backgroundColor: isActive ? `${itemColor}18` : `${itemColor}08` }}
+                            >
+                              <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} style={{ color: isActive ? itemColor : undefined }} className={isActive ? '' : 'text-[var(--text-muted)]'} />
+                            </div>
+                            <span className={`flex-1 ${isActive ? 'font-semibold' : ''}`}>{label}</span>
+                            {isLocked && (
+                              <span className="text-[9px] bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-base)] px-1.5 py-0.5 rounded-full font-bold uppercase">
+                                {planRequired === 'unlimited' ? 'Unlimited' : 'Pro'}
+                              </span>
+                            )}
+                          </>
                         )}
                       </NavLink>
                     </li>
@@ -359,20 +380,6 @@ export function CoachLayout() {
           <div className="absolute bottom-0 left-5 right-5 h-px bg-gradient-to-r from-[#FF6B2B]/30 via-[var(--border-base)] to-transparent" />
         </div>
 
-        {/* Quick search trigger */}
-        <div className="px-3 pt-3 pb-2">
-          <button
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[var(--text-muted)]/20 hover:bg-[var(--bg-surface)] transition-all group"
-            onClick={() => {/* TODO: command palette */}}
-          >
-            <Search size={14} className="text-[var(--text-muted)] flex-shrink-0" />
-            <span className="text-[12px] text-[var(--text-muted)] flex-1 text-left">Rechercher...</span>
-            <kbd className="hidden lg:inline-flex items-center gap-0.5 text-[9px] text-[var(--text-muted)] bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded px-1.5 py-0.5 font-mono">
-              <span className="text-[10px]">⌘</span>K
-            </kbd>
-          </button>
-        </div>
-
         {/* Navigation par sections */}
         <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-5 sidebar-nav">
           {NAV_SECTIONS.map((section, si) => (
@@ -385,7 +392,7 @@ export function CoachLayout() {
                   <div className="flex-1 h-px bg-[var(--border-base)]" />
                 </div>
               )}
-              <ul className="space-y-0.5">
+              <ul className="space-y-1">
                 {section.items.map(({ to, icon: Icon, label, badge, msgBadge, planRequired, color }) => {
                   const isLocked = planRequired && (PLAN_RANK[coachPlan] || 1) < (PLAN_RANK[planRequired] || 1)
                   const itemColor = color || '#FF6B2B'
@@ -394,37 +401,35 @@ export function CoachLayout() {
                     <NavLink
                       to={to}
                       className={({ isActive }) =>
-                        `relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 group ${
+                        `relative flex items-center gap-3 px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 group ${
                           isActive
-                            ? 'bg-[var(--bg-surface)] text-[var(--text-primary)]'
+                            ? 'text-[var(--text-primary)]'
                             : isLocked
-                            ? 'text-[var(--text-muted)] opacity-40 hover:opacity-60 hover:bg-[var(--bg-surface)]/50'
-                            : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]/50 hover:translate-x-0.5'
+                            ? 'text-[var(--text-muted)] opacity-40 hover:opacity-60'
+                            : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]/40'
                         }`
                       }
                     >
                       {({ isActive }) => (
                         <>
-                          {/* Active left accent bar */}
-                          {isActive && (
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full" style={{ backgroundColor: itemColor, boxShadow: `0 0 8px ${itemColor}60` }} />
-                          )}
-                          {/* Icon container with unique color */}
+                          {/* Icon container — Gymkee-style: large rounded square, filled bg on active */}
                           <div
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
-                              isActive ? '' : 'group-hover:scale-105'
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                              isActive ? 'shadow-lg' : 'group-hover:scale-105'
                             }`}
                             style={{
-                              backgroundColor: isActive ? `${itemColor}20` : `${itemColor}08`,
+                              backgroundColor: isActive ? `${itemColor}18` : `${itemColor}08`,
+                              boxShadow: isActive ? `0 4px 12px ${itemColor}15` : 'none',
                             }}
                           >
                             <Icon
-                              size={15}
+                              size={18}
+                              strokeWidth={isActive ? 2.2 : 1.8}
                               style={{ color: isActive ? itemColor : undefined }}
                               className={`transition-all duration-200 ${isActive ? '' : 'text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]'}`}
                             />
                           </div>
-                          <span className="flex-1">{label}</span>
+                          <span className={`flex-1 ${isActive ? 'font-semibold' : ''}`}>{label}</span>
                           {msgBadge && unreadMsgCount > 0 && (
                             <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
                               {unreadMsgCount > 9 ? '9+' : unreadMsgCount}

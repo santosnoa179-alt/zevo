@@ -77,6 +77,16 @@ const CoachFormulairesPage = lazy(() => import('./pages/coach/CoachFormulairesPa
 const CoachRapportsPage = lazy(() => import('./pages/coach/CoachRapportsPage'))
 const CoachStatistiquesPage = lazy(() => import('./pages/coach/CoachStatistiquesPage'))
 const CoachAbonnementsPage = lazy(() => import('./pages/coach/CoachAbonnementsPage'))
+const PaiementsLayout = lazy(() => import('./pages/coach/paiements/PaiementsLayout'))
+const PaiementsBusinessPage = lazy(() => import('./pages/coach/paiements/BusinessPage'))
+const PaiementsTransactionsPage = lazy(() => import('./pages/coach/paiements/TransactionsPage'))
+const PaiementsSoldePage = lazy(() => import('./pages/coach/paiements/SoldePage'))
+const PaiementsAbonnementsPage = lazy(() => import('./pages/coach/paiements/AbonnementsListPage'))
+const PaiementsFacturesPage = lazy(() => import('./pages/coach/paiements/FacturesPage'))
+const PaiementsProduitsPage = lazy(() => import('./pages/coach/paiements/ProduitsPage'))
+const PaiementsLiensPage = lazy(() => import('./pages/coach/paiements/LiensPaiementPage'))
+const PaiementsCodesPage = lazy(() => import('./pages/coach/paiements/CodesReductionPage'))
+const PaiementsParametresPage = lazy(() => import('./pages/coach/paiements/ParametresPaiementPage'))
 const CoachAppBuilderPage = lazy(() => import('./pages/coach/CoachAppBuilderPage'))
 const CoachParametresPage = lazy(() => import('./pages/coach/CoachParametresPage'))
 const CoachProspectsPage = lazy(() => import('./pages/coach/CoachProspectsPage'))
@@ -188,7 +198,17 @@ export default function App() {
               <Route path="formulaires" element={<CoachFormulairesPage />} />
               <Route path="rapports" element={<PlanGate feature="rapports"><CoachRapportsPage /></PlanGate>} />
               <Route path="statistiques" element={<PlanGate feature="statistiques"><CoachStatistiquesPage /></PlanGate>} />
-              <Route path="abonnements" element={<CoachAbonnementsPage />} />
+              <Route path="abonnements" element={<PaiementsLayout />}>
+                <Route index element={<PaiementsBusinessPage />} />
+                <Route path="transactions" element={<PaiementsTransactionsPage />} />
+                <Route path="solde" element={<PaiementsSoldePage />} />
+                <Route path="abonnements" element={<PaiementsAbonnementsPage />} />
+                <Route path="factures" element={<PaiementsFacturesPage />} />
+                <Route path="produits" element={<PaiementsProduitsPage />} />
+                <Route path="liens" element={<PaiementsLiensPage />} />
+                <Route path="codes" element={<PaiementsCodesPage />} />
+                <Route path="parametres" element={<PaiementsParametresPage />} />
+              </Route>
               <Route path="app-builder" element={<PlanGate feature="appBuilder"><CoachAppBuilderPage /></PlanGate>} />
               <Route path="messages" element={<CoachMessagesPage />} />
               <Route path="parametres" element={<CoachParametresPage />} />
