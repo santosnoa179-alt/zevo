@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 
 /**
- * Composant SEO reutilisable pour les SPA React
- * Met a jour dynamiquement les meta tags du <head>
+ * Composant SEO réutilisable pour les SPA React
+ * Met à jour dynamiquement les meta tags du <head>
  *
  * Usage :
  *   <SEO

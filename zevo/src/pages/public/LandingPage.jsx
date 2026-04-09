@@ -20,16 +20,16 @@ import SEO from '../../components/SEO'
 // ══════════════════════════════════════════════════════════
 
 const FEATURE_NAV = [
-  { icon: Dumbbell, label: 'Entrainement', desc: 'Seances guidees en direct', path: '/features/entrainement' },
-  { icon: ClipboardList, label: 'Programmes', desc: 'Cree en 5 min, suivi auto', path: '/features/programmes' },
+  { icon: Dumbbell, label: 'Entraînement', desc: 'Séances guidées en direct', path: '/features/entrainement' },
+  { icon: ClipboardList, label: 'Programmes', desc: 'Crée en 5 min, suivi auto', path: '/features/programmes' },
   { icon: Utensils, label: 'Nutrition', desc: 'Macros & plans alimentaires', path: '/features/nutrition' },
-  { icon: CalendarDays, label: 'Calendrier', desc: 'Reservations en un clic', path: '/features/calendrier' },
+  { icon: CalendarDays, label: 'Calendrier', desc: 'Réservations en un clic', path: '/features/calendrier' },
   { icon: Users, label: 'Hub Client', desc: 'Chaque client en 3 secondes', path: '/features/hub-client' },
-  { icon: MessageCircle, label: 'Messagerie', desc: 'Chat integre, fini WhatsApp', path: '/features/messagerie' },
-  { icon: BookOpen, label: 'Bibliotheque', desc: 'Videos & ressources partagees', path: '/features/bibliotheque' },
+  { icon: MessageCircle, label: 'Messagerie', desc: 'Chat intégré, fini WhatsApp', path: '/features/messagerie' },
+  { icon: BookOpen, label: 'Bibliothèque', desc: 'Vidéos & ressources partagées', path: '/features/bibliotheque' },
   { icon: ClipboardList, label: 'Formulaires', desc: 'Bilans & check-ins auto', path: '/features/formulaires' },
-  { icon: BarChart3, label: 'Statistiques', desc: 'Prouve tes resultats en PDF', path: '/features/statistiques' },
-  { icon: Paintbrush, label: 'App Builder', desc: 'Ton app a tes couleurs', path: '/features/app-builder' },
+  { icon: BarChart3, label: 'Statistiques', desc: 'Prouve tes résultats en PDF', path: '/features/statistiques' },
+  { icon: Paintbrush, label: 'App Builder', desc: 'Ton app à tes couleurs', path: '/features/app-builder' },
   { icon: CreditCard, label: 'Paiements', desc: 'Encaissement Stripe auto', path: '/features/paiements' },
   { icon: UserPlus, label: 'CRM Prospects', desc: 'Convertis plus de leads', path: '/features/prospects' },
 ]
@@ -37,22 +37,22 @@ const FEATURE_NAV = [
 const BENTO_FEATURES = [
   {
     icon: Users, title: 'Connais chaque client en 3s',
-    desc: 'Score bien-etre, objectifs, mensurations, historique des seances. Fini les fichiers Excel disperses — tout est dans une fiche unique.',
+    desc: 'Score bien-être, objectifs, mensurations, historique des séances. Fini les fichiers Excel dispersés — tout est dans une fiche unique.',
     span: 'col-span-1 md:col-span-2 md:row-span-2', visual: 'hub',
   },
   {
     icon: Dumbbell, title: 'Programmes en 5 min',
-    desc: 'Drag & drop, multi-semaines, suivi live. Tes clients voient leur progression en temps reel.',
+    desc: 'Drag & drop, multi-semaines, suivi live. Tes clients voient leur progression en temps réel.',
     span: 'col-span-1', visual: null,
   },
   {
-    icon: MessageCircle, title: 'Messagerie integree',
-    desc: 'Chat, audio, fichiers. Reponds a tes clients sans quitter Zevo. Fini WhatsApp pro.',
+    icon: MessageCircle, title: 'Messagerie intégrée',
+    desc: 'Chat, audio, fichiers. Réponds à tes clients sans quitter Zevo. Fini WhatsApp pro.',
     span: 'col-span-1', visual: null,
   },
   {
-    icon: BarChart3, title: 'Prouve tes resultats',
-    desc: 'Dashboards clairs, graphiques automatiques, export PDF. Montre l\'impact concret de ton coaching a chaque client.',
+    icon: BarChart3, title: 'Prouve tes résultats',
+    desc: 'Dashboards clairs, graphiques automatiques, export PDF. Montre l\'impact concret de ton coaching à chaque client.',
     span: 'col-span-1 md:col-span-2', visual: 'stats',
   },
   {
@@ -66,13 +66,13 @@ const BENTO_FEATURES = [
     span: 'col-span-1', visual: null,
   },
   {
-    icon: ClipboardList, title: 'Bilans automatises',
-    desc: 'Check-in hebdo, bilan initial, questionnaire satisfaction. Zero paperasse, tout est automatique.',
+    icon: ClipboardList, title: 'Bilans automatisés',
+    desc: 'Check-in hebdo, bilan initial, questionnaire satisfaction. Zéro paperasse, tout est automatique.',
     span: 'col-span-1', visual: null,
   },
   {
     icon: CreditCard, title: 'Encaisse en automatique',
-    desc: 'Stripe connecte en 1 clic. Tu fixes tes prix, tes clients paient, l\'argent tombe. Zero relance.',
+    desc: 'Stripe connecté en 1 clic. Tu fixes tes prix, tes clients paient, l\'argent tombe. Zéro relance.',
     span: 'col-span-1', visual: null,
   },
 ]
@@ -80,9 +80,9 @@ const BENTO_FEATURES = [
 const SHOWCASES = [
   {
     badge: 'Suivi client coaching',
-    title: 'Fini les tableurs. Connais chaque client en un coup d\'oeil.',
-    desc: 'Score bien-etre, objectifs, seances realisees, mensurations — tout centralise dans une fiche unique. Tu reperes un client en difficulte en 3 secondes, pas en 30 minutes.',
-    features: ['Fiche client 360 unifiee', 'Score bien-etre automatique', 'Alertes desengagement', 'Historique complet des seances'],
+    title: 'Fini les tableurs. Connais chaque client en un coup d\'œil.',
+    desc: 'Score bien-être, objectifs, séances réalisées, mensurations — tout centralisé dans une fiche unique. Tu repères un client en difficulté en 3 secondes, pas en 30 minutes.',
+    features: ['Fiche client 360 unifiée', 'Score bien-être automatique', 'Alertes désengagement', 'Historique complet des séances'],
     visual: 'client',
     metric: { value: '3s', label: 'pour scanner un client' },
     screenshot: '/screenshots/hub-client.png',
@@ -90,48 +90,48 @@ const SHOWCASES = [
   {
     badge: 'Programme sport en ligne',
     title: 'Des programmes que tes clients terminent vraiment',
-    desc: 'Interface claire, exercices avec videos, validation en temps reel. Le taux de completion explose parce que l\'experience client est addictive.',
-    features: ['Drag & drop intuitif', 'Videos demo integrees', 'Validation live', 'Templates reutilisables'],
+    desc: 'Interface claire, exercices avec vidéos, validation en temps réel. Le taux de complétion explose parce que l\'expérience client est addictive.',
+    features: ['Drag & drop intuitif', 'Vidéos démo intégrées', 'Validation live', 'Templates réutilisables'],
     visual: 'program',
-    metric: { value: '5h', label: 'gagnees par semaine' },
+    metric: { value: '5h', label: 'gagnées par semaine' },
     screenshot: '/screenshots/programme.png',
   },
   {
     badge: 'Application coach sportif',
     title: 'Tes clients pensent que c\'est TON app',
-    desc: 'Ton logo, tes couleurs, tes modules. L\'experience est 100% brandee a ton image. Augmente ta valeur percue et justifie des tarifs 40% plus eleves.',
-    features: ['Branding complet', 'Modules au choix', 'Preview en temps reel', 'Experience client premium'],
+    desc: 'Ton logo, tes couleurs, tes modules. L\'expérience est 100% brandée à ton image. Augmente ta valeur perçue et justifie des tarifs 40% plus élevés.',
+    features: ['Branding complet', 'Modules au choix', 'Preview en temps réel', 'Expérience client premium'],
     visual: 'app',
-    metric: { value: '+40%', label: 'de valeur percue' },
+    metric: { value: '+40%', label: 'de valeur perçue' },
     screenshot: '/screenshots/app-builder.png',
   },
 ]
 
 const STEPS = [
-  { num: '01', title: 'Cree ton espace', desc: '30 secondes chrono. Sans carte bancaire. Acces complet a toutes les fonctionnalites pendant 14 jours.', icon: Rocket },
-  { num: '02', title: 'Importe tes clients', desc: 'Invite par email ou lien. Tes clients accedent a leur espace en 1 minute. L\'onboarding te guide pas a pas.', icon: Paintbrush },
+  { num: '01', title: 'Crée ton espace', desc: '30 secondes chrono. Sans carte bancaire. Accès complet à toutes les fonctionnalités pendant 14 jours.', icon: Rocket },
+  { num: '02', title: 'Importe tes clients', desc: 'Invite par email ou lien. Tes clients accèdent à leur espace en 1 minute. L\'onboarding te guide pas à pas.', icon: Paintbrush },
   { num: '03', title: 'Automatise et grandis', desc: 'Tes clients progressent, tu mesures l\'impact, tu augmentes tes tarifs. Le cercle vertueux du coaching digital.', icon: TrendingUp },
 ]
 
 const TESTIMONIALS = [
   {
     name: 'Julien Morel', role: 'Coach sportif · Paris', avatar: 'JM',
-    text: 'Avant Zevo, je passais 2h par jour sur mes tableurs. Maintenant le suivi client coaching est automatise. J\'ai pris 12 clients de plus sans embaucher personne.',
+    text: 'Avant Zevo, je passais 2h par jour sur mes tableurs. Maintenant le suivi client coaching est automatisé. J\'ai pris 12 clients de plus sans embaucher personne.',
     metric: { value: 'x2', label: 'clients en 3 mois' }, rating: 5,
   },
   {
     name: 'Camille Rousseau', role: 'Coach nutrition · Lyon', avatar: 'CR',
-    text: 'Mes clients adorent recevoir leur programme sport en ligne directement dans l\'app. Le taux de completion a explose. Je ne reviendrais en arriere pour rien au monde.',
-    metric: { value: '5h', label: 'gagnees/semaine' }, rating: 5,
+    text: 'Mes clients adorent recevoir leur programme sport en ligne directement dans l\'app. Le taux de complétion a explosé. Je ne reviendrais en arrière pour rien au monde.',
+    metric: { value: '5h', label: 'gagnées/semaine' }, rating: 5,
   },
   {
-    name: 'Romain Dubois', role: 'Preparateur physique · Bordeaux', avatar: 'RD',
-    text: 'La facturation automatique m\'a libere un temps fou. Plus de relances, plus d\'impayes. Et les rapports PDF impressionnent mes athletes a chaque bilan.',
-    metric: { value: '98%', label: 'retention clients' }, rating: 5,
+    name: 'Romain Dubois', role: 'Préparateur physique · Bordeaux', avatar: 'RD',
+    text: 'La facturation automatique m\'a libéré un temps fou. Plus de relances, plus d\'impayés. Et les rapports PDF impressionnent mes athlètes à chaque bilan.',
+    metric: { value: '98%', label: 'rétention clients' }, rating: 5,
   },
   {
-    name: 'Lea Fontaine', role: 'Coach bien-etre · Nantes', avatar: 'LF',
-    text: 'L\'App Builder a tout change. Mes clients pensent que c\'est ma propre application coach sportif. J\'ai augmente mes tarifs de 35% et personne n\'a bronche.',
+    name: 'Léa Fontaine', role: 'Coach bien-être · Nantes', avatar: 'LF',
+    text: 'L\'App Builder a tout changé. Mes clients pensent que c\'est ma propre application coach sportif. J\'ai augmenté mes tarifs de 35% et personne n\'a bronché.',
     metric: { value: '+35%', label: 'sur ses tarifs' }, rating: 5,
   },
 ]
@@ -139,30 +139,30 @@ const TESTIMONIALS = [
 const PLANS = [
   {
     id: 'starter', name: 'Starter', price: { monthly: 29, yearly: 24 },
-    desc: 'Lance ton activite de coaching digital',
-    features: ['5 clients actifs', 'Dashboard coach complet', 'Messagerie integree', 'Programmes & seances', 'Formulaires & bilans', 'Bibliotheque de ressources', 'CRM prospects', 'Support email 24h'],
+    desc: 'Lance ton activité de coaching digital',
+    features: ['5 clients actifs', 'Dashboard coach complet', 'Messagerie intégrée', 'Programmes & séances', 'Formulaires & bilans', 'Bibliothèque de ressources', 'CRM prospects', 'Support email 24h'],
   },
   {
     id: 'pro', name: 'Pro', price: { monthly: 49, yearly: 39 }, popular: true,
-    desc: 'Automatise et developpe ton activite',
-    features: ['50 clients actifs', 'Tout le Starter +', 'App Builder (ton branding)', 'Rapports PDF automatiques', 'Statistiques avancees', 'Plans nutritionnels complets', 'Support prioritaire'],
+    desc: 'Automatise et développe ton activité',
+    features: ['50 clients actifs', 'Tout le Starter +', 'App Builder (ton branding)', 'Rapports PDF automatiques', 'Statistiques avancées', 'Plans nutritionnels complets', 'Support prioritaire'],
   },
   {
     id: 'unlimited', name: 'Unlimited', price: { monthly: 79, yearly: 65 },
     desc: 'Coaching sans aucune limite',
-    features: ['Clients illimites', 'Tout le Pro +', 'Automatisation avancee', 'API & webhooks', 'Support dedie sous 2h'],
+    features: ['Clients illimités', 'Tout le Pro +', 'Automatisation avancée', 'API & webhooks', 'Support dédié sous 2h'],
   },
 ]
 
 const FAQS = [
-  { q: 'L\'essai gratuit est vraiment sans carte bancaire ?', a: 'Oui. 14 jours avec TOUTES les fonctionnalites du logiciel coach sportif. Zero carte bancaire demandee. Tu annules en un clic si tu veux, tes donnees restent 30 jours.' },
-  { q: 'Mes clients doivent payer pour utiliser l\'app ?', a: 'Non. Tes clients accedent gratuitement a leur espace coaching via un simple lien d\'invitation. Ils n\'ont rien a debourser.' },
-  { q: 'En quoi Zevo est different des autres logiciels de coaching ?', a: 'Zevo est la seule plateforme coaching en France qui reunit suivi client, programmes sport en ligne, nutrition, paiements et branding dans une seule app. Pas 5 outils, un seul.' },
-  { q: 'Comment fonctionne la facturation coach sportif ?', a: 'Tu connectes Stripe en un clic. Tu crees tes offres au prix que tu veux. Tes clients paient directement. L\'argent arrive sur ton compte. Zero relance manuelle.' },
-  { q: 'Puis-je personnaliser l\'app a mes couleurs ?', a: 'Oui. L\'App Builder te permet de mettre ton logo, ta palette, tes modules. Tes clients pensent utiliser ta propre application coach sportif.' },
-  { q: 'Combien de temps pour migrer mes clients ?', a: 'Invite-les par email ou lien. Ils creent leur compte en moins d\'une minute. La plupart des coachs migrent en un apres-midi.' },
-  { q: 'Y a-t-il un engagement ?', a: 'Zero engagement. Upgrade, downgrade ou annule a tout moment. Pas de frais caches, pas de mauvaise surprise.' },
-  { q: 'Ca fonctionne sur mobile ?', a: '100% responsive et optimise mobile. Smartphone, tablette, desktop — tes clients s\'entrainent depuis n\'importe ou en France.' },
+  { q: 'L\'essai gratuit est vraiment sans carte bancaire ?', a: 'Oui. 14 jours avec TOUTES les fonctionnalités du logiciel coach sportif. Zéro carte bancaire demandée. Tu annules en un clic si tu veux, tes données restent 30 jours.' },
+  { q: 'Mes clients doivent payer pour utiliser l\'app ?', a: 'Non. Tes clients accèdent gratuitement à leur espace coaching via un simple lien d\'invitation. Ils n\'ont rien à débourser.' },
+  { q: 'En quoi Zevo est différent des autres logiciels de coaching ?', a: 'Zevo est la seule plateforme coaching en France qui réunit suivi client, programmes sport en ligne, nutrition, paiements et branding dans une seule app. Pas 5 outils, un seul.' },
+  { q: 'Comment fonctionne la facturation coach sportif ?', a: 'Tu connectes Stripe en un clic. Tu crées tes offres au prix que tu veux. Tes clients paient directement. L\'argent arrive sur ton compte. Zéro relance manuelle.' },
+  { q: 'Puis-je personnaliser l\'app à mes couleurs ?', a: 'Oui. L\'App Builder te permet de mettre ton logo, ta palette, tes modules. Tes clients pensent utiliser ta propre application coach sportif.' },
+  { q: 'Combien de temps pour migrer mes clients ?', a: 'Invite-les par email ou lien. Ils créent leur compte en moins d\'une minute. La plupart des coachs migrent en un après-midi.' },
+  { q: 'Y a-t-il un engagement ?', a: 'Zéro engagement. Upgrade, downgrade ou annule à tout moment. Pas de frais cachés, pas de mauvaise surprise.' },
+  { q: 'Ça fonctionne sur mobile ?', a: '100% responsive et optimisé mobile. Smartphone, tablette, desktop — tes clients s\'entraînent depuis n\'importe où en France.' },
 ]
 
 // ══════════════════════════════════════════════════════════
@@ -219,8 +219,8 @@ function BentoVisualHub() {
       </div>
       <div className="grid grid-cols-3 gap-1.5">
         {[
-          { v: '8.4', l: 'Bien-etre', c: '#10B981' },
-          { v: '12/16', l: 'Seances', c: '#3B82F6' },
+          { v: '8.4', l: 'Bien-être', c: '#10B981' },
+          { v: '12/16', l: 'Séances', c: '#3B82F6' },
           { v: '-3.2kg', l: 'Poids', c: '#FF5C1A' },
         ].map((s, i) => (
           <div key={i} className="rounded-lg bg-white/[0.03] border border-white/[0.04] p-2 text-center">
@@ -277,8 +277,8 @@ function ShowcaseVisual({ type, screenshot }) {
           </div>
           <div className="grid grid-cols-3 gap-2.5">
             {[
-              { label: 'Bien-etre', val: '8.4/10', color: '#10B981', trend: '+0.6' },
-              { label: 'Seances', val: '12/16', color: '#3B82F6', trend: '75%' },
+              { label: 'Bien-être', val: '8.4/10', color: '#10B981', trend: '+0.6' },
+              { label: 'Séances', val: '12/16', color: '#3B82F6', trend: '75%' },
               { label: 'Poids', val: '-3.2 kg', color: '#FF5C1A', trend: 'objectif' },
             ].map((s, i) => (
               <div key={i} className="rounded-xl bg-white/[0.025] border border-white/[0.05] p-3 text-center">
@@ -304,7 +304,7 @@ function ShowcaseVisual({ type, screenshot }) {
           <div className="w-5 h-5 rounded-full bg-emerald-500/15 flex items-center justify-center">
             <CheckCircle size={12} className="text-emerald-400" />
           </div>
-          <span className="text-[10px] font-semibold text-emerald-400">Seance validee !</span>
+          <span className="text-[10px] font-semibold text-emerald-400">Séance validée !</span>
         </div>
       </div>
     )
@@ -365,7 +365,7 @@ function ShowcaseVisual({ type, screenshot }) {
             <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-3">
               <div className="flex items-center gap-2 mb-2">
                 <CalendarDays size={11} className="text-[#FF5C1A]" />
-                <span className="text-[10px] font-semibold text-[#F5F5F3]">Prochaine seance</span>
+                <span className="text-[10px] font-semibold text-[#F5F5F3]">Prochaine séance</span>
               </div>
               <p className="text-[9px] text-[#F5F5F3]/30">Upper Body · Aujourd'hui 18h</p>
               <div className="mt-2 h-1 rounded-full bg-white/[0.05]">
@@ -376,12 +376,12 @@ function ShowcaseVisual({ type, screenshot }) {
               <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-2.5 text-center">
                 <Heart size={12} className="text-emerald-400 mx-auto mb-1" />
                 <p className="text-sm font-bold text-[#F5F5F3]">8.4</p>
-                <p className="text-[7px] text-[#F5F5F3]/25">Bien-etre</p>
+                <p className="text-[7px] text-[#F5F5F3]/25">Bien-être</p>
               </div>
               <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-2.5 text-center">
                 <Flame size={12} className="text-[#FF5C1A] mx-auto mb-1" />
                 <p className="text-sm font-bold text-[#F5F5F3]">7j</p>
-                <p className="text-[7px] text-[#F5F5F3]/25">Serie</p>
+                <p className="text-[7px] text-[#F5F5F3]/25">Série</p>
               </div>
             </div>
             <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-3">
@@ -448,7 +448,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#060606] text-[#F5F5F3] overflow-x-hidden relative" style={{ fontFamily: instrument }}>
       <SEO
         title="Logiciel coach sportif tout-en-un"
-        description="Gere tes clients, programmes sport en ligne, paiements et nutrition dans une seule app coach sportif. Essai gratuit 14 jours sans CB. 500+ coachs en France."
+        description="Gère tes clients, programmes sport en ligne, paiements et nutrition dans une seule app coach sportif. Essai gratuit 14 jours sans CB. 500+ coachs en France."
         url="/"
       />
 
@@ -474,7 +474,7 @@ export default function LandingPage() {
               onMouseLeave={() => setDropdownOpen(false)}
             >
               <button className="flex items-center gap-1.5 text-[13px] text-[#F5F5F3]/40 hover:text-[#F5F5F3] transition-colors duration-300 font-medium py-2" style={{ fontFamily: instrument }}>
-                Fonctionnalites <ChevronDown size={12} className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                Fonctionnalités <ChevronDown size={12} className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {dropdownOpen && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-[680px]">
@@ -500,7 +500,7 @@ export default function LandingPage() {
                       })}
                     </div>
                     <div className="border-t border-white/[0.05] px-4 py-3 flex items-center justify-between bg-white/[0.015]">
-                      <span className="text-[10px] text-[#F5F5F3]/20">12 fonctionnalites incluses</span>
+                      <span className="text-[10px] text-[#F5F5F3]/20">12 fonctionnalités incluses</span>
                       <button onClick={() => { setDropdownOpen(false); scrollTo('pricing') }} className="text-[10px] font-medium text-[#FF5C1A] hover:text-[#FF7A42] transition-colors flex items-center gap-1">
                         Voir les tarifs <ArrowRight size={10} />
                       </button>
@@ -514,7 +514,7 @@ export default function LandingPage() {
           </div>
           <div className="hidden md:flex items-center gap-3">
             <button onClick={() => navigate('/demo')} className="px-4 py-2 text-sm font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] transition-colors flex items-center gap-1.5">
-              <Video size={13} /> Demo
+              <Video size={13} /> Démo
             </button>
             <button onClick={() => navigate('/login')} className="px-4 py-2 text-sm font-medium text-[#F5F5F3]/50 hover:text-[#F5F5F3] transition-colors">Se connecter</button>
             <button onClick={() => navigate('/register')} className="group px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white text-sm font-semibold hover:shadow-lg hover:shadow-[#FF5C1A]/25 transition-all duration-300 flex items-center gap-2">
@@ -527,7 +527,7 @@ export default function LandingPage() {
           <div className="md:hidden fixed inset-0 top-[60px] bg-[#060606]/98 backdrop-blur-2xl z-40 overflow-y-auto">
             <div className="p-5 pb-10">
               <button onClick={() => setFeaturesExpanded(!featuresExpanded)} className="flex items-center justify-between w-full py-3.5 border-b border-white/[0.06]">
-                <span className="text-[15px] font-semibold text-[#F5F5F3]/70">Fonctionnalites</span>
+                <span className="text-[15px] font-semibold text-[#F5F5F3]/70">Fonctionnalités</span>
                 <ChevronDown size={16} className={`text-[#F5F5F3]/30 transition-transform duration-300 ${featuresExpanded ? 'rotate-180' : ''}`} />
               </button>
               {featuresExpanded && (
@@ -555,10 +555,10 @@ export default function LandingPage() {
               </button>
               <div className="pt-6 space-y-3">
                 <button onClick={() => { setMenuOpen(false); navigate('/demo') }} className="w-full py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-[#F5F5F3]/60 text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
-                  <Video size={14} className="text-[#FF5C1A]" /> Voir la demo
+                  <Video size={14} className="text-[#FF5C1A]" /> Voir la démo
                 </button>
                 <button onClick={() => { setMenuOpen(false); navigate('/register') }} className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white text-sm font-semibold active:scale-[0.98] transition-transform">Tester gratuitement</button>
-                <button onClick={() => { setMenuOpen(false); navigate('/login') }} className="block w-full text-center text-[13px] text-[#F5F5F3]/30 py-2">Deja un compte ? Se connecter</button>
+                <button onClick={() => { setMenuOpen(false); navigate('/login') }} className="block w-full text-center text-[13px] text-[#F5F5F3]/30 py-2">Déjà un compte ? Se connecter</button>
               </div>
             </div>
           </div>
@@ -582,11 +582,11 @@ export default function LandingPage() {
               <div className="flex gap-0.5">
                 {[1,2,3,4,5].map(i => <Star key={i} size={10} className="text-[#FF5C1A] fill-[#FF5C1A]" />)}
               </div>
-              <span className="text-xs font-medium text-[#F5F5F3]/40">Adopte par <strong className="text-[#F5F5F3]/70">500+</strong> coachs en France</span>
+              <span className="text-xs font-medium text-[#F5F5F3]/40">Adopté par <strong className="text-[#F5F5F3]/70">500+</strong> coachs en France</span>
             </div>
 
             <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold tracking-tight leading-[1.05] mb-7" style={{ fontFamily: clash }}>
-              <span className="block text-[#F5F5F3]">Libere-toi de tes</span>
+              <span className="block text-[#F5F5F3]">Libère-toi de tes</span>
               <span className="block text-[#F5F5F3]">tableurs.</span>
               <span className="block mt-2">
                 <span className="hero-outline-text">Digitalise</span>{' '}
@@ -607,7 +607,7 @@ export default function LandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
               </button>
               <button onClick={() => navigate('/demo')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.08] text-[#F5F5F3]/50 font-medium text-base hover:bg-white/[0.03] hover:text-[#F5F5F3] hover:border-white/[0.12] transition-all duration-300 flex items-center justify-center gap-2">
-                <Video size={15} className="text-[#FF5C1A]" /> Voir la demo
+                <Video size={15} className="text-[#FF5C1A]" /> Voir la démo
               </button>
             </div>
 
@@ -654,8 +654,8 @@ export default function LandingPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-5">
                   {[
                     { l: 'Clients', v: '24', t: '+3', c: '#FF5C1A', ic: Users },
-                    { l: 'Seances', v: '67', t: '+12%', c: '#3B82F6', ic: Dumbbell },
-                    { l: 'Retention', v: '94%', t: '+2%', c: '#10B981', ic: TrendingUp },
+                    { l: 'Séances', v: '67', t: '+12%', c: '#3B82F6', ic: Dumbbell },
+                    { l: 'Rétention', v: '94%', t: '+2%', c: '#10B981', ic: TrendingUp },
                     { l: 'Revenu', v: '3 240\u20AC', t: '+18%', c: '#F59E0B', ic: CreditCard },
                   ].map((k, i) => (
                     <div key={i} className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3 hover:border-white/[0.08] transition-colors">
@@ -678,11 +678,11 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 space-y-2.5">
-                    <span className="text-[10px] font-semibold text-[#F5F5F3]/30">Activite recente</span>
+                    <span className="text-[10px] font-semibold text-[#F5F5F3]/30">Activité récente</span>
                     {[
-                      { t: 'Julie a valide sa seance', c: '#10B981' },
+                      { t: 'Julie a validé sa séance', c: '#10B981' },
                       { t: 'Nouveau prospect', c: '#FF5C1A' },
-                      { t: 'Paiement recu 49\u20AC', c: '#F59E0B' },
+                      { t: 'Paiement reçu 49\u20AC', c: '#F59E0B' },
                     ].map((a, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: a.c }} />
@@ -722,7 +722,7 @@ export default function LandingPage() {
               { value: '500', suffix: '+', label: 'Coachs actifs en France', icon: Users },
               { value: '12000', suffix: '+', label: 'Clients suivis chaque mois', icon: Heart },
               { value: '4.8', suffix: '/5', label: 'Note satisfaction coach', icon: Star },
-              { value: '98', suffix: '%', label: 'Taux de retention client', icon: Trophy },
+              { value: '98', suffix: '%', label: 'Taux de rétention client', icon: Trophy },
             ].map((s, i) => {
               const count = useAnimatedCounter(s.value, statsInView)
               const Icon = s.icon
@@ -750,13 +750,13 @@ export default function LandingPage() {
           {/* Left-aligned header */}
           <div className="max-w-2xl mb-16 md:mb-20">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
-              <Zap size={12} className="text-[#FF5C1A]" /> Fonctionnalites
+              <Zap size={12} className="text-[#FF5C1A]" /> Fonctionnalités
             </div>
             <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-[1.1] mb-5" style={{ fontFamily: clash }}>
-              12 outils reunis en un seul.
-              <br /><span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">Zero compromis.</span>
+              12 outils réunis en un seul.
+              <br /><span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">Zéro compromis.</span>
             </h2>
-            <p className="text-[#F5F5F3]/30 text-lg">Chaque fonctionnalite te fait gagner du temps concret. Pas de gadget, que de l'essentiel pour ton activite de coaching.</p>
+            <p className="text-[#F5F5F3]/30 text-lg">Chaque fonctionnalité te fait gagner du temps concret. Pas de gadget, que de l'essentiel pour ton activité de coaching.</p>
           </div>
 
           <div ref={featuresRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -835,10 +835,10 @@ export default function LandingPage() {
         <div className="relative max-w-5xl mx-auto">
           <div className="text-center mb-16 md:mb-20">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
-              <Target size={12} className="text-[#FF5C1A]" /> 3 etapes
+              <Target size={12} className="text-[#FF5C1A]" /> 3 étapes
             </div>
             <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-5" style={{ fontFamily: clash }}>
-              Ton logiciel coach sportif pret en <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">2 minutes</span>
+              Ton logiciel coach sportif prêt en <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">2 minutes</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
@@ -853,7 +853,7 @@ export default function LandingPage() {
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF5C1A]/15 to-[#FF7A42]/5 border border-[#FF5C1A]/10 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(255,92,26,0.15)] transition-all duration-500">
                       <Icon size={26} className="text-[#FF5C1A]" />
                     </div>
-                    <span className="text-[10px] font-bold text-[#FF5C1A]/30 uppercase tracking-widest" style={{ fontFamily: clash }}>Etape {s.num}</span>
+                    <span className="text-[10px] font-bold text-[#FF5C1A]/30 uppercase tracking-widest" style={{ fontFamily: clash }}>Étape {s.num}</span>
                     <h3 className="text-lg font-semibold mt-2 mb-3 text-[#F5F5F3]" style={{ fontFamily: clash }}>{s.title}</h3>
                     <p className="text-sm text-[#F5F5F3]/30 leading-relaxed">{s.desc}</p>
                   </div>
@@ -870,10 +870,10 @@ export default function LandingPage() {
           {/* Right-aligned header for variety */}
           <div className="text-right mb-16 max-w-2xl ml-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
-              <Heart size={12} className="text-[#FF5C1A]" /> Temoignages
+              <Heart size={12} className="text-[#FF5C1A]" /> Témoignages
             </div>
             <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-5" style={{ fontFamily: clash }}>
-              500+ coachs ont <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">automatise</span>
+              500+ coachs ont <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">automatisé</span>
             </h2>
           </div>
 
@@ -936,9 +936,9 @@ export default function LandingPage() {
               <CreditCard size={12} className="text-[#FF5C1A]" /> Tarifs transparents
             </div>
             <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-5" style={{ fontFamily: clash }}>
-              Rentabilise des <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">le premier client</span>
+              Rentabilisé dès <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">le premier client</span>
             </h2>
-            <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-8">Moins cher qu'un cafe par jour. Chaque plan inclut tout ce dont un coach a besoin pour gerer et developper son activite.</p>
+            <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-8">Moins cher qu'un café par jour. Chaque plan inclut tout ce dont un coach a besoin pour gérer et développer son activité.</p>
             <div className="inline-flex items-center gap-1 p-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
               <button onClick={() => setBillingYearly(false)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${!billingYearly ? 'bg-[#FF5C1A] text-white shadow-lg shadow-[#FF5C1A]/20' : 'text-[#F5F5F3]/35'}`}>Mensuel</button>
               <button onClick={() => setBillingYearly(true)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${billingYearly ? 'bg-[#FF5C1A] text-white shadow-lg shadow-[#FF5C1A]/20' : 'text-[#F5F5F3]/35'}`}>
@@ -966,8 +966,8 @@ export default function LandingPage() {
                       <span className="text-4xl font-bold" style={{ fontFamily: clash }}>{price}</span>
                       <span className="text-[#F5F5F3]/20 text-sm">{'\u20AC'}/mois</span>
                     </div>
-                    {billingYearly && <p className="text-[10px] text-emerald-400/60 font-medium mb-5">Economise {(plan.price.monthly - plan.price.yearly) * 12}{'\u20AC'}/an</p>}
-                    {!billingYearly && <p className="text-[10px] text-[#F5F5F3]/15 mb-5">facture mensuellement</p>}
+                    {billingYearly && <p className="text-[10px] text-emerald-400/60 font-medium mb-5">Économise {(plan.price.monthly - plan.price.yearly) * 12}{'\u20AC'}/an</p>}
+                    {!billingYearly && <p className="text-[10px] text-[#F5F5F3]/15 mb-5">facturé mensuellement</p>}
                     <ul className="space-y-2.5 mb-7 flex-1">
                       {plan.features.map(f => (
                         <li key={f} className="flex items-center gap-2.5"><Check size={13} className="text-[#FF5C1A] flex-shrink-0" /><span className="text-sm text-[#F5F5F3]/40">{f}</span></li>
@@ -982,7 +982,7 @@ export default function LandingPage() {
               )
             })}
           </div>
-          <p className="text-center text-[11px] text-[#F5F5F3]/15 mt-8">Facturation coach sportif securisee par Stripe · Sans engagement · Annulation en un clic</p>
+          <p className="text-center text-[11px] text-[#F5F5F3]/15 mt-8">Facturation coach sportif sécurisée par Stripe · Sans engagement · Annulation en un clic</p>
         </div>
       </section>
 
@@ -995,7 +995,7 @@ export default function LandingPage() {
               <HelpCircle size={12} className="text-[#FF5C1A]" /> FAQ
             </div>
             <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-4" style={{ fontFamily: clash }}>
-              Questions frequentes
+              Questions fréquentes
               <br />
               <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">sur le logiciel Zevo</span>
             </h2>
@@ -1054,13 +1054,13 @@ export default function LandingPage() {
                 <PhoneCall size={20} className="text-[#FF5C1A]" />
               </div>
               <div>
-                <p className="text-base font-semibold text-[#F5F5F3]" style={{ fontFamily: clash }}>Besoin d'un avis personnalise ?</p>
-                <p className="text-sm text-[#F5F5F3]/30">Reserve une demo gratuite de 15 min. On te montre le logiciel en live.</p>
+                <p className="text-base font-semibold text-[#F5F5F3]" style={{ fontFamily: clash }}>Besoin d'un avis personnalisé ?</p>
+                <p className="text-sm text-[#F5F5F3]/30">Réserve une démo gratuite de 15 min. On te montre le logiciel en live.</p>
               </div>
             </div>
             <button onClick={() => navigate('/demo')} className="relative z-[1] group w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white text-sm font-semibold hover:shadow-lg hover:shadow-[#FF5C1A]/25 transition-all flex items-center justify-center gap-2">
               <Video size={15} />
-              Voir la demo
+              Voir la démo
               <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
@@ -1080,14 +1080,14 @@ export default function LandingPage() {
             <span className="text-xs font-semibold text-[#FF5C1A]">Rejoins 500+ coachs en France</span>
           </div>
           <h2 className="text-3xl md:text-[3.75rem] font-bold tracking-tight leading-[1.08] mb-6" style={{ fontFamily: clash }}>
-            <span className="block">Pendant que tu hesites,</span>
+            <span className="block">Pendant que tu hésites,</span>
             <span className="block">
               <span className="hero-outline-text">d'autres coachs</span>{' '}
               <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">automatisent.</span>
             </span>
           </h2>
           <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-10 leading-relaxed">
-            14 jours gratuits. Tout le logiciel coach sportif, sans carte bancaire. Ton espace est pret en 30 secondes.
+            14 jours gratuits. Tout le logiciel coach sportif, sans carte bancaire. Ton espace est prêt en 30 secondes.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button onClick={() => navigate('/register')} className="group w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF5C1A]/30 transition-all duration-300 inline-flex items-center justify-center gap-2.5 relative overflow-hidden">
@@ -1095,7 +1095,7 @@ export default function LandingPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.15] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             </button>
             <button onClick={() => navigate('/demo')} className="w-full sm:w-auto px-8 py-4 rounded-2xl border border-white/[0.07] text-[#F5F5F3]/40 font-medium hover:bg-white/[0.03] hover:text-[#F5F5F3] transition-all flex items-center justify-center gap-2">
-              <Video size={15} className="text-[#FF5C1A]" /> Voir la demo
+              <Video size={15} className="text-[#FF5C1A]" /> Voir la démo
             </button>
           </div>
         </div>
@@ -1110,9 +1110,9 @@ export default function LandingPage() {
               <p className="text-[11px] text-[#F5F5F3]/15 mt-3 leading-relaxed max-w-[200px]">Le logiciel coach sportif tout-en-un. Suivi client, programmes et facturation en une seule app.</p>
             </div>
             {[
-              { title: 'Produit', links: ['Entrainement', 'Programmes', 'Nutrition', 'Calendrier', 'Tarifs'], paths: ['/features/entrainement', '/features/programmes', '/features/nutrition', '/features/calendrier', null], ids: [null, null, null, null, 'pricing'] },
+              { title: 'Produit', links: ['Entraînement', 'Programmes', 'Nutrition', 'Calendrier', 'Tarifs'], paths: ['/features/entrainement', '/features/programmes', '/features/nutrition', '/features/calendrier', null], ids: [null, null, null, null, 'pricing'] },
               { title: 'Ressources', links: ['Centre d\'aide', 'Blog', 'Changelog', 'Contact'] },
-              { title: 'Legal', links: ['Mentions legales', 'Confidentialite', 'CGV', 'Cookies'] },
+              { title: 'Légal', links: ['Mentions légales', 'Confidentialité', 'CGV', 'Cookies'] },
             ].map((col, i) => (
               <div key={i}>
                 <p className="text-[10px] font-semibold text-[#F5F5F3]/30 uppercase tracking-wider mb-4" style={{ fontFamily: clash }}>{col.title}</p>
@@ -1133,7 +1133,7 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="pt-8 border-t border-white/[0.03] flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-[10px] text-[#F5F5F3]/10">&copy; {new Date().getFullYear()} Zevo. Tous droits reserves.</p>
+            <p className="text-[10px] text-[#F5F5F3]/10">&copy; {new Date().getFullYear()} Zevo. Tous droits réservés.</p>
             <p className="text-[10px] text-[#F5F5F3]/10 flex items-center gap-1.5">Fait avec <Heart size={9} className="text-[#FF5C1A] fill-[#FF5C1A]" /> pour les coachs</p>
           </div>
         </div>

@@ -10,36 +10,36 @@ import SEO from '../../components/SEO'
 const FEATURES = [
   {
     icon: Users, title: 'Hub Client 360 — Suivi client coaching',
-    desc: 'Centralise objectifs, mensurations, score bien-etre et historique de chaque client dans une fiche unique. Repere un client en difficulte en 3 secondes.',
+    desc: 'Centralise objectifs, mensurations, score bien-être et historique de chaque client dans une fiche unique. Repère un client en difficulté en 3 secondes.',
     path: '/features/hub-client',
   },
   {
     icon: Dumbbell, title: 'Programmes sport en ligne',
-    desc: 'Cree des programmes multi-semaines en drag & drop. Tes clients suivent leurs seances avec videos demo et validation en temps reel.',
+    desc: 'Crée des programmes multi-semaines en drag & drop. Tes clients suivent leurs séances avec vidéos démo et validation en temps réel.',
     path: '/features/programmes',
   },
   {
     icon: Utensils, title: 'Plans nutritionnels & macros',
-    desc: 'Genere des plans alimentaires personnalises avec calcul de macros automatique. Le suivi nutritionnel que tes clients attendent.',
+    desc: 'Génère des plans alimentaires personnalisés avec calcul de macros automatique. Le suivi nutritionnel que tes clients attendent.',
     path: '/features/nutrition',
   },
   {
-    icon: CalendarDays, title: 'Calendrier & reservations',
-    desc: 'Tes clients reservent leurs creneaux en un clic. Synchronisation automatique, rappels et gestion des annulations.',
+    icon: CalendarDays, title: 'Calendrier & réservations',
+    desc: 'Tes clients réservent leurs créneaux en un clic. Synchronisation automatique, rappels et gestion des annulations.',
     path: '/features/calendrier',
   },
   {
-    icon: MessageCircle, title: 'Messagerie integree',
-    desc: 'Chat en temps reel avec envoi audio, photos et fichiers. Fini les conversations WhatsApp eparpillees.',
+    icon: MessageCircle, title: 'Messagerie intégrée',
+    desc: 'Chat en temps réel avec envoi audio, photos et fichiers. Fini les conversations WhatsApp éparpillées.',
     path: '/features/messagerie',
   },
   {
     icon: CreditCard, title: 'Facturation coach sportif automatique',
-    desc: 'Connecte Stripe en un clic. Cree tes offres, tes clients paient directement. Abonnements, factures et relances automatiques.',
+    desc: 'Connecte Stripe en un clic. Crée tes offres, tes clients paient directement. Abonnements, factures et relances automatiques.',
     path: '/features/paiements',
   },
   {
-    icon: Paintbrush, title: 'App Builder — Application coach sportif personnalisee',
+    icon: Paintbrush, title: 'App Builder — Application coach sportif personnalisée',
     desc: 'Personnalise ton logo, tes couleurs, tes modules. Tes clients pensent utiliser ta propre application de coaching.',
     path: '/features/app-builder',
   },
@@ -49,23 +49,23 @@ const FEATURES = [
     path: '/features/statistiques',
   },
   {
-    icon: ClipboardList, title: 'Formulaires & bilans automatises',
-    desc: 'Check-in hebdomadaire, bilan initial, questionnaire satisfaction. Zero paperasse, tout est automatise.',
+    icon: ClipboardList, title: 'Formulaires & bilans automatisés',
+    desc: 'Check-in hebdomadaire, bilan initial, questionnaire satisfaction. Zéro paperasse, tout est automatisé.',
     path: '/features/formulaires',
   },
   {
-    icon: BookOpen, title: 'Bibliotheque de ressources',
-    desc: 'Partage videos, PDF et guides avec tes clients. Organise tes contenus par categorie et controle les acces.',
+    icon: BookOpen, title: 'Bibliothèque de ressources',
+    desc: 'Partage vidéos, PDF et guides avec tes clients. Organise tes contenus par catégorie et contrôle les accès.',
     path: '/features/bibliotheque',
   },
   {
     icon: UserPlus, title: 'CRM prospects & pipeline',
-    desc: 'Suis tes prospects du premier contact a la conversion. Pipeline visuel, relances automatiques, taux de conversion.',
+    desc: 'Suis tes prospects du premier contact à la conversion. Pipeline visuel, relances automatiques, taux de conversion.',
     path: '/features/prospects',
   },
   {
-    icon: Dumbbell, title: 'Suivi d\'entrainement en direct',
-    desc: 'Tes clients valident leurs exercices en temps reel. Tu vois leur progression seance par seance, sans rien demander.',
+    icon: Dumbbell, title: 'Suivi d\'entraînement en direct',
+    desc: 'Tes clients valident leurs exercices en temps réel. Tu vois leur progression séance par séance, sans rien demander.',
     path: '/features/entrainement',
   },
 ]
@@ -78,8 +78,8 @@ export default function FonctionnalitesPage() {
   return (
     <div className="min-h-screen bg-[#060606] text-[#F5F5F3]" style={{ fontFamily: instrument }}>
       <SEO
-        title="Fonctionnalites — Logiciel coach sportif"
-        description="Decouvre les 12 fonctionnalites du logiciel coach sportif Zevo : suivi client coaching, programmes sport en ligne, nutrition, facturation, messagerie et App Builder."
+        title="Fonctionnalités — Logiciel coach sportif"
+        description="Découvre les 12 fonctionnalités du logiciel coach sportif Zevo : suivi client coaching, programmes sport en ligne, nutrition, facturation, messagerie et App Builder."
         url="/fonctionnalites"
       />
 
@@ -98,14 +98,14 @@ export default function FonctionnalitesPage() {
           {/* Header */}
           <div className="max-w-3xl mb-16">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-xs text-[#F5F5F3]/35 font-medium mb-6">
-              <Zap size={12} className="text-[#FF5C1A]" /> 12 fonctionnalites
+              <Zap size={12} className="text-[#FF5C1A]" /> 12 fonctionnalités
             </div>
             <h1 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-[1.1] mb-6" style={{ fontFamily: clash }}>
               Tout ce dont un coach a besoin.{' '}
               <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">Dans un seul logiciel.</span>
             </h1>
             <p className="text-lg text-[#F5F5F3]/35 max-w-2xl">
-              Zevo reunit suivi client coaching, programmes sport en ligne, plans nutritionnels, facturation coach sportif et branding dans une seule plateforme coaching pensee pour les professionnels en France.
+              Zevo réunit suivi client coaching, programmes sport en ligne, plans nutritionnels, facturation coach sportif et branding dans une seule plateforme coaching pensée pour les professionnels en France.
             </p>
           </div>
 
@@ -137,7 +137,7 @@ export default function FonctionnalitesPage() {
             <button onClick={() => navigate('/register')} className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white font-semibold text-base hover:shadow-2xl hover:shadow-[#FF5C1A]/30 transition-all inline-flex items-center gap-2.5">
               Tester gratuitement 14 jours <ArrowRight size={18} />
             </button>
-            <p className="text-xs text-[#F5F5F3]/20 mt-4">Sans carte bancaire · Toutes les fonctionnalites incluses</p>
+            <p className="text-xs text-[#F5F5F3]/20 mt-4">Sans carte bancaire · Toutes les fonctionnalités incluses</p>
           </div>
         </div>
       </main>

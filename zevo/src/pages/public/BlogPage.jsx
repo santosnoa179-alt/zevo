@@ -6,42 +6,42 @@ import SEO from '../../components/SEO'
 const ARTICLES = [
   {
     title: 'Comment choisir son logiciel coach sportif en 2026',
-    excerpt: 'Comparatif des criteres essentiels pour selectionner la bonne plateforme coaching : fonctionnalites, prix, ergonomie et support.',
+    excerpt: 'Comparatif des critères essentiels pour sélectionner la bonne plateforme coaching : fonctionnalités, prix, ergonomie et support.',
     category: 'Guide',
     readTime: '8 min',
     date: '9 avril 2026',
   },
   {
     title: '5 erreurs qui font fuir les clients d\'un coach sportif',
-    excerpt: 'Les erreurs les plus courantes dans le suivi client coaching et comment les eviter pour ameliorer ta retention.',
+    excerpt: 'Les erreurs les plus courantes dans le suivi client coaching et comment les éviter pour améliorer ta rétention.',
     category: 'Business',
     readTime: '5 min',
     date: '5 avril 2026',
   },
   {
-    title: 'Programmes sport en ligne : comment augmenter le taux de completion',
-    excerpt: 'Les techniques pour creer des programmes que tes clients terminent vraiment. UX, gamification et relances automatiques.',
+    title: 'Programmes sport en ligne : comment augmenter le taux de complétion',
+    excerpt: 'Les techniques pour créer des programmes que tes clients terminent vraiment. UX, gamification et relances automatiques.',
     category: 'Coaching',
     readTime: '6 min',
     date: '1 avril 2026',
   },
   {
-    title: 'Facturation coach sportif : automatise et arrete de perdre du temps',
-    excerpt: 'Comment passer de la facturation manuelle a l\'encaissement automatique avec Stripe. Tutoriel pas a pas.',
+    title: 'Facturation coach sportif : automatise et arrête de perdre du temps',
+    excerpt: 'Comment passer de la facturation manuelle à l\'encaissement automatique avec Stripe. Tutoriel pas à pas.',
     category: 'Tutoriel',
     readTime: '4 min',
     date: '28 mars 2026',
   },
   {
-    title: 'App coach bien-etre : pourquoi tes clients veulent une experience brandee',
-    excerpt: 'L\'impact du branding sur la perception de valeur et comment augmenter tes tarifs de 40% grace a une app personnalisee.',
+    title: 'App coach bien-être : pourquoi tes clients veulent une expérience brandée',
+    excerpt: 'L\'impact du branding sur la perception de valeur et comment augmenter tes tarifs de 40% grâce à une app personnalisée.',
     category: 'Business',
     readTime: '7 min',
     date: '22 mars 2026',
   },
   {
     title: 'Le guide complet du suivi nutritionnel pour coachs',
-    excerpt: 'Comment integrer la nutrition dans ton offre coaching. Macros, plans alimentaires et outils pour automatiser le suivi.',
+    excerpt: 'Comment intégrer la nutrition dans ton offre coaching. Macros, plans alimentaires et outils pour automatiser le suivi.',
     category: 'Coaching',
     readTime: '10 min',
     date: '15 mars 2026',
@@ -90,7 +90,7 @@ export default function BlogPage() {
               <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">ambitieux</span>
             </h1>
             <p className="text-lg text-[#F5F5F3]/35 max-w-xl">
-              Guides pratiques, tutoriels et conseils pour developper ton activite de coaching sportif et bien-etre.
+              Guides pratiques, tutoriels et conseils pour développer ton activité de coaching sportif et bien-être.
             </p>
           </div>
 
@@ -123,8 +123,8 @@ export default function BlogPage() {
 
           {/* Coming soon */}
           <div className="text-center mt-12 py-8 rounded-2xl border border-dashed border-white/[0.06]">
-            <p className="text-sm text-[#F5F5F3]/25">D'autres articles arrivent bientot.</p>
-            <p className="text-xs text-[#F5F5F3]/15 mt-1">Le blog est en cours de creation. Reviens vite !</p>
+            <p className="text-sm text-[#F5F5F3]/25">D'autres articles arrivent bientôt.</p>
+            <p className="text-xs text-[#F5F5F3]/15 mt-1">Le blog est en cours de création. Reviens vite !</p>
           </div>
         </div>
       </main>
