@@ -34,6 +34,48 @@ const FEATURE_NAV = [
   { icon: UserPlus, label: 'CRM Prospects', desc: 'Convertis plus de leads', path: '/features/prospects' },
 ]
 
+const FEATURE_CATEGORIES = [
+  {
+    title: 'Coaching',
+    items: [
+      { icon: Dumbbell, label: 'Programmes et séances', path: '/features/programmes' },
+      { icon: BookOpen, label: "Bibliothèque d'exercices", path: '/features/bibliotheque' },
+      { icon: Play, label: 'Entraînement en direct', path: '/features/entrainement' },
+    ],
+  },
+  {
+    title: 'Nutrition',
+    items: [
+      { icon: Utensils, label: 'Plans alimentaires', path: '/features/nutrition' },
+      { icon: ClipboardList, label: 'Suivi des macros', path: '/features/nutrition' },
+    ],
+  },
+  {
+    title: 'Gestion Clients',
+    items: [
+      { icon: Users, label: 'Suivi client 360', path: '/features/hub-client' },
+      { icon: ClipboardList, label: 'Bilans & formulaires', path: '/features/formulaires' },
+      { icon: BarChart3, label: 'Statistiques', path: '/features/statistiques' },
+      { icon: UserPlus, label: 'CRM Prospects', path: '/features/prospects' },
+      { icon: CreditCard, label: 'Paiements Stripe', path: '/features/paiements' },
+    ],
+  },
+  {
+    title: 'Communication',
+    items: [
+      { icon: MessageCircle, label: 'Messagerie intégrée', path: '/features/messagerie' },
+      { icon: CalendarDays, label: 'Calendrier & réservations', path: '/features/calendrier' },
+    ],
+  },
+  {
+    title: 'Personnalisation',
+    items: [
+      { icon: Paintbrush, label: 'Branding personnalisé', path: '/features/app-builder' },
+      { icon: Smartphone, label: 'App en marque blanche', path: '/features/app-builder' },
+    ],
+  },
+]
+
 const BENTO_FEATURES = [
   {
     icon: Users, title: 'Connais chaque client en 3s',
@@ -508,33 +550,65 @@ export default function LandingPage() {
                 Fonctionnalités <ChevronDown size={12} className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {dropdownOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-[680px]">
-                  <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0c]/95 backdrop-blur-2xl shadow-2xl shadow-black/50 overflow-hidden">
-                    <div className="p-2 grid grid-cols-3 gap-0.5">
-                      {FEATURE_NAV.map((f) => {
-                        const Icon = f.icon
-                        return (
-                          <button
-                            key={f.path}
-                            onClick={() => { setDropdownOpen(false); navigate(f.path) }}
-                            className="group flex items-start gap-3 px-3.5 py-3 rounded-xl hover:bg-white/[0.04] transition-all text-left"
-                          >
-                            <div className="w-8 h-8 rounded-lg bg-[#FF5C1A]/10 border border-[#FF5C1A]/[0.08] flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-[#FF5C1A]/15 transition-colors">
-                              <Icon size={14} className="text-[#FF5C1A]" />
+                <div className="absolute top-full pt-2 z-[100]" style={{ left: '50%', transform: 'translateX(-50%)', width: '860px' }}>
+                  <div className="w-full">
+                    <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0c] backdrop-blur-2xl shadow-2xl shadow-black/60 overflow-hidden">
+                      {/* Top row — 3 columns */}
+                      <div className="grid grid-cols-3 gap-0 p-8 pb-6">
+                        {FEATURE_CATEGORIES.slice(0, 3).map((cat) => (
+                          <div key={cat.title} className="space-y-4">
+                            <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FF5C1A]/70">{cat.title}</p>
+                            <div className="space-y-1">
+                              {cat.items.map((item) => {
+                                const Icon = item.icon
+                                return (
+                                  <button
+                                    key={item.label}
+                                    onClick={() => { setDropdownOpen(false); navigate(item.path) }}
+                                    className="group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-white/[0.04] transition-all text-left"
+                                  >
+                                    <div className="w-8 h-8 rounded-lg bg-[#FF5C1A]/8 flex items-center justify-center flex-shrink-0 group-hover:bg-[#FF5C1A]/15 transition-colors">
+                                      <Icon size={15} className="text-[#FF5C1A]/70 group-hover:text-[#FF5C1A] transition-colors" />
+                                    </div>
+                                    <span className="text-[13px] font-medium text-[#F5F5F3]/60 group-hover:text-[#F5F5F3] transition-colors">{item.label}</span>
+                                  </button>
+                                )
+                              })}
                             </div>
-                            <div>
-                              <p className="text-[12px] font-semibold text-[#F5F5F3]/70 group-hover:text-[#F5F5F3] transition-colors">{f.label}</p>
-                              <p className="text-[10px] text-[#F5F5F3]/25 group-hover:text-[#F5F5F3]/35 transition-colors leading-snug">{f.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Bottom row — 2 columns */}
+                      <div className="grid grid-cols-3 gap-0 px-8 pb-6">
+                        {FEATURE_CATEGORIES.slice(3).map((cat) => (
+                          <div key={cat.title} className="space-y-4">
+                            <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FF5C1A]/70">{cat.title}</p>
+                            <div className="space-y-1">
+                              {cat.items.map((item) => {
+                                const Icon = item.icon
+                                return (
+                                  <button
+                                    key={item.label}
+                                    onClick={() => { setDropdownOpen(false); navigate(item.path) }}
+                                    className="group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-white/[0.04] transition-all text-left"
+                                  >
+                                    <div className="w-8 h-8 rounded-lg bg-[#FF5C1A]/8 flex items-center justify-center flex-shrink-0 group-hover:bg-[#FF5C1A]/15 transition-colors">
+                                      <Icon size={15} className="text-[#FF5C1A]/70 group-hover:text-[#FF5C1A] transition-colors" />
+                                    </div>
+                                    <span className="text-[13px] font-medium text-[#F5F5F3]/60 group-hover:text-[#F5F5F3] transition-colors">{item.label}</span>
+                                  </button>
+                                )
+                              })}
                             </div>
-                          </button>
-                        )
-                      })}
-                    </div>
-                    <div className="border-t border-white/[0.05] px-4 py-3 flex items-center justify-between bg-white/[0.015]">
-                      <span className="text-[10px] text-[#F5F5F3]/20">12 fonctionnalités incluses</span>
-                      <button onClick={() => { setDropdownOpen(false); scrollTo('pricing') }} className="text-[10px] font-medium text-[#FF5C1A] hover:text-[#FF7A42] transition-colors flex items-center gap-1">
-                        Voir les tarifs <ArrowRight size={10} />
-                      </button>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Footer */}
+                      <div className="border-t border-white/[0.05] px-8 py-4 bg-white/[0.015]">
+                        <button onClick={() => { setDropdownOpen(false); scrollTo('features') }} className="text-[12px] font-medium text-[#FF5C1A] hover:text-[#FF7A42] transition-colors flex items-center gap-1.5">
+                          Toutes les fonctionnalités <ArrowRight size={12} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
