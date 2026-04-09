@@ -110,7 +110,7 @@ const SHOWCASES = [
 const STEPS = [
   { num: '01', title: 'Cree ton espace', desc: '30 secondes chrono. Sans carte bancaire. Acces complet a toutes les fonctionnalites pendant 14 jours.', icon: Rocket },
   { num: '02', title: 'Importe tes clients', desc: 'Invite par email ou lien. Tes clients accedent a leur espace en 1 minute. L\'onboarding te guide pas a pas.', icon: Paintbrush },
-  { num: '03', title: 'Automatise et scale', desc: 'Tes clients progressent, tu mesures l\'impact, tu augmentes tes tarifs. Le cercle vertueux du coaching digital.', icon: TrendingUp },
+  { num: '03', title: 'Automatise et grandis', desc: 'Tes clients progressent, tu mesures l\'impact, tu augmentes tes tarifs. Le cercle vertueux du coaching digital.', icon: TrendingUp },
 ]
 
 const TESTIMONIALS = [
@@ -144,7 +144,7 @@ const PLANS = [
   },
   {
     id: 'pro', name: 'Pro', price: { monthly: 49, yearly: 39 }, popular: true,
-    desc: 'Scale et automatise ton business',
+    desc: 'Automatise et developpe ton activite',
     features: ['50 clients actifs', 'Tout le Starter +', 'App Builder (ton branding)', 'Rapports PDF automatiques', 'Statistiques avancees', 'Plans nutritionnels complets', 'Support prioritaire'],
   },
   {
@@ -565,11 +565,11 @@ export default function LandingPage() {
         )}
       </nav>
 
-      {/* ══════════════════════ HERO — ASYMMETRIC ══════════════════════ */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center px-5 md:px-8 pt-28 pb-16">
-        <div className={`relative max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center transition-all duration-1000 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          {/* LEFT — Text */}
-          <div className="max-w-xl">
+      {/* ══════════════════════ HERO — TEXT TOP + FULL-WIDTH MOCKUP ══════════════════════ */}
+      <section ref={heroRef} className="relative px-5 md:px-8 pt-28 pb-16">
+        <div className={`relative max-w-7xl mx-auto w-full transition-all duration-1000 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          {/* TOP — Text centered-left */}
+          <div className="max-w-2xl mb-14 md:mb-20">
             {/* Social proof badge */}
             <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06] mb-8 hover:bg-white/[0.06] transition-colors cursor-default">
               <div className="flex -space-x-1.5">
@@ -618,19 +618,23 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* RIGHT — Browser mockup */}
-          <div className="relative animate-float lg:translate-y-4">
+          {/* FULL-WIDTH Browser mockup */}
+          <div className="relative animate-float mx-auto max-w-5xl">
             {/* Floating badges around mockup */}
-            <div className="hidden lg:flex absolute -top-6 -left-8 z-10 items-center gap-2 px-3.5 py-2 rounded-xl bg-[#111]/90 backdrop-blur-xl border border-white/[0.08] shadow-2xl animate-bounce-slow">
+            <div className="hidden md:flex absolute -top-5 left-12 z-10 items-center gap-2 px-3.5 py-2 rounded-xl bg-[#111]/90 backdrop-blur-xl border border-white/[0.08] shadow-2xl animate-bounce-slow">
               <Users size={14} className="text-[#3B82F6]" />
               <span className="text-[11px] font-semibold text-[#F5F5F3]/70">24 clients actifs</span>
             </div>
-            <div className="hidden lg:flex absolute -bottom-4 -right-6 z-10 items-center gap-2 px-3.5 py-2 rounded-xl bg-[#111]/90 backdrop-blur-xl border border-emerald-500/20 shadow-2xl animate-bounce-slow" style={{ animationDelay: '1.5s' }}>
+            <div className="hidden md:flex absolute -bottom-4 right-12 z-10 items-center gap-2 px-3.5 py-2 rounded-xl bg-[#111]/90 backdrop-blur-xl border border-emerald-500/20 shadow-2xl animate-bounce-slow" style={{ animationDelay: '1.5s' }}>
               <TrendingUp size={14} className="text-emerald-400" />
               <span className="text-[11px] font-semibold text-emerald-400">+18% ce mois</span>
             </div>
+            <div className="hidden md:flex absolute top-1/2 -right-6 -translate-y-1/2 z-10 items-center gap-2 px-3.5 py-2 rounded-xl bg-[#111]/90 backdrop-blur-xl border border-[#FF5C1A]/20 shadow-2xl animate-bounce-slow" style={{ animationDelay: '3s' }}>
+              <Sparkles size={14} className="text-[#FF5C1A]" />
+              <span className="text-[11px] font-semibold text-[#FF5C1A]">3 nouveaux clients</span>
+            </div>
 
-            <div className="rounded-2xl md:rounded-3xl border border-white/[0.07] bg-[#0c0c0c] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.6)] relative">
+            <div className="rounded-2xl md:rounded-3xl border border-white/[0.07] bg-[#0c0c0c] overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.6)] relative" role="img" aria-label="Tableau de bord Zevo — logiciel coach sportif avec suivi clients, statistiques et revenus">
               {/* Gradient border glow */}
               <div className="absolute inset-0 rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#FF5C1A]/10 via-transparent to-[#FF7A42]/5 pointer-events-none" />
               <div className="flex items-center gap-2 px-4 py-2.5 bg-[#111] border-b border-white/[0.04]">
@@ -934,7 +938,7 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-[3.5rem] font-bold tracking-tight leading-tight mb-5" style={{ fontFamily: clash }}>
               Rentabilise des <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] bg-clip-text text-transparent">le premier client</span>
             </h2>
-            <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-8">Moins cher qu'un cafe par jour. Chaque plan inclut tout ce dont un coach a besoin pour gerer et scaler son activite.</p>
+            <p className="text-[#F5F5F3]/30 text-lg max-w-lg mx-auto mb-8">Moins cher qu'un cafe par jour. Chaque plan inclut tout ce dont un coach a besoin pour gerer et developper son activite.</p>
             <div className="inline-flex items-center gap-1 p-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
               <button onClick={() => setBillingYearly(false)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${!billingYearly ? 'bg-[#FF5C1A] text-white shadow-lg shadow-[#FF5C1A]/20' : 'text-[#F5F5F3]/35'}`}>Mensuel</button>
               <button onClick={() => setBillingYearly(true)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${billingYearly ? 'bg-[#FF5C1A] text-white shadow-lg shadow-[#FF5C1A]/20' : 'text-[#F5F5F3]/35'}`}>

@@ -31,6 +31,8 @@ const InvitePage = lazy(() => import('./pages/public/InvitePage'))
 const PricingPage = lazy(() => import('./pages/public/PricingPage'))
 const DemoPage = lazy(() => import('./pages/public/DemoPage'))
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'))
+const FonctionnalitesPage = lazy(() => import('./pages/public/FonctionnalitesPage'))
+const BlogPage = lazy(() => import('./pages/public/BlogPage'))
 
 // ── Pages features publiques (lazy) ──
 const FeatureCalendrier = lazy(() => import('./pages/public/features/CalendrierPage'))
@@ -100,6 +102,9 @@ export default function App() {
             <Route path="/invite/:token" element={<InvitePage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/demo" element={<DemoPage />} />
+            <Route path="/fonctionnalites" element={<FonctionnalitesPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/tarifs" element={<PricingPage />} />
             <Route path="/features/calendrier" element={<FeatureCalendrier />} />
             <Route path="/features/entrainement" element={<FeatureEntrainement />} />
             <Route path="/features/programmes" element={<FeatureProgrammes />} />

@@ -3,8 +3,6 @@
     { "source": "/((?!assets|favicon|manifest|icons|screenshots|sw|sitemap|robots).*)", "destination": "/index.html" }
   ],
   "redirects": [
-    { "source": "/tarifs", "destination": "/#pricing", "permanent": false },
-    { "source": "/fonctionnalites", "destination": "/#features", "permanent": false },
     { "source": "/faq", "destination": "/#faq", "permanent": false }
   ],
   "headers": [
