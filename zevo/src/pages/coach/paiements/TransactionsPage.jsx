@@ -33,7 +33,6 @@ export default function TransactionsPage() {
       .eq('coach_id', user.id)
       .order('created_at', { ascending: false })
     setTransactions(data || [])
-    if (error) console.warn('Erreur chargement transactions:', error)
     setLoading(false)
   }
 
