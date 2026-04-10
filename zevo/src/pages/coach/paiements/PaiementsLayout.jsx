@@ -1,13 +1,15 @@
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard, ArrowLeftRight, Wallet, RefreshCw,
-  FileText, Package, Link2, TicketPercent, Settings
+  LayoutDashboard, ArrowLeftRight, RefreshCw,
+  FileText, Package, Link2, TicketPercent, Settings, Wallet
 } from 'lucide-react'
+import { useAuth } from '../../../hooks/useAuth'
+import { supabase } from '../../../lib/supabase'
 
 const SUB_NAV = [
   { to: '/coach/abonnements', icon: LayoutDashboard, label: 'Business', end: true },
   { to: '/coach/abonnements/transactions', icon: ArrowLeftRight, label: 'Transactions' },
-  { to: '/coach/abonnements/solde', icon: Wallet, label: 'Solde' },
   { to: '/coach/abonnements/abonnements', icon: RefreshCw, label: 'Abonnements' },
   { to: '/coach/abonnements/factures', icon: FileText, label: 'Factures' },
   { to: '/coach/abonnements/produits', icon: Package, label: 'Produits' },
@@ -18,6 +20,25 @@ const SUB_NAV = [
 
 export default function PaiementsLayout() {
   const location = useLocation()
+  const { user } = useAuth()
+  const [solde, setSolde] = useState(0)
+
+  useEffect(() => {
+    if (!user) return
+    ;(async () => {
+      try {
+        const { data, error } = await supabase
+          .from('coaches')
+          .select('solde_disponible')
+          .eq('id', user.id)
+          .maybeSingle()
+        if (error) console.warn('[PaiementsLayout] solde error:', error.message)
+        setSolde(data?.solde_disponible || 0)
+      } catch (e) {
+        console.warn('[PaiementsLayout] solde fetch failed:', e)
+      }
+    })()
+  }, [user])
 
   return (
     <div className="flex" style={{ minHeight: 'calc(100vh - 3.5rem)' }}>
@@ -72,11 +93,14 @@ export default function PaiementsLayout() {
           })}
         </nav>
 
-        {/* Bottom info */}
+        {/* Bottom info — solde réel */}
         <div className="p-3 border-t border-[var(--border-base)]">
           <div className="bg-[var(--bg-surface)] rounded-xl p-3">
             <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-muted)] mb-1">Solde disponible</p>
-            <p className="text-lg font-bold text-[var(--text-primary)]">0,00 <span className="text-xs text-[var(--text-muted)]">EUR</span></p>
+            <p className="text-lg font-bold text-[var(--text-primary)]">
+              {(solde / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
+              <span className="text-xs text-[var(--text-muted)] ml-1">EUR</span>
+            </p>
           </div>
         </div>
       </aside>

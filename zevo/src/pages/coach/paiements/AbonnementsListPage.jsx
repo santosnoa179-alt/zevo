@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
-import { RefreshCw, Search, Users, MoreHorizontal } from 'lucide-react'
+import { RefreshCw, Search, Users, MoreHorizontal, Package, Link2 } from 'lucide-react'
 
 const STATUT_CONFIG = {
   actif: { label: 'Actif', color: 'text-emerald-400', bg: 'bg-emerald-500/10', dot: 'bg-emerald-400' },
@@ -12,8 +13,10 @@ const STATUT_CONFIG = {
 
 export default function AbonnementsListPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [abonnements, setAbonnements] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [search, setSearch] = useState('')
   const [filtre, setFiltre] = useState('tous')
 
@@ -24,14 +27,23 @@ export default function AbonnementsListPage() {
 
   const loadAbonnements = async () => {
     setLoading(true)
+    setLoadError(null)
     try {
       const { data, error } = await supabase
         .from('abonnements_clients')
         .select('*, clients(prenom, nom, email), offres_coaching(titre)')
         .eq('coach_id', user.id)
         .order('created_at', { ascending: false })
-      if (!error) setAbonnements(data || [])
-    } catch { /* table pas encore créée */ }
+      if (error) {
+        console.error('[AbonnementsListPage] load error:', error)
+        setLoadError(error.message)
+      } else {
+        setAbonnements(data || [])
+      }
+    } catch (e) {
+      console.error('[AbonnementsListPage] fetch failed:', e)
+      setLoadError(String(e))
+    }
     setLoading(false)
   }
 
@@ -94,11 +106,56 @@ export default function AbonnementsListPage() {
         </div>
       </div>
 
+      {loadError && (
+        <div className="glass-card p-4 border border-red-500/30 bg-red-500/5">
+          <p className="text-[13px] font-semibold text-red-400">Erreur de chargement</p>
+          <p className="text-[11px] text-[var(--text-muted)] mt-1">{loadError}</p>
+          <p className="text-[11px] text-[var(--text-muted)] mt-1">La table <code className="text-[var(--text-secondary)]">abonnements_clients</code> existe-t-elle ? Exécute <code className="text-[var(--text-secondary)]">schema-paiements-complet.sql</code> + <code className="text-[var(--text-secondary)]">fix-grants-paiements.sql</code> dans Supabase.</p>
+        </div>
+      )}
+
       <div className="space-y-2">
-        {filtered.length === 0 ? (
+        {abonnements.length === 0 && !loadError ? (
+          <div className="glass-card p-8">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-11 h-11 rounded-xl bg-[#8B5CF6]/10 flex items-center justify-center">
+                <RefreshCw size={20} className="text-[#8B5CF6]" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[var(--text-primary)]">Aucun abonnement actif</h3>
+                <p className="text-[12px] text-[var(--text-muted)]">Pour démarrer un programme récurrent :</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <button
+                onClick={() => navigate('/coach/abonnements/produits')}
+                className="p-4 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[#8B5CF6]/40 hover:bg-[var(--bg-surface)] transition-all text-left"
+              >
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-[#8B5CF6]/15">
+                  <Package size={16} className="text-[#8B5CF6]" />
+                </div>
+                <p className="text-[13px] font-semibold text-[var(--text-primary)]">1. Crée un produit récurrent</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Mensuel, trimestriel ou annuel</p>
+              </button>
+              <button
+                onClick={() => navigate('/coach/abonnements/liens')}
+                className="p-4 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[#3B82F6]/40 hover:bg-[var(--bg-surface)] transition-all text-left"
+              >
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-[#3B82F6]/15">
+                  <Link2 size={16} className="text-[#3B82F6]" />
+                </div>
+                <p className="text-[13px] font-semibold text-[var(--text-primary)]">2. Partage le lien à ton client</p>
+                <p className="text-[11px] text-[var(--text-muted)] mt-0.5">L'abonnement s'active à la 1re facture</p>
+              </button>
+            </div>
+            <p className="text-[11px] text-[var(--text-muted)] mt-5 pt-4 border-t border-[var(--border-base)]/50">
+              💡 MRR, prélèvements récurrents et dates d'échéance s'affichent automatiquement ici.
+            </p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="glass-card p-12 text-center">
             <RefreshCw size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
-            <p className="text-[var(--text-muted)] text-sm">Aucun abonnement trouvé</p>
+            <p className="text-[var(--text-muted)] text-sm">Aucun abonnement ne correspond aux filtres</p>
           </div>
         ) : (
           filtered.map(a => {

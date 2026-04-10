@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import {
-  Search, Filter, CheckCircle, Clock, XCircle, RefreshCw,
-  Download, MoreHorizontal
+  Search, Filter, MoreHorizontal, Package, Link2, ArrowRight,
+  CreditCard
 } from 'lucide-react'
 
 const STATUT_CONFIG = {
@@ -15,8 +16,10 @@ const STATUT_CONFIG = {
 
 export default function TransactionsPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [search, setSearch] = useState('')
   const [filtre, setFiltre] = useState('tous')
 
@@ -27,11 +30,16 @@ export default function TransactionsPage() {
 
   const loadTransactions = async () => {
     setLoading(true)
-    const { data } = await supabase
+    setLoadError(null)
+    const { data, error } = await supabase
       .from('paiements_clients')
       .select('*, clients(prenom, nom, email), offres_coaching(titre)')
       .eq('coach_id', user.id)
       .order('created_at', { ascending: false })
+    if (error) {
+      console.error('[TransactionsPage] load error:', error)
+      setLoadError(error.message)
+    }
     setTransactions(data || [])
     setLoading(false)
   }
@@ -86,7 +94,62 @@ export default function TransactionsPage() {
         </div>
       </div>
 
+      {/* Error banner */}
+      {loadError && (
+        <div className="glass-card p-4 border border-red-500/30 bg-red-500/5">
+          <p className="text-[13px] font-semibold text-red-400">Erreur de chargement</p>
+          <p className="text-[11px] text-[var(--text-muted)] mt-1">{loadError}</p>
+          <p className="text-[11px] text-[var(--text-muted)] mt-1">Vérifie que le script <code className="text-[var(--text-secondary)]">fix-grants-paiements.sql</code> a bien été exécuté dans Supabase.</p>
+        </div>
+      )}
+
+      {/* Empty state onboarding — visible uniquement quand 0 transactions au total */}
+      {transactions.length === 0 && !loadError && (
+        <div className="glass-card p-8">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-11 h-11 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center">
+              <CreditCard size={20} className="text-[#F59E0B]" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Aucune transaction encore</h3>
+              <p className="text-[12px] text-[var(--text-muted)]">Voici les 3 étapes pour recevoir ton premier paiement :</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              { num: 1, icon: Package, label: 'Crée un produit', desc: 'Offre, programme, abonnement', path: '/coach/abonnements/produits', color: '#8B5CF6' },
+              { num: 2, icon: Link2, label: 'Génère un lien', desc: 'Lien de paiement Stripe', path: '/coach/abonnements/liens', color: '#3B82F6' },
+              { num: 3, icon: ArrowRight, label: 'Partage à ton client', desc: 'Email, WhatsApp, SMS', path: '/coach/abonnements/liens', color: '#22C55E' },
+            ].map(step => {
+              const Icon = step.icon
+              return (
+                <button
+                  key={step.num}
+                  onClick={() => navigate(step.path)}
+                  className="relative p-4 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[var(--text-muted)]/20 hover:bg-[var(--bg-surface)] transition-all text-left group"
+                >
+                  <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center" style={{ backgroundColor: step.color, color: '#0a0a0a' }}>
+                    {step.num}
+                  </div>
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: `${step.color}15` }}>
+                    <Icon size={16} style={{ color: step.color }} />
+                  </div>
+                  <p className="text-[13px] font-semibold text-[var(--text-primary)]">{step.label}</p>
+                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">{step.desc}</p>
+                </button>
+              )
+            })}
+          </div>
+
+          <p className="text-[11px] text-[var(--text-muted)] mt-5 pt-4 border-t border-[var(--border-base)]/50">
+            💡 Les transactions s'affichent ici automatiquement dès qu'un client paie via un de tes liens.
+          </p>
+        </div>
+      )}
+
       {/* Table desktop */}
+      {transactions.length > 0 && (
       <div className="hidden md:block glass-card overflow-hidden">
         <div className="grid grid-cols-[1fr_1fr_100px_100px_100px_40px] gap-4 px-5 py-3 border-b border-[var(--border-base)] text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
           <span>Client</span>
@@ -100,7 +163,7 @@ export default function TransactionsPage() {
         {filtered.length === 0 ? (
           <div className="px-5 py-12 text-center">
             <Filter size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
-            <p className="text-[var(--text-muted)] text-sm">Aucune transaction trouvée</p>
+            <p className="text-[var(--text-muted)] text-sm">Aucune transaction ne correspond aux filtres</p>
           </div>
         ) : (
           filtered.map(t => {
@@ -130,8 +193,10 @@ export default function TransactionsPage() {
           })
         )}
       </div>
+      )}
 
       {/* Mobile cards */}
+      {transactions.length > 0 && (
       <div className="md:hidden space-y-2">
         {filtered.map(t => {
           const cfg = STATUT_CONFIG[t.statut] || STATUT_CONFIG.en_attente
@@ -158,6 +223,7 @@ export default function TransactionsPage() {
           )
         })}
       </div>
+      )}
     </div>
   )
 }

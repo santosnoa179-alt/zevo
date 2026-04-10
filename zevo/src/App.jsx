@@ -80,7 +80,6 @@ const CoachAbonnementsPage = lazy(() => import('./pages/coach/CoachAbonnementsPa
 const PaiementsLayout = lazy(() => import('./pages/coach/paiements/PaiementsLayout'))
 const PaiementsBusinessPage = lazy(() => import('./pages/coach/paiements/BusinessPage'))
 const PaiementsTransactionsPage = lazy(() => import('./pages/coach/paiements/TransactionsPage'))
-const PaiementsSoldePage = lazy(() => import('./pages/coach/paiements/SoldePage'))
 const PaiementsAbonnementsPage = lazy(() => import('./pages/coach/paiements/AbonnementsListPage'))
 const PaiementsFacturesPage = lazy(() => import('./pages/coach/paiements/FacturesPage'))
 const PaiementsProduitsPage = lazy(() => import('./pages/coach/paiements/ProduitsPage'))
@@ -201,7 +200,8 @@ export default function App() {
               <Route path="abonnements" element={<PaiementsLayout />}>
                 <Route index element={<PaiementsBusinessPage />} />
                 <Route path="transactions" element={<PaiementsTransactionsPage />} />
-                <Route path="solde" element={<PaiementsSoldePage />} />
+                {/* Solde fusionné dans Business — l'ancienne URL redirige */}
+                <Route path="solde" element={<Navigate to="/coach/abonnements" replace />} />
                 <Route path="abonnements" element={<PaiementsAbonnementsPage />} />
                 <Route path="factures" element={<PaiementsFacturesPage />} />
                 <Route path="produits" element={<PaiementsProduitsPage />} />

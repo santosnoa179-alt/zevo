@@ -4,8 +4,9 @@ import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import {
   TrendingUp, Wallet, Plus, Link2, TicketPercent,
-  ArrowUpRight, Package, Users, RefreshCw,
-  CreditCard, ShoppingBag, ArrowDownRight
+  Package, Users, RefreshCw,
+  CreditCard, ShoppingBag, ArrowDownRight, ArrowDownToLine, Clock,
+  CheckCircle, XCircle, Building2
 } from 'lucide-react'
 
 export default function BusinessPage() {
@@ -16,6 +17,9 @@ export default function BusinessPage() {
 
   const [totalMois, setTotalMois] = useState(0)
   const [soldeDisponible, setSoldeDisponible] = useState(0)
+  const [soldeEnAttente, setSoldeEnAttente] = useState(0)
+  const [stripeAccountId, setStripeAccountId] = useState(null)
+  const [virements, setVirements] = useState([])
   const [clientsActifs, setClientsActifs] = useState(0)
   const [abosActifs, setAbosActifs] = useState(0)
   const [recentEvents, setRecentEvents] = useState([])
@@ -30,24 +34,42 @@ export default function BusinessPage() {
     setLoading(true)
 
     // ── Revenus du mois ──
-    const moisCourant = new Date().toISOString().slice(0, 7)
-    const { data: paiementsMois } = await supabase
+    const debutMois = new Date()
+    debutMois.setDate(1)
+    debutMois.setHours(0, 0, 0, 0)
+    const { data: paiementsMois, error: errPaie } = await supabase
       .from('paiements_clients')
       .select('montant, statut')
       .eq('coach_id', user.id)
       .eq('statut', 'paye')
-      .gte('date_paiement', `${moisCourant}-01`)
+      .gte('date_paiement', debutMois.toISOString())
+    if (errPaie) console.warn('[BusinessPage] paiements mois:', errPaie.message)
     setTotalMois((paiementsMois || []).reduce((s, p) => s + (p.montant || 0), 0))
 
-    // ── Solde coach (graceful si colonne pas encore ajoutée) ──
+    // ── Solde coach + Stripe account ──
     try {
-      const { data: coach } = await supabase
+      const { data: coach, error: errCoach } = await supabase
         .from('coaches')
-        .select('solde_disponible')
+        .select('solde_disponible, solde_en_attente, stripe_account_id')
         .eq('id', user.id)
         .maybeSingle()
+      if (errCoach) console.warn('[BusinessPage] coach:', errCoach.message)
       setSoldeDisponible(coach?.solde_disponible || 0)
-    } catch { setSoldeDisponible(0) }
+      setSoldeEnAttente(coach?.solde_en_attente || 0)
+      setStripeAccountId(coach?.stripe_account_id || null)
+    } catch (e) { console.warn('[BusinessPage] coach fetch failed:', e) }
+
+    // ── Historique virements (graceful) ──
+    try {
+      const { data: virementsData, error: errVir } = await supabase
+        .from('virements_coach')
+        .select('*')
+        .eq('coach_id', user.id)
+        .order('date_virement', { ascending: false })
+        .limit(5)
+      if (errVir) console.warn('[BusinessPage] virements:', errVir.message)
+      setVirements(virementsData || [])
+    } catch (e) { console.warn('[BusinessPage] virements fetch failed:', e) }
 
     // ── Clients actifs ──
     const { count: nbClients } = await supabase
@@ -248,17 +270,108 @@ export default function BusinessPage() {
               )
             })}
           </div>
-          <div className="mt-4 p-3 rounded-xl border border-[#F59E0B]/20 bg-[#F59E0B]/5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Solde disponible</p>
-                <p className="text-xl font-bold text-[var(--text-primary)] mt-0.5">{(soldeDisponible / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
-              </div>
-              <button onClick={() => navigate('/coach/abonnements/solde')} className="px-3 py-1.5 rounded-lg text-[11px] font-semibold text-[#F59E0B] bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20 transition-colors">Virement</button>
-            </div>
-          </div>
         </div>
       </div>
+
+      {/* ── Solde & Virements ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Solde dispo */}
+        <div className="glass-card p-5 relative overflow-hidden">
+          <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-[#22C55E]/5" />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#22C55E]/10">
+              <Wallet size={18} className="text-[#22C55E]" />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Solde disponible</p>
+          </div>
+          <p className="text-3xl font-bold text-[var(--text-primary)]">
+            {(soldeDisponible / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
+            <span className="text-sm text-[var(--text-muted)] ml-1">€</span>
+          </p>
+          <button
+            disabled={soldeDisponible === 0}
+            className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#22C55E] hover:bg-[#22C55E]/90 disabled:bg-[var(--bg-surface)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed transition-colors"
+          >
+            <ArrowDownToLine size={15} />
+            Demander un virement
+          </button>
+        </div>
+
+        {/* Solde en attente + Stripe */}
+        <div className="glass-card p-5 relative overflow-hidden">
+          <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-[#F59E0B]/5" />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#F59E0B]/10">
+              <Clock size={18} className="text-[#F59E0B]" />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">En attente</p>
+          </div>
+          <p className="text-3xl font-bold text-[var(--text-primary)]">
+            {(soldeEnAttente / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
+            <span className="text-sm text-[var(--text-muted)] ml-1">€</span>
+          </p>
+          <p className="text-[11px] text-[var(--text-muted)] mt-4">Disponible sous 2–3 jours ouvrés</p>
+        </div>
+
+        {/* Compte Stripe */}
+        <div className="glass-card p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#635BFF]/10">
+              <Building2 size={18} className="text-[#635BFF]" />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Compte Stripe</p>
+          </div>
+          {stripeAccountId ? (
+            <>
+              <p className="text-[13px] font-medium text-[var(--text-primary)]">{stripeAccountId.slice(0, 10)}•••</p>
+              <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-md uppercase bg-emerald-500/10 text-emerald-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                Vérifié
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-[13px] font-medium text-[var(--text-primary)]">Non connecté</p>
+              <button
+                onClick={() => navigate('/coach/abonnements/parametres')}
+                className="mt-3 w-full px-3 py-2 rounded-lg text-[11px] font-semibold text-[#635BFF] bg-[#635BFF]/10 hover:bg-[#635BFF]/20 transition-colors"
+              >
+                Connecter Stripe
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Historique virements — visible uniquement s'il y en a */}
+      {virements.length > 0 && (
+        <div className="glass-card overflow-hidden">
+          <div className="px-5 py-4 border-b border-[var(--border-base)]">
+            <h3 className="text-sm font-bold text-[var(--text-primary)]">Derniers virements</h3>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Vers votre compte bancaire</p>
+          </div>
+          <div className="divide-y divide-[var(--border-base)]/50">
+            {virements.map(v => {
+              const isEffectue = v.statut === 'effectue'
+              const isEchoue = v.statut === 'echoue'
+              return (
+                <div key={v.id} className="flex items-center gap-3 px-5 py-3.5">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isEffectue ? 'bg-emerald-500/10' : isEchoue ? 'bg-red-500/10' : 'bg-yellow-500/10'}`}>
+                    {isEffectue ? <CheckCircle size={15} className="text-emerald-400" /> : isEchoue ? <XCircle size={15} className="text-red-400" /> : <Clock size={15} className="text-yellow-400" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium text-[var(--text-primary)]">Virement vers •••• {v.banque_dernier4 || '****'}</p>
+                    <p className="text-[11px] text-[var(--text-muted)]">
+                      {new Date(v.date_virement).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    </p>
+                  </div>
+                  <p className="text-[13px] font-bold text-[var(--text-primary)]">{(v.montant / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Recent events */}
       <div className="glass-card overflow-hidden">

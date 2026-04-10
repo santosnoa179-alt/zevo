@@ -13,6 +13,7 @@ export default function FacturesPage() {
   const { user } = useAuth()
   const [factures, setFactures] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [search, setSearch] = useState('')
 
   useEffect(() => {
@@ -22,14 +23,23 @@ export default function FacturesPage() {
 
   const loadFactures = async () => {
     setLoading(true)
+    setLoadError(null)
     try {
       const { data, error } = await supabase
         .from('factures')
         .select('*, clients(prenom, nom), offres_coaching(titre)')
         .eq('coach_id', user.id)
         .order('date_emission', { ascending: false })
-      if (!error) setFactures(data || [])
-    } catch { /* table pas encore créée */ }
+      if (error) {
+        console.error('[FacturesPage] load error:', error)
+        setLoadError(error.message)
+      } else {
+        setFactures(data || [])
+      }
+    } catch (e) {
+      console.error('[FacturesPage] fetch failed:', e)
+      setLoadError(String(e))
+    }
     setLoading(false)
   }
 
@@ -61,11 +71,29 @@ export default function FacturesPage() {
           className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/40 focus:outline-none transition-all" />
       </div>
 
+      {loadError && (
+        <div className="glass-card p-4 border border-red-500/30 bg-red-500/5">
+          <p className="text-[13px] font-semibold text-red-400">Erreur de chargement</p>
+          <p className="text-[11px] text-[var(--text-muted)] mt-1">{loadError}</p>
+          <p className="text-[11px] text-[var(--text-muted)] mt-1">La table <code className="text-[var(--text-secondary)]">factures</code> existe-t-elle ? Exécute <code className="text-[var(--text-secondary)]">schema-paiements-complet.sql</code> + <code className="text-[var(--text-secondary)]">fix-grants-paiements.sql</code>.</p>
+        </div>
+      )}
+
       <div className="glass-card overflow-hidden">
-        {filtered.length === 0 ? (
+        {factures.length === 0 && !loadError ? (
+          <div className="px-5 py-12 text-center">
+            <div className="w-12 h-12 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center mx-auto mb-4">
+              <FileText size={22} className="text-[#F59E0B]" />
+            </div>
+            <p className="text-[14px] font-semibold text-[var(--text-primary)]">Aucune facture émise</p>
+            <p className="text-[12px] text-[var(--text-muted)] mt-1 max-w-sm mx-auto">
+              Les factures sont générées automatiquement à chaque paiement encaissé. Elles apparaîtront ici.
+            </p>
+          </div>
+        ) : filtered.length === 0 && factures.length > 0 ? (
           <div className="px-5 py-12 text-center">
             <FileText size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
-            <p className="text-[var(--text-muted)] text-sm">Aucune facture</p>
+            <p className="text-[var(--text-muted)] text-sm">Aucune facture ne correspond à la recherche</p>
           </div>
         ) : (
           <div className="divide-y divide-[var(--border-base)]/50">
