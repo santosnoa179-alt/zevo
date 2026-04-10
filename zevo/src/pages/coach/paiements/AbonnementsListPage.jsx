@@ -31,7 +31,7 @@ export default function AbonnementsListPage() {
     try {
       const { data, error } = await supabase
         .from('abonnements_clients')
-        .select('*, clients(prenom, nom, email), offres_coaching(titre)')
+        .select('*, clients(profiles(nom, email)), offres_coaching(titre)')
         .eq('coach_id', user.id)
         .order('created_at', { ascending: false })
       if (error) {
@@ -51,8 +51,10 @@ export default function AbonnementsListPage() {
     .filter(a => filtre === 'tous' || a.statut === filtre)
     .filter(a => {
       if (!search) return true
-      const name = `${a.clients?.prenom || ''} ${a.clients?.nom || ''}`.toLowerCase()
-      return name.includes(search.toLowerCase())
+      const name = (a.clients?.profiles?.nom || '').toLowerCase()
+      const email = (a.clients?.profiles?.email || '').toLowerCase()
+      const q = search.toLowerCase()
+      return name.includes(q) || email.includes(q)
     })
 
   const actifs = abonnements.filter(a => a.statut === 'actif').length
@@ -160,7 +162,7 @@ export default function AbonnementsListPage() {
         ) : (
           filtered.map(a => {
             const cfg = STATUT_CONFIG[a.statut] || STATUT_CONFIG.actif
-            const clientName = `${a.clients?.prenom || ''} ${a.clients?.nom || ''}`.trim() || 'Client'
+            const clientName = a.clients?.profiles?.nom || 'Client'
             const initials = clientName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
             return (
               <div key={a.id} className="glass-card p-4 hover:border-[var(--text-muted)]/10 transition-all group">

@@ -100,7 +100,7 @@ export default function BusinessPage() {
     // ── Derniers événements (paiements récents) ──
     const { data: derniersPaiements } = await supabase
       .from('paiements_clients')
-      .select('id, montant, statut, date_paiement, created_at, clients(prenom, nom), offres_coaching(titre)')
+      .select('id, montant, statut, date_paiement, created_at, clients(profiles(nom)), offres_coaching(titre)')
       .eq('coach_id', user.id)
       .order('created_at', { ascending: false })
       .limit(5)
@@ -390,7 +390,7 @@ export default function BusinessPage() {
         ) : (
           <div className="divide-y divide-[var(--border-base)]">
             {recentEvents.map(event => {
-              const clientName = event.clients ? `${event.clients.prenom || ''} ${event.clients.nom || ''}`.trim() : 'Client'
+              const clientName = event.clients?.profiles?.nom || 'Client'
               const offreName = event.offres_coaching?.titre || ''
               const isPositive = event.statut === 'paye'
               const color = isPositive ? '#22C55E' : event.statut === 'rembourse' ? '#EF4444' : '#F59E0B'
