@@ -1,11 +1,8 @@
-import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, ArrowLeftRight, RefreshCw,
-  FileText, Package, Link2, TicketPercent, Settings, Wallet
+  FileText, Package, Link2, TicketPercent, Settings, Wallet, ExternalLink
 } from 'lucide-react'
-import { useAuth } from '../../../hooks/useAuth'
-import { supabase } from '../../../lib/supabase'
 
 const SUB_NAV = [
   { to: '/coach/abonnements', icon: LayoutDashboard, label: 'Business', end: true },
@@ -20,25 +17,6 @@ const SUB_NAV = [
 
 export default function PaiementsLayout() {
   const location = useLocation()
-  const { user } = useAuth()
-  const [solde, setSolde] = useState(0)
-
-  useEffect(() => {
-    if (!user) return
-    ;(async () => {
-      try {
-        const { data, error } = await supabase
-          .from('coaches')
-          .select('solde_disponible')
-          .eq('id', user.id)
-          .maybeSingle()
-        if (error) console.warn('[PaiementsLayout] solde error:', error.message)
-        setSolde(data?.solde_disponible || 0)
-      } catch (e) {
-        console.warn('[PaiementsLayout] solde fetch failed:', e)
-      }
-    })()
-  }, [user])
 
   return (
     <div className="flex" style={{ minHeight: 'calc(100vh - 3.5rem)' }}>
@@ -93,15 +71,23 @@ export default function PaiementsLayout() {
           })}
         </nav>
 
-        {/* Bottom info — solde réel */}
+        {/* Bottom info — lien direct vers Stripe */}
         <div className="p-3 border-t border-[var(--border-base)]">
-          <div className="bg-[var(--bg-surface)] rounded-xl p-3">
-            <p className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-muted)] mb-1">Solde disponible</p>
-            <p className="text-lg font-bold text-[var(--text-primary)]">
-              {(solde / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
-              <span className="text-xs text-[var(--text-muted)] ml-1">EUR</span>
-            </p>
-          </div>
+          <a
+            href="https://dashboard.stripe.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2.5 p-3 rounded-xl bg-[var(--bg-surface)] hover:bg-[#635BFF]/10 border border-[var(--border-base)] hover:border-[#635BFF]/30 transition-all group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-[#635BFF]/10 flex items-center justify-center shrink-0">
+              <Wallet size={14} className="text-[#635BFF]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-semibold text-[var(--text-primary)]">Mon solde Stripe</p>
+              <p className="text-[10px] text-[var(--text-muted)]">Voir dans Stripe</p>
+            </div>
+            <ExternalLink size={11} className="text-[var(--text-muted)] group-hover:text-[#635BFF] shrink-0" />
+          </a>
         </div>
       </aside>
 
