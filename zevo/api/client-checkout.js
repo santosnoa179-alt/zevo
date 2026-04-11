@@ -111,6 +111,7 @@ export default async function handler(req, res) {
       mode: offre.frequence === 'unique' ? 'payment' : 'subscription',
       success_url: `${siteUrl}/app/abonnement?paiement=success`,
       cancel_url: `${siteUrl}/app/abonnement`,
+      allow_promotion_codes: true,
       metadata: {
         offre_id: offreId,
         client_id: clientId,

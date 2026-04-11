@@ -288,6 +288,9 @@ export default function AbonnementPage() {
       {offres.length > 0 && (
         <div className="mb-10">
           <h2 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-4">Offres disponibles</h2>
+          <p className="text-[11px] text-[var(--text-muted)] mb-4">
+            💡 Si votre coach vous a donné un code promo, vous pourrez le saisir sur la page de paiement Stripe.
+          </p>
           <div className="space-y-4">
             {offres.map((o, i) => {
               const si = stagger[i] || {}

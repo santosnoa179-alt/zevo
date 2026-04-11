@@ -4,7 +4,7 @@ import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import {
   Search, Filter, MoreHorizontal, Package, Link2, ArrowRight,
-  CreditCard
+  CreditCard, Plus, X, Banknote, AlertCircle
 } from 'lucide-react'
 
 const STATUT_CONFIG = {
@@ -13,6 +13,13 @@ const STATUT_CONFIG = {
   echoue: { label: 'Échoué', color: 'text-red-400', bg: 'bg-red-500/10', dot: 'bg-red-400' },
   rembourse: { label: 'Remboursé', color: 'text-blue-400', bg: 'bg-blue-500/10', dot: 'bg-blue-400' },
 }
+
+const METHODES = [
+  { value: 'especes', label: 'Espèces' },
+  { value: 'virement', label: 'Virement' },
+  { value: 'cheque', label: 'Chèque' },
+  { value: 'autre', label: 'Autre' },
+]
 
 export default function TransactionsPage() {
   const { user } = useAuth()
@@ -23,10 +30,35 @@ export default function TransactionsPage() {
   const [search, setSearch] = useState('')
   const [filtre, setFiltre] = useState('tous')
 
+  // Modal transaction manuelle
+  const [showModal, setShowModal] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [modalError, setModalError] = useState(null)
+  const [clientsList, setClientsList] = useState([])
+  const [form, setForm] = useState({
+    clientId: '',
+    montant: '',
+    methode: 'especes',
+    description: '',
+    date: new Date().toISOString().slice(0, 10),
+    statut: 'paye',
+    genererFacture: true,
+  })
+
   useEffect(() => {
     if (!user) return
     loadTransactions()
+    loadClients()
   }, [user])
+
+  const loadClients = async () => {
+    const { data } = await supabase
+      .from('clients')
+      .select('id, profiles(nom, email)')
+      .eq('coach_id', user.id)
+      .order('created_at', { ascending: false })
+    setClientsList(data || [])
+  }
 
   const loadTransactions = async () => {
     setLoading(true)
@@ -42,6 +74,82 @@ export default function TransactionsPage() {
     }
     setTransactions(data || [])
     setLoading(false)
+  }
+
+  const creerTransactionManuelle = async () => {
+    setModalError(null)
+    if (!form.clientId) { setModalError('Sélectionnez un client'); return }
+    const montantNum = parseFloat(form.montant)
+    if (!Number.isFinite(montantNum) || montantNum <= 0) {
+      setModalError('Montant invalide')
+      return
+    }
+
+    setSaving(true)
+    try {
+      const montantCents = Math.round(montantNum * 100)
+      const dateISO = new Date(form.date).toISOString()
+
+      // 1) Insérer le paiement manuel
+      const { data: paiement, error: payErr } = await supabase
+        .from('paiements_clients')
+        .insert({
+          client_id: form.clientId,
+          coach_id: user.id,
+          offre_id: null,
+          montant: montantCents,
+          statut: form.statut,
+          methode_paiement: form.methode,
+          description: form.description || null,
+          date_paiement: form.statut === 'paye' ? dateISO : null,
+          source: 'manuel',
+        })
+        .select('id')
+        .single()
+
+      if (payErr) {
+        setModalError(payErr.message)
+        setSaving(false)
+        return
+      }
+
+      // 2) Générer une facture si demandé
+      if (form.genererFacture && form.statut === 'paye') {
+        const year = new Date(form.date).getFullYear()
+        const { count } = await supabase
+          .from('factures')
+          .select('id', { count: 'exact', head: true })
+          .eq('coach_id', user.id)
+          .gte('date_emission', `${year}-01-01`)
+          .lt('date_emission', `${year + 1}-01-01`)
+        const numero = `FAC-${year}-${String((count || 0) + 1).padStart(4, '0')}`
+
+        await supabase.from('factures').insert({
+          numero,
+          coach_id: user.id,
+          client_id: form.clientId,
+          paiement_id: paiement.id,
+          montant: montantCents,
+          statut: 'payee',
+          date_emission: dateISO,
+        })
+      }
+
+      setShowModal(false)
+      setForm({
+        clientId: '',
+        montant: '',
+        methode: 'especes',
+        description: '',
+        date: new Date().toISOString().slice(0, 10),
+        statut: 'paye',
+        genererFacture: true,
+      })
+      await loadTransactions()
+    } catch (e) {
+      setModalError(e.message || 'Erreur')
+    }
+    setSaving(false)
   }
 
   const filtered = transactions
@@ -74,6 +182,14 @@ export default function TransactionsPage() {
           <h2 className="text-lg font-bold text-[var(--text-primary)]">Transactions</h2>
           <p className="text-xs text-[var(--text-muted)]">{filtered.length} transaction{filtered.length > 1 ? 's' : ''} · {(totalFiltre / 100).toLocaleString('fr-FR')} € encaissés</p>
         </div>
+        <button
+          onClick={() => { setModalError(null); setShowModal(true) }}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95 self-start sm:self-auto"
+          style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.25)' }}
+        >
+          <Plus size={14} />
+          Nouvelle transaction
+        </button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -178,7 +294,15 @@ export default function TransactionsPage() {
                   <p className="text-[13px] font-medium text-[var(--text-primary)] truncate">{clientName}</p>
                   <p className="text-[10px] text-[var(--text-muted)] truncate">{clientEmail}</p>
                 </div>
-                <span className="text-[13px] text-[var(--text-secondary)] truncate">{t.offres_coaching?.titre || t.description || '—'}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[13px] text-[var(--text-secondary)] truncate">{t.offres_coaching?.titre || t.description || '—'}</span>
+                  {t.source === 'manuel' && (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#F59E0B]/10 text-[#F59E0B] shrink-0" title={`Méthode : ${t.methode_paiement || '—'}`}>
+                      <Banknote size={9} />
+                      MANUEL
+                    </span>
+                  )}
+                </div>
                 <span className="text-[13px] font-semibold text-[var(--text-primary)]">{(t.montant / 100).toFixed(2)} €</span>
                 <span className="text-[12px] text-[var(--text-muted)]">
                   {t.date_paiement ? new Date(t.date_paiement).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '—'}
@@ -207,7 +331,15 @@ export default function TransactionsPage() {
             <div key={t.id} className="glass-card p-4">
               <div className="flex items-start justify-between mb-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-[var(--text-primary)] truncate">{clientName}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">{clientName}</p>
+                    {t.source === 'manuel' && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#F59E0B]/10 text-[#F59E0B] shrink-0">
+                        <Banknote size={9} />
+                        MANUEL
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[11px] text-[var(--text-muted)] truncate">{t.offres_coaching?.titre || t.description || '—'}</p>
                 </div>
                 <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-lg ${cfg.color} ${cfg.bg} shrink-0`}>
@@ -225,6 +357,95 @@ export default function TransactionsPage() {
           )
         })}
       </div>
+      )}
+
+      {/* ── Modal Nouvelle transaction manuelle ── */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+          <div className="glass-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)' }} />
+            <div className="p-4 md:p-5 border-b border-[var(--border-base)] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)' }}>
+                  <Banknote size={18} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-[var(--text-primary)] font-semibold">Nouvelle transaction</h3>
+                  <p className="text-[var(--text-muted)] text-[11px]">Paiement hors-Stripe (espèces, virement, chèque)</p>
+                </div>
+              </div>
+              <button onClick={() => setShowModal(false)} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-4 md:p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+              {modalError && (
+                <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                  <AlertCircle size={14} className="text-red-400 shrink-0 mt-0.5" />
+                  <p className="text-[12px] text-red-400">{modalError}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Client *</label>
+                <select value={form.clientId} onChange={e => setForm({ ...form, clientId: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                  <option value="">-- Sélectionner un client --</option>
+                  {clientsList.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.profiles?.nom || 'Sans nom'} {c.profiles?.email ? `· ${c.profiles.email}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Montant (€) *</label>
+                  <input type="number" min="0" step="0.01" value={form.montant} onChange={e => setForm({ ...form, montant: e.target.value })} placeholder="50.00" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Méthode</label>
+                  <select value={form.methode} onChange={e => setForm({ ...form, methode: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                    {METHODES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Date</label>
+                  <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Statut</label>
+                  <select value={form.statut} onChange={e => setForm({ ...form, statut: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                    <option value="paye">Payé</option>
+                    <option value="en_attente">En attente</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Description</label>
+                <input type="text" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Ex : Séance coaching du 10/04" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+              </div>
+
+              <label className="flex items-center gap-2.5 p-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] cursor-pointer">
+                <input type="checkbox" checked={form.genererFacture} onChange={e => setForm({ ...form, genererFacture: e.target.checked })} className="w-4 h-4 accent-[#F59E0B]" />
+                <div className="flex-1">
+                  <p className="text-[12px] font-medium text-[var(--text-primary)]">Générer une facture</p>
+                  <p className="text-[10px] text-[var(--text-muted)]">Uniquement si statut = Payé</p>
+                </div>
+              </label>
+            </div>
+            <div className="p-4 md:p-5 border-t border-[var(--border-base)] flex gap-3 justify-end">
+              <button onClick={() => setShowModal(false)} className="px-4 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-all">Annuler</button>
+              <button onClick={creerTransactionManuelle} disabled={saving || !form.clientId || !form.montant} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 active:scale-95" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)' }}>
+                {saving ? 'Enregistrement...' : 'Enregistrer'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
-import { TicketPercent, Plus, Copy, CheckCircle, Trash2, X, Users } from 'lucide-react'
+import { TicketPercent, Plus, Copy, CheckCircle, Trash2, X, Users, AlertCircle, Info } from 'lucide-react'
 
 export default function CodesReductionPage() {
   const { user } = useAuth()
@@ -10,6 +10,7 @@ export default function CodesReductionPage() {
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(null)
+  const [error, setError] = useState(null)
   const [form, setForm] = useState({ code: '', type: 'pourcentage', valeur: '', limite: '', expiration: '' })
 
   useEffect(() => {
@@ -33,27 +34,64 @@ export default function CodesReductionPage() {
   const creerCode = async () => {
     if (!form.code.trim() || !form.valeur) return
     setSaving(true)
-    const { error } = await supabase
-      .from('codes_reduction')
-      .insert({
-        coach_id: user.id,
-        code: form.code.toUpperCase().trim(),
-        type: form.type,
-        valeur: form.type === 'pourcentage' ? parseInt(form.valeur) : Math.round(parseFloat(form.valeur) * 100),
-        limite_utilisations: form.limite ? parseInt(form.limite) : null,
-        date_expiration: form.expiration || null,
+    setError(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setError('Session expirée')
+        setSaving(false)
+        return
+      }
+
+      const valeur = form.type === 'pourcentage'
+        ? parseInt(form.valeur)
+        : Math.round(parseFloat(form.valeur) * 100)
+
+      const res = await fetch('/api/create-coupon', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          code: form.code,
+          type: form.type,
+          valeur,
+          limite: form.limite || null,
+          expiration: form.expiration || null,
+        }),
       })
-    if (!error) {
+
+      const json = await res.json()
+      if (!res.ok) {
+        setError(json.error || 'Erreur lors de la création')
+        setSaving(false)
+        return
+      }
+
       setShowModal(false)
       setForm({ code: '', type: 'pourcentage', valeur: '', limite: '', expiration: '' })
       await loadCodes()
+    } catch (e) {
+      setError(e.message || 'Erreur réseau')
     }
     setSaving(false)
   }
 
   const supprimerCode = async (id) => {
-    if (!confirm('Supprimer ce code ?')) return
-    await supabase.from('codes_reduction').delete().eq('id', id).eq('coach_id', user.id)
+    if (!confirm('Supprimer ce code ? Il sera désactivé côté Stripe.')) return
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+      await fetch('/api/delete-coupon', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ codeId: id }),
+      })
+    } catch { /* best-effort */ }
     await loadCodes()
   }
 
@@ -79,10 +117,25 @@ export default function CodesReductionPage() {
           <h2 className="text-lg font-bold text-[var(--text-primary)]">Codes de réduction</h2>
           <p className="text-xs text-[var(--text-muted)]">{codes.filter(c => c.actif).length} code{codes.filter(c => c.actif).length > 1 ? 's' : ''} actif{codes.filter(c => c.actif).length > 1 ? 's' : ''}</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.25)' }}>
+        <button onClick={() => { setError(null); setShowModal(true) }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.25)' }}>
           <Plus size={14} />
           Nouveau code
         </button>
+      </div>
+
+      {/* Comment ça marche */}
+      <div className="glass-card p-4 border border-[#F59E0B]/15 bg-[#F59E0B]/5">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center shrink-0">
+            <Info size={14} className="text-[#F59E0B]" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[13px] font-semibold text-[var(--text-primary)] mb-1">Comment ça marche</p>
+            <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+              Vos codes sont créés directement sur votre compte <strong className="text-[var(--text-secondary)]">Stripe Connect</strong>. Vos clients peuvent les saisir sur la page de paiement Stripe (checkout ou lien de paiement) dans le champ « Code promo ». La réduction est appliquée automatiquement.
+            </p>
+          </div>
+        </div>
       </div>
 
       {codes.length === 0 ? (
@@ -178,6 +231,12 @@ export default function CodesReductionPage() {
               </button>
             </div>
             <div className="p-4 md:p-5 space-y-4">
+              {error && (
+                <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                  <AlertCircle size={14} className="text-red-400 shrink-0 mt-0.5" />
+                  <p className="text-[12px] text-red-400">{error}</p>
+                </div>
+              )}
               <div>
                 <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Code *</label>
                 <input type="text" value={form.code} onChange={e => setForm({...form, code: e.target.value})} placeholder="Ex : BIENVENUE20" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all uppercase font-mono" />
