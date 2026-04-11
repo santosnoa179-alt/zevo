@@ -4,7 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { usePageTransition, useStagger } from '../../hooks/useAnimations'
-import { CreditCard, CheckCircle, Clock, ExternalLink, Package, Loader2 } from 'lucide-react'
+import { CreditCard, CheckCircle, Clock, ExternalLink, Package, Loader2, FileText, Download } from 'lucide-react'
+import jsPDF from 'jspdf'
 
 const FREQ_LABELS = {
   unique: 'Paiement unique',
@@ -19,6 +20,9 @@ export default function AbonnementPage() {
   const toast = useToast()
   const [offres, setOffres] = useState([])
   const [paiements, setPaiements] = useState([])
+  const [factures, setFactures] = useState([])
+  const [coachInfo, setCoachInfo] = useState(null)
+  const [clientInfo, setClientInfo] = useState(null)
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(null)
 
@@ -74,6 +78,39 @@ export default function AbonnementPage() {
       .eq('client_id', user.id)
       .order('created_at', { ascending: false })
 
+    // Charger les factures du client (générées par le coach)
+    const { data: facturesData, error: facturesErr } = await supabase
+      .from('factures')
+      .select('*, offres_coaching(titre)')
+      .eq('client_id', user.id)
+      .order('date_emission', { ascending: false })
+    if (facturesErr) console.warn('[AbonnementPage] factures:', facturesErr.message)
+
+    // Infos coach pour PDF
+    const { data: coachProfile } = await supabase
+      .from('profiles')
+      .select('nom, email')
+      .eq('id', client.coach_id)
+      .maybeSingle()
+    const { data: coachData } = await supabase
+      .from('coaches')
+      .select('*')
+      .eq('id', client.coach_id)
+      .maybeSingle()
+    setCoachInfo({
+      nom: coachProfile?.nom || 'Coach',
+      email: coachProfile?.email || '',
+      ...(coachData || {}),
+    })
+
+    // Infos client pour PDF
+    const { data: myProfile } = await supabase
+      .from('profiles')
+      .select('nom, email')
+      .eq('id', user.id)
+      .maybeSingle()
+    setClientInfo(myProfile)
+
     // Enrichir les paiements avec le titre de l'offre
     const offresMap = {}
     ;(offresData || []).forEach(o => { offresMap[o.id] = o.titre })
@@ -84,7 +121,110 @@ export default function AbonnementPage() {
 
     setOffres(offresData || [])
     setPaiements(paiementsEnrichis)
+    setFactures(facturesData || [])
     setLoading(false)
+  }
+
+  const STATUT_LABELS = {
+    payee: { label: 'Payée', color: 'text-green-400', bg: 'bg-green-500/10' },
+    en_attente: { label: 'En attente', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+    annulee: { label: 'Annulée', color: 'text-red-400', bg: 'bg-red-500/10' },
+  }
+
+  const telechargerFacture = (f) => {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+    const pageW = 210
+    const margin = 15
+
+    doc.setFillColor(13, 13, 13)
+    doc.rect(0, 0, pageW, 40, 'F')
+
+    doc.setTextColor(245, 158, 11)
+    doc.setFontSize(22)
+    doc.setFont('helvetica', 'bold')
+    doc.text((coachInfo?.nom_entreprise || coachInfo?.nom || 'ZEVO').toUpperCase(), margin, 20)
+
+    doc.setTextColor(200, 200, 200)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    if (coachInfo?.email) doc.text(coachInfo.email, margin, 27)
+
+    doc.setTextColor(245, 158, 11)
+    doc.setFontSize(28)
+    doc.setFont('helvetica', 'bold')
+    doc.text('FACTURE', pageW - margin, 22, { align: 'right' })
+    doc.setTextColor(200, 200, 200)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(f.numero || '', pageW - margin, 30, { align: 'right' })
+
+    let y = 55
+    doc.setTextColor(30, 30, 30)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.text('FACTURÉ À', margin, y)
+    doc.text('DATE D\'ÉMISSION', pageW - margin - 60, y)
+
+    y += 6
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(11)
+    doc.text(clientInfo?.nom || '—', margin, y)
+    const dateStr = f.date_emission
+      ? new Date(f.date_emission).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+      : '—'
+    doc.text(dateStr, pageW - margin - 60, y)
+
+    if (clientInfo?.email) {
+      y += 5
+      doc.setFontSize(9)
+      doc.setTextColor(120, 120, 120)
+      doc.text(clientInfo.email, margin, y)
+    }
+
+    y += 12
+    doc.setDrawColor(220, 220, 220)
+    doc.line(margin, y, pageW - margin, y)
+
+    y += 10
+    doc.setFillColor(245, 158, 11)
+    doc.rect(margin, y - 6, pageW - margin * 2, 9, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.text('DESCRIPTION', margin + 3, y)
+    doc.text('MONTANT', pageW - margin - 3, y, { align: 'right' })
+
+    y += 12
+    doc.setTextColor(30, 30, 30)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(11)
+    const description = f.description || f.offres_coaching?.titre || 'Prestation de coaching'
+    const splitDesc = doc.splitTextToSize(description, pageW - margin * 2 - 40)
+    doc.text(splitDesc, margin + 3, y)
+    doc.text(`${(f.montant / 100).toFixed(2)} €`, pageW - margin - 3, y, { align: 'right' })
+
+    y += Math.max(splitDesc.length * 5, 10) + 10
+    doc.setDrawColor(220, 220, 220)
+    doc.line(pageW - margin - 80, y - 5, pageW - margin, y - 5)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(12)
+    doc.text('Total', pageW - margin - 80, y)
+    doc.setTextColor(245, 158, 11)
+    doc.setFontSize(16)
+    doc.text(`${(f.montant / 100).toFixed(2)} €`, pageW - margin, y, { align: 'right' })
+
+    y += 15
+    const statutLabel = (STATUT_LABELS[f.statut] || STATUT_LABELS.en_attente).label
+    doc.setTextColor(30, 30, 30)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.text(`Statut : ${statutLabel}`, margin, y)
+
+    doc.setFontSize(8)
+    doc.setTextColor(150, 150, 150)
+    doc.text('Facture générée par Zevo — La plateforme tout-en-un pour coachs.', pageW / 2, 285, { align: 'center' })
+
+    doc.save(`${f.numero || 'facture'}.pdf`)
   }
 
   // ── Payer une offre via Stripe Connect ──
@@ -240,6 +380,53 @@ export default function AbonnementPage() {
             </div>
             )
           })}
+        </div>
+      )}
+
+      {/* ── Factures ── */}
+      {factures.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-4">Mes factures</h2>
+          <div className="space-y-3">
+            {factures.map(f => {
+              const cfg = STATUT_LABELS[f.statut] || STATUT_LABELS.en_attente
+              return (
+                <div
+                  key={f.id}
+                  className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4 flex items-center gap-3"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                    <FileText size={17} className="text-[#FF6B2B]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-[12px] font-mono text-[#FF6B2B]">{f.numero}</p>
+                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${cfg.color} ${cfg.bg}`}>
+                        {cfg.label}
+                      </span>
+                    </div>
+                    <p className="text-[13px] font-medium text-[var(--text-primary)] mt-0.5 truncate">
+                      {f.description || f.offres_coaching?.titre || 'Prestation'}
+                    </p>
+                    <p className="text-[11px] text-[var(--text-muted)]">
+                      {f.date_emission ? new Date(f.date_emission).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-[14px] font-bold text-[var(--text-primary)]">{(f.montant / 100).toFixed(2)} €</p>
+                  </div>
+                  <button
+                    onClick={() => telechargerFacture(f)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-[#FF6B2B] bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/15 transition-colors"
+                    title="Télécharger le PDF"
+                  >
+                    <Download size={13} />
+                    PDF
+                  </button>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

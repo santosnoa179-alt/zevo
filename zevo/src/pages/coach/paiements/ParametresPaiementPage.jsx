@@ -75,16 +75,26 @@ export default function ParametresPaiementPage() {
                   {stripeOnboarded ? 'Compte vérifié · Virements automatiques activés' : 'Onboarding en cours'}
                 </p>
               </div>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-[#635BFF] bg-[#635BFF]/10 hover:bg-[#635BFF]/15 transition-colors">
+              <a
+                href="https://dashboard.stripe.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-[#635BFF] bg-[#635BFF]/10 hover:bg-[#635BFF]/15 transition-colors"
+              >
                 Dashboard Stripe
                 <ExternalLink size={11} />
-              </button>
+              </a>
             </div>
           </div>
         ) : (
-          <button className="w-full px-4 py-3 rounded-xl text-sm font-semibold text-white bg-[#635BFF] hover:bg-[#635BFF]/90 transition-colors">
+          <a
+            href="https://dashboard.stripe.com/register"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full text-center px-4 py-3 rounded-xl text-sm font-semibold text-white bg-[#635BFF] hover:bg-[#635BFF]/90 transition-colors"
+          >
             Connecter Stripe
-          </button>
+          </a>
         )}
       </div>
 

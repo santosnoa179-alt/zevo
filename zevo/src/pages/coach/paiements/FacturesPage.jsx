@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
-import { FileText, Search, Download, Plus, X, Loader2 } from 'lucide-react'
+import { FileText, Search, Download, Plus, X, Loader2, Calendar, User, Package, Hash } from 'lucide-react'
+import jsPDF from 'jspdf'
 
 const STATUT_CONFIG = {
   payee: { label: 'Payée', color: 'text-emerald-400', bg: 'bg-emerald-500/10', dot: 'bg-emerald-400' },
@@ -16,21 +17,41 @@ export default function FacturesPage() {
   const [loadError, setLoadError] = useState(null)
   const [search, setSearch] = useState('')
 
-  // Modal state
+  // Coach profile (for PDF header)
+  const [coachInfo, setCoachInfo] = useState(null)
+
+  // Create modal state
   const [modalOpen, setModalOpen] = useState(false)
   const [clientsList, setClientsList] = useState([])
   const [offresList, setOffresList] = useState([])
   const [formClient, setFormClient] = useState('')
   const [formOffre, setFormOffre] = useState('')
   const [formMontant, setFormMontant] = useState('')
+  const [formDescription, setFormDescription] = useState('')
   const [formStatut, setFormStatut] = useState('en_attente')
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState(null)
 
+  // Detail modal state
+  const [detailFacture, setDetailFacture] = useState(null)
+
   useEffect(() => {
     if (!user) return
     loadFactures()
+    loadCoachInfo()
   }, [user])
+
+  const loadCoachInfo = async () => {
+    const [coachRes, profileRes] = await Promise.all([
+      supabase.from('coaches').select('*').eq('id', user.id).maybeSingle(),
+      supabase.from('profiles').select('nom, email').eq('id', user.id).maybeSingle(),
+    ])
+    setCoachInfo({
+      nom: profileRes.data?.nom || 'Coach',
+      email: profileRes.data?.email || '',
+      ...(coachRes.data || {}),
+    })
+  }
 
   const loadFactures = async () => {
     setLoading(true)
@@ -83,6 +104,7 @@ export default function FacturesPage() {
     setFormClient('')
     setFormOffre('')
     setFormMontant('')
+    setFormDescription('')
     setFormStatut('en_attente')
     setFormError(null)
   }
@@ -91,6 +113,7 @@ export default function FacturesPage() {
     setFormOffre(offreId)
     const o = offresList.find(x => x.id === offreId)
     if (o?.prix) setFormMontant((o.prix / 100).toFixed(2))
+    if (o?.titre && !formDescription) setFormDescription(o.titre)
   }
 
   const generateNumero = () => {
@@ -112,6 +135,7 @@ export default function FacturesPage() {
       client_id: formClient,
       offre_id: formOffre || null,
       montant: montantCents,
+      description: formDescription || null,
       statut: formStatut,
       date_emission: new Date().toISOString(),
     }
@@ -125,6 +149,124 @@ export default function FacturesPage() {
     closeModal()
     loadFactures()
   }
+
+  const generatePDF = (f) => {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+    const pageW = 210
+    const margin = 15
+    const primary = '#F59E0B'
+
+    // Header band
+    doc.setFillColor(13, 13, 13)
+    doc.rect(0, 0, pageW, 40, 'F')
+
+    // Logo / coach name
+    doc.setTextColor(245, 158, 11)
+    doc.setFontSize(22)
+    doc.setFont('helvetica', 'bold')
+    doc.text((coachInfo?.nom_entreprise || coachInfo?.nom || 'ZEVO').toUpperCase(), margin, 20)
+
+    doc.setTextColor(200, 200, 200)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    if (coachInfo?.email) doc.text(coachInfo.email, margin, 27)
+    if (coachInfo?.telephone) doc.text(coachInfo.telephone, margin, 32)
+
+    // Invoice label
+    doc.setTextColor(245, 158, 11)
+    doc.setFontSize(28)
+    doc.setFont('helvetica', 'bold')
+    doc.text('FACTURE', pageW - margin, 22, { align: 'right' })
+    doc.setTextColor(200, 200, 200)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(f.numero || '', pageW - margin, 30, { align: 'right' })
+
+    // Body
+    let y = 55
+    doc.setTextColor(30, 30, 30)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.text('FACTURÉ À', margin, y)
+    doc.text('DATE D\'ÉMISSION', pageW - margin - 60, y)
+
+    y += 6
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(11)
+    const clientName = f.clients?.profiles?.nom || '—'
+    const clientEmail = f.clients?.profiles?.email || ''
+    doc.text(clientName, margin, y)
+    const dateStr = f.date_emission
+      ? new Date(f.date_emission).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+      : '—'
+    doc.text(dateStr, pageW - margin - 60, y)
+
+    if (clientEmail) {
+      y += 5
+      doc.setFontSize(9)
+      doc.setTextColor(120, 120, 120)
+      doc.text(clientEmail, margin, y)
+    }
+
+    // Separator
+    y += 12
+    doc.setDrawColor(220, 220, 220)
+    doc.line(margin, y, pageW - margin, y)
+
+    // Table header
+    y += 10
+    doc.setFillColor(245, 158, 11)
+    doc.rect(margin, y - 6, pageW - margin * 2, 9, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.text('DESCRIPTION', margin + 3, y)
+    doc.text('MONTANT', pageW - margin - 3, y, { align: 'right' })
+
+    // Line item
+    y += 12
+    doc.setTextColor(30, 30, 30)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(11)
+    const description = f.description || f.offres_coaching?.titre || 'Prestation de coaching'
+    const splitDesc = doc.splitTextToSize(description, pageW - margin * 2 - 40)
+    doc.text(splitDesc, margin + 3, y)
+    doc.text(`${(f.montant / 100).toFixed(2)} €`, pageW - margin - 3, y, { align: 'right' })
+
+    // Total
+    y += Math.max(splitDesc.length * 5, 10) + 10
+    doc.setDrawColor(220, 220, 220)
+    doc.line(pageW - margin - 80, y - 5, pageW - margin, y - 5)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(12)
+    doc.text('Total', pageW - margin - 80, y)
+    doc.setTextColor(245, 158, 11)
+    doc.setFontSize(16)
+    doc.text(`${(f.montant / 100).toFixed(2)} €`, pageW - margin, y, { align: 'right' })
+
+    // Status badge
+    y += 15
+    const statutLabel = (STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente).label
+    doc.setTextColor(30, 30, 30)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.text(`Statut : ${statutLabel}`, margin, y)
+
+    // Footer
+    doc.setFontSize(8)
+    doc.setTextColor(150, 150, 150)
+    doc.text(
+      'Facture générée par Zevo — La plateforme tout-en-un pour coachs.',
+      pageW / 2,
+      285,
+      { align: 'center' }
+    )
+
+    doc.save(`${f.numero || 'facture'}.pdf`)
+  }
+
+  const openDetail = (f) => setDetailFacture(f)
+  const closeDetail = () => setDetailFacture(null)
 
   const filtered = factures.filter(f => {
     if (!search) return true
@@ -167,7 +309,7 @@ export default function FacturesPage() {
         <div className="glass-card p-4 border border-red-500/30 bg-red-500/5">
           <p className="text-[13px] font-semibold text-red-400">Erreur de chargement</p>
           <p className="text-[11px] text-[var(--text-muted)] mt-1">{loadError}</p>
-          <p className="text-[11px] text-[var(--text-muted)] mt-1">La table <code className="text-[var(--text-secondary)]">factures</code> existe-t-elle ? Exécute <code className="text-[var(--text-secondary)]">schema-paiements-complet.sql</code> + <code className="text-[var(--text-secondary)]">fix-grants-paiements.sql</code>.</p>
+          <p className="text-[11px] text-[var(--text-muted)] mt-1">Vérifie que la table <code className="text-[var(--text-secondary)]">factures</code> existe et exécute : <code className="text-[var(--text-secondary)]">schema-paiements-complet.sql</code>, <code className="text-[var(--text-secondary)]">fix-grants-paiements.sql</code>, <code className="text-[var(--text-secondary)]">add-factures-description.sql</code>.</p>
         </div>
       )}
 
@@ -193,7 +335,11 @@ export default function FacturesPage() {
               const cfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente
               const clientName = f.clients?.profiles?.nom || '—'
               return (
-                <div key={f.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-[var(--bg-surface)]/30 transition-colors">
+                <div
+                  key={f.id}
+                  onClick={() => openDetail(f)}
+                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-[var(--bg-surface)]/30 transition-colors cursor-pointer"
+                >
                   <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center flex-shrink-0">
                     <FileText size={15} className="text-[#F59E0B]" />
                   </div>
@@ -206,7 +352,7 @@ export default function FacturesPage() {
                       </span>
                     </div>
                     <p className="text-[13px] font-medium text-[var(--text-primary)] truncate mt-0.5">{clientName}</p>
-                    <p className="text-[11px] text-[var(--text-muted)]">{f.offres_coaching?.titre || '—'}</p>
+                    <p className="text-[11px] text-[var(--text-muted)]">{f.description || f.offres_coaching?.titre || '—'}</p>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-[13px] font-bold text-[var(--text-primary)]">{(f.montant / 100).toFixed(2)} €</p>
@@ -214,7 +360,11 @@ export default function FacturesPage() {
                       {f.date_emission ? new Date(f.date_emission).toLocaleDateString('fr-FR') : '—'}
                     </p>
                   </div>
-                  <button className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors" title="Télécharger">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); generatePDF(f) }}
+                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors"
+                    title="Télécharger le PDF"
+                  >
                     <Download size={13} />
                   </button>
                 </div>
@@ -290,6 +440,18 @@ export default function FacturesPage() {
                 />
               </div>
 
+              {/* Description */}
+              <div>
+                <label className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Description</label>
+                <input
+                  type="text"
+                  value={formDescription}
+                  onChange={e => setFormDescription(e.target.value)}
+                  placeholder="Prestation de coaching..."
+                  className="mt-1 w-full px-3 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/40 focus:outline-none"
+                />
+              </div>
+
               {/* Statut */}
               <div>
                 <label className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Statut</label>
@@ -333,6 +495,111 @@ export default function FacturesPage() {
           </div>
         </div>
       )}
+
+      {/* Modal : Détail facture */}
+      {detailFacture && (() => {
+        const f = detailFacture
+        const cfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente
+        const clientName = f.clients?.profiles?.nom || '—'
+        const clientEmail = f.clients?.profiles?.email || ''
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={closeDetail}>
+            <div className="glass-card w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+              {/* Header */}
+              <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center">
+                    <FileText size={18} className="text-[#F59E0B]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[var(--text-primary)]">Détail de la facture</h3>
+                    <p className="text-[11px] font-mono text-[#F59E0B]">{f.numero}</p>
+                  </div>
+                </div>
+                <button onClick={closeDetail} className="p-1.5 rounded-lg hover:bg-[var(--bg-surface)] text-[var(--text-muted)]">
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 space-y-4">
+                {/* Montant + statut */}
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Montant</p>
+                    <p className="text-3xl font-bold text-[var(--text-primary)]">
+                      {(f.montant / 100).toFixed(2)} <span className="text-sm text-[var(--text-muted)]">€</span>
+                    </p>
+                  </div>
+                  <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg ${cfg.color} ${cfg.bg}`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                    {cfg.label}
+                  </span>
+                </div>
+
+                {/* Infos */}
+                <div className="space-y-2 pt-2 border-t border-[var(--border-base)]/50">
+                  <div className="flex items-center gap-3 py-1.5">
+                    <User size={13} className="text-[var(--text-muted)]" />
+                    <div className="flex-1">
+                      <p className="text-[10px] text-[var(--text-muted)]">Client</p>
+                      <p className="text-[13px] font-medium text-[var(--text-primary)]">{clientName}</p>
+                      {clientEmail && <p className="text-[10px] text-[var(--text-muted)]">{clientEmail}</p>}
+                    </div>
+                  </div>
+
+                  {(f.description || f.offres_coaching?.titre) && (
+                    <div className="flex items-center gap-3 py-1.5">
+                      <Package size={13} className="text-[var(--text-muted)]" />
+                      <div className="flex-1">
+                        <p className="text-[10px] text-[var(--text-muted)]">Prestation</p>
+                        <p className="text-[13px] font-medium text-[var(--text-primary)]">
+                          {f.description || f.offres_coaching?.titre}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3 py-1.5">
+                    <Calendar size={13} className="text-[var(--text-muted)]" />
+                    <div className="flex-1">
+                      <p className="text-[10px] text-[var(--text-muted)]">Date d'émission</p>
+                      <p className="text-[13px] font-medium text-[var(--text-primary)]">
+                        {f.date_emission ? new Date(f.date_emission).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 py-1.5">
+                    <Hash size={13} className="text-[var(--text-muted)]" />
+                    <div className="flex-1">
+                      <p className="text-[10px] text-[var(--text-muted)]">Identifiant</p>
+                      <p className="text-[11px] font-mono text-[var(--text-secondary)]">{f.id.slice(0, 8)}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-5 py-4 border-t border-[var(--border-base)] flex gap-2">
+                <button
+                  onClick={closeDetail}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-[12px] font-semibold text-[var(--text-secondary)] bg-[var(--bg-surface)] border border-[var(--border-base)] hover:bg-[var(--bg-surface)]/70 transition-colors"
+                >
+                  Fermer
+                </button>
+                <button
+                  onClick={() => generatePDF(f)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-semibold text-[#0a0a0a] bg-[#F59E0B] hover:bg-[#F59E0B]/90 transition-colors"
+                >
+                  <Download size={13} />
+                  Télécharger PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
