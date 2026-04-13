@@ -4,7 +4,7 @@ import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import {
   Search, Filter, MoreHorizontal, Package, Link2, ArrowRight,
-  CreditCard, Plus, X, Banknote, AlertCircle
+  CreditCard, Plus, X, Banknote, AlertCircle, ChevronDown, Check
 } from 'lucide-react'
 
 const STATUT_CONFIG = {
@@ -13,6 +13,8 @@ const STATUT_CONFIG = {
   echoue: { label: 'Échoué', color: 'text-red-400', bg: 'bg-red-500/10', dot: 'bg-red-400' },
   rembourse: { label: 'Remboursé', color: 'text-blue-400', bg: 'bg-blue-500/10', dot: 'bg-blue-400' },
 }
+
+const STATUTS_LIST = ['paye', 'en_attente', 'echoue', 'rembourse']
 
 const METHODES = [
   { value: 'especes', label: 'Espèces' },
@@ -45,11 +47,36 @@ export default function TransactionsPage() {
     genererFacture: true,
   })
 
+  // Dropdown menu statut
+  const [menuOpen, setMenuOpen] = useState(null)
+
   useEffect(() => {
     if (!user) return
     loadTransactions()
     loadClients()
   }, [user])
+
+  // Fermer le menu si on clique ailleurs
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleClick = () => setMenuOpen(null)
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [menuOpen])
+
+  const updateStatut = async (transactionId, newStatut) => {
+    setMenuOpen(null)
+    const updateData = { statut: newStatut }
+    if (newStatut === 'paye') {
+      updateData.date_paiement = new Date().toISOString()
+    }
+    await supabase
+      .from('paiements_clients')
+      .update(updateData)
+      .eq('id', transactionId)
+      .eq('coach_id', user.id)
+    await loadTransactions()
+  }
 
   const loadClients = async () => {
     const { data } = await supabase
@@ -311,9 +338,34 @@ export default function TransactionsPage() {
                   <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
                   {cfg.label}
                 </span>
-                <button className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-colors">
-                  <MoreHorizontal size={14} />
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === t.id ? null : t.id) }}
+                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-colors"
+                  >
+                    <MoreHorizontal size={14} />
+                  </button>
+                  {menuOpen === t.id && (
+                    <div className="absolute right-0 top-full mt-1 z-50 w-44 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] shadow-xl shadow-black/30" onClick={e => e.stopPropagation()}>
+                      <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Changer le statut</p>
+                      {STATUTS_LIST.map(s => {
+                        const sc = STATUT_CONFIG[s]
+                        const isActive = t.statut === s
+                        return (
+                          <button
+                            key={s}
+                            onClick={() => updateStatut(t.id, s)}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors ${isActive ? 'bg-[var(--bg-surface)]' : 'hover:bg-[var(--bg-surface)]/60'}`}
+                          >
+                            <div className={`w-2 h-2 rounded-full ${sc.dot}`} />
+                            <span className={`flex-1 font-medium ${isActive ? sc.color : 'text-[var(--text-secondary)]'}`}>{sc.label}</span>
+                            {isActive && <Check size={12} className={sc.color} />}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             )
           })
@@ -342,10 +394,35 @@ export default function TransactionsPage() {
                   </div>
                   <p className="text-[11px] text-[var(--text-muted)] truncate">{t.offres_coaching?.titre || t.description || '—'}</p>
                 </div>
-                <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-lg ${cfg.color} ${cfg.bg} shrink-0`}>
-                  <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                  {cfg.label}
-                </span>
+                <div className="relative">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === t.id ? null : t.id) }}
+                    className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-lg ${cfg.color} ${cfg.bg} shrink-0 transition-colors`}
+                  >
+                    <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                    {cfg.label}
+                    <ChevronDown size={10} className="ml-0.5 opacity-50" />
+                  </button>
+                  {menuOpen === t.id && (
+                    <div className="absolute right-0 top-full mt-1 z-50 w-40 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] shadow-xl shadow-black/30" onClick={e => e.stopPropagation()}>
+                      {STATUTS_LIST.map(s => {
+                        const sc = STATUT_CONFIG[s]
+                        const isActive = t.statut === s
+                        return (
+                          <button
+                            key={s}
+                            onClick={() => updateStatut(t.id, s)}
+                            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] transition-colors ${isActive ? 'bg-[var(--bg-surface)]' : 'hover:bg-[var(--bg-surface)]/60'}`}
+                          >
+                            <div className={`w-2 h-2 rounded-full ${sc.dot}`} />
+                            <span className={`flex-1 font-medium ${isActive ? sc.color : 'text-[var(--text-secondary)]'}`}>{sc.label}</span>
+                            {isActive && <Check size={11} className={sc.color} />}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-[var(--border-base)]/50">
                 <span className="text-sm font-bold text-[var(--text-primary)]">{(t.montant / 100).toFixed(2)} €</span>
