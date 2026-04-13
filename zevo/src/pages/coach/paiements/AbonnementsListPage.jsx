@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
-import { RefreshCw, Search, Users, MoreHorizontal, Package, Link2 } from 'lucide-react'
+import { RefreshCw, Search, Users, MoreHorizontal, Package, Link2, Check } from 'lucide-react'
 
 const STATUT_CONFIG = {
   actif: { label: 'Actif', color: 'text-emerald-400', bg: 'bg-emerald-500/10', dot: 'bg-emerald-400' },
@@ -10,6 +10,8 @@ const STATUT_CONFIG = {
   en_pause: { label: 'En pause', color: 'text-yellow-400', bg: 'bg-yellow-500/10', dot: 'bg-yellow-400' },
   expire: { label: 'Expiré', color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]', dot: 'bg-[var(--text-muted)]' },
 }
+
+const STATUTS_LIST = ['actif', 'en_pause', 'annule', 'expire']
 
 export default function AbonnementsListPage() {
   const { user } = useAuth()
@@ -19,11 +21,36 @@ export default function AbonnementsListPage() {
   const [loadError, setLoadError] = useState(null)
   const [search, setSearch] = useState('')
   const [filtre, setFiltre] = useState('tous')
+  const [menuOpen, setMenuOpen] = useState(null)
 
   useEffect(() => {
     if (!user) return
     loadAbonnements()
   }, [user])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleClick = () => setMenuOpen(null)
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [menuOpen])
+
+  const updateStatut = async (aboId, newStatut) => {
+    setMenuOpen(null)
+    const updateData = {
+      statut: newStatut,
+      updated_at: new Date().toISOString(),
+    }
+    if (newStatut === 'annule') {
+      updateData.date_fin = new Date().toISOString()
+    }
+    await supabase
+      .from('abonnements_clients')
+      .update(updateData)
+      .eq('id', aboId)
+      .eq('coach_id', user.id)
+    await loadAbonnements()
+  }
 
   const loadAbonnements = async () => {
     setLoading(true)
@@ -188,9 +215,34 @@ export default function AbonnementsListPage() {
                       </p>
                     )}
                   </div>
-                  <button className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-colors opacity-0 group-hover:opacity-100">
-                    <MoreHorizontal size={14} />
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === a.id ? null : a.id) }}
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <MoreHorizontal size={14} />
+                    </button>
+                    {menuOpen === a.id && (
+                      <div className="absolute right-0 bottom-full mb-1 z-50 w-44 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] shadow-xl shadow-black/30" onClick={e => e.stopPropagation()}>
+                        <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Changer le statut</p>
+                        {STATUTS_LIST.map(s => {
+                          const sc = STATUT_CONFIG[s]
+                          const isActive = a.statut === s
+                          return (
+                            <button
+                              key={s}
+                              onClick={() => updateStatut(a.id, s)}
+                              className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors ${isActive ? 'bg-[var(--bg-surface)]' : 'hover:bg-[var(--bg-surface)]/60'}`}
+                            >
+                              <div className={`w-2 h-2 rounded-full ${sc.dot}`} />
+                              <span className={`flex-1 font-medium ${isActive ? sc.color : 'text-[var(--text-secondary)]'}`}>{sc.label}</span>
+                              {isActive && <Check size={12} className={sc.color} />}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )

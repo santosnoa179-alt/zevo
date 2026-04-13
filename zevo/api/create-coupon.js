@@ -1,6 +1,4 @@
 // Vercel Serverless Function — Création d'un code promo Stripe (Connect Standard)
-// Crée un Coupon + Promotion Code sur le compte du coach pour qu'il soit
-// utilisable sur le Payment Link et le Checkout (allow_promotion_codes=true).
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 
@@ -35,6 +33,16 @@ async function verifyAuth(req) {
   return user
 }
 
+// Traduction des erreurs Stripe courantes
+function translateStripeError(msg) {
+  if (!msg) return 'Erreur interne'
+  if (msg.includes('already exists')) return 'Ce code existe déjà sur votre compte Stripe'
+  if (msg.includes('unknown parameter')) return 'Paramètre non supporté par votre compte Stripe. Vérifiez la version API.'
+  if (msg.includes('not allowed')) return 'Action non autorisée sur votre compte Stripe'
+  if (msg.includes('No such')) return 'Ressource introuvable sur votre compte Stripe'
+  return msg
+}
+
 export default async function handler(req, res) {
   setCors(req, res)
   if (req.method === 'OPTIONS') return res.status(200).end()
@@ -60,7 +68,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Pourcentage entre 1 et 100' })
     }
 
-    // Vérifier que le coach est bien connecté à Stripe
     const { data: coach } = await supabase
       .from('coaches')
       .select('stripe_account_id, stripe_onboarding_complete')
@@ -68,21 +75,22 @@ export default async function handler(req, res) {
       .single()
 
     if (!coach?.stripe_account_id || !coach.stripe_onboarding_complete) {
-      return res.status(400).json({ error: 'Compte Stripe non configuré' })
+      return res.status(400).json({ error: 'Compte Stripe non configuré. Finalisez l\'onboarding dans Paramètres.' })
     }
 
+    const stripeAccountId = coach.stripe_account_id
     const codeUpper = code.toUpperCase().trim().replace(/[^A-Z0-9_-]/g, '')
-    if (!codeUpper) return res.status(400).json({ error: 'Code invalide' })
+    if (!codeUpper) return res.status(400).json({ error: 'Code invalide (lettres, chiffres, tirets uniquement)' })
 
-    // 1) Créer le Coupon Stripe sur le compte du coach
+    // ── 1) Créer le Coupon ──
     const couponParams = {
-      name: codeUpper,
+      id: codeUpper, // Utilise le code comme ID du coupon
       duration: 'once',
     }
     if (type === 'pourcentage') {
       couponParams.percent_off = Math.round(valeurNum)
     } else {
-      couponParams.amount_off = Math.round(valeurNum) // en centimes, déjà envoyé tel quel par le front
+      couponParams.amount_off = Math.round(valeurNum)
       couponParams.currency = 'eur'
     }
     if (limite) {
@@ -93,53 +101,65 @@ export default async function handler(req, res) {
       if (Number.isFinite(ts) && ts > 0) couponParams.redeem_by = ts
     }
 
-    const coupon = await stripe.coupons.create(couponParams, {
-      stripeAccount: coach.stripe_account_id,
-    })
+    let coupon
+    try {
+      coupon = await stripe.coupons.create(couponParams, { stripeAccount: stripeAccountId })
+      console.log('[create-coupon] Coupon créé:', coupon.id)
+    } catch (e) {
+      console.error('[create-coupon] Erreur coupon:', e.message)
+      return res.status(400).json({ error: translateStripeError(e.message) })
+    }
 
-    // 2) Créer le Promotion Code qui rend le coupon utilisable via le code
-    const promotionCode = await stripe.promotionCodes.create(
-      {
+    // ── 2) Créer le Promotion Code ──
+    let promotionCode = null
+    try {
+      const promoParams = {
         coupon: coupon.id,
         code: codeUpper,
-        max_redemptions: limite ? Number(limite) : undefined,
-        expires_at: expiration
-          ? Math.floor(new Date(expiration).getTime() / 1000)
-          : undefined,
-      },
-      { stripeAccount: coach.stripe_account_id }
-    )
+      }
+      if (limite) promoParams.max_redemptions = Number(limite)
+      if (expiration) {
+        const ts = Math.floor(new Date(expiration).getTime() / 1000)
+        if (Number.isFinite(ts) && ts > 0) promoParams.expires_at = ts
+      }
 
-    // 3) Insertion DB
+      promotionCode = await stripe.promotionCodes.create(promoParams, { stripeAccount: stripeAccountId })
+      console.log('[create-coupon] Promotion Code créé:', promotionCode.id)
+    } catch (e) {
+      // Si la création du promo code échoue (API version trop ancienne), on continue
+      // Le coupon existe quand même — le coach peut créer le promo code manuellement dans Stripe
+      console.error('[create-coupon] Promo code fallback — coupon seul créé:', e.message)
+    }
+
+    // ── 3) Insertion DB ──
     const { data: row, error: insertError } = await supabase
       .from('codes_reduction')
       .insert({
         coach_id: user.id,
         code: codeUpper,
         type,
-        valeur: type === 'pourcentage' ? Math.round(valeurNum) : Math.round(valeurNum),
+        valeur: Math.round(valeurNum),
         limite_utilisations: limite ? Number(limite) : null,
         date_expiration: expiration || null,
         stripe_coupon_id: coupon.id,
-        stripe_promotion_code_id: promotionCode.id,
+        stripe_promotion_code_id: promotionCode?.id || null,
         actif: true,
       })
       .select()
       .single()
 
     if (insertError) {
-      console.error('Erreur insertion code:', insertError)
-      // Rollback côté Stripe (best-effort)
-      try {
-        await stripe.coupons.del(coupon.id, { stripeAccount: coach.stripe_account_id })
-      } catch {}
-      return res.status(500).json({ error: 'Erreur lors de l\'enregistrement' })
+      console.error('[create-coupon] Erreur DB:', insertError)
+      try { await stripe.coupons.del(coupon.id, { stripeAccount: stripeAccountId }) } catch {}
+      return res.status(500).json({ error: 'Erreur lors de l\'enregistrement en base' })
     }
 
-    return res.status(200).json({ code: row })
+    return res.status(200).json({
+      code: row,
+      warning: promotionCode ? null : 'Coupon créé, mais le code promo n\'a pas pu être créé automatiquement. Le coach peut le faire manuellement dans Stripe Dashboard.',
+    })
   } catch (error) {
-    console.error('Erreur create-coupon:', error)
-    // Stripe renvoie un message clair si le code existe déjà
-    return res.status(500).json({ error: error.message || 'Erreur interne' })
+    console.error('[create-coupon] Erreur globale:', error)
+    return res.status(500).json({ error: translateStripeError(error.message) })
   }
 }
