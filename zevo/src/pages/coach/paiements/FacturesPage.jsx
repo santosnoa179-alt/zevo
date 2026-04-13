@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
-import { FileText, Search, Download, Plus, X, Loader2, Calendar, User, Package, Hash } from 'lucide-react'
+import {
+  FileText, Search, Download, Plus, X, Loader2, Calendar, User, Package, Hash,
+  Receipt, Euro, AlertCircle, Eye
+} from 'lucide-react'
 import jsPDF from 'jspdf'
 
 const STATUT_CONFIG = {
@@ -16,11 +19,10 @@ export default function FacturesPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const [search, setSearch] = useState('')
-
-  // Coach profile (for PDF header)
+  const [filtre, setFiltre] = useState('tous')
   const [coachInfo, setCoachInfo] = useState(null)
 
-  // Create modal state
+  // Create modal
   const [modalOpen, setModalOpen] = useState(false)
   const [clientsList, setClientsList] = useState([])
   const [offresList, setOffresList] = useState([])
@@ -32,7 +34,7 @@ export default function FacturesPage() {
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState(null)
 
-  // Detail modal state
+  // Detail modal
   const [detailFacture, setDetailFacture] = useState(null)
 
   useEffect(() => {
@@ -69,7 +71,6 @@ export default function FacturesPage() {
         setFactures(data || [])
       }
     } catch (e) {
-      console.error('[FacturesPage] fetch failed:', e)
       setLoadError(String(e))
     }
     setLoading(false)
@@ -78,35 +79,19 @@ export default function FacturesPage() {
   const openModal = async () => {
     setModalOpen(true)
     setFormError(null)
-    // Load clients + offres for the dropdowns
     try {
       const [clientsRes, offresRes] = await Promise.all([
-        supabase
-          .from('clients')
-          .select('id, profiles(nom, email)')
-          .eq('coach_id', user.id)
-          .eq('actif', true),
-        supabase
-          .from('offres_coaching')
-          .select('id, titre, prix')
-          .eq('coach_id', user.id)
-          .eq('actif', true),
+        supabase.from('clients').select('id, profiles(nom, email)').eq('coach_id', user.id).eq('actif', true),
+        supabase.from('offres_coaching').select('id, titre, prix').eq('coach_id', user.id).eq('actif', true),
       ])
       setClientsList(clientsRes.data || [])
       setOffresList(offresRes.data || [])
-    } catch (e) {
-      console.error('[FacturesPage] modal load:', e)
-    }
+    } catch {}
   }
 
   const closeModal = () => {
     setModalOpen(false)
-    setFormClient('')
-    setFormOffre('')
-    setFormMontant('')
-    setFormDescription('')
-    setFormStatut('en_attente')
-    setFormError(null)
+    setFormClient(''); setFormOffre(''); setFormMontant(''); setFormDescription(''); setFormStatut('en_attente'); setFormError(null)
   }
 
   const onSelectOffre = (offreId) => {
@@ -116,12 +101,6 @@ export default function FacturesPage() {
     if (o?.titre && !formDescription) setFormDescription(o.titre)
   }
 
-  const generateNumero = () => {
-    const year = new Date().getFullYear()
-    const rand = Math.floor(Math.random() * 9000) + 1000
-    return `FAC-${year}-${rand}`
-  }
-
   const createFacture = async () => {
     setFormError(null)
     if (!formClient) return setFormError('Sélectionne un client')
@@ -129,8 +108,17 @@ export default function FacturesPage() {
     if (!montantCents || isNaN(montantCents) || montantCents <= 0) return setFormError('Montant invalide')
 
     setSaving(true)
-    const payload = {
-      numero: generateNumero(),
+    const year = new Date().getFullYear()
+    const { count } = await supabase
+      .from('factures')
+      .select('id', { count: 'exact', head: true })
+      .eq('coach_id', user.id)
+      .gte('date_emission', `${year}-01-01`)
+      .lt('date_emission', `${year + 1}-01-01`)
+    const numero = `FAC-${year}-${String((count || 0) + 1).padStart(4, '0')}`
+
+    const { error } = await supabase.from('factures').insert({
+      numero,
       coach_id: user.id,
       client_id: formClient,
       offre_id: formOffre || null,
@@ -138,146 +126,182 @@ export default function FacturesPage() {
       description: formDescription || null,
       statut: formStatut,
       date_emission: new Date().toISOString(),
-    }
-    const { error } = await supabase.from('factures').insert(payload)
+    })
     setSaving(false)
-    if (error) {
-      console.error('[FacturesPage] insert error:', error)
-      setFormError(error.message)
-      return
-    }
+    if (error) { setFormError(error.message); return }
     closeModal()
     loadFactures()
   }
 
+  // ── PDF Generation ──
   const generatePDF = (f) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-    const pageW = 210
-    const margin = 15
-    const primary = '#F59E0B'
-
-    // Header band
-    doc.setFillColor(13, 13, 13)
-    doc.rect(0, 0, pageW, 40, 'F')
-
-    // Logo / coach name
-    doc.setTextColor(245, 158, 11)
-    doc.setFontSize(22)
-    doc.setFont('helvetica', 'bold')
-    doc.text((coachInfo?.nom_entreprise || coachInfo?.nom || 'ZEVO').toUpperCase(), margin, 20)
-
-    doc.setTextColor(200, 200, 200)
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'normal')
-    if (coachInfo?.email) doc.text(coachInfo.email, margin, 27)
-    if (coachInfo?.telephone) doc.text(coachInfo.telephone, margin, 32)
-
-    // Invoice label
-    doc.setTextColor(245, 158, 11)
-    doc.setFontSize(28)
-    doc.setFont('helvetica', 'bold')
-    doc.text('FACTURE', pageW - margin, 22, { align: 'right' })
-    doc.setTextColor(200, 200, 200)
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text(f.numero || '', pageW - margin, 30, { align: 'right' })
-
-    // Body
-    let y = 55
-    doc.setTextColor(30, 30, 30)
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold')
-    doc.text('FACTURÉ À', margin, y)
-    doc.text('DATE D\'ÉMISSION', pageW - margin - 60, y)
-
-    y += 6
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(11)
+    const W = 210, M = 20
     const clientName = f.clients?.profiles?.nom || '—'
     const clientEmail = f.clients?.profiles?.email || ''
-    doc.text(clientName, margin, y)
+    const description = f.description || f.offres_coaching?.titre || 'Prestation de coaching'
     const dateStr = f.date_emission
       ? new Date(f.date_emission).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
       : '—'
-    doc.text(dateStr, pageW - margin - 60, y)
+    const coachName = (coachInfo?.nom_entreprise || coachInfo?.nom || 'ZEVO').toUpperCase()
+
+    // ── Header ──
+    doc.setFillColor(15, 15, 15)
+    doc.rect(0, 0, W, 50, 'F')
+
+    // Left: coach
+    doc.setTextColor(245, 158, 11)
+    doc.setFontSize(20)
+    doc.setFont('helvetica', 'bold')
+    doc.text(coachName, M, 22)
+
+    doc.setTextColor(180, 180, 180)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    let headerY = 29
+    if (coachInfo?.email) { doc.text(coachInfo.email, M, headerY); headerY += 5 }
+    if (coachInfo?.telephone) { doc.text(coachInfo.telephone, M, headerY); headerY += 5 }
+    if (coachInfo?.adresse) { doc.text(coachInfo.adresse, M, headerY) }
+
+    // Right: FACTURE
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(32)
+    doc.setFont('helvetica', 'bold')
+    doc.text('FACTURE', W - M, 24, { align: 'right' })
+    doc.setTextColor(245, 158, 11)
+    doc.setFontSize(11)
+    doc.text(f.numero || '', W - M, 33, { align: 'right' })
+    doc.setTextColor(150, 150, 150)
+    doc.setFontSize(9)
+    doc.text(dateStr, W - M, 40, { align: 'right' })
+
+    // ── Client info block ──
+    let y = 64
+    doc.setFillColor(248, 248, 248)
+    doc.roundedRect(M, y - 6, W - M * 2, 28, 3, 3, 'F')
+
+    doc.setTextColor(130, 130, 130)
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'bold')
+    doc.text('FACTURÉ À', M + 6, y)
+    doc.text('DATE D\'ÉMISSION', W / 2 + 10, y)
+
+    y += 7
+    doc.setTextColor(30, 30, 30)
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text(clientName, M + 6, y)
+    doc.setFont('helvetica', 'normal')
+    doc.text(dateStr, W / 2 + 10, y)
 
     if (clientEmail) {
-      y += 5
+      y += 6
       doc.setFontSize(9)
-      doc.setTextColor(120, 120, 120)
-      doc.text(clientEmail, margin, y)
+      doc.setTextColor(100, 100, 100)
+      doc.text(clientEmail, M + 6, y)
     }
 
-    // Separator
-    y += 12
-    doc.setDrawColor(220, 220, 220)
-    doc.line(margin, y, pageW - margin, y)
+    // ── Table ──
+    y = 102
 
     // Table header
-    y += 10
     doc.setFillColor(245, 158, 11)
-    doc.rect(margin, y - 6, pageW - margin * 2, 9, 'F')
+    doc.roundedRect(M, y - 7, W - M * 2, 11, 2, 2, 'F')
     doc.setTextColor(255, 255, 255)
+    doc.setFontSize(9)
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(10)
-    doc.text('DESCRIPTION', margin + 3, y)
-    doc.text('MONTANT', pageW - margin - 3, y, { align: 'right' })
+    doc.text('DESCRIPTION', M + 5, y)
+    doc.text('QTÉ', W - M - 55, y, { align: 'center' })
+    doc.text('MONTANT', W - M - 5, y, { align: 'right' })
 
-    // Line item
-    y += 12
-    doc.setTextColor(30, 30, 30)
+    // Table row
+    y += 14
+    doc.setTextColor(50, 50, 50)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(11)
-    const description = f.description || f.offres_coaching?.titre || 'Prestation de coaching'
-    const splitDesc = doc.splitTextToSize(description, pageW - margin * 2 - 40)
-    doc.text(splitDesc, margin + 3, y)
-    doc.text(`${(f.montant / 100).toFixed(2)} €`, pageW - margin - 3, y, { align: 'right' })
-
-    // Total
-    y += Math.max(splitDesc.length * 5, 10) + 10
-    doc.setDrawColor(220, 220, 220)
-    doc.line(pageW - margin - 80, y - 5, pageW - margin, y - 5)
+    const splitDesc = doc.splitTextToSize(description, W - M * 2 - 70)
+    doc.text(splitDesc, M + 5, y)
+    doc.setFontSize(10)
+    doc.text('1', W - M - 55, y, { align: 'center' })
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(12)
-    doc.text('Total', pageW - margin - 80, y)
-    doc.setTextColor(245, 158, 11)
-    doc.setFontSize(16)
-    doc.text(`${(f.montant / 100).toFixed(2)} €`, pageW - margin, y, { align: 'right' })
+    doc.setFontSize(11)
+    doc.text(`${(f.montant / 100).toFixed(2)} €`, W - M - 5, y, { align: 'right' })
 
-    // Status badge
-    y += 15
-    const statutLabel = (STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente).label
-    doc.setTextColor(30, 30, 30)
+    // Divider
+    y += Math.max(splitDesc.length * 6, 10) + 8
+    doc.setDrawColor(230, 230, 230)
+    doc.setLineWidth(0.3)
+    doc.line(W / 2, y, W - M, y)
+
+    // Subtotal
+    y += 8
+    doc.setTextColor(100, 100, 100)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
-    doc.text(`Statut : ${statutLabel}`, margin, y)
+    doc.text('Sous-total HT', W - M - 55, y)
+    doc.setTextColor(50, 50, 50)
+    doc.text(`${(f.montant / 100).toFixed(2)} €`, W - M - 5, y, { align: 'right' })
 
-    // Footer
-    doc.setFontSize(8)
-    doc.setTextColor(150, 150, 150)
-    doc.text(
-      'Facture générée par Zevo — La plateforme tout-en-un pour coachs.',
-      pageW / 2,
-      285,
-      { align: 'center' }
-    )
+    y += 7
+    doc.setTextColor(100, 100, 100)
+    doc.text('TVA (0%)', W - M - 55, y)
+    doc.setTextColor(50, 50, 50)
+    doc.text('0.00 €', W - M - 5, y, { align: 'right' })
+
+    // Total
+    y += 10
+    doc.setFillColor(15, 15, 15)
+    doc.roundedRect(W / 2 - 5, y - 7, W / 2 - M + 5, 14, 2, 2, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('TOTAL', W - M - 55, y + 1)
+    doc.setTextColor(245, 158, 11)
+    doc.setFontSize(14)
+    doc.text(`${(f.montant / 100).toFixed(2)} €`, W - M - 5, y + 1, { align: 'right' })
+
+    // ── Status + notes ──
+    y += 24
+    const statutLabel = (STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente).label
+    doc.setTextColor(100, 100, 100)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    doc.text(`Statut : ${statutLabel}`, M, y)
+
+    if (f.statut === 'payee') {
+      doc.setTextColor(34, 197, 94)
+      doc.setFont('helvetica', 'bold')
+      doc.text('✓ PAYÉE', M + 40, y)
+    }
+
+    // ── Footer ──
+    doc.setDrawColor(230, 230, 230)
+    doc.line(M, 272, W - M, 272)
+    doc.setTextColor(170, 170, 170)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7)
+    doc.text('Facture générée par Zevo — La plateforme tout-en-un pour coachs sportifs', W / 2, 278, { align: 'center' })
+    doc.text('www.zevo-one.vercel.app', W / 2, 283, { align: 'center' })
 
     doc.save(`${f.numero || 'facture'}.pdf`)
   }
 
-  const openDetail = (f) => setDetailFacture(f)
-  const closeDetail = () => setDetailFacture(null)
+  // ── Filters & computed ──
+  const filtered = factures
+    .filter(f => filtre === 'tous' || f.statut === filtre)
+    .filter(f => {
+      if (!search) return true
+      const name = (f.clients?.profiles?.nom || '').toLowerCase()
+      return name.includes(search.toLowerCase()) || f.numero?.toLowerCase().includes(search.toLowerCase())
+    })
 
-  const filtered = factures.filter(f => {
-    if (!search) return true
-    const name = (f.clients?.profiles?.nom || '').toLowerCase()
-    return name.includes(search.toLowerCase()) || f.numero?.toLowerCase().includes(search.toLowerCase())
-  })
+  const totalPayees = factures.filter(f => f.statut === 'payee').reduce((s, f) => s + (f.montant || 0), 0)
+  const enAttente = factures.filter(f => f.statut === 'en_attente').length
 
   if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-4 max-w-5xl">
-        <div className="skel-block h-8 w-32 rounded mb-4" />
+        <div className="grid grid-cols-3 gap-3">{[1,2,3].map(i => <div key={i} className="glass-card p-4 h-20 animate-pulse" />)}</div>
         {[1,2,3].map(i => <div key={i} className="glass-card p-4 h-16 animate-pulse" />)}
       </div>
     )
@@ -285,6 +309,8 @@ export default function FacturesPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-4 max-w-5xl">
+
+      {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-[var(--text-primary)]">Factures</h2>
@@ -292,307 +318,346 @@ export default function FacturesPage() {
         </div>
         <button
           onClick={openModal}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold text-[#0a0a0a] bg-[#F59E0B] hover:bg-[#F59E0B]/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95"
+          style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.25)' }}
         >
           <Plus size={14} />
           Nouvelle facture
         </button>
       </div>
 
-      <div className="relative">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par client ou numéro..."
-          className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/40 focus:outline-none transition-all" />
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="glass-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center">
+              <Receipt size={13} className="text-[#F59E0B]" />
+            </div>
+            <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Total factures</span>
+          </div>
+          <p className="text-2xl font-bold text-[var(--text-primary)]">{factures.length}</p>
+        </div>
+        <div className="glass-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <Euro size={13} className="text-emerald-400" />
+            </div>
+            <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Encaissé</span>
+          </div>
+          <p className="text-2xl font-bold text-[var(--text-primary)]">{(totalPayees / 100).toLocaleString('fr-FR')} €</p>
+        </div>
+        <div className="glass-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+              <AlertCircle size={13} className="text-yellow-400" />
+            </div>
+            <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">En attente</span>
+          </div>
+          <p className="text-2xl font-bold text-[var(--text-primary)]">{enAttente}</p>
+        </div>
+      </div>
+
+      {/* Search + Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par client ou numéro..."
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/40 focus:outline-none transition-all" />
+        </div>
+        <div className="flex gap-1 bg-[var(--bg-surface)] rounded-xl p-1 border border-[var(--border-base)]">
+          {['tous', 'payee', 'en_attente', 'annulee'].map(s => (
+            <button key={s} onClick={() => setFiltre(s)} className={`px-3 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all ${filtre === s ? 'bg-[#F59E0B]/15 text-[#F59E0B]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
+              {s === 'tous' ? 'Toutes' : STATUT_CONFIG[s]?.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loadError && (
         <div className="glass-card p-4 border border-red-500/30 bg-red-500/5">
           <p className="text-[13px] font-semibold text-red-400">Erreur de chargement</p>
           <p className="text-[11px] text-[var(--text-muted)] mt-1">{loadError}</p>
-          <p className="text-[11px] text-[var(--text-muted)] mt-1">Vérifie que la table <code className="text-[var(--text-secondary)]">factures</code> existe et exécute : <code className="text-[var(--text-secondary)]">schema-paiements-complet.sql</code>, <code className="text-[var(--text-secondary)]">fix-grants-paiements.sql</code>, <code className="text-[var(--text-secondary)]">add-factures-description.sql</code>.</p>
         </div>
       )}
 
-      <div className="glass-card overflow-hidden">
-        {factures.length === 0 && !loadError ? (
-          <div className="px-5 py-12 text-center">
-            <div className="w-12 h-12 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center mx-auto mb-4">
-              <FileText size={22} className="text-[#F59E0B]" />
+      {/* ── Factures list ── */}
+      {factures.length === 0 && !loadError ? (
+        <div className="glass-card border-dashed p-10 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[#F59E0B]/8 flex items-center justify-center mx-auto mb-4">
+            <FileText size={26} className="text-[var(--text-muted)]" />
+          </div>
+          <p className="text-[15px] font-semibold text-[var(--text-primary)]">Aucune facture émise</p>
+          <p className="text-[12px] text-[var(--text-muted)] mt-1.5 max-w-sm mx-auto leading-relaxed">
+            Les factures sont générées automatiquement à chaque paiement. Vous pouvez aussi en créer manuellement.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block glass-card overflow-hidden">
+            <div className="grid grid-cols-[1fr_1fr_100px_100px_80px_40px] gap-3 px-5 py-3 border-b border-[var(--border-base)] text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              <span>Numéro</span>
+              <span>Client</span>
+              <span>Montant</span>
+              <span>Date</span>
+              <span>Statut</span>
+              <span></span>
             </div>
-            <p className="text-[14px] font-semibold text-[var(--text-primary)]">Aucune facture émise</p>
-            <p className="text-[12px] text-[var(--text-muted)] mt-1 max-w-sm mx-auto">
-              Les factures sont générées automatiquement à chaque paiement encaissé. Elles apparaîtront ici.
-            </p>
+
+            {filtered.length === 0 ? (
+              <div className="px-5 py-12 text-center">
+                <Search size={18} className="text-[var(--text-muted)] mx-auto mb-2" />
+                <p className="text-[var(--text-muted)] text-sm">Aucune facture ne correspond</p>
+              </div>
+            ) : (
+              filtered.map(f => {
+                const cfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente
+                const clientName = f.clients?.profiles?.nom || '—'
+                return (
+                  <div
+                    key={f.id}
+                    onClick={() => setDetailFacture(f)}
+                    className="grid grid-cols-[1fr_1fr_100px_100px_80px_40px] gap-3 px-5 py-3.5 border-b border-[var(--border-base)]/50 items-center hover:bg-[var(--bg-surface)]/30 transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center flex-shrink-0">
+                        <FileText size={14} className="text-[#F59E0B]" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[12px] font-mono font-bold text-[#F59E0B] truncate">{f.numero}</p>
+                        <p className="text-[10px] text-[var(--text-muted)] truncate">{f.description || f.offres_coaching?.titre || '—'}</p>
+                      </div>
+                    </div>
+                    <p className="text-[13px] font-medium text-[var(--text-primary)] truncate">{clientName}</p>
+                    <p className="text-[13px] font-semibold text-[var(--text-primary)]">{(f.montant / 100).toFixed(2)} €</p>
+                    <span className="text-[12px] text-[var(--text-muted)]">
+                      {f.date_emission ? new Date(f.date_emission).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '—'}
+                    </span>
+                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-medium px-2 py-1 rounded-lg ${cfg.color} ${cfg.bg} w-fit`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                      {cfg.label}
+                    </span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); generatePDF(f) }}
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Télécharger PDF"
+                    >
+                      <Download size={13} />
+                    </button>
+                  </div>
+                )
+              })
+            )}
           </div>
-        ) : filtered.length === 0 && factures.length > 0 ? (
-          <div className="px-5 py-12 text-center">
-            <FileText size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
-            <p className="text-[var(--text-muted)] text-sm">Aucune facture ne correspond à la recherche</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-[var(--border-base)]/50">
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-2">
             {filtered.map(f => {
               const cfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente
               const clientName = f.clients?.profiles?.nom || '—'
               return (
-                <div
-                  key={f.id}
-                  onClick={() => openDetail(f)}
-                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-[var(--bg-surface)]/30 transition-colors cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center flex-shrink-0">
-                    <FileText size={15} className="text-[#F59E0B]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[12px] font-mono text-[#F59E0B]">{f.numero}</p>
-                      <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-lg ${cfg.color} ${cfg.bg}`}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                        {cfg.label}
-                      </span>
+                <div key={f.id} onClick={() => setDetailFacture(f)} className="glass-card p-4 active:scale-[0.99] transition-transform cursor-pointer">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center flex-shrink-0">
+                        <FileText size={14} className="text-[#F59E0B]" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-[12px] font-mono font-bold text-[#F59E0B]">{f.numero}</p>
+                          <span className={`inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-md ${cfg.color} ${cfg.bg}`}>
+                            <div className={`w-1 h-1 rounded-full ${cfg.dot}`} />
+                            {cfg.label}
+                          </span>
+                        </div>
+                        <p className="text-[13px] font-medium text-[var(--text-primary)] truncate">{clientName}</p>
+                      </div>
                     </div>
-                    <p className="text-[13px] font-medium text-[var(--text-primary)] truncate mt-0.5">{clientName}</p>
-                    <p className="text-[11px] text-[var(--text-muted)]">{f.description || f.offres_coaching?.titre || '—'}</p>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); generatePDF(f) }}
+                      className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors shrink-0"
+                    >
+                      <Download size={14} />
+                    </button>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-[13px] font-bold text-[var(--text-primary)]">{(f.montant / 100).toFixed(2)} €</p>
-                    <p className="text-[10px] text-[var(--text-muted)]">
-                      {f.date_emission ? new Date(f.date_emission).toLocaleDateString('fr-FR') : '—'}
-                    </p>
+                  <div className="flex items-center justify-between pt-2 border-t border-[var(--border-base)]/50 ml-12">
+                    <span className="text-sm font-bold text-[var(--text-primary)]">{(f.montant / 100).toFixed(2)} €</span>
+                    <span className="text-[11px] text-[var(--text-muted)]">
+                      {f.date_emission ? new Date(f.date_emission).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                    </span>
                   </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); generatePDF(f) }}
-                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors"
-                    title="Télécharger le PDF"
-                  >
-                    <Download size={13} />
-                  </button>
                 </div>
               )
             })}
           </div>
-        )}
-      </div>
+        </>
+      )}
 
-      {/* Modal : Nouvelle facture */}
+      {/* ── Modal : Nouvelle facture ── */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={closeModal}>
-          <div className="glass-card w-full max-w-md p-5 space-y-4" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-[var(--text-primary)]">Nouvelle facture</h3>
-                <p className="text-[11px] text-[var(--text-muted)]">Génère une facture manuelle</p>
-              </div>
-              <button onClick={closeModal} className="p-1.5 rounded-lg hover:bg-[var(--bg-surface)] text-[var(--text-muted)]">
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {/* Client */}
-              <div>
-                <label className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Client</label>
-                <select
-                  value={formClient}
-                  onChange={e => setFormClient(e.target.value)}
-                  className="mt-1 w-full px-3 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/40 focus:outline-none"
-                >
-                  <option value="">— Sélectionner —</option>
-                  {clientsList.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.profiles?.nom || c.profiles?.email || c.id.slice(0, 8)}
-                    </option>
-                  ))}
-                </select>
-                {clientsList.length === 0 && (
-                  <p className="text-[10px] text-[var(--text-muted)] mt-1">Aucun client actif trouvé</p>
-                )}
-              </div>
-
-              {/* Produit */}
-              <div>
-                <label className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Produit (optionnel)</label>
-                <select
-                  value={formOffre}
-                  onChange={e => onSelectOffre(e.target.value)}
-                  className="mt-1 w-full px-3 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/40 focus:outline-none"
-                >
-                  <option value="">— Aucun —</option>
-                  {offresList.map(o => (
-                    <option key={o.id} value={o.id}>
-                      {o.titre} · {(o.prix / 100).toFixed(2)} €
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Montant */}
-              <div>
-                <label className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Montant (€)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formMontant}
-                  onChange={e => setFormMontant(e.target.value)}
-                  placeholder="0.00"
-                  className="mt-1 w-full px-3 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/40 focus:outline-none"
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Description</label>
-                <input
-                  type="text"
-                  value={formDescription}
-                  onChange={e => setFormDescription(e.target.value)}
-                  placeholder="Prestation de coaching..."
-                  className="mt-1 w-full px-3 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/40 focus:outline-none"
-                />
-              </div>
-
-              {/* Statut */}
-              <div>
-                <label className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Statut</label>
-                <div className="mt-1 grid grid-cols-3 gap-2">
-                  {['en_attente', 'payee', 'annulee'].map(s => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setFormStatut(s)}
-                      className={`px-2 py-2 rounded-lg text-[11px] font-medium transition-all ${formStatut === s ? 'bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30' : 'bg-[var(--bg-surface)] border border-[var(--border-base)] text-[var(--text-muted)]'}`}
-                    >
-                      {STATUT_CONFIG[s].label}
-                    </button>
-                  ))}
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+          <div className="glass-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }} />
+            <div className="p-4 md:p-5 border-b border-[var(--border-base)] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}>
+                  <FileText size={18} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-[var(--text-primary)] font-semibold">Nouvelle facture</h3>
+                  <p className="text-[var(--text-muted)] text-[11px]">Numéro auto-généré</p>
                 </div>
               </div>
-
+              <button onClick={closeModal} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-4 md:p-5 space-y-4 max-h-[65vh] overflow-y-auto">
               {formError && (
-                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
-                  <p className="text-[11px] text-red-400">{formError}</p>
+                <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                  <AlertCircle size={14} className="text-red-400 shrink-0 mt-0.5" />
+                  <p className="text-[12px] text-red-400">{formError}</p>
                 </div>
               )}
+              <div>
+                <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Client *</label>
+                <select value={formClient} onChange={e => setFormClient(e.target.value)} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                  <option value="">-- Sélectionner --</option>
+                  {clientsList.map(c => (
+                    <option key={c.id} value={c.id}>{c.profiles?.nom || 'Sans nom'} {c.profiles?.email ? `· ${c.profiles.email}` : ''}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Produit (optionnel)</label>
+                <select value={formOffre} onChange={e => onSelectOffre(e.target.value)} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                  <option value="">-- Aucun --</option>
+                  {offresList.map(o => (
+                    <option key={o.id} value={o.id}>{o.titre} · {(o.prix / 100).toFixed(2)} €</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Montant (€) *</label>
+                  <input type="number" step="0.01" min="0" value={formMontant} onChange={e => setFormMontant(e.target.value)} placeholder="0.00" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Statut</label>
+                  <select value={formStatut} onChange={e => setFormStatut(e.target.value)} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                    <option value="payee">Payée</option>
+                    <option value="en_attente">En attente</option>
+                    <option value="annulee">Annulée</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Description</label>
+                <input type="text" value={formDescription} onChange={e => setFormDescription(e.target.value)} placeholder="Prestation de coaching..." className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+              </div>
             </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={closeModal}
-                className="flex-1 px-4 py-2.5 rounded-xl text-[12px] font-semibold text-[var(--text-secondary)] bg-[var(--bg-surface)] border border-[var(--border-base)] hover:bg-[var(--bg-surface)]/70 transition-colors"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={createFacture}
-                disabled={saving}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-semibold text-[#0a0a0a] bg-[#F59E0B] hover:bg-[#F59E0B]/90 disabled:opacity-50 transition-colors"
-              >
-                {saving ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
-                Créer la facture
+            <div className="p-4 md:p-5 border-t border-[var(--border-base)] flex gap-3 justify-end">
+              <button onClick={closeModal} className="px-4 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-all">Annuler</button>
+              <button onClick={createFacture} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 active:scale-95" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}>
+                {saving ? <Loader2 size={14} className="animate-spin" /> : 'Créer la facture'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal : Détail facture */}
+      {/* ── Modal : Détail facture ── */}
       {detailFacture && (() => {
         const f = detailFacture
         const cfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente
         const clientName = f.clients?.profiles?.nom || '—'
         const clientEmail = f.clients?.profiles?.email || ''
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={closeDetail}>
-            <div className="glass-card w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4" onClick={() => setDetailFacture(null)}>
+            <div className="glass-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }} />
+
               {/* Header */}
-              <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center">
-                    <FileText size={18} className="text-[#F59E0B]" />
+              <div className="p-5 border-b border-[var(--border-base)]">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center">
+                      <FileText size={20} className="text-[#F59E0B]" />
+                    </div>
+                    <div>
+                      <p className="text-[12px] font-mono font-bold text-[#F59E0B]">{f.numero}</p>
+                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-lg mt-1 ${cfg.color} ${cfg.bg}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                        {cfg.label}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-[var(--text-primary)]">Détail de la facture</h3>
-                    <p className="text-[11px] font-mono text-[#F59E0B]">{f.numero}</p>
-                  </div>
+                  <button onClick={() => setDetailFacture(null)} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
+                    <X size={18} />
+                  </button>
                 </div>
-                <button onClick={closeDetail} className="p-1.5 rounded-lg hover:bg-[var(--bg-surface)] text-[var(--text-muted)]">
-                  <X size={16} />
-                </button>
+
+                {/* Montant */}
+                <div className="mt-5 text-center py-6 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)]">
+                  <p className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-semibold mb-1">Montant total</p>
+                  <p className="text-4xl font-bold text-[var(--text-primary)]">
+                    {(f.montant / 100).toFixed(2)} <span className="text-lg text-[var(--text-muted)]">€</span>
+                  </p>
+                </div>
               </div>
 
               {/* Body */}
-              <div className="p-5 space-y-4">
-                {/* Montant + statut */}
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Montant</p>
-                    <p className="text-3xl font-bold text-[var(--text-primary)]">
-                      {(f.montant / 100).toFixed(2)} <span className="text-sm text-[var(--text-muted)]">€</span>
-                    </p>
+              <div className="p-5 space-y-3">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface)]">
+                  <User size={14} className="text-[var(--text-muted)] shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-[var(--text-muted)] font-medium">Client</p>
+                    <p className="text-[13px] font-semibold text-[var(--text-primary)] truncate">{clientName}</p>
+                    {clientEmail && <p className="text-[10px] text-[var(--text-muted)] truncate">{clientEmail}</p>}
                   </div>
-                  <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg ${cfg.color} ${cfg.bg}`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                    {cfg.label}
-                  </span>
                 </div>
 
-                {/* Infos */}
-                <div className="space-y-2 pt-2 border-t border-[var(--border-base)]/50">
-                  <div className="flex items-center gap-3 py-1.5">
-                    <User size={13} className="text-[var(--text-muted)]" />
-                    <div className="flex-1">
-                      <p className="text-[10px] text-[var(--text-muted)]">Client</p>
-                      <p className="text-[13px] font-medium text-[var(--text-primary)]">{clientName}</p>
-                      {clientEmail && <p className="text-[10px] text-[var(--text-muted)]">{clientEmail}</p>}
+                {(f.description || f.offres_coaching?.titre) && (
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface)]">
+                    <Package size={14} className="text-[var(--text-muted)] shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] text-[var(--text-muted)] font-medium">Prestation</p>
+                      <p className="text-[13px] font-semibold text-[var(--text-primary)]">{f.description || f.offres_coaching?.titre}</p>
                     </div>
                   </div>
+                )}
 
-                  {(f.description || f.offres_coaching?.titre) && (
-                    <div className="flex items-center gap-3 py-1.5">
-                      <Package size={13} className="text-[var(--text-muted)]" />
-                      <div className="flex-1">
-                        <p className="text-[10px] text-[var(--text-muted)]">Prestation</p>
-                        <p className="text-[13px] font-medium text-[var(--text-primary)]">
-                          {f.description || f.offres_coaching?.titre}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-3 py-1.5">
-                    <Calendar size={13} className="text-[var(--text-muted)]" />
-                    <div className="flex-1">
-                      <p className="text-[10px] text-[var(--text-muted)]">Date d'émission</p>
-                      <p className="text-[13px] font-medium text-[var(--text-primary)]">
-                        {f.date_emission ? new Date(f.date_emission).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface)]">
+                    <Calendar size={14} className="text-[var(--text-muted)] shrink-0" />
+                    <div>
+                      <p className="text-[10px] text-[var(--text-muted)] font-medium">Émission</p>
+                      <p className="text-[12px] font-semibold text-[var(--text-primary)]">
+                        {f.date_emission ? new Date(f.date_emission).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                       </p>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-3 py-1.5">
-                    <Hash size={13} className="text-[var(--text-muted)]" />
-                    <div className="flex-1">
-                      <p className="text-[10px] text-[var(--text-muted)]">Identifiant</p>
-                      <p className="text-[11px] font-mono text-[var(--text-secondary)]">{f.id.slice(0, 8)}</p>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface)]">
+                    <Hash size={14} className="text-[var(--text-muted)] shrink-0" />
+                    <div>
+                      <p className="text-[10px] text-[var(--text-muted)] font-medium">Identifiant</p>
+                      <p className="text-[11px] font-mono font-semibold text-[var(--text-secondary)]">{f.id.slice(0, 8)}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-[var(--border-base)] flex gap-2">
-                <button
-                  onClick={closeDetail}
-                  className="flex-1 px-4 py-2.5 rounded-xl text-[12px] font-semibold text-[var(--text-secondary)] bg-[var(--bg-surface)] border border-[var(--border-base)] hover:bg-[var(--bg-surface)]/70 transition-colors"
-                >
+              <div className="p-5 border-t border-[var(--border-base)] flex gap-3">
+                <button onClick={() => setDetailFacture(null)} className="flex-1 px-4 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-all">
                   Fermer
                 </button>
                 <button
                   onClick={() => generatePDF(f)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-semibold text-[#0a0a0a] bg-[#F59E0B] hover:bg-[#F59E0B]/90 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all active:scale-95"
+                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
                 >
-                  <Download size={13} />
+                  <Download size={14} />
                   Télécharger PDF
                 </button>
               </div>
