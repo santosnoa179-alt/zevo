@@ -110,12 +110,13 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: translateStripeError(e.message) })
     }
 
-    // ── 2) Créer le Promotion Code ──
+    // ── 2) Créer le Promotion Code (obligatoire pour allow_promotion_codes sur Payment Links) ──
     let promotionCode = null
     try {
       const promoParams = {
         coupon: coupon.id,
         code: codeUpper,
+        active: true,
       }
       if (limite) promoParams.max_redemptions = Number(limite)
       if (expiration) {
@@ -124,11 +125,13 @@ export default async function handler(req, res) {
       }
 
       promotionCode = await stripe.promotionCodes.create(promoParams, { stripeAccount: stripeAccountId })
-      console.log('[create-coupon] Promotion Code créé:', promotionCode.id)
+      console.log('[create-coupon] Promotion Code créé:', promotionCode.id, '| code:', promotionCode.code)
     } catch (e) {
-      // Si la création du promo code échoue (API version trop ancienne), on continue
-      // Le coupon existe quand même — le coach peut créer le promo code manuellement dans Stripe
-      console.error('[create-coupon] Promo code fallback — coupon seul créé:', e.message)
+      console.error('[create-coupon] Erreur promotion code:', e.message)
+      // Sans Promotion Code, le code ne fonctionne pas sur les liens de paiement
+      // On supprime le coupon créé pour ne pas laisser de résidu
+      try { await stripe.coupons.del(coupon.id, { stripeAccount: stripeAccountId }) } catch {}
+      return res.status(400).json({ error: translateStripeError(e.message) || 'Impossible de créer le code promo. Vérifiez votre compte Stripe.' })
     }
 
     // ── 3) Insertion DB ──
