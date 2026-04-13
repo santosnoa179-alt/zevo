@@ -6061,7 +6061,6 @@ export default function CoachClientHub() {
 
       setSelectedProfile(profileRes.data)
       setSelectedClient(clientRes.data)
-      console.log('[Hub] client_id:', selectedId, '| actif:', clientRes.data?.actif, '| err:', clientRes.error)
 
       const habs = habsRes.data || []
       const logsData = logsRes.data || []
