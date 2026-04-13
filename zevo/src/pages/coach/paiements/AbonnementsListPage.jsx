@@ -83,7 +83,7 @@ export default function AbonnementsListPage() {
     try {
       const { data, error } = await supabase
         .from('abonnements_clients')
-        .select('*, clients(profiles(nom, email)), offres_coaching(titre)')
+        .select('*, clients(profiles(nom, prenom, email)), offres_coaching(titre)')
         .eq('coach_id', user.id)
         .order('created_at', { ascending: false })
       if (error) {
@@ -214,7 +214,8 @@ export default function AbonnementsListPage() {
         ) : (
           filtered.map(a => {
             const cfg = STATUT_CONFIG[a.statut] || STATUT_CONFIG.actif
-            const clientName = a.clients?.profiles?.nom || 'Client'
+            const p = a.clients?.profiles
+            const clientName = [p?.prenom, p?.nom].filter(Boolean).join(' ') || 'Client'
             const initials = clientName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
             return (
               <div key={a.id} className="glass-card p-4 hover:border-[var(--text-muted)]/10 transition-all group" style={{ overflow: 'visible' }}>

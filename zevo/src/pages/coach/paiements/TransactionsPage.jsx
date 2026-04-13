@@ -81,7 +81,7 @@ export default function TransactionsPage() {
   const loadClients = async () => {
     const { data } = await supabase
       .from('clients')
-      .select('id, profiles(nom, email)')
+      .select('id, profiles(nom, prenom, email)')
       .eq('coach_id', user.id)
       .order('created_at', { ascending: false })
     setClientsList(data || [])
@@ -92,7 +92,7 @@ export default function TransactionsPage() {
     setLoadError(null)
     const { data, error } = await supabase
       .from('paiements_clients')
-      .select('*, clients(profiles(nom, email)), offres_coaching(titre)')
+      .select('*, clients(profiles(nom, prenom, email)), offres_coaching(titre)')
       .eq('coach_id', user.id)
       .order('created_at', { ascending: false })
     if (error) {
@@ -183,7 +183,7 @@ export default function TransactionsPage() {
     .filter(t => filtre === 'tous' || t.statut === filtre)
     .filter(t => {
       if (!search) return true
-      const clientName = (t.clients?.profiles?.nom || '').toLowerCase()
+      const clientName = ([t.clients?.profiles?.prenom, t.clients?.profiles?.nom].filter(Boolean).join(' ')).toLowerCase()
       const clientEmail = (t.clients?.profiles?.email || '').toLowerCase()
       const offreName = (t.offres_coaching?.titre || '').toLowerCase()
       const q = search.toLowerCase()
@@ -313,7 +313,7 @@ export default function TransactionsPage() {
         ) : (
           filtered.map(t => {
             const cfg = STATUT_CONFIG[t.statut] || STATUT_CONFIG.en_attente
-            const clientName = t.clients?.profiles?.nom || '—'
+            const clientName = [t.clients?.profiles?.prenom, t.clients?.profiles?.nom].filter(Boolean).join(' ') || '—'
             const clientEmail = t.clients?.profiles?.email || ''
             return (
               <div key={t.id} className="grid grid-cols-[1fr_1fr_100px_100px_100px_40px] gap-4 px-5 py-3.5 border-b border-[var(--border-base)]/50 items-center hover:bg-[var(--bg-surface)]/30 transition-colors">
@@ -378,7 +378,7 @@ export default function TransactionsPage() {
       <div className="md:hidden space-y-2">
         {filtered.map(t => {
           const cfg = STATUT_CONFIG[t.statut] || STATUT_CONFIG.en_attente
-          const clientName = t.clients?.profiles?.nom || '—'
+          const clientName = [t.clients?.profiles?.prenom, t.clients?.profiles?.nom].filter(Boolean).join(' ') || '—'
           return (
             <div key={t.id} className="glass-card p-4">
               <div className="flex items-start justify-between mb-2">
@@ -469,7 +469,7 @@ export default function TransactionsPage() {
                   <option value="">-- Sélectionner un client --</option>
                   {clientsList.map(c => (
                     <option key={c.id} value={c.id}>
-                      {c.profiles?.nom || 'Sans nom'} {c.profiles?.email ? `· ${c.profiles.email}` : ''}
+                      {[c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || 'Sans nom'} {c.profiles?.email ? `· ${c.profiles.email}` : ''}
                     </option>
                   ))}
                 </select>

@@ -61,7 +61,7 @@ export default function FacturesPage() {
     try {
       const { data, error } = await supabase
         .from('factures')
-        .select('*, clients(profiles(nom, email)), offres_coaching(titre)')
+        .select('*, clients(profiles(nom, prenom, email)), offres_coaching(titre)')
         .eq('coach_id', user.id)
         .order('date_emission', { ascending: false })
       if (error) {
@@ -81,7 +81,7 @@ export default function FacturesPage() {
     setFormError(null)
     try {
       const [clientsRes, offresRes] = await Promise.all([
-        supabase.from('clients').select('id, profiles(nom, email)').eq('coach_id', user.id).eq('actif', true),
+        supabase.from('clients').select('id, profiles(nom, prenom, email)').eq('coach_id', user.id).eq('actif', true),
         supabase.from('offres_coaching').select('id, titre, prix').eq('coach_id', user.id).eq('actif', true),
       ])
       setClientsList(clientsRes.data || [])
@@ -137,7 +137,7 @@ export default function FacturesPage() {
   const generatePDF = (f) => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' })
     const W = 210, M = 20
-    const clientName = f.clients?.profiles?.nom || '—'
+    const clientName = [f.clients?.profiles?.prenom, f.clients?.profiles?.nom].filter(Boolean).join(' ') || '—'
     const clientEmail = f.clients?.profiles?.email || ''
     const description = f.description || f.offres_coaching?.titre || 'Prestation de coaching'
     const dateStr = f.date_emission
@@ -291,7 +291,7 @@ export default function FacturesPage() {
     .filter(f => filtre === 'tous' || f.statut === filtre)
     .filter(f => {
       if (!search) return true
-      const name = (f.clients?.profiles?.nom || '').toLowerCase()
+      const name = ([f.clients?.profiles?.prenom, f.clients?.profiles?.nom].filter(Boolean).join(' ')).toLowerCase()
       return name.includes(search.toLowerCase()) || f.numero?.toLowerCase().includes(search.toLowerCase())
     })
 
@@ -412,7 +412,7 @@ export default function FacturesPage() {
             ) : (
               filtered.map(f => {
                 const cfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente
-                const clientName = f.clients?.profiles?.nom || '—'
+                const clientName = [f.clients?.profiles?.prenom, f.clients?.profiles?.nom].filter(Boolean).join(' ') || '—'
                 return (
                   <div
                     key={f.id}
@@ -454,7 +454,7 @@ export default function FacturesPage() {
           <div className="md:hidden space-y-2">
             {filtered.map(f => {
               const cfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente
-              const clientName = f.clients?.profiles?.nom || '—'
+              const clientName = [f.clients?.profiles?.prenom, f.clients?.profiles?.nom].filter(Boolean).join(' ') || '—'
               return (
                 <div key={f.id} onClick={() => setDetailFacture(f)} className="glass-card p-4 active:scale-[0.99] transition-transform cursor-pointer">
                   <div className="flex items-start justify-between mb-2">
@@ -524,7 +524,7 @@ export default function FacturesPage() {
                 <select value={formClient} onChange={e => setFormClient(e.target.value)} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
                   <option value="">-- Sélectionner --</option>
                   {clientsList.map(c => (
-                    <option key={c.id} value={c.id}>{c.profiles?.nom || 'Sans nom'} {c.profiles?.email ? `· ${c.profiles.email}` : ''}</option>
+                    <option key={c.id} value={c.id}>{[c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || 'Sans nom'} {c.profiles?.email ? `· ${c.profiles.email}` : ''}</option>
                   ))}
                 </select>
               </div>
@@ -570,7 +570,7 @@ export default function FacturesPage() {
       {detailFacture && (() => {
         const f = detailFacture
         const cfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente
-        const clientName = f.clients?.profiles?.nom || '—'
+        const clientName = [f.clients?.profiles?.prenom, f.clients?.profiles?.nom].filter(Boolean).join(' ') || '—'
         const clientEmail = f.clients?.profiles?.email || ''
         return (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4" onClick={() => setDetailFacture(null)}>
