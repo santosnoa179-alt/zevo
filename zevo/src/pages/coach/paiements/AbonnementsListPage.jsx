@@ -60,23 +60,26 @@ export default function AbonnementsListPage() {
       .eq('coach_id', user.id)
 
     // 3) Synchroniser clients.actif — vérifier si le client a encore un abonnement actif
-    const { data: remaining } = await supabase
+    const { data: remaining, error: remainErr } = await supabase
       .from('abonnements_clients')
       .select('id, statut')
       .eq('client_id', abo.client_id)
       .eq('coach_id', user.id)
 
-    // Compter les abonnements actifs APRÈS la mise à jour
-    const hasActiveAbo = (remaining || []).some(a => {
-      if (a.id === aboId) return newStatut === 'actif'
-      return a.statut === 'actif'
-    })
+    console.log('[Abo] client_id:', abo.client_id, '| remaining:', remaining, '| err:', remainErr)
 
-    await supabase
+    // Compter les abonnements actifs APRÈS la mise à jour
+    const hasActiveAbo = (remaining || []).some(a => a.statut === 'actif')
+
+    console.log('[Abo] hasActiveAbo:', hasActiveAbo, '→ clients.actif =', hasActiveAbo)
+
+    const { error: clientErr } = await supabase
       .from('clients')
       .update({ actif: hasActiveAbo })
       .eq('id', abo.client_id)
       .eq('coach_id', user.id)
+
+    if (clientErr) console.error('[Abo] ERREUR update clients.actif:', clientErr)
 
     await loadAbonnements()
   }
