@@ -143,7 +143,7 @@ export default function AbonnementsListPage() {
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-2" style={{ overflow: 'visible' }}>
         {abonnements.length === 0 && !loadError ? (
           <div className="glass-card p-8">
             <div className="flex items-center gap-3 mb-5">
@@ -192,7 +192,7 @@ export default function AbonnementsListPage() {
             const clientName = a.clients?.profiles?.nom || 'Client'
             const initials = clientName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
             return (
-              <div key={a.id} className="glass-card p-4 hover:border-[var(--text-muted)]/10 transition-all group">
+              <div key={a.id} className="glass-card p-4 hover:border-[var(--text-muted)]/10 transition-all group" style={{ overflow: 'visible' }}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8B5CF6]/20 to-[#8B5CF6]/5 flex items-center justify-center flex-shrink-0">
                     <span className="text-[11px] font-bold text-[#8B5CF6]">{initials}</span>
@@ -218,12 +218,12 @@ export default function AbonnementsListPage() {
                   <div className="relative">
                     <button
                       onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === a.id ? null : a.id) }}
-                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-colors"
                     >
                       <MoreHorizontal size={14} />
                     </button>
                     {menuOpen === a.id && (
-                      <div className="absolute right-0 bottom-full mb-1 z-50 w-44 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] shadow-xl shadow-black/30" onClick={e => e.stopPropagation()}>
+                      <div className="absolute right-0 bottom-full mb-1 z-[999] w-44 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] shadow-xl shadow-black/30" onClick={e => e.stopPropagation()}>
                         <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Changer le statut</p>
                         {STATUTS_LIST.map(s => {
                           const sc = STATUT_CONFIG[s]
