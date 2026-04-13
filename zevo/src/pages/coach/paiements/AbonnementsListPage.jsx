@@ -37,6 +37,12 @@ export default function AbonnementsListPage() {
 
   const updateStatut = async (aboId, newStatut) => {
     setMenuOpen(null)
+
+    // 1) Trouver le client_id de cet abonnement
+    const abo = abonnements.find(a => a.id === aboId)
+    if (!abo) return
+
+    // 2) Mettre à jour le statut de l'abonnement
     const updateData = {
       statut: newStatut,
       updated_at: new Date().toISOString(),
@@ -44,11 +50,34 @@ export default function AbonnementsListPage() {
     if (newStatut === 'annule') {
       updateData.date_fin = new Date().toISOString()
     }
+    if (newStatut === 'actif') {
+      updateData.date_fin = null
+    }
     await supabase
       .from('abonnements_clients')
       .update(updateData)
       .eq('id', aboId)
       .eq('coach_id', user.id)
+
+    // 3) Synchroniser clients.actif — vérifier si le client a encore un abonnement actif
+    const { data: remaining } = await supabase
+      .from('abonnements_clients')
+      .select('id, statut')
+      .eq('client_id', abo.client_id)
+      .eq('coach_id', user.id)
+
+    // Compter les abonnements actifs APRÈS la mise à jour
+    const hasActiveAbo = (remaining || []).some(a => {
+      if (a.id === aboId) return newStatut === 'actif'
+      return a.statut === 'actif'
+    })
+
+    await supabase
+      .from('clients')
+      .update({ actif: hasActiveAbo })
+      .eq('id', abo.client_id)
+      .eq('coach_id', user.id)
+
     await loadAbonnements()
   }
 
