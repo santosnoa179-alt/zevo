@@ -70,6 +70,7 @@ const CoachMessagesPage = lazy(() => import('./pages/coach/CoachMessagesPage'))
 const CoachProgrammesPage = lazy(() => import('./pages/coach/CoachProgrammesPage'))
 const CoachProgrammesHubPage = lazy(() => import('./pages/coach/CoachProgrammesHubPage'))
 const CoachSportPage = lazy(() => import('./pages/coach/CoachSportPage'))
+const ExerciseLibraryPage = lazy(() => import('./pages/coach/ExerciseLibraryPage'))
 const CoachNutritionPage = lazy(() => import('./pages/coach/CoachNutritionPage'))
 const NutritionBuilder = lazy(() => import('./pages/coach/NutritionBuilder'))
 const CoachBibliothequePage = lazy(() => import('./pages/coach/CoachBibliothequePage'))
@@ -190,6 +191,7 @@ export default function App() {
               <Route path="client-hub" element={<CoachClientHub />} />
               <Route path="programmes" element={<CoachProgrammesHubPage />} />
               <Route path="sport" element={<CoachSportPage />} />
+              <Route path="exercices" element={<ExerciseLibraryPage />} />
               <Route path="nutrition" element={<CoachNutritionPage />} />
               <Route path="nutrition/new" element={<NutritionBuilder />} />
               <Route path="nutrition/:planId" element={<NutritionBuilder />} />

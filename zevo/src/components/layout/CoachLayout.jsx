@@ -40,6 +40,7 @@ const NAV_SECTIONS = [
     title: 'RESSOURCES',
     items: [
       { to: '/coach/sport', icon: Dumbbell, label: 'Sport', color: '#EF4444' },
+      { to: '/coach/exercices', icon: Target, label: 'Exercices', color: '#FF6B2B' },
       { to: '/coach/nutrition', icon: Cherry, label: 'Nutrition', color: '#22C55E' },
       { to: '/coach/bibliotheque', icon: BookMarked, label: 'Bibliothèque', color: '#A78BFA' },
       { to: '/coach/formulaires', icon: ClipboardCheck, label: 'Formulaires', color: '#14B8A6' },
@@ -73,6 +74,7 @@ const PAGE_TITLES = {
   '/coach/client-hub': 'Hub Client 360°',
   '/coach/prospects': 'Prospects',
   '/coach/sport': 'Sport',
+  '/coach/exercices': 'Exercices',
   '/coach/nutrition': 'Nutrition',
   '/coach/bibliotheque': 'Bibliothèque',
   '/coach/formulaires': 'Formulaires',
