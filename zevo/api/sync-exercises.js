@@ -1,6 +1,6 @@
 // Vercel Serverless Function — Sync ExerciseDB → Supabase
 // Fetches all exercises from RapidAPI ExerciseDB and upserts into Supabase.
-// Called only when the exercises table is empty (first load).
+// Called only when the client-side detects the exercises table is empty.
 import { createClient } from '@supabase/supabase-js'
 
 const ALLOWED_ORIGINS = [
@@ -28,44 +28,19 @@ export default async function handler(req, res) {
   const rapidApiKey = process.env.VITE_RAPIDAPI_KEY || process.env.RAPIDAPI_KEY
   const rapidApiHost = process.env.VITE_RAPIDAPI_HOST || process.env.RAPIDAPI_HOST || 'exercisedb.p.rapidapi.com'
 
-  console.log('[sync-exercises] ENV check:', {
-    hasSupabaseUrl: !!sbUrl,
-    urlPrefix: sbUrl ? sbUrl.substring(0, 30) : 'MISSING',
-    hasServiceKey: !!sbKey,
-    keyLength: sbKey ? sbKey.length : 0,
-    hasRapidApiKey: !!rapidApiKey,
-  })
-
   if (!sbUrl || !sbKey) {
     return res.status(500).json({ error: 'Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY' })
   }
+  if (!rapidApiKey) {
+    return res.status(500).json({ error: 'RAPIDAPI_KEY non configuree' })
+  }
 
-  // Create client inside handler to ensure env vars are loaded
   const supabase = createClient(sbUrl, sbKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
   try {
-    // 1) Check if exercises table already has data — use simple select instead of head
-    const { data: existing, error: countErr } = await supabase
-      .from('exercises')
-      .select('id')
-      .limit(1)
-
-    if (countErr) {
-      console.error('[sync-exercises] Count error:', JSON.stringify(countErr, null, 2))
-      return res.status(500).json({ error: 'Erreur lecture table exercises', details: JSON.stringify(countErr) })
-    }
-
-    if (existing && existing.length > 0) {
-      return res.status(200).json({ message: 'Table deja remplie', synced: false })
-    }
-
-    // 2) Fetch from ExerciseDB
-    if (!rapidApiKey) {
-      return res.status(500).json({ error: 'RAPIDAPI_KEY non configuree' })
-    }
-
+    // 1) Fetch from ExerciseDB (no server-side count check — client already verified table is empty)
     console.log('[sync-exercises] Fetching from ExerciseDB...')
     const response = await fetch('https://exercisedb.p.rapidapi.com/exercises?limit=1500&offset=0', {
       headers: {
@@ -77,7 +52,7 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const text = await response.text()
       console.error('[sync-exercises] ExerciseDB error:', response.status, text)
-      return res.status(502).json({ error: `ExerciseDB API error: ${response.status}` })
+      return res.status(502).json({ error: `ExerciseDB API error: ${response.status}`, details: text.substring(0, 200) })
     }
 
     const exercises = await response.json()
@@ -87,7 +62,7 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: 'ExerciseDB returned empty data' })
     }
 
-    // 3) Map to our schema
+    // 2) Map to our schema
     const rows = exercises.map(ex => ({
       id: String(ex.id),
       name: ex.name || '',
@@ -99,7 +74,7 @@ export default async function handler(req, res) {
       instructions: Array.isArray(ex.instructions) ? ex.instructions : [],
     }))
 
-    // 4) Batch upsert (Supabase max ~1000 rows per request)
+    // 3) Batch upsert (idempotent — safe to re-run)
     const BATCH_SIZE = 500
     let inserted = 0
 
@@ -110,13 +85,14 @@ export default async function handler(req, res) {
         .upsert(batch, { onConflict: 'id' })
 
       if (insertErr) {
-        console.error(`[sync-exercises] Batch ${i}-${i + batch.length} error:`, insertErr)
+        console.error(`[sync-exercises] Batch ${i}-${i + batch.length} error:`, JSON.stringify(insertErr))
         return res.status(500).json({ error: `Erreur insertion batch: ${insertErr.message}`, inserted })
       }
       inserted += batch.length
       console.log(`[sync-exercises] Inserted batch ${i}-${i + batch.length}`)
     }
 
+    console.log(`[sync-exercises] Sync complete: ${inserted} exercises`)
     return res.status(200).json({ message: `Sync terminee`, synced: true, count: inserted })
   } catch (error) {
     console.error('[sync-exercises] Error:', error)
