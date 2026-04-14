@@ -68,17 +68,23 @@ export default async function handler(req, res) {
 
     console.log(`[sync-exercises] Received ${exercises.length} exercises at offset=${offset}`)
 
+    // Log first exercise fields for debugging
+    if (offset === 0 && exercises.length > 0) {
+      console.log('[sync-exercises] Sample exercise keys:', Object.keys(exercises[0]))
+      console.log('[sync-exercises] Sample exercise:', JSON.stringify(exercises[0]).substring(0, 500))
+    }
+
     if (exercises.length === 0) {
       return res.status(200).json({ inserted: 0, offset, hasMore: false, total: offset })
     }
 
-    // Map to our schema
+    // Map to our schema — try multiple field names for GIF URL
     const rows = exercises.map(ex => ({
       id: String(ex.id),
       name: ex.name || '',
       target_muscle: ex.target || '',
       equipment: ex.equipment || 'body weight',
-      gif_url: ex.gifUrl || null,
+      gif_url: ex.gifUrl || ex.gif_url || ex.gifURL || ex.image || null,
       body_part: ex.bodyPart || '',
       secondary_muscles: Array.isArray(ex.secondaryMuscles) ? ex.secondaryMuscles : [],
       instructions: Array.isArray(ex.instructions) ? ex.instructions : [],
