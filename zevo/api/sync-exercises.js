@@ -1,6 +1,6 @@
-// Vercel Serverless Function — Sync ExerciseDB → Supabase
-// Fetches all exercises from RapidAPI ExerciseDB and upserts into Supabase.
-// Called only when the client-side detects the exercises table is empty.
+// Vercel Serverless Function — Sync ExerciseDB → Supabase (paginated)
+// Called repeatedly by the client with increasing offset.
+// Each call fetches one page from ExerciseDB and upserts into Supabase.
 import { createClient } from '@supabase/supabase-js'
 
 const ALLOWED_ORIGINS = [
@@ -39,10 +39,15 @@ export default async function handler(req, res) {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
+  // Parse pagination params from body
+  const { offset = 0, limit = 10 } = req.body || {}
+
   try {
-    // 1) Fetch from ExerciseDB (no server-side count check — client already verified table is empty)
-    console.log('[sync-exercises] Fetching from ExerciseDB...')
-    const response = await fetch('https://exercisedb.p.rapidapi.com/exercises?limit=1500&offset=0', {
+    // Fetch one page from ExerciseDB
+    const url = `https://exercisedb.p.rapidapi.com/exercises?limit=${limit}&offset=${offset}`
+    console.log(`[sync-exercises] Fetching offset=${offset} limit=${limit}`)
+
+    const response = await fetch(url, {
       headers: {
         'x-rapidapi-key': rapidApiKey,
         'x-rapidapi-host': rapidApiHost,
@@ -56,13 +61,18 @@ export default async function handler(req, res) {
     }
 
     const exercises = await response.json()
-    console.log(`[sync-exercises] Received ${exercises.length} exercises from ExerciseDB`)
 
-    if (!Array.isArray(exercises) || exercises.length === 0) {
-      return res.status(502).json({ error: 'ExerciseDB returned empty data' })
+    if (!Array.isArray(exercises)) {
+      return res.status(502).json({ error: 'ExerciseDB returned invalid data' })
     }
 
-    // 2) Map to our schema
+    console.log(`[sync-exercises] Received ${exercises.length} exercises at offset=${offset}`)
+
+    if (exercises.length === 0) {
+      return res.status(200).json({ inserted: 0, offset, hasMore: false, total: offset })
+    }
+
+    // Map to our schema
     const rows = exercises.map(ex => ({
       id: String(ex.id),
       name: ex.name || '',
@@ -74,26 +84,25 @@ export default async function handler(req, res) {
       instructions: Array.isArray(ex.instructions) ? ex.instructions : [],
     }))
 
-    // 3) Batch upsert (idempotent — safe to re-run)
-    const BATCH_SIZE = 500
-    let inserted = 0
+    // Upsert this batch
+    const { error: insertErr } = await supabase
+      .from('exercises')
+      .upsert(rows, { onConflict: 'id' })
 
-    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-      const batch = rows.slice(i, i + BATCH_SIZE)
-      const { error: insertErr } = await supabase
-        .from('exercises')
-        .upsert(batch, { onConflict: 'id' })
-
-      if (insertErr) {
-        console.error(`[sync-exercises] Batch ${i}-${i + batch.length} error:`, JSON.stringify(insertErr))
-        return res.status(500).json({ error: `Erreur insertion batch: ${insertErr.message}`, inserted })
-      }
-      inserted += batch.length
-      console.log(`[sync-exercises] Inserted batch ${i}-${i + batch.length}`)
+    if (insertErr) {
+      console.error('[sync-exercises] Upsert error:', JSON.stringify(insertErr))
+      return res.status(500).json({ error: `Erreur insertion: ${insertErr.message}` })
     }
 
-    console.log(`[sync-exercises] Sync complete: ${inserted} exercises`)
-    return res.status(200).json({ message: `Sync terminee`, synced: true, count: inserted })
+    const hasMore = exercises.length === limit
+    console.log(`[sync-exercises] Inserted ${rows.length} exercises. hasMore=${hasMore}`)
+
+    return res.status(200).json({
+      inserted: rows.length,
+      offset,
+      hasMore,
+      total: offset + rows.length,
+    })
   } catch (error) {
     console.error('[sync-exercises] Error:', error)
     return res.status(500).json({ error: error.message || 'Erreur interne' })

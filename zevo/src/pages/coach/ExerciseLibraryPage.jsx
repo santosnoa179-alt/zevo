@@ -87,6 +87,7 @@ export default function ExerciseLibraryPage() {
   const [exercises, setExercises] = useState([])
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
+  const [syncProgress, setSyncProgress] = useState(0)
   const [syncError, setSyncError] = useState(null)
 
   // Filters
@@ -103,7 +104,7 @@ export default function ExerciseLibraryPage() {
   // ── Load exercises from Supabase ──
   const loadExercises = useCallback(async () => {
     setLoading(true)
-    const { data, error, count } = await supabase
+    const { data, error } = await supabase
       .from('exercises')
       .select('*', { count: 'exact' })
       .order('name')
@@ -115,7 +116,6 @@ export default function ExerciseLibraryPage() {
     }
 
     if (!data || data.length === 0) {
-      // Table is empty — trigger sync
       await triggerSync()
     } else {
       setExercises(data)
@@ -126,22 +126,43 @@ export default function ExerciseLibraryPage() {
   const triggerSync = async () => {
     setSyncing(true)
     setSyncError(null)
+    setSyncProgress(0)
+
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      const res = await fetch('/api/sync-exercises', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-      })
-      const json = await res.json()
-      if (!res.ok) {
-        setSyncError(json.error || 'Erreur sync')
-        setSyncing(false)
-        setLoading(false)
-        return
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token}`,
       }
+
+      let offset = 0
+      const PAGE_SIZE = 10
+      const ESTIMATED_TOTAL = 1300
+      let hasMore = true
+
+      while (hasMore) {
+        const res = await fetch('/api/sync-exercises', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ offset, limit: PAGE_SIZE }),
+        })
+
+        const json = await res.json()
+
+        if (!res.ok) {
+          setSyncError(json.error || 'Erreur sync')
+          setSyncing(false)
+          setLoading(false)
+          return
+        }
+
+        hasMore = json.hasMore
+        offset += json.inserted
+        setSyncProgress(Math.min(Math.round((offset / ESTIMATED_TOTAL) * 100), 99))
+      }
+
+      setSyncProgress(100)
+
       // Reload from Supabase
       const { data } = await supabase.from('exercises').select('*').order('name')
       setExercises(data || [])
@@ -216,12 +237,21 @@ export default function ExerciseLibraryPage() {
               <Loader2 size={28} className="text-[#FF6B2B] animate-spin" />
             </div>
             <h2 className="text-lg font-bold text-[var(--text-primary)] mb-2">Import en cours...</h2>
-            <p className="text-[var(--text-muted)] text-sm max-w-md mx-auto">
-              Premier chargement : import de +1300 exercices depuis ExerciseDB. Cela peut prendre 10-20 secondes.
+            <p className="text-[var(--text-muted)] text-sm max-w-md mx-auto mb-4">
+              Premier chargement : import des exercices depuis ExerciseDB. Cela peut prendre quelques minutes.
             </p>
-            <div className="mt-6 h-1.5 w-48 mx-auto bg-[var(--bg-surface)] rounded-full overflow-hidden">
-              <div className="h-full bg-[#FF6B2B] rounded-full animate-pulse" style={{ width: '60%' }} />
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="h-2 w-56 bg-[var(--bg-surface)] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#FF6B2B] rounded-full transition-all duration-300"
+                  style={{ width: `${syncProgress}%` }}
+                />
+              </div>
+              <span className="text-sm font-bold text-[#FF6B2B] min-w-[3ch]">{syncProgress}%</span>
             </div>
+            <p className="text-[var(--text-muted)] text-xs">
+              {syncProgress < 100 ? `~${Math.round(syncProgress / 100 * 1300)} exercices importes...` : 'Finalisation...'}
+            </p>
           </div>
         )}
 
@@ -269,7 +299,6 @@ export default function ExerciseLibraryPage() {
 
       {/* ── Search + Filters ── */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        {/* Search */}
         <div className="relative flex-1">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
@@ -287,7 +316,6 @@ export default function ExerciseLibraryPage() {
           )}
         </div>
 
-        {/* Filter toggle */}
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-semibold transition-all shrink-0 ${
@@ -320,7 +348,6 @@ export default function ExerciseLibraryPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Body part */}
             <div>
               <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5 block">Zone du corps</label>
               <select
@@ -335,7 +362,6 @@ export default function ExerciseLibraryPage() {
               </select>
             </div>
 
-            {/* Equipment */}
             <div>
               <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5 block">Equipement</label>
               <select
@@ -350,7 +376,6 @@ export default function ExerciseLibraryPage() {
               </select>
             </div>
 
-            {/* Target muscle */}
             <div>
               <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1.5 block">Muscle cible</label>
               <select
@@ -413,7 +438,6 @@ export default function ExerciseLibraryPage() {
                     <Dumbbell size={32} className="text-[var(--text-muted)]/20" />
                   </div>
                 )}
-                {/* Overlay on hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
                   <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-[#FF6B2B] px-3 py-1.5 rounded-full">
                     <Info size={10} />
@@ -453,7 +477,6 @@ export default function ExerciseLibraryPage() {
             <ChevronLeft size={16} />
           </button>
 
-          {/* Page numbers */}
           {(() => {
             const pages = []
             const start = Math.max(1, page - 2)
@@ -494,15 +517,12 @@ export default function ExerciseLibraryPage() {
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-page-enter"
           onClick={() => setSelectedExercise(null)}
         >
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
-          {/* Modal */}
           <div
             className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-[var(--border-base)] bg-[var(--bg-card)] shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
             <button
               onClick={() => setSelectedExercise(null)}
               className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-all"
@@ -510,7 +530,6 @@ export default function ExerciseLibraryPage() {
               <X size={16} />
             </button>
 
-            {/* GIF */}
             <div className="relative bg-[var(--bg-base)] aspect-[4/3] flex items-center justify-center overflow-hidden rounded-t-3xl">
               {selectedExercise.gif_url ? (
                 <img
@@ -521,18 +540,14 @@ export default function ExerciseLibraryPage() {
               ) : (
                 <Dumbbell size={48} className="text-[var(--text-muted)]/20" />
               )}
-              {/* Gradient overlay bottom */}
               <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[var(--bg-card)] to-transparent" />
             </div>
 
-            {/* Content */}
             <div className="p-6 -mt-8 relative">
-              {/* Title */}
               <h2 className="text-xl font-extrabold text-[var(--text-primary)] capitalize mb-3">
                 {selectedExercise.name}
               </h2>
 
-              {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-6">
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B]">
                   <Target size={10} />
@@ -548,7 +563,6 @@ export default function ExerciseLibraryPage() {
                 </span>
               </div>
 
-              {/* Secondary muscles */}
               {selectedExercise.secondary_muscles?.length > 0 && (
                 <div className="mb-5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Muscles secondaires</p>
@@ -562,7 +576,6 @@ export default function ExerciseLibraryPage() {
                 </div>
               )}
 
-              {/* Instructions */}
               {selectedExercise.instructions?.length > 0 && (
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Instructions</p>
