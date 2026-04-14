@@ -78,16 +78,19 @@ export default async function handler(req, res) {
       return res.status(200).json({ inserted: 0, offset, hasMore: false, total: offset })
     }
 
-    // Map to our schema — try multiple field names for GIF URL
+    // Map to our schema
     const rows = exercises.map(ex => ({
       id: String(ex.id),
       name: ex.name || '',
       target_muscle: ex.target || '',
       equipment: ex.equipment || 'body weight',
-      gif_url: ex.gifUrl || ex.gif_url || ex.gifURL || ex.image || null,
+      gif_url: ex.gifUrl || null,
       body_part: ex.bodyPart || '',
       secondary_muscles: Array.isArray(ex.secondaryMuscles) ? ex.secondaryMuscles : [],
       instructions: Array.isArray(ex.instructions) ? ex.instructions : [],
+      description: ex.description || '',
+      difficulty: ex.difficulty || '',
+      category: ex.category || '',
     }))
 
     // Upsert this batch

@@ -4,7 +4,9 @@ import { useAuth } from '../../hooks/useAuth'
 import {
   Search, X, ChevronLeft, ChevronRight, Loader2,
   Dumbbell, Target, Layers, Info,
-  SlidersHorizontal, RotateCcw
+  SlidersHorizontal, RotateCcw, Zap,
+  ArrowUpDown, Heart, Footprints, Hand, CircleDot,
+  Activity, Crown, Shield
 } from 'lucide-react'
 
 const PER_PAGE = 12
@@ -121,6 +123,26 @@ const MUSCLE_LABELS = {
 
 function translate(key, map) {
   return map[key] || MUSCLE_LABELS[key] || key?.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || '—'
+}
+
+// Icône + couleur par zone du corps
+const BODY_PART_ICONS = {
+  back: { icon: ArrowUpDown, color: '#8B5CF6' },
+  cardio: { icon: Activity, color: '#EF4444' },
+  chest: { icon: Shield, color: '#3B82F6' },
+  'lower arms': { icon: Hand, color: '#F59E0B' },
+  'lower legs': { icon: Footprints, color: '#10B981' },
+  neck: { icon: CircleDot, color: '#EC4899' },
+  shoulders: { icon: Crown, color: '#6366F1' },
+  'upper arms': { icon: Zap, color: '#FF6B2B' },
+  'upper legs': { icon: Dumbbell, color: '#14B8A6' },
+  waist: { icon: Heart, color: '#F43F5E' },
+}
+
+const DIFFICULTY_LABELS = {
+  beginner: { label: 'Debutant', color: '#10B981' },
+  intermediate: { label: 'Intermediaire', color: '#F59E0B' },
+  expert: { label: 'Expert', color: '#EF4444' },
 }
 
 export default function ExerciseLibraryPage() {
@@ -461,50 +483,70 @@ export default function ExerciseLibraryPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {paginated.map((ex) => (
-            <button
-              key={ex.id}
-              onClick={() => setSelectedExercise(ex)}
-              className="group rounded-2xl border border-[var(--border-base)] bg-[var(--bg-card)] overflow-hidden text-left transition-all duration-300 hover:border-[#FF6B2B]/30 hover:shadow-lg hover:shadow-[#FF6B2B]/5 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              {/* GIF */}
-              <div className="relative aspect-square bg-[var(--bg-base)] overflow-hidden">
-                {ex.gif_url ? (
-                  <img
-                    src={ex.gif_url}
-                    alt={ex.name}
-                    loading="lazy"
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Dumbbell size={32} className="text-[var(--text-muted)]/20" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-[#FF6B2B] px-3 py-1.5 rounded-full">
-                    <Info size={10} />
-                    Voir les details
-                  </span>
-                </div>
-              </div>
+          {paginated.map((ex) => {
+            const bpIcon = BODY_PART_ICONS[ex.body_part] || { icon: Dumbbell, color: '#FF6B2B' }
+            const IconComp = bpIcon.icon
+            const diff = DIFFICULTY_LABELS[ex.difficulty]
 
-              {/* Info */}
-              <div className="p-4 space-y-2">
-                <h3 className="text-[13px] font-bold text-[var(--text-primary)] leading-tight line-clamp-2 capitalize">
-                  {ex.name}
-                </h3>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B]">
-                    <Target size={8} />
-                    {translate(ex.target_muscle, TARGET_LABELS)}
-                  </span>
-                  <span className="text-[9px] font-medium text-[var(--text-muted)] px-2 py-0.5 rounded-md bg-[var(--bg-surface)]">
-                    {translate(ex.equipment, EQUIPMENT_LABELS)}
-                  </span>
+            return (
+              <button
+                key={ex.id}
+                onClick={() => setSelectedExercise(ex)}
+                className="group rounded-2xl border border-[var(--border-base)] bg-[var(--bg-card)] overflow-hidden text-left transition-all duration-300 hover:border-[#FF6B2B]/30 hover:shadow-lg hover:shadow-[#FF6B2B]/5 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {/* Visual header */}
+                <div className="relative h-32 bg-[var(--bg-base)] overflow-hidden flex items-center justify-center">
+                  {/* Background glow */}
+                  <div
+                    className="absolute inset-0 opacity-[0.06] group-hover:opacity-[0.12] transition-opacity duration-500"
+                    style={{ background: `radial-gradient(circle at center, ${bpIcon.color} 0%, transparent 70%)` }}
+                  />
+                  {/* Icon */}
+                  <div
+                    className="relative w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+                    style={{ background: `${bpIcon.color}15` }}
+                  >
+                    <IconComp size={28} style={{ color: bpIcon.color }} />
+                  </div>
+                  {/* Difficulty badge */}
+                  {diff && (
+                    <span
+                      className="absolute top-3 right-3 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
+                      style={{ background: `${diff.color}15`, color: diff.color }}
+                    >
+                      {diff.label}
+                    </span>
+                  )}
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-[#FF6B2B] px-3 py-1.5 rounded-full">
+                      <Info size={10} />
+                      Voir les details
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </button>
+
+                {/* Info */}
+                <div className="p-4 space-y-2.5">
+                  <h3 className="text-[13px] font-bold text-[var(--text-primary)] leading-tight line-clamp-2 capitalize">
+                    {ex.name}
+                  </h3>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span
+                      className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
+                      style={{ background: `${bpIcon.color}15`, color: bpIcon.color }}
+                    >
+                      <Target size={8} />
+                      {translate(ex.target_muscle, TARGET_LABELS)}
+                    </span>
+                    <span className="text-[9px] font-medium text-[var(--text-muted)] px-2 py-0.5 rounded-md bg-[var(--bg-surface)]">
+                      {translate(ex.equipment, EQUIPMENT_LABELS)}
+                    </span>
+                  </div>
+                </div>
+              </button>
+            )
+          }
           ))}
         </div>
       )}
@@ -573,24 +615,42 @@ export default function ExerciseLibraryPage() {
               <X size={16} />
             </button>
 
-            <div className="relative bg-[var(--bg-base)] aspect-[4/3] flex items-center justify-center overflow-hidden rounded-t-3xl">
-              {selectedExercise.gif_url ? (
-                <img
-                  src={selectedExercise.gif_url}
-                  alt={selectedExercise.name}
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <Dumbbell size={48} className="text-[var(--text-muted)]/20" />
-              )}
-              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[var(--bg-card)] to-transparent" />
-            </div>
+            {/* Modal header with icon */}
+            {(() => {
+              const mbp = BODY_PART_ICONS[selectedExercise.body_part] || { icon: Dumbbell, color: '#FF6B2B' }
+              const MIcon = mbp.icon
+              const mdiff = DIFFICULTY_LABELS[selectedExercise.difficulty]
+              return (
+                <div className="relative h-40 bg-[var(--bg-base)] flex items-center justify-center overflow-hidden rounded-t-3xl">
+                  <div
+                    className="absolute inset-0 opacity-10"
+                    style={{ background: `radial-gradient(circle at center, ${mbp.color} 0%, transparent 70%)` }}
+                  />
+                  <div
+                    className="relative w-20 h-20 rounded-3xl flex items-center justify-center"
+                    style={{ background: `${mbp.color}15` }}
+                  >
+                    <MIcon size={36} style={{ color: mbp.color }} />
+                  </div>
+                  {mdiff && (
+                    <span
+                      className="absolute top-4 left-4 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg"
+                      style={{ background: `${mdiff.color}15`, color: mdiff.color }}
+                    >
+                      {mdiff.label}
+                    </span>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[var(--bg-card)] to-transparent" />
+                </div>
+              )
+            })()}
 
-            <div className="p-6 -mt-8 relative">
+            <div className="p-6 -mt-4 relative">
               <h2 className="text-xl font-extrabold text-[var(--text-primary)] capitalize mb-3">
                 {selectedExercise.name}
               </h2>
 
+              {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-6">
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B]">
                   <Target size={10} />
@@ -606,19 +666,29 @@ export default function ExerciseLibraryPage() {
                 </span>
               </div>
 
+              {/* Description */}
+              {selectedExercise.description && (
+                <div className="mb-5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Description</p>
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{selectedExercise.description}</p>
+                </div>
+              )}
+
+              {/* Secondary muscles */}
               {selectedExercise.secondary_muscles?.length > 0 && (
                 <div className="mb-5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Muscles secondaires</p>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedExercise.secondary_muscles.map((m, i) => (
                       <span key={i} className="text-[10px] font-medium px-2.5 py-1 rounded-md bg-[var(--bg-surface)] text-[var(--text-secondary)] capitalize">
-                        {translate(m, TARGET_LABELS)}
+                        {translate(m, MUSCLE_LABELS)}
                       </span>
                     ))}
                   </div>
                 </div>
               )}
 
+              {/* Instructions */}
               {selectedExercise.instructions?.length > 0 && (
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Instructions</p>
