@@ -17,7 +17,6 @@ create table if not exists exercises (
 create index if not exists idx_exercises_body_part on exercises (body_part);
 create index if not exists idx_exercises_target on exercises (target_muscle);
 create index if not exists idx_exercises_equipment on exercises (equipment);
-create index if not exists idx_exercises_name on exercises using gin (name gin_trgm_ops);
 
 -- RLS : lecture publique (tous les utilisateurs authentifiés)
 alter table exercises enable row level security;

@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import {
-  Search, Filter, X, ChevronLeft, ChevronRight, Loader2,
-  Dumbbell, Target, Layers, Info, ExternalLink, Play,
-  SlidersHorizontal, RotateCcw, Zap, ArrowRight
+  Search, X, ChevronLeft, ChevronRight, Loader2,
+  Dumbbell, Target, Layers, Info,
+  SlidersHorizontal, RotateCcw
 } from 'lucide-react'
 
 const PER_PAGE = 12
