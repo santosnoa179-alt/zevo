@@ -546,8 +546,7 @@ export default function ExerciseLibraryPage() {
                 </div>
               </button>
             )
-          }
-          ))}
+          })}
         </div>
       )}
 
