@@ -3,15 +3,6 @@
 // Called only when the exercises table is empty (first load).
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-)
-
-const RAPIDAPI_KEY = process.env.VITE_RAPIDAPI_KEY || process.env.RAPIDAPI_KEY
-const RAPIDAPI_HOST = process.env.VITE_RAPIDAPI_HOST || process.env.RAPIDAPI_HOST || 'exercisedb.p.rapidapi.com'
-
 const ALLOWED_ORIGINS = [
   'https://zevo-one.vercel.app',
   'https://www.zevo-one.vercel.app',
@@ -32,42 +23,54 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  // Debug env vars (safe — only logs presence, not values)
   const sbUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
   const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const rapidApiKey = process.env.VITE_RAPIDAPI_KEY || process.env.RAPIDAPI_KEY
+  const rapidApiHost = process.env.VITE_RAPIDAPI_HOST || process.env.RAPIDAPI_HOST || 'exercisedb.p.rapidapi.com'
+
   console.log('[sync-exercises] ENV check:', {
     hasSupabaseUrl: !!sbUrl,
-    urlPrefix: sbUrl ? sbUrl.substring(0, 20) : 'MISSING',
+    urlPrefix: sbUrl ? sbUrl.substring(0, 30) : 'MISSING',
     hasServiceKey: !!sbKey,
     keyLength: sbKey ? sbKey.length : 0,
-    hasRapidApiKey: !!RAPIDAPI_KEY,
+    hasRapidApiKey: !!rapidApiKey,
+  })
+
+  if (!sbUrl || !sbKey) {
+    return res.status(500).json({ error: 'Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY' })
+  }
+
+  // Create client inside handler to ensure env vars are loaded
+  const supabase = createClient(sbUrl, sbKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
   })
 
   try {
-    // 1) Check if exercises table already has data
-    const { count, error: countErr } = await supabase
+    // 1) Check if exercises table already has data — use simple select instead of head
+    const { data: existing, error: countErr } = await supabase
       .from('exercises')
-      .select('id', { count: 'exact', head: true })
+      .select('id')
+      .limit(1)
 
     if (countErr) {
-      console.error('[sync-exercises] Count error:', JSON.stringify(countErr))
-      return res.status(500).json({ error: 'Erreur lecture table exercises', details: countErr.message || JSON.stringify(countErr) })
+      console.error('[sync-exercises] Count error:', JSON.stringify(countErr, null, 2))
+      return res.status(500).json({ error: 'Erreur lecture table exercises', details: JSON.stringify(countErr) })
     }
 
-    if (count > 0) {
-      return res.status(200).json({ message: `Table deja remplie (${count} exercices)`, synced: false, count })
+    if (existing && existing.length > 0) {
+      return res.status(200).json({ message: 'Table deja remplie', synced: false })
     }
 
     // 2) Fetch from ExerciseDB
-    if (!RAPIDAPI_KEY) {
+    if (!rapidApiKey) {
       return res.status(500).json({ error: 'RAPIDAPI_KEY non configuree' })
     }
 
     console.log('[sync-exercises] Fetching from ExerciseDB...')
     const response = await fetch('https://exercisedb.p.rapidapi.com/exercises?limit=1500&offset=0', {
       headers: {
-        'x-rapidapi-key': RAPIDAPI_KEY,
-        'x-rapidapi-host': RAPIDAPI_HOST,
+        'x-rapidapi-key': rapidApiKey,
+        'x-rapidapi-host': rapidApiHost,
       },
     })
 
