@@ -369,822 +369,240 @@ const GROUP_COLORS = {
 // SPORT TAB — Catalogue + Éditeur
 // ══════════════════════════════════════
 
-function SportTab({ clientName, coachId, clientId, editingSeanceId, onSeanceSaved, onClearEditing }) {
-  const toast = useToast()
+function SportTab({ clientName, coachId, clientId }) {
+  const [loading, setLoading] = useState(true)
+  const [seances, setSeances] = useState([])
+  const [programme, setProgramme] = useState(null)
+  const [expandedSeance, setExpandedSeance] = useState(null)
 
-  // ── Bibliothèque state ──
-  const [exercices, setExercices] = useState([])
-  const [favorisIds, setFavorisIds] = useState(new Set())
-  const [loadingExos, setLoadingExos] = useState(true)
-  const [searchExo, setSearchExo] = useState('')
-  const [filtreGroupe, setFiltreGroupe] = useState('Tous')
-  const [filtreSource, setFiltreSource] = useState('Tous')
-
-  // ── Modale création exercice ──
-  const [modalCreer, setModalCreer] = useState(false)
-  const [newExo, setNewExo] = useState({ nom: '', muscle_group: '', equipment: '', description: '', muscles: '', video_url: '', gif_url: '', category: 'Musculation' })
-  const [creatingExo, setCreatingExo] = useState(false)
-
-  // ── Éditeur de séance ──
-  const [currentSeanceId, setCurrentSeanceId] = useState(null)
-  const [seanceNom, setSeanceNom] = useState(`Séance de ${clientName || 'remise en forme'}`)
-  const [seanceExercices, setSeanceExercices] = useState([])
-  const [drawerExercice, setDrawerExercice] = useState(null)
-  const [saving, setSaving] = useState(false)
-  const [loadingSeance, setLoadingSeance] = useState(false)
-
-  // ── Charger les exercices + favoris depuis Supabase ──
+  // ── Charger les séances du client ──
   useEffect(() => {
-    if (!coachId) return
+    if (!coachId || !clientId) return
     const load = async () => {
-      setLoadingExos(true)
-      const [exosRes, favsRes] = await Promise.all([
-        supabase.from('exercices').select('*').or(`coach_id.is.null,coach_id.eq.${coachId}`).order('muscle_group').order('nom'),
-        supabase.from('exercices_favoris').select('exercice_id').eq('coach_id', coachId),
-      ])
-      setExercices(exosRes.data || [])
-      setFavorisIds(new Set((favsRes.data || []).map(f => f.exercice_id)))
-      setLoadingExos(false)
-    }
-    load()
-  }, [coachId])
+      setLoading(true)
 
-  // ── Charger une séance existante quand editingSeanceId change ──
-  useEffect(() => {
-    if (!editingSeanceId) {
-      // Pas de séance à éditer → reset si on avait une séance chargée
-      if (currentSeanceId) {
-        setCurrentSeanceId(null)
-        setSeanceNom(`Séance de ${clientName || 'remise en forme'}`)
-        setSeanceExercices([])
+      // Charger le programme assigné
+      const { data: assignations } = await supabase
+        .from('programme_assignations')
+        .select('*, programmes(id, nom, description, nb_semaines)')
+        .eq('client_id', clientId)
+        .eq('coach_id', coachId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (assignations?.length > 0) {
+        setProgramme(assignations[0].programmes)
       }
-      return
-    }
-    if (editingSeanceId === currentSeanceId) return // déjà chargée
 
-    const load = async () => {
-      setLoadingSeance(true)
-      // Charger la séance
-      const { data: seance } = await supabase
+      // Charger les séances du client
+      const { data: seancesData } = await supabase
         .from('seances')
-        .select('id, titre, notes')
-        .eq('id', editingSeanceId)
-        .single()
+        .select('id, titre, date_prevue, is_completed, notes')
+        .eq('client_id', clientId)
+        .eq('coach_id', coachId)
+        .order('date_prevue', { ascending: false })
+        .limit(20)
 
-      if (seance) {
-        setCurrentSeanceId(seance.id)
-        setSeanceNom(seance.titre)
-
-        // Charger ses exercices
-        const { data: seanceExos } = await supabase
-          .from('seance_exercices')
-          .select('id, exercice_id, series, reps, poids, repos, ordre, media_url, exercices(*)')
-          .eq('seance_id', seance.id)
-          .order('ordre')
-
-        if (seanceExos && seanceExos.length > 0) {
-          // Transformer pour l'éditeur : on garde les infos de l'exercice + les params de la séance
-          const mapped = seanceExos.map(se => ({
-            ...se.exercices,
-            _seance_exercice_id: se.id,
-            series: se.series,
-            repetitions: se.reps,
-            poids: se.poids || '',
-            repos: se.repos,
-            media_url: se.media_url || '',
-          }))
-          setSeanceExercices(mapped)
-        } else {
-          setSeanceExercices([])
-        }
+      if (seancesData && seancesData.length > 0) {
+        // Pour chaque séance, charger ses exercices
+        const seancesAvecExos = await Promise.all(
+          seancesData.map(async (s) => {
+            const { data: exos } = await supabase
+              .from('seance_exercices')
+              .select('id, series, reps, poids, repos, ordre, exercices(nom, muscle_group, equipment)')
+              .eq('seance_id', s.id)
+              .order('ordre')
+            return { ...s, exercices: exos || [] }
+          })
+        )
+        setSeances(seancesAvecExos)
+        if (seancesAvecExos.length > 0) setExpandedSeance(seancesAvecExos[0].id)
       }
-      setLoadingSeance(false)
+
+      setLoading(false)
     }
     load()
-  }, [editingSeanceId])
+  }, [coachId, clientId])
 
-  // ── Toggle favori ──
-  const toggleFavori = async (exId) => {
-    const isFav = favorisIds.has(exId)
-    // Optimistic
-    setFavorisIds(prev => {
-      const next = new Set(prev)
-      isFav ? next.delete(exId) : next.add(exId)
-      return next
-    })
-    if (isFav) {
-      await supabase.from('exercices_favoris').delete().eq('coach_id', coachId).eq('exercice_id', exId)
-    } else {
-      await supabase.from('exercices_favoris').insert({ coach_id: coachId, exercice_id: exId })
-    }
+  const GROUP_COLORS_RO = {
+    Pectoraux: '#3b82f6', Dos: '#8b5cf6', Epaules: '#6366f1', Biceps: '#f59e0b',
+    Triceps: '#ef4444', Abdominaux: '#f43f5e', Jambes: '#10b981', 'Full body': '#FF6B2B',
+    Cardio: '#ec4899', Hanches: '#14b8a6', Mollets: '#84cc16',
   }
 
-  // ── Créer un exercice ──
-  const creerExercice = async (e) => {
-    e.preventDefault()
-    if (!newExo.nom.trim()) return
-    setCreatingExo(true)
-    const { data, error } = await supabase
-      .from('exercices')
-      .insert({
-        coach_id: coachId,
-        nom: newExo.nom.trim(),
-        muscle_group: newExo.muscle_group || null,
-        equipment: newExo.equipment || null,
-        description: newExo.description || null,
-        muscles: newExo.muscles ? newExo.muscles.split(',').map(m => m.trim()).filter(Boolean) : null,
-        video_url: newExo.video_url || null,
-        gif_url: newExo.gif_url || null,
-        category: newExo.category || 'Musculation',
-      })
-      .select()
-      .single()
-    if (error) {
-      toast.error('Erreur lors de la création')
-    } else {
-      setExercices(prev => [...prev, data])
-      toast.success(`"${data.nom}" ajouté à votre bibliothèque !`)
-      setModalCreer(false)
-      setNewExo({ nom: '', muscle_group: '', equipment: '', description: '', muscles: '', video_url: '', gif_url: '', category: 'Musculation' })
-    }
-    setCreatingExo(false)
-  }
-
-  // ── Filtrer la bibliothèque (recherche avancée) ──
-  const exosFiltres = exercices.filter((ex) => {
-    const q = searchExo.toLowerCase()
-    const matchSearch = !q ||
-      (ex.nom || '').toLowerCase().includes(q) ||
-      (ex.equipment || '').toLowerCase().includes(q) ||
-      (ex.muscle_group || '').toLowerCase().includes(q) ||
-      (ex.muscles || []).some(m => m.toLowerCase().includes(q))
-    const matchGroupe = filtreGroupe === 'Tous' || ex.muscle_group === filtreGroupe
-    const matchSource =
-      filtreSource === 'Tous' ? true :
-      filtreSource === 'Zevo Officiel' ? ex.coach_id === null :
-      filtreSource === 'Mes exercices' ? ex.coach_id === coachId :
-      filtreSource === 'Favoris' ? favorisIds.has(ex.id) :
-      true
-    return matchSearch && matchGroupe && matchSource
-  })
-
-  // ── Ajout / suppression / modification séance ──
-  const ajouterExercice = (ex) => {
-    if (seanceExercices.find(s => s.id === ex.id)) return
-    setSeanceExercices(prev => [...prev, { ...ex, series: 3, repetitions: 12, poids: '', repos: 60, media_url: '' }])
-  }
-  const supprimerExercice = (exId) => setSeanceExercices(prev => prev.filter(e => e.id !== exId))
-  const modifierExercice = (exId, champ, valeur) => setSeanceExercices(prev => prev.map(e => e.id === exId ? { ...e, [champ]: valeur } : e))
-
-  const sauvegarder = async () => {
-    setSaving(true)
-    try {
-      if (currentSeanceId) {
-        // ── Mode édition : mise à jour d'une séance existante ──
-        // 1. Mettre à jour le titre
-        await supabase.from('seances').update({ titre: seanceNom }).eq('id', currentSeanceId)
-
-        // 2. Supprimer tous les anciens exercices de la séance
-        await supabase.from('seance_exercices').delete().eq('seance_id', currentSeanceId)
-
-        // 3. Réinsérer les exercices avec les nouvelles valeurs
-        if (seanceExercices.length > 0) {
-          const rows = seanceExercices.map((ex, i) => ({
-            seance_id: currentSeanceId,
-            exercice_id: ex.id,
-            series: ex.series || 3,
-            reps: ex.repetitions || 12,
-            poids: ex.poids ? parseFloat(ex.poids) : null,
-            repos: ex.repos || 60,
-            ordre: i,
-            media_url: ex.media_url?.trim() || null,
-          }))
-          await supabase.from('seance_exercices').insert(rows)
-        }
-
-        toast.success(`"${seanceNom}" mis à jour (${seanceExercices.length} exercices)`)
-        if (onSeanceSaved) onSeanceSaved()
-      } else if (clientId && coachId) {
-        // ── Mode création : nouvelle séance ──
-        const { data: newSeance, error } = await supabase
-          .from('seances')
-          .insert({
-            coach_id: coachId,
-            client_id: clientId,
-            titre: seanceNom,
-            date_prevue: formatDateISO(new Date()),
-            is_template: false,
-            is_completed: false,
-          })
-          .select()
-          .single()
-
-        if (error) throw error
-
-        if (seanceExercices.length > 0) {
-          const rows = seanceExercices.map((ex, i) => ({
-            seance_id: newSeance.id,
-            exercice_id: ex.id,
-            series: ex.series || 3,
-            reps: ex.repetitions || 12,
-            poids: ex.poids ? parseFloat(ex.poids) : null,
-            repos: ex.repos || 60,
-            ordre: i,
-            media_url: ex.media_url?.trim() || null,
-          }))
-          await supabase.from('seance_exercices').insert(rows)
-        }
-
-        setCurrentSeanceId(newSeance.id)
-        toast.success(`"${seanceNom}" créée (${seanceExercices.length} exercices)`)
-        if (onSeanceSaved) onSeanceSaved()
-      } else {
-        toast.error('Client non sélectionné')
-      }
-    } catch (err) {
-      toast.error('Erreur lors de la sauvegarde')
-      console.error(err)
-    }
-    setSaving(false)
-  }
+  const totalSeries = seances.reduce((acc, s) => acc + s.exercices.reduce((a, e) => a + (e.series || 0), 0), 0)
+  const totalExercices = seances.reduce((acc, s) => acc + s.exercices.length, 0)
 
   return (
-    <div className="flex flex-col md:flex-row gap-0 md:h-[calc(100vh-16rem)] min-h-[500px]">
+    <div className="space-y-5 max-w-3xl mx-auto">
 
-      {/* ════════════════════════════════════ */}
-      {/* PANNEAU GAUCHE — Bibliothèque       */}
-      {/* ════════════════════════════════════ */}
-      <div className="w-full md:w-1/3 flex-shrink-0 glass-card !rounded-xl flex flex-col overflow-hidden max-h-[50vh] md:max-h-none">
-
-        {/* Header bibliothèque */}
-        <div className="p-4 border-b border-[var(--border-base)] space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-[var(--text-primary)] text-sm font-semibold flex items-center gap-2">
-              <Dumbbell size={14} className="text-[#FF6B2B]" />
-              Bibliothèque
-              <span className="text-[var(--text-muted)] text-[10px] font-normal ml-1">{exosFiltres.length}</span>
-            </h3>
-            <button
-              onClick={() => setModalCreer(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#FF6B2B] text-white text-[10px] font-semibold hover:bg-[#e55e24] transition-colors"
-            >
-              <Plus size={12} />
-              Créer
-            </button>
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
+            <Dumbbell size={15} className="text-[#FF6B2B]" />
           </div>
-
-          {/* Recherche avancée */}
-          <div className="relative">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-            <input
-              value={searchExo}
-              onChange={(e) => setSearchExo(e.target.value)}
-              placeholder="Nom, muscle ou équipement..."
-              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg pl-8 pr-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
-            />
-          </div>
-
-          {/* Filtre source */}
-          <div className="flex gap-1.5">
-            {SOURCES.map((s) => (
-              <button
-                key={s}
-                onClick={() => setFiltreSource(s)}
-                className={`px-2 py-1 rounded-md text-[10px] font-semibold transition-colors flex items-center gap-1 ${
-                  filtreSource === s
-                    ? 'bg-[#FF6B2B]/15 text-[#FF6B2B] border border-[#FF6B2B]/30'
-                    : 'bg-[var(--bg-surface)]/50 text-[var(--text-muted)] hover:text-[var(--text-muted)] border border-transparent'
-                }`}
-              >
-                {s === 'Favoris' && <Star size={9} className={filtreSource === s ? 'fill-[#FF6B2B]' : ''} />}
-                {s === 'Zevo Officiel' && <Sparkles size={9} />}
-                {s}
-              </button>
-            ))}
-          </div>
-
-          {/* Filtres groupes musculaires */}
-          <div className="flex gap-1 flex-wrap">
-            {MUSCLE_GROUPS.map((g) => (
-              <button
-                key={g}
-                onClick={() => setFiltreGroupe(g)}
-                className={`px-2 py-0.5 rounded text-[9px] font-semibold transition-colors ${
-                  filtreGroupe === g
-                    ? 'bg-[#FF6B2B] text-white'
-                    : 'bg-[var(--bg-surface)]/50 text-[var(--text-muted)] hover:text-[var(--text-muted)]'
-                }`}
-              >
-                {g}
-              </button>
-            ))}
-          </div>
+          <h3 className="text-[var(--text-primary)] text-base font-bold">Programme sportif</h3>
         </div>
-
-        {/* Liste des exercices */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
-          {loadingExos ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 size={20} className="animate-spin text-[#FF6B2B]" />
-            </div>
-          ) : exosFiltres.length === 0 ? (
-            <div className="text-center py-8">
-              <Dumbbell size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
-              <p className="text-[var(--text-muted)] text-xs">Aucun exercice trouvé</p>
-              {filtreSource !== 'Tous' && (
-                <button onClick={() => { setFiltreSource('Tous'); setFiltreGroupe('Tous'); setSearchExo('') }}
-                  className="text-[#FF6B2B] text-[10px] mt-2 hover:underline">Réinitialiser les filtres</button>
-              )}
-            </div>
-          ) : (
-            exosFiltres.map((ex) => {
-              const dejaAjoute = seanceExercices.some(s => s.id === ex.id)
-              const isFav = favorisIds.has(ex.id)
-              const couleur = GROUP_COLORS[ex.muscle_group] || '#6b7280'
-              const isPerso = ex.coach_id !== null
-
-              return (
-                <div
-                  key={ex.id}
-                  className="bg-[var(--bg-surface)]/30 rounded-lg p-2.5 group hover:bg-[var(--bg-surface)]/60 transition-colors"
-                >
-                  <div className="flex items-start gap-2.5">
-                    {/* Icône / GIF */}
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 cursor-pointer"
-                      style={{ backgroundColor: `${couleur}12` }}
-                      onClick={() => setDrawerExercice(ex)}
-                    >
-                      {ex.gif_url ? (
-                        <img src={ex.gif_url} alt="" className="w-full h-full rounded-lg object-cover" />
-                      ) : (
-                        <Dumbbell size={15} style={{ color: couleur }} />
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      {/* Nom cliquable */}
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => setDrawerExercice(ex)}
-                          className="text-[var(--text-primary)] text-xs font-medium hover:text-[#FF6B2B] transition-colors text-left truncate"
-                        >
-                          {ex.nom}
-                        </button>
-                        {isPerso && (
-                          <span className="text-[8px] px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold flex-shrink-0">PERSO</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[var(--text-muted)] text-[9px] bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded">{ex.equipment || '—'}</span>
-                        {ex.category && ex.category !== 'Musculation' && (
-                          <span className="text-[8px] text-[var(--text-muted)]">{ex.category}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions : Favori + Ajouter */}
-                    <div className="flex items-center gap-0.5 flex-shrink-0">
-                      <button
-                        onClick={() => toggleFavori(ex.id)}
-                        className={`p-1 rounded transition-all ${
-                          isFav ? 'text-yellow-400' : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:text-yellow-400'
-                        }`}
-                      >
-                        <Star size={12} className={isFav ? 'fill-yellow-400' : ''} />
-                      </button>
-                      <button
-                        onClick={() => ajouterExercice(ex)}
-                        disabled={dejaAjoute}
-                        className={`p-1 rounded-lg transition-all ${
-                          dejaAjoute
-                            ? 'bg-green-500/10 text-green-400 cursor-default'
-                            : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 opacity-0 group-hover:opacity-100'
-                        }`}
-                      >
-                        {dejaAjoute ? (
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        ) : (
-                          <Plus size={12} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })
-          )}
-        </div>
+        <a href="/coach/sport" className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
+          Gérer les séances →
+        </a>
       </div>
 
-      {/* ════════════════════════════════════ */}
-      {/* PANNEAU CENTRAL — Éditeur de séance */}
-      {/* ════════════════════════════════════ */}
-      <div className="flex-1 flex flex-col mt-3 md:mt-0 md:ml-4 glass-card !rounded-xl overflow-hidden">
-
-        {/* Bandeau mode édition */}
-        {currentSeanceId && (
-          <div className="px-4 py-2 bg-[#FF6B2B]/5 border-b border-[#FF6B2B]/15 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Pencil size={12} className="text-[#FF6B2B]" />
-              <span className="text-[#FF6B2B] text-[10px] font-semibold uppercase tracking-wider">Mode édition</span>
-              <span className="text-[var(--text-muted)] text-[10px]">— Séance liée au calendrier</span>
-            </div>
-            <button
-              onClick={() => { setCurrentSeanceId(null); setSeanceNom(`Séance de ${clientName || 'remise en forme'}`); setSeanceExercices([]); if (onClearEditing) onClearEditing() }}
-              className="text-[var(--text-muted)] text-[10px] hover:text-[var(--text-secondary)] transition-colors flex items-center gap-1"
-            >
-              <Plus size={10} /> Nouvelle séance
-            </button>
-          </div>
-        )}
-
-        {/* Header éditeur */}
-        <div className="p-4 border-b border-[var(--border-base)] flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${currentSeanceId ? 'bg-[#FF6B2B]/15' : 'bg-[#FF6B2B]/10'}`}>
-              {currentSeanceId ? <Pencil size={15} className="text-[#FF6B2B]" /> : <Calendar size={15} className="text-[#FF6B2B]" />}
-            </div>
-            {loadingSeance ? (
-              <div className="flex items-center gap-2">
-                <Loader2 size={14} className="animate-spin text-[#FF6B2B]" />
-                <span className="text-[var(--text-muted)] text-sm">Chargement...</span>
-              </div>
-            ) : (
-              <input
-                value={seanceNom}
-                onChange={(e) => setSeanceNom(e.target.value)}
-                className="bg-transparent border-none text-[var(--text-primary)] text-sm font-semibold focus:outline-none flex-1 min-w-0 placeholder:text-[var(--text-muted)]"
-                placeholder="Nom de la séance..."
-              />
-            )}
-          </div>
-          <button
-            onClick={sauvegarder}
-            disabled={saving || seanceExercices.length === 0 || loadingSeance}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
-          >
-            {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
-            {currentSeanceId ? 'Mettre à jour' : 'Enregistrer'}
-          </button>
+      {/* ── Loading ── */}
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
         </div>
-
-        {/* Liste d'exercices ajoutés */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {seanceExercices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full">
-              <div className="w-20 h-20 rounded-2xl bg-[var(--bg-surface)]/40 flex items-center justify-center mb-4">
-                <Plus size={28} className="text-[var(--text-muted)]" />
-              </div>
-              <p className="text-[var(--text-muted)] text-sm font-medium mb-1">Aucun exercice ajouté</p>
-              <p className="text-[var(--text-muted)] text-xs max-w-[250px] text-center">
-                Cliquez sur <span className="text-[#FF6B2B]">+</span> dans la bibliothèque pour composer votre séance
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {seanceExercices.map((ex, index) => {
-                const couleur = GROUP_COLORS[ex.muscle_group] || '#6b7280'
-                const hasMedia = !!ex.media_url?.trim()
-                return (
-                  <div key={ex.id} className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-4 group hover:border-[#FF6B2B]/20 transition-colors">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <GripVertical size={14} className="text-[var(--text-muted)]" />
-                        <span className="w-6 h-6 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center">
-                          {index + 1}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${couleur}15` }}>
-                          <Dumbbell size={14} style={{ color: couleur }} />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.nom}</p>
-                          <p className="text-[var(--text-muted)] text-[10px]">{ex.equipment || ex.equipement || '—'}</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => modifierExercice(ex.id, '_showMediaInput', !ex._showMediaInput)}
-                        className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
-                          hasMedia
-                            ? 'text-[#FF6B2B] bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/20'
-                            : 'text-[var(--text-muted)] hover:text-[var(--text-muted)] hover:bg-[var(--bg-surface)] opacity-0 group-hover:opacity-100'
-                        }`}
-                        title={hasMedia ? 'Média attaché — cliquer pour modifier' : 'Ajouter un lien vidéo/image'}
-                      >
-                        <Video size={14} />
-                      </button>
-                      <button onClick={() => supprimerExercice(ex.id)}
-                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-
-                    {/* Media URL input + Upload (toggle) */}
-                    {ex._showMediaInput && (
-                      <div className="mb-4 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 relative">
-                            <Video size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-                            <input
-                              type="url"
-                              value={ex.media_url || ''}
-                              onChange={(e) => modifierExercice(ex.id, 'media_url', e.target.value)}
-                              placeholder="Lien vidéo ou image (YouTube, mp4, jpg...)"
-                              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg pl-8 pr-3 py-2 text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
-                            />
-                          </div>
-                          {/* Upload file button */}
-                          <label
-                            className={`p-2 rounded-lg transition-colors flex-shrink-0 cursor-pointer ${
-                              ex._uploading
-                                ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] cursor-wait'
-                                : 'bg-[var(--bg-base)] border border-[var(--border-base)] text-[var(--text-muted)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30'
-                            }`}
-                            title="Uploader un fichier vidéo ou image"
-                          >
-                            {ex._uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                            <input
-                              type="file"
-                              accept="video/*,image/*"
-                              className="hidden"
-                              disabled={!!ex._uploading}
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0]
-                                if (!file) return
-                                e.target.value = ''
-
-                                // Max 50MB
-                                if (file.size > 50 * 1024 * 1024) {
-                                  toast.error('Fichier trop volumineux (max 50 Mo)')
-                                  return
-                                }
-
-                                modifierExercice(ex.id, '_uploading', true)
-                                try {
-                                  const ext = file.name.split('.').pop()?.toLowerCase() || 'bin'
-                                  const path = `exercices/${coachId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-
-                                  const { error: uploadErr } = await supabase.storage
-                                    .from('medias')
-                                    .upload(path, file, { cacheControl: '3600', upsert: false })
-
-                                  if (uploadErr) throw uploadErr
-
-                                  const { data: urlData } = supabase.storage
-                                    .from('medias')
-                                    .getPublicUrl(path)
-
-                                  modifierExercice(ex.id, 'media_url', urlData.publicUrl)
-                                  toast.success(`"${file.name}" uploadé !`)
-                                } catch (err) {
-                                  console.error('[Upload] Erreur:', err.message || err)
-                                  toast.error(`Erreur upload : ${err.message || 'Erreur inconnue'}`)
-                                } finally {
-                                  modifierExercice(ex.id, '_uploading', false)
-                                }
-                              }}
-                            />
-                          </label>
-                          {hasMedia && (
-                            <button
-                              onClick={() => modifierExercice(ex.id, 'media_url', '')}
-                              className="p-1.5 rounded-lg text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors flex-shrink-0"
-                              title="Supprimer le média"
-                            >
-                              <X size={14} />
-                            </button>
-                          )}
-                        </div>
-                        {/* Preview thumbnail si média attaché */}
-                        {hasMedia && /\.(jpg|jpeg|png|gif|webp|svg|avif)(\?.*)?$/i.test(ex.media_url) && (
-                          <div className="rounded-lg overflow-hidden border border-[var(--border-base)] h-20">
-                            <img src={ex.media_url} alt="" className="w-full h-full object-cover" />
-                          </div>
-                        )}
-                        {hasMedia && /\.(mp4|webm|mov)(\?.*)?$/i.test(ex.media_url) && (
-                          <div className="rounded-lg overflow-hidden border border-[var(--border-base)] h-20 bg-black">
-                            <video src={ex.media_url} className="w-full h-full object-contain" muted />
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {[
-                        { key: 'series', label: 'Séries', val: ex.series },
-                        { key: 'repetitions', label: 'Répétitions', val: ex.repetitions },
-                        { key: 'poids', label: 'Poids (kg)', val: ex.poids, placeholder: '—' },
-                        { key: 'repos', label: 'Repos (s)', val: ex.repos },
-                      ].map(f => (
-                        <div key={f.key}>
-                          <label className="block text-[var(--text-muted)] text-[10px] uppercase tracking-wider mb-1.5">{f.label}</label>
-                          <input type="number" value={f.val}
-                            onChange={(e) => modifierExercice(ex.id, f.key, f.key === 'poids' ? e.target.value : (parseInt(e.target.value) || 0))}
-                            placeholder={f.placeholder}
-                            className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm text-center font-medium placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-              <div className="flex items-center justify-between py-3 px-4 bg-[var(--bg-surface)]/30 rounded-lg mt-2">
-                <span className="text-[var(--text-muted)] text-xs">
-                  {seanceExercices.length} exercice{seanceExercices.length > 1 ? 's' : ''} · {seanceExercices.reduce((a, e) => a + (e.series || 0), 0)} séries au total
-                </span>
-                <span className="text-[var(--text-muted)] text-[10px]">
-                  ~{Math.round(seanceExercices.reduce((a, e) => a + (e.series || 0) * ((e.repos || 60) + 40), 0) / 60)} min estimées
-                </span>
-              </div>
-            </div>
-          )}
+      ) : seances.length === 0 ? (
+        /* ── Aucune séance ── */
+        <div className="glass-card rounded-2xl p-10 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+          <Dumbbell size={36} className="text-[var(--text-muted)] mx-auto mb-3" />
+          <h3 className="text-[var(--text-primary)] text-base font-bold mb-1">Aucune séance</h3>
+          <p className="text-[var(--text-muted)] text-xs mb-5 max-w-xs mx-auto">
+            Créez des séances pour {clientName} depuis la page Sport pour les voir ici
+          </p>
+          <a href="/coach/sport"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-xs font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
+            <Plus size={13} /> Créer une séance
+          </a>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-4">
 
-      {/* ════════════════════════════════════ */}
-      {/* TIROIR DROIT — Détails exercice     */}
-      {/* ════════════════════════════════════ */}
-      {drawerExercice && (
-        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setDrawerExercice(null)} />
-      )}
-      <div className={`fixed top-0 right-0 z-50 h-full w-[400px] max-w-[90vw] bg-[var(--bg-elevated)] border-l border-[var(--border-base)] flex flex-col transition-transform duration-300 ease-out ${drawerExercice ? 'translate-x-0' : 'translate-x-full'}`}>
-        {drawerExercice && (() => {
-          const couleur = GROUP_COLORS[drawerExercice.muscle_group] || '#6b7280'
-          const muscles = drawerExercice.muscles || []
-          const isFav = favorisIds.has(drawerExercice.id)
-          return (
-            <>
-              <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
-                <h3 className="text-[var(--text-primary)] font-semibold text-base">Détails de l'exercice</h3>
-                <div className="flex items-center gap-1.5">
-                  <button onClick={() => toggleFavori(drawerExercice.id)}
-                    className={`p-1.5 rounded-lg transition-colors ${isFav ? 'text-yellow-400' : 'text-[var(--text-muted)] hover:text-yellow-400'}`}>
-                    <Star size={16} className={isFav ? 'fill-yellow-400' : ''} />
-                  </button>
-                  <button onClick={() => setDrawerExercice(null)}
-                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
-                    <X size={18} />
-                  </button>
-                </div>
-              </div>
-              <div className="flex-1 overflow-y-auto p-5 space-y-5">
-                {/* Video / GIF / Placeholder */}
-                {drawerExercice.video_url ? (
-                  <div className="w-full aspect-video rounded-xl overflow-hidden bg-black">
-                    <iframe src={drawerExercice.video_url} className="w-full h-full" allowFullScreen title={drawerExercice.nom}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
-                  </div>
-                ) : drawerExercice.gif_url ? (
-                  <img src={drawerExercice.gif_url} alt={drawerExercice.nom} className="w-full aspect-video rounded-xl object-cover" />
-                ) : (
-                  <div className="w-full aspect-video rounded-xl flex items-center justify-center" style={{ backgroundColor: `${couleur}10` }}>
-                    <div className="text-center">
-                      <Dumbbell size={48} style={{ color: couleur }} className="mx-auto mb-2 opacity-40" />
-                      <p className="text-[var(--text-muted)] text-xs">Démonstration</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Nom + meta */}
+          {/* ── Programme header (si existant) ── */}
+          {programme && (
+            <div className="glass-card rounded-2xl p-4 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+              <div className="flex items-center justify-between">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-[var(--text-primary)] text-xl font-bold">{drawerExercice.nom}</h4>
-                    {drawerExercice.coach_id === null && (
-                      <span className="text-[8px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-bold">ZEVO</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <span className="text-[var(--text-muted)] text-xs bg-[var(--bg-surface)] px-2.5 py-1 rounded-md">{drawerExercice.equipment || '—'}</span>
-                    <span className="text-[var(--text-muted)] text-xs">{drawerExercice.muscle_group}</span>
-                    {drawerExercice.category && (
-                      <span className="text-[9px] px-2 py-0.5 rounded bg-[var(--bg-surface)]/60 text-[var(--text-muted)]">{drawerExercice.category}</span>
-                    )}
-                  </div>
+                  <h3 className="text-[var(--text-primary)] text-base font-bold">{programme.nom}</h3>
+                  <p className="text-[var(--text-muted)] text-[11px] mt-0.5">
+                    {programme.description || `Programme ${programme.nb_semaines || '—'} semaines`}
+                  </p>
                 </div>
+                <span className="px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold">
+                  Actif
+                </span>
+              </div>
+            </div>
+          )}
 
-                {/* Muscles ciblés */}
-                {muscles.length > 0 && (
-                  <div>
-                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-semibold mb-2">Muscles ciblés</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {muscles.map((m) => (
-                        <span key={m} className="text-xs px-2.5 py-1 rounded-md bg-purple-500/15 text-purple-400 font-medium">{m}</span>
-                      ))}
+          {/* ── Stats résumé ── */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="glass-card rounded-xl p-3 text-center">
+              <p className="text-lg font-extrabold text-[#FF6B2B]">{seances.length}</p>
+              <p className="text-[var(--text-muted)] text-[10px] mt-0.5">Séance{seances.length > 1 ? 's' : ''}</p>
+            </div>
+            <div className="glass-card rounded-xl p-3 text-center">
+              <p className="text-lg font-extrabold text-[var(--text-primary)]">{totalExercices}</p>
+              <p className="text-[var(--text-muted)] text-[10px] mt-0.5">Exercices</p>
+            </div>
+            <div className="glass-card rounded-xl p-3 text-center">
+              <p className="text-lg font-extrabold text-[var(--text-primary)]">{totalSeries}</p>
+              <p className="text-[var(--text-muted)] text-[10px] mt-0.5">Séries totales</p>
+            </div>
+          </div>
+
+          {/* ── Liste des séances ── */}
+          {seances.map((seance) => {
+            const isExpanded = expandedSeance === seance.id
+            const nbExos = seance.exercices.length
+            const nbSeries = seance.exercices.reduce((a, e) => a + (e.series || 0), 0)
+            const estMinutes = Math.round(seance.exercices.reduce((a, e) => a + (e.series || 0) * ((e.repos || 60) + 40), 0) / 60)
+
+            return (
+              <div key={seance.id} className="glass-card rounded-2xl overflow-hidden relative">
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+
+                {/* Seance header — cliquable */}
+                <button
+                  onClick={() => setExpandedSeance(isExpanded ? null : seance.id)}
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[var(--bg-surface)]/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+                      <Dumbbell size={16} className="text-[#FF6B2B]" />
+                    </div>
+                    <div>
+                      <h4 className="text-[var(--text-primary)] text-sm font-bold">{seance.titre || 'Séance'}</h4>
+                      <p className="text-[var(--text-muted)] text-[10px] mt-0.5 flex items-center gap-2">
+                        <span>{nbExos} exercice{nbExos > 1 ? 's' : ''}</span>
+                        <span>·</span>
+                        <span>{nbSeries} séries</span>
+                        <span>·</span>
+                        <span>~{estMinutes} min</span>
+                      </p>
                     </div>
                   </div>
-                )}
+                  <div className="flex items-center gap-2">
+                    {seance.is_completed && (
+                      <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[9px] font-bold">Terminée</span>
+                    )}
+                    {seance.date_prevue && (
+                      <span className="text-[var(--text-muted)] text-[10px]">
+                        {new Date(seance.date_prevue).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                      </span>
+                    )}
+                    <ChevronDownIcon size={14} className={`text-[var(--text-muted)] transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                  </div>
+                </button>
 
-                {/* Description */}
-                {drawerExercice.description && (
-                  <div>
-                    <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-semibold mb-2">Consignes d'exécution</p>
-                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed">{drawerExercice.description}</p>
+                {/* Exercices détaillés (accordéon) */}
+                {isExpanded && nbExos > 0 && (
+                  <div className="border-t border-[var(--border-base)] divide-y divide-[var(--border-base)]">
+                    {seance.exercices.map((se, idx) => {
+                      const exo = se.exercices || {}
+                      const couleur = GROUP_COLORS_RO[exo.muscle_group] || '#6b7280'
+                      return (
+                        <div key={se.id} className="px-4 py-3 flex items-center gap-3">
+                          <span className="w-6 h-6 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                            {idx + 1}
+                          </span>
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${couleur}15` }}>
+                            <Dumbbell size={12} style={{ color: couleur }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[var(--text-primary)] text-xs font-medium truncate">{exo.nom || '—'}</p>
+                            <p className="text-[var(--text-muted)] text-[9px]">{exo.equipment || '—'}</p>
+                          </div>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            <div className="text-center">
+                              <p className="text-[var(--text-primary)] text-xs font-bold">{se.series || '—'}</p>
+                              <p className="text-[var(--text-muted)] text-[8px] uppercase">Séries</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-[var(--text-primary)] text-xs font-bold">{se.reps || '—'}</p>
+                              <p className="text-[var(--text-muted)] text-[8px] uppercase">Reps</p>
+                            </div>
+                            {se.poids && (
+                              <div className="text-center">
+                                <p className="text-[var(--text-primary)] text-xs font-bold">{se.poids}kg</p>
+                                <p className="text-[var(--text-muted)] text-[8px] uppercase">Poids</p>
+                              </div>
+                            )}
+                            <div className="text-center">
+                              <p className="text-[var(--text-primary)] text-xs font-bold">{se.repos || '—'}s</p>
+                              <p className="text-[var(--text-muted)] text-[8px] uppercase">Repos</p>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
 
-                {/* Bouton ajouter */}
-                <button
-                  onClick={() => { ajouterExercice(drawerExercice); setDrawerExercice(null) }}
-                  disabled={seanceExercices.some(s => s.id === drawerExercice.id)}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  {seanceExercices.some(s => s.id === drawerExercice.id) ? (
-                    <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Déjà dans la séance</>
-                  ) : (
-                    <><Plus size={15} /> Ajouter à la séance</>
-                  )}
-                </button>
+                {isExpanded && nbExos === 0 && (
+                  <div className="border-t border-[var(--border-base)] p-4 text-center">
+                    <p className="text-[var(--text-muted)] text-xs">Aucun exercice dans cette séance</p>
+                  </div>
+                )}
               </div>
-            </>
-          )
-        })()}
-      </div>
-
-      {/* ════════════════════════════════════ */}
-      {/* MODALE — Créer un exercice          */}
-      {/* ════════════════════════════════════ */}
-      <Modal isOpen={modalCreer} onClose={() => setModalCreer(false)} title="Créer un exercice">
-        <form onSubmit={creerExercice} className="space-y-3">
-          <div>
-            <label className="block text-sm text-[var(--text-secondary)] mb-1">Nom de l'exercice *</label>
-            <input type="text" value={newExo.nom} onChange={(e) => setNewExo(p => ({ ...p, nom: e.target.value }))}
-              placeholder="Ex: Squat Gobelet" required autoFocus
-              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm text-[var(--text-secondary)] mb-1">Groupe musculaire</label>
-              <select value={newExo.muscle_group} onChange={(e) => setNewExo(p => ({ ...p, muscle_group: e.target.value }))}
-                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors">
-                <option value="">— Sélectionner —</option>
-                {MUSCLE_GROUPS.filter(g => g !== 'Tous').map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm text-[var(--text-secondary)] mb-1">Catégorie</label>
-              <select value={newExo.category} onChange={(e) => setNewExo(p => ({ ...p, category: e.target.value }))}
-                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors">
-                {EXERCISE_CATEGORIES.filter(c => c !== 'Tous').map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm text-[var(--text-secondary)] mb-1">Équipement</label>
-            <input type="text" value={newExo.equipment} onChange={(e) => setNewExo(p => ({ ...p, equipment: e.target.value }))}
-              placeholder="Ex: Haltères, Barre, Poids du corps..."
-              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
-          </div>
-
-          <div>
-            <label className="block text-sm text-[var(--text-secondary)] mb-1">Muscles ciblés <span className="text-[var(--text-muted)]">(séparés par des virgules)</span></label>
-            <input type="text" value={newExo.muscles} onChange={(e) => setNewExo(p => ({ ...p, muscles: e.target.value }))}
-              placeholder="Quadriceps, Fessiers, Ischio-jambiers"
-              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
-          </div>
-
-          <div>
-            <label className="block text-sm text-[var(--text-secondary)] mb-1">Description / Consignes</label>
-            <textarea value={newExo.description} onChange={(e) => setNewExo(p => ({ ...p, description: e.target.value }))}
-              rows={3} placeholder="Décrivez l'exécution du mouvement..."
-              className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors resize-none" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm text-[var(--text-secondary)] mb-1 flex items-center gap-1.5">
-                <Video size={13} className="text-[#FF6B2B]" /> URL Vidéo
-              </label>
-              <input type="url" value={newExo.video_url} onChange={(e) => setNewExo(p => ({ ...p, video_url: e.target.value }))}
-                placeholder="https://youtube.com/..."
-                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
-            </div>
-            <div>
-              <label className="block text-sm text-[var(--text-secondary)] mb-1 flex items-center gap-1.5">
-                <PlayCircle size={13} className="text-[#FF6B2B]" /> URL GIF
-              </label>
-              <input type="url" value={newExo.gif_url} onChange={(e) => setNewExo(p => ({ ...p, gif_url: e.target.value }))}
-                placeholder="https://exemple.com/demo.gif"
-                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B] transition-colors" />
-            </div>
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <button type="button" onClick={() => setModalCreer(false)}
-              className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] transition-colors">
-              Annuler
-            </button>
-            <button type="submit" disabled={creatingExo}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
-              {creatingExo ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
-              Créer l'exercice
-            </button>
-          </div>
-        </form>
-      </Modal>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -5980,7 +5398,6 @@ export default function CoachClientHub() {
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [recherche, setRecherche] = useState('')
   const [activeTab, setActiveTab] = useState('overview')
-  const [editingSeanceId, setEditingSeanceId] = useState(null)
   const [openProgramme, setOpenProgramme] = useState(null) // programme object to open in Sport tab
 
   // Stats du client sélectionné
@@ -7007,9 +6424,6 @@ export default function CoachClientHub() {
                   clientName={fullName}
                   coachId={user?.id}
                   clientId={selectedId}
-                  editingSeanceId={editingSeanceId}
-                  onSeanceSaved={() => {}}
-                  onClearEditing={() => setEditingSeanceId(null)}
                 />
               )
             )}
