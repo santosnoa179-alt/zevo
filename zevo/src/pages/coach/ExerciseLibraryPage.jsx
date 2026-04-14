@@ -76,8 +76,51 @@ const TARGET_LABELS = {
   'upper back': 'Haut du dos',
 }
 
+// Map combinée pour muscles secondaires (noms variés dans ExerciseDB)
+const MUSCLE_LABELS = {
+  ...TARGET_LABELS,
+  ...BODY_PART_LABELS,
+  chest: 'Poitrine',
+  shoulders: 'Epaules',
+  'upper arms': 'Bras',
+  'lower arms': 'Avant-bras',
+  'lower legs': 'Mollets',
+  'upper legs': 'Cuisses',
+  'anterior deltoid': 'Deltoides anterieurs',
+  'lateral deltoid': 'Deltoides lateraux',
+  'posterior deltoid': 'Deltoides posterieurs',
+  'sternal head': 'Faisceau sternal',
+  'clavicular head': 'Faisceau claviculaire',
+  'long head': 'Longue portion',
+  'short head': 'Courte portion',
+  'inner thigh': 'Interieur cuisse',
+  'outer thigh': 'Exterieur cuisse',
+  'hip flexors': 'Flechisseurs hanche',
+  'lower back': 'Lombaires',
+  'upper back': 'Haut du dos',
+  core: 'Gainage',
+  obliques: 'Obliques',
+  'rotator cuff': 'Coiffe des rotateurs',
+  rhomboids: 'Rhomboides',
+  'tensor fasciae latae': 'Tenseur fascia lata',
+  brachialis: 'Brachial',
+  brachioradialis: 'Brachio-radial',
+  infraspinatus: 'Infra-epineux',
+  teres: 'Petit rond',
+  'teres major': 'Grand rond',
+  'teres minor': 'Petit rond',
+  soleus: 'Soleaire',
+  gastrocnemius: 'Gastrocnemien',
+  sartorius: 'Couturier',
+  gracilis: 'Gracile',
+  plantaris: 'Plantaire',
+  piriformis: 'Piriforme',
+  'wrist extensors': 'Extenseurs poignet',
+  'wrist flexors': 'Flechisseurs poignet',
+}
+
 function translate(key, map) {
-  return map[key] || key?.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || '—'
+  return map[key] || MUSCLE_LABELS[key] || key?.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || '—'
 }
 
 export default function ExerciseLibraryPage() {
