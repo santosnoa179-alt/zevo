@@ -347,7 +347,7 @@ export default function ExerciseLibraryPage() {
     setLoading(false)
   }
 
-  // ── Batch translate via DeepL ──
+  // ── Batch translate via OpenAI ──
   const triggerTranslate = async () => {
     setTranslating(true)
     setTranslateError(null)
@@ -361,7 +361,7 @@ export default function ExerciseLibraryPage() {
         Authorization: `Bearer ${session?.access_token}`,
       }
 
-      const BATCH_SIZE = 20
+      const BATCH_SIZE = 10
       let hasMore = true
       let totalDone = 0
       let total = 0

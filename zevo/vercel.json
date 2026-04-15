@@ -1,4 +1,8 @@
 {
+  "functions": {
+    "api/sync-exercises.js": { "maxDuration": 60 },
+    "api/exercise-gif.js": { "maxDuration": 30 }
+  },
   "rewrites": [
     { "source": "/((?!assets|favicon|manifest|icons|screenshots|sw|sitemap|robots).*)", "destination": "/index.html" }
   ],
