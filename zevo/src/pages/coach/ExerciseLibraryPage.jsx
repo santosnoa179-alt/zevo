@@ -165,6 +165,9 @@ export default function ExerciseLibraryPage() {
 
   // Modal
   const [selectedExercise, setSelectedExercise] = useState(null)
+  const [gifUrl, setGifUrl] = useState(null)
+  const [gifLoading, setGifLoading] = useState(false)
+  const [gifError, setGifError] = useState(false)
 
   // ── Load exercises from Supabase ──
   const loadExercises = useCallback(async () => {
@@ -268,6 +271,58 @@ export default function ExerciseLibraryPage() {
 
   // Reset page when filters change
   useEffect(() => { setPage(1) }, [search, bodyPartFilter, equipmentFilter, targetFilter])
+
+  // ── Load GIF on demand when modal opens ──
+  useEffect(() => {
+    if (!selectedExercise) {
+      setGifUrl(null)
+      setGifLoading(false)
+      setGifError(false)
+      return
+    }
+
+    // Si deja dispo -> affiche direct
+    if (selectedExercise.gif_url) {
+      setGifUrl(selectedExercise.gif_url)
+      setGifLoading(false)
+      setGifError(false)
+      return
+    }
+
+    // Sinon -> fetch via proxy
+    let cancelled = false
+    const loadGif = async () => {
+      setGifLoading(true)
+      setGifError(false)
+      setGifUrl(null)
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch('/api/exercise-gif', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ exerciseId: selectedExercise.id }),
+        })
+        const json = await res.json()
+        if (cancelled) return
+        if (!res.ok || !json.url) {
+          setGifError(true)
+        } else {
+          setGifUrl(json.url)
+          // Update local state pour que le prochain ouvrage affiche direct
+          setExercises(prev => prev.map(e => e.id === selectedExercise.id ? { ...e, gif_url: json.url } : e))
+        }
+      } catch (err) {
+        if (!cancelled) setGifError(true)
+      } finally {
+        if (!cancelled) setGifLoading(false)
+      }
+    }
+    loadGif()
+    return () => { cancelled = true }
+  }, [selectedExercise])
 
   const activeFilterCount = [bodyPartFilter, equipmentFilter, targetFilter].filter(Boolean).length
 
@@ -614,32 +669,66 @@ export default function ExerciseLibraryPage() {
               <X size={16} />
             </button>
 
-            {/* Modal header with icon */}
+            {/* Modal header with GIF or icon fallback */}
             {(() => {
               const mbp = BODY_PART_ICONS[selectedExercise.body_part] || { icon: Dumbbell, color: '#FF6B2B' }
               const MIcon = mbp.icon
               const mdiff = DIFFICULTY_LABELS[selectedExercise.difficulty]
+              const showGif = gifUrl && !gifError
               return (
-                <div className="relative h-40 bg-[var(--bg-base)] flex items-center justify-center overflow-hidden rounded-t-3xl">
+                <div className="relative h-64 bg-[var(--bg-base)] flex items-center justify-center overflow-hidden rounded-t-3xl">
+                  {/* Background glow */}
                   <div
                     className="absolute inset-0 opacity-10"
                     style={{ background: `radial-gradient(circle at center, ${mbp.color} 0%, transparent 70%)` }}
                   />
-                  <div
-                    className="relative w-20 h-20 rounded-3xl flex items-center justify-center"
-                    style={{ background: `${mbp.color}15` }}
-                  >
-                    <MIcon size={36} style={{ color: mbp.color }} />
-                  </div>
+
+                  {/* GIF si dispo */}
+                  {showGif && (
+                    <img
+                      src={gifUrl}
+                      alt={selectedExercise.name}
+                      className="relative max-h-full max-w-full object-contain"
+                      onError={() => setGifError(true)}
+                    />
+                  )}
+
+                  {/* Loader */}
+                  {gifLoading && (
+                    <div className="relative flex flex-col items-center gap-3">
+                      <div
+                        className="w-20 h-20 rounded-3xl flex items-center justify-center animate-pulse"
+                        style={{ background: `${mbp.color}15` }}
+                      >
+                        <Loader2 size={28} className="animate-spin" style={{ color: mbp.color }} />
+                      </div>
+                      <p className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+                        Chargement du GIF...
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Fallback icone (si pas de GIF et pas de loading) */}
+                  {!showGif && !gifLoading && (
+                    <div
+                      className="relative w-20 h-20 rounded-3xl flex items-center justify-center"
+                      style={{ background: `${mbp.color}15` }}
+                    >
+                      <MIcon size={36} style={{ color: mbp.color }} />
+                    </div>
+                  )}
+
+                  {/* Difficulty badge */}
                   {mdiff && (
                     <span
-                      className="absolute top-4 left-4 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg"
-                      style={{ background: `${mdiff.color}15`, color: mdiff.color }}
+                      className="absolute top-4 left-4 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg backdrop-blur-md z-10"
+                      style={{ background: `${mdiff.color}25`, color: mdiff.color }}
                     >
                       {mdiff.label}
                     </span>
                   )}
-                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[var(--bg-card)] to-transparent" />
+
+                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[var(--bg-card)] to-transparent pointer-events-none" />
                 </div>
               )
             })()}
