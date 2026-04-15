@@ -6,7 +6,7 @@ import {
   Dumbbell, Target, Layers, Info,
   SlidersHorizontal, RotateCcw, Zap,
   ArrowUpDown, Heart, Footprints, Hand, CircleDot,
-  Activity, Crown, Shield, Languages
+  Activity, Crown, Shield, Languages, Download
 } from 'lucide-react'
 
 const PER_PAGE = 12
@@ -275,6 +275,14 @@ export default function ExerciseLibraryPage() {
   const [translateDone, setTranslateDone] = useState(0)
   const [translateError, setTranslateError] = useState(null)
 
+  // GIF preloading
+  const [preloading, setPreloading] = useState(false)
+  const [preloadProgress, setPreloadProgress] = useState(0)
+  const [preloadTotal, setPreloadTotal] = useState(0)
+  const [preloadDone, setPreloadDone] = useState(0)
+  const [preloadError, setPreloadError] = useState(null)
+  const preloadCancelRef = useRef(false)
+
   // ── Load exercises from Supabase ──
   const loadExercises = useCallback(async () => {
     setLoading(true)
@@ -400,6 +408,85 @@ export default function ExerciseLibraryPage() {
       setTranslateError(err.message)
     }
     setTranslating(false)
+  }
+
+  // ── Batch preload GIFs (cache all missing GIFs in Supabase Storage) ──
+  const triggerPreloadGifs = async () => {
+    if (preloading) {
+      // Cancel
+      preloadCancelRef.current = true
+      return
+    }
+
+    setPreloading(true)
+    setPreloadError(null)
+    setPreloadDone(0)
+    setPreloadProgress(0)
+    preloadCancelRef.current = false
+
+    try {
+      // Find exercises that don't have a cached Supabase Storage URL yet
+      const STORAGE_PATTERN = '/storage/v1/object/public/exercise-gifs/'
+      const needPreload = exercises.filter(e =>
+        !e.gif_url || !e.gif_url.includes(STORAGE_PATTERN)
+      )
+
+      if (needPreload.length === 0) {
+        setPreloadTotal(0)
+        setPreloadProgress(100)
+        setPreloading(false)
+        return
+      }
+
+      setPreloadTotal(needPreload.length)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token}`,
+      }
+
+      // Process with concurrency 3 (gentle on RapidAPI rate limits)
+      const CONCURRENCY = 3
+      let done = 0
+      let failed = 0
+
+      for (let i = 0; i < needPreload.length; i += CONCURRENCY) {
+        if (preloadCancelRef.current) break
+
+        const chunk = needPreload.slice(i, i + CONCURRENCY)
+        const results = await Promise.allSettled(
+          chunk.map(ex =>
+            fetch('/api/exercise-gif', {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ exerciseId: ex.id, resolution: 180 }),
+            }).then(r => r.ok ? r.json() : Promise.reject(r.status))
+          )
+        )
+
+        results.forEach(r => {
+          if (r.status === 'fulfilled') done++
+          else failed++
+        })
+
+        const totalProcessed = done + failed
+        setPreloadDone(done)
+        setPreloadProgress(Math.round((totalProcessed / needPreload.length) * 100))
+      }
+
+      // Reload exercises to get updated gif_url
+      const { data } = await supabase.from('exercises').select('*').order('name')
+      setExercises(data || [])
+
+      if (failed > 0) {
+        setPreloadError(`${failed} GIFs n'ont pas pu etre charges (rate limit ou quota RapidAPI ?)`)
+      }
+    } catch (err) {
+      setPreloadError(err.message)
+    }
+    setPreloading(false)
+    preloadCancelRef.current = false
   }
 
   useEffect(() => {
@@ -571,17 +658,43 @@ export default function ExerciseLibraryPage() {
           </div>
         </div>
 
-        {/* Bouton traduction */}
-        {!translating && (
-          <button
-            onClick={triggerTranslate}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-base)] bg-[var(--bg-card)] text-[var(--text-secondary)] text-sm font-semibold hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B] transition-all"
-            title="Traduire tous les exercices en francais via DeepL"
-          >
-            <Languages size={15} />
-            Traduire
-          </button>
-        )}
+        {/* Boutons actions */}
+        <div className="flex items-center gap-2">
+          {!translating && !preloading && (
+            <button
+              onClick={triggerTranslate}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-base)] bg-[var(--bg-card)] text-[var(--text-secondary)] text-sm font-semibold hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B] transition-all"
+              title="Traduire tous les exercices en francais via OpenAI"
+            >
+              <Languages size={15} />
+              Traduire
+            </button>
+          )}
+
+          {!translating && (
+            <button
+              onClick={triggerPreloadGifs}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                preloading
+                  ? 'border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                  : 'border-[var(--border-base)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]'
+              }`}
+              title={preloading ? 'Arreter le prechargement' : 'Precharger tous les GIFs manquants'}
+            >
+              {preloading ? (
+                <>
+                  <X size={15} />
+                  Arreter
+                </>
+              ) : (
+                <>
+                  <Download size={15} />
+                  Precharger GIFs
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Translation progress */}
@@ -612,6 +725,37 @@ export default function ExerciseLibraryPage() {
           <Info size={16} />
           {translateError}
           <button onClick={triggerTranslate} className="ml-auto text-xs font-bold underline">Reessayer</button>
+        </div>
+      )}
+
+      {/* Preload GIFs progress */}
+      {preloading && (
+        <div className="mb-4 p-4 rounded-xl border border-[#FF6B2B]/20 bg-[#FF6B2B]/5">
+          <div className="flex items-center gap-3 mb-3">
+            <Loader2 size={16} className="text-[#FF6B2B] animate-spin" />
+            <p className="text-sm font-bold text-[var(--text-primary)]">
+              Prechargement des GIFs en cours...
+            </p>
+            <span className="ml-auto text-sm font-bold text-[#FF6B2B]">{preloadProgress}%</span>
+          </div>
+          <div className="h-2 w-full bg-[var(--bg-surface)] rounded-full overflow-hidden mb-2">
+            <div
+              className="h-full bg-[#FF6B2B] rounded-full transition-all duration-300"
+              style={{ width: `${preloadProgress}%` }}
+            />
+          </div>
+          <p className="text-xs text-[var(--text-muted)]">
+            {preloadDone} / {preloadTotal} GIFs charges dans Supabase Storage
+          </p>
+        </div>
+      )}
+
+      {/* Preload error */}
+      {preloadError && (
+        <div className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
+          <Info size={16} />
+          {preloadError}
+          <button onClick={triggerPreloadGifs} className="ml-auto text-xs font-bold underline">Reessayer</button>
         </div>
       )}
 
