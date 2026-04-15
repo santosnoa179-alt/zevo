@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import {
@@ -143,6 +143,105 @@ const DIFFICULTY_LABELS = {
   beginner: { label: 'Debutant', color: '#10B981' },
   intermediate: { label: 'Intermediaire', color: '#F59E0B' },
   expert: { label: 'Expert', color: '#EF4444' },
+}
+
+// ── Card image avec lazy loading GIF via IntersectionObserver ──
+function ExerciseCardImage({ exercise, bpIcon, onGifLoaded }) {
+  const [gif, setGif] = useState(exercise.gif_url || null)
+  const [loading, setLoading] = useState(false)
+  const [errored, setErrored] = useState(false)
+  const ref = useRef(null)
+  const fetchedRef = useRef(false)
+  const IconComp = bpIcon.icon
+
+  useEffect(() => {
+    if (exercise.gif_url) {
+      setGif(exercise.gif_url)
+      return
+    }
+    if (fetchedRef.current) return
+
+    const el = ref.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      async (entries) => {
+        const entry = entries[0]
+        if (!entry.isIntersecting || fetchedRef.current) return
+        fetchedRef.current = true
+        observer.disconnect()
+
+        setLoading(true)
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          const res = await fetch('/api/exercise-gif', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({ exerciseId: exercise.id }),
+          })
+          const json = await res.json()
+          if (res.ok && json.url) {
+            setGif(json.url)
+            if (onGifLoaded) onGifLoaded(exercise.id, json.url)
+          } else {
+            setErrored(true)
+          }
+        } catch (err) {
+          setErrored(true)
+        } finally {
+          setLoading(false)
+        }
+      },
+      { rootMargin: '200px' }
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [exercise.id, exercise.gif_url, onGifLoaded])
+
+  return (
+    <div ref={ref} className="relative h-32 bg-[var(--bg-base)] overflow-hidden flex items-center justify-center">
+      {/* Background glow */}
+      <div
+        className="absolute inset-0 opacity-[0.06] group-hover:opacity-[0.12] transition-opacity duration-500"
+        style={{ background: `radial-gradient(circle at center, ${bpIcon.color} 0%, transparent 70%)` }}
+      />
+
+      {/* GIF si dispo */}
+      {gif && !errored && (
+        <img
+          src={gif}
+          alt={exercise.name}
+          loading="lazy"
+          className="relative max-h-full max-w-full object-contain transition-transform group-hover:scale-105 duration-500"
+          onError={() => setErrored(true)}
+        />
+      )}
+
+      {/* Loader */}
+      {loading && !gif && (
+        <div
+          className="relative w-14 h-14 rounded-2xl flex items-center justify-center animate-pulse"
+          style={{ background: `${bpIcon.color}15` }}
+        >
+          <Loader2 size={20} className="animate-spin" style={{ color: bpIcon.color }} />
+        </div>
+      )}
+
+      {/* Fallback icone */}
+      {!gif && !loading && (
+        <div
+          className="relative w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+          style={{ background: `${bpIcon.color}15` }}
+        >
+          <IconComp size={28} style={{ color: bpIcon.color }} />
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function ExerciseLibraryPage() {
@@ -540,7 +639,6 @@ export default function ExerciseLibraryPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {paginated.map((ex) => {
             const bpIcon = BODY_PART_ICONS[ex.body_part] || { icon: Dumbbell, color: '#FF6B2B' }
-            const IconComp = bpIcon.icon
             const diff = DIFFICULTY_LABELS[ex.difficulty]
 
             return (
@@ -549,31 +647,26 @@ export default function ExerciseLibraryPage() {
                 onClick={() => setSelectedExercise(ex)}
                 className="group rounded-2xl border border-[var(--border-base)] bg-[var(--bg-card)] overflow-hidden text-left transition-all duration-300 hover:border-[#FF6B2B]/30 hover:shadow-lg hover:shadow-[#FF6B2B]/5 hover:scale-[1.02] active:scale-[0.98]"
               >
-                {/* Visual header */}
-                <div className="relative h-32 bg-[var(--bg-base)] overflow-hidden flex items-center justify-center">
-                  {/* Background glow */}
-                  <div
-                    className="absolute inset-0 opacity-[0.06] group-hover:opacity-[0.12] transition-opacity duration-500"
-                    style={{ background: `radial-gradient(circle at center, ${bpIcon.color} 0%, transparent 70%)` }}
+                {/* Image + lazy GIF load */}
+                <div className="relative">
+                  <ExerciseCardImage
+                    exercise={ex}
+                    bpIcon={bpIcon}
+                    onGifLoaded={(id, url) => {
+                      setExercises(prev => prev.map(e => e.id === id ? { ...e, gif_url: url } : e))
+                    }}
                   />
-                  {/* Icon */}
-                  <div
-                    className="relative w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
-                    style={{ background: `${bpIcon.color}15` }}
-                  >
-                    <IconComp size={28} style={{ color: bpIcon.color }} />
-                  </div>
                   {/* Difficulty badge */}
                   {diff && (
                     <span
-                      className="absolute top-3 right-3 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
-                      style={{ background: `${diff.color}15`, color: diff.color }}
+                      className="absolute top-3 right-3 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md z-10"
+                      style={{ background: `${diff.color}25`, color: diff.color, backdropFilter: 'blur(4px)' }}
                     >
                       {diff.label}
                     </span>
                   )}
                   {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3 pointer-events-none">
                     <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-[#FF6B2B] px-3 py-1.5 rounded-full">
                       <Info size={10} />
                       Voir les details
