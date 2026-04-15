@@ -1,8 +1,8 @@
 // Vercel Serverless Function — Proxy GIF ExerciseDB avec cache Supabase Storage
 // Flow:
-// 1. Check si le GIF existe deja dans Storage (exercise-gifs/{id}.gif)
-// 2. Si oui -> retourne l'URL publique
-// 3. Si non -> fetch depuis ExerciseDB /image, upload dans Storage, update exercises.gif_url, retourne URL
+// 1. HEAD sur l'URL publique Supabase Storage pour verifier si cache
+// 2. Si 200 -> retourne l'URL publique
+// 3. Si 404 -> fetch depuis ExerciseDB /image, upload dans Storage, update exercises.gif_url
 import { createClient } from '@supabase/supabase-js'
 
 const ALLOWED_ORIGINS = [
@@ -32,6 +32,13 @@ export default async function handler(req, res) {
   const rapidApiKey = process.env.VITE_RAPIDAPI_KEY || process.env.RAPIDAPI_KEY
   const rapidApiHost = process.env.VITE_RAPIDAPI_HOST || process.env.RAPIDAPI_HOST || 'exercisedb.p.rapidapi.com'
 
+  console.log('[exercise-gif] ENV check', {
+    hasSbUrl: !!sbUrl,
+    hasSbKey: !!sbKey,
+    hasRapidKey: !!rapidApiKey,
+    rapidHost: rapidApiHost,
+  })
+
   if (!sbUrl || !sbKey) {
     return res.status(500).json({ error: 'Missing SUPABASE config' })
   }
@@ -50,18 +57,20 @@ export default async function handler(req, res) {
   })
 
   const fileName = `${exerciseId}.gif`
+  const publicUrl = `${sbUrl}/storage/v1/object/public/${BUCKET}/${fileName}`
 
   try {
-    // 1. Check si le fichier existe deja dans Storage
-    const { data: existingFile } = await supabase.storage
-      .from(BUCKET)
-      .list('', { search: fileName, limit: 1 })
-
-    if (existingFile && existingFile.length > 0 && existingFile.some(f => f.name === fileName)) {
-      // Deja en cache -> retourne URL publique
-      const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(fileName)
-      console.log(`[exercise-gif] Cache HIT ${exerciseId}`)
-      return res.status(200).json({ url: urlData.publicUrl, cached: true })
+    // 1. HEAD pour verifier si le GIF est deja en cache
+    console.log(`[exercise-gif] HEAD ${publicUrl}`)
+    try {
+      const headRes = await fetch(publicUrl, { method: 'HEAD' })
+      if (headRes.ok) {
+        console.log(`[exercise-gif] Cache HIT ${exerciseId}`)
+        return res.status(200).json({ url: publicUrl, cached: true })
+      }
+    } catch (headErr) {
+      // ignore, on continue vers fetch
+      console.log(`[exercise-gif] HEAD failed: ${headErr.message}`)
     }
 
     // 2. Cache miss -> fetch depuis ExerciseDB
@@ -78,10 +87,12 @@ export default async function handler(req, res) {
     if (!apiRes.ok) {
       const text = await apiRes.text()
       console.error(`[exercise-gif] ExerciseDB error ${apiRes.status}:`, text.substring(0, 200))
-      return res.status(502).json({ error: `ExerciseDB API error: ${apiRes.status}` })
+      return res.status(502).json({ error: `ExerciseDB API error: ${apiRes.status}`, details: text.substring(0, 200) })
     }
 
-    const buffer = Buffer.from(await apiRes.arrayBuffer())
+    const arrayBuffer = await apiRes.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    console.log(`[exercise-gif] Fetched ${buffer.length} bytes from ExerciseDB`)
 
     // 3. Upload dans Supabase Storage
     const { error: uploadErr } = await supabase.storage
@@ -92,24 +103,27 @@ export default async function handler(req, res) {
       })
 
     if (uploadErr) {
-      console.error('[exercise-gif] Upload error:', uploadErr)
-      return res.status(500).json({ error: `Erreur upload Storage: ${uploadErr.message}` })
+      console.error('[exercise-gif] Upload error:', JSON.stringify(uploadErr))
+      return res.status(500).json({ error: `Erreur upload Storage: ${uploadErr.message || JSON.stringify(uploadErr)}` })
     }
 
-    // 4. Recuperer URL publique
-    const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(fileName)
-    const publicUrl = urlData.publicUrl
+    console.log(`[exercise-gif] Uploaded ${fileName}`)
 
-    // 5. Update exercises.gif_url pour les prochaines fois (skip si table n'a pas le champ)
-    await supabase
+    // 4. Update exercises.gif_url pour les prochaines fois
+    const { error: updateErr } = await supabase
       .from('exercises')
       .update({ gif_url: publicUrl })
       .eq('id', String(exerciseId))
 
+    if (updateErr) {
+      console.warn('[exercise-gif] Update exercises.gif_url warning:', updateErr.message)
+      // On continue quand meme
+    }
+
     console.log(`[exercise-gif] Cached ${exerciseId} -> ${publicUrl}`)
     return res.status(200).json({ url: publicUrl, cached: false })
   } catch (error) {
-    console.error('[exercise-gif] Error:', error)
-    return res.status(500).json({ error: error.message || 'Erreur interne' })
+    console.error('[exercise-gif] Error:', error, error.stack)
+    return res.status(500).json({ error: error.message || 'Erreur interne', stack: error.stack?.substring(0, 500) })
   }
 }
