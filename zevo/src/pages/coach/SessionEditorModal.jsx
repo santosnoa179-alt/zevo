@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
@@ -8,26 +8,31 @@ import {
   FileText, Paperclip, Upload, File, ExternalLink
 } from 'lucide-react'
 
-// Fallback mock exercises if Supabase is empty
-const MOCK_EXERCISES = [
-  { id: 'm1', nom: 'Développé couché', muscle_group: 'Pectoraux', equipment: 'Barre' },
-  { id: 'm2', nom: 'Squat barre', muscle_group: 'Jambes', equipment: 'Barre' },
-  { id: 'm3', nom: 'Soulevé de terre', muscle_group: 'Dos', equipment: 'Barre' },
-  { id: 'm4', nom: 'Tractions', muscle_group: 'Dos', equipment: 'Poids du corps' },
-  { id: 'm5', nom: 'Développé militaire', muscle_group: 'Épaules', equipment: 'Barre' },
-  { id: 'm6', nom: 'Rowing barre', muscle_group: 'Dos', equipment: 'Barre' },
-  { id: 'm7', nom: 'Curl biceps', muscle_group: 'Biceps', equipment: 'Haltère' },
-  { id: 'm8', nom: 'Extension triceps', muscle_group: 'Triceps', equipment: 'Câble' },
-  { id: 'm9', nom: 'Fentes marchées', muscle_group: 'Jambes', equipment: 'Poids du corps' },
-  { id: 'm10', nom: 'Leg press', muscle_group: 'Jambes', equipment: 'Machine' },
-  { id: 'm11', nom: 'Pompes', muscle_group: 'Pectoraux', equipment: 'Poids du corps' },
-  { id: 'm12', nom: 'Dips', muscle_group: 'Triceps', equipment: 'Poids du corps' },
-  { id: 'm13', nom: 'Planche gainage', muscle_group: 'Abdominaux', equipment: 'Poids du corps' },
-  { id: 'm14', nom: 'Crunch', muscle_group: 'Abdominaux', equipment: 'Poids du corps' },
-  { id: 'm15', nom: 'Hip thrust', muscle_group: 'Fessiers', equipment: 'Barre' },
-]
+// Mappings labels (meme que dans ExerciseLibraryPage)
+const BODY_PART_LABELS = {
+  back: 'Dos', cardio: 'Cardio', chest: 'Poitrine',
+  'lower arms': 'Avant-bras', 'lower legs': 'Mollets',
+  neck: 'Cou', shoulders: 'Epaules',
+  'upper arms': 'Bras', 'upper legs': 'Cuisses', waist: 'Abdos',
+}
 
-const MUSCLE_GROUPS = ['Tous', 'Pectoraux', 'Dos', 'Jambes', 'Épaules', 'Biceps', 'Triceps', 'Abdominaux', 'Fessiers']
+const EQUIPMENT_LABELS = {
+  barbell: 'Barre', dumbbell: 'Halteres', 'body weight': 'Poids du corps',
+  cable: 'Cable', machine: 'Machine', band: 'Elastique', kettlebell: 'Kettlebell',
+  'medicine ball': 'Medecine ball', 'stability ball': 'Swiss ball',
+  'ez barbell': 'Barre EZ', 'olympic barbell': 'Barre olympique',
+  'smith machine': 'Smith machine', roller: 'Rouleau', rope: 'Corde',
+  'leverage machine': 'Machine a levier', assisted: 'Assiste', weighted: 'Leste',
+  bosu: 'Bosu', 'resistance band': 'Bande de resistance', tire: 'Pneu',
+  trap: 'Trap bar', 'upper body ergometer': 'Ergometre', hammer: 'Marteau',
+  sled: 'Traineau', elliptical: 'Elliptique', skierg: 'SkiErg',
+  stepmill: 'Stepmill', 'stationary bike': 'Velo stationnaire',
+}
+
+const MUSCLE_GROUPS = ['Tous', 'Poitrine', 'Dos', 'Cuisses', 'Mollets', 'Epaules', 'Bras', 'Avant-bras', 'Abdos', 'Cardio', 'Cou']
+
+const normalizeBodyPart = (bp) => BODY_PART_LABELS[bp] || bp || ''
+const normalizeEquipment = (eq) => EQUIPMENT_LABELS[eq] || eq || ''
 
 export default function SessionEditorModal({ session, dayLabel, onSave, onClose }) {
   const { user } = useAuth()
@@ -78,37 +83,116 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
   // Session title
   const [titre, setTitre] = useState(session?.titre || dayLabel || 'Séance')
 
-  // Load exercises from Supabase
+  // Load exercises from Supabase: library (exercises table, 1000 exos) + custom (exercices)
   useEffect(() => {
     const load = async () => {
       setLoadingLib(true)
-      const { data, error } = await supabase
-        .from('exercices')
-        .select('id, nom, muscle_group, equipment, category, description, video_url, gif_url')
-        .or(`coach_id.is.null,coach_id.eq.${user?.id}`)
-        .order('nom')
 
-      if (data && data.length > 0) {
-        setAllExercises(data)
-      } else {
-        setAllExercises(MOCK_EXERCISES)
-      }
+      const [libraryRes, customRes] = await Promise.all([
+        supabase
+          .from('exercises')
+          .select('id, name, name_fr, target_muscle, body_part, equipment, gif_url')
+          .order('name'),
+        supabase
+          .from('exercices')
+          .select('id, nom, muscle_group, equipment, category, description, video_url, gif_url, library_id')
+          .or(`coach_id.is.null,coach_id.eq.${user?.id}`)
+          .order('nom'),
+      ])
+
+      // Normaliser shape: { id, nom, muscle_group, equipment, gif_url, source, library_id? }
+      const libraryExos = (libraryRes.data || []).map(ex => ({
+        id: ex.id, // ExerciseDB id (text)
+        nom: ex.name_fr || ex.name,
+        muscle_group: normalizeBodyPart(ex.body_part),
+        equipment: normalizeEquipment(ex.equipment),
+        gif_url: ex.gif_url,
+        source: 'library',
+        library_id: ex.id, // meme valeur, utilise pour bridging
+      }))
+
+      // Ne pas dupliquer les exos custom qui sont deja des imports de library
+      const customExos = (customRes.data || [])
+        .filter(ex => !ex.library_id) // les bridges on les cache (ils apparaitront via libraryExos)
+        .map(ex => ({
+          id: ex.id,
+          nom: ex.nom,
+          muscle_group: ex.muscle_group,
+          equipment: ex.equipment,
+          gif_url: ex.gif_url,
+          source: 'custom',
+        }))
+
+      // Library en premier (alphabetique), puis custom
+      setAllExercises([...libraryExos, ...customExos])
       setLoadingLib(false)
     }
     load()
   }, [user?.id])
 
-  // Filtered exercises
-  const filtered = allExercises.filter(ex => {
-    const matchSearch = ex.nom.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchMuscle = muscleFilter === 'Tous' || ex.muscle_group === muscleFilter
-    return matchSearch && matchMuscle
-  })
+  // Filtered exercises (memoized for 1000+ items performance)
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return allExercises.filter(ex => {
+      const matchSearch = !q || (ex.nom || '').toLowerCase().includes(q)
+      const matchMuscle = muscleFilter === 'Tous' || ex.muscle_group === muscleFilter
+      return matchSearch && matchMuscle
+    })
+  }, [allExercises, searchQuery, muscleFilter])
 
   // Add exercise to canvas
-  const addToCanvas = (exercise) => {
+  // Si l'exo vient de la library (source: 'library'), on le bridge dans exercices pour que
+  // seance_exercices.exercice_id (FK uuid) puisse le referencer.
+  // Bridge lazy + cache: chaque library_id n'est importe qu'une seule fois par coach.
+  const addToCanvas = async (exercise) => {
+    let canvasExercise = exercise
+
+    if (exercise.source === 'library') {
+      try {
+        // Check if already bridged for this coach
+        const { data: existing } = await supabase
+          .from('exercices')
+          .select('id, nom, muscle_group, equipment, gif_url')
+          .eq('coach_id', user?.id)
+          .eq('library_id', exercise.library_id)
+          .maybeSingle()
+
+        if (existing) {
+          canvasExercise = { ...existing }
+        } else {
+          // Create bridge entry
+          const { data: inserted, error: insertErr } = await supabase
+            .from('exercices')
+            .insert({
+              coach_id: user?.id,
+              nom: exercise.nom,
+              muscle_group: exercise.muscle_group,
+              equipment: exercise.equipment,
+              gif_url: exercise.gif_url,
+              category: 'Musculation',
+              library_id: exercise.library_id,
+            })
+            .select('id, nom, muscle_group, equipment, gif_url')
+            .single()
+
+          if (insertErr) {
+            console.error('[SessionEditor] Bridge insert error:', insertErr)
+            toast.error('Impossible d\'importer l\'exercice')
+            return
+          }
+          canvasExercise = { ...inserted }
+        }
+      } catch (err) {
+        console.error('[SessionEditor] Bridge error:', err)
+        toast.error('Erreur lors de l\'ajout de l\'exercice')
+        return
+      }
+    }
+
     setCanvas(prev => [...prev, {
-      ...exercise,
+      ...canvasExercise,
+      // track original library_id so isInCanvas() works on subsequent clicks
+      library_id: exercise.library_id || null,
       _key: crypto.randomUUID(),
       series: 3,
       reps: 10,
@@ -143,10 +227,19 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
 
       if (error) throw error
 
+      // Normalize shape (custom source for isInCanvas + filter logic)
+      const normalized = {
+        id: data.id,
+        nom: data.nom,
+        muscle_group: data.muscle_group,
+        equipment: data.equipment,
+        gif_url: data.gif_url || null,
+        source: 'custom',
+      }
       // Add to library list
-      setAllExercises(prev => [data, ...prev])
+      setAllExercises(prev => [normalized, ...prev])
       // Add directly to canvas
-      addToCanvas(data)
+      addToCanvas(normalized)
       // Reset form
       setNewExName('')
       setNewExMuscle('')
@@ -258,8 +351,13 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
     onSave(sessionData)
   }
 
-  // Check if exercise already in canvas
-  const isInCanvas = (exId) => canvas.some(c => c.id === exId)
+  // Check if exercise already in canvas (handles both library ids and bridged UUIDs)
+  const isInCanvas = (ex) => {
+    if (ex.source === 'library') {
+      return canvas.some(c => c.library_id === ex.library_id)
+    }
+    return canvas.some(c => c.id === ex.id)
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6" onClick={onClose}>
@@ -466,10 +564,10 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                 </div>
               ) : (
                 filtered.map(ex => {
-                  const added = isInCanvas(ex.id)
+                  const added = isInCanvas(ex)
                   return (
                     <button
-                      key={ex.id}
+                      key={`${ex.source}-${ex.id}`}
                       onClick={() => !added && addToCanvas(ex)}
                       disabled={added}
                       className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
@@ -478,9 +576,19 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                           : 'bg-[var(--bg-base)] border border-transparent hover:border-[#FF6B2B]/20 hover:bg-[var(--bg-card)]'
                       }`}
                     >
-                      {/* Icon */}
-                      <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center shrink-0">
-                        <Dumbbell size={16} className="text-[var(--text-muted)]" />
+                      {/* Thumbnail: GIF si dispo, sinon icone */}
+                      <div className="w-11 h-11 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center shrink-0 overflow-hidden">
+                        {ex.gif_url ? (
+                          <img
+                            src={ex.gif_url}
+                            alt={ex.nom}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                            onError={e => { e.currentTarget.style.display = 'none' }}
+                          />
+                        ) : (
+                          <Dumbbell size={16} className="text-[var(--text-muted)]" />
+                        )}
                       </div>
 
                       {/* Info */}
@@ -488,10 +596,10 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                         <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.nom}</p>
                         <div className="flex items-center gap-2 mt-0.5">
                           {ex.muscle_group && (
-                            <span className="text-[10px] text-[#FF6B2B]/60 font-medium">{ex.muscle_group}</span>
+                            <span className="text-[10px] text-[#FF6B2B]/70 font-medium capitalize">{ex.muscle_group}</span>
                           )}
                           {ex.equipment && (
-                            <span className="text-[10px] text-[var(--text-muted)]">{ex.equipment}</span>
+                            <span className="text-[10px] text-[var(--text-muted)] capitalize">{ex.equipment}</span>
                           )}
                         </div>
                       </div>
@@ -502,7 +610,7 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                           <Check size={12} className="text-[#FF6B2B]" />
                         </div>
                       ) : (
-                        <div className="w-6 h-6 rounded-full border border-[var(--border-base)] flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100">
+                        <div className="w-6 h-6 rounded-full border border-[var(--border-base)] flex items-center justify-center shrink-0">
                           <Plus size={12} className="text-[var(--text-muted)]" />
                         </div>
                       )}
@@ -558,15 +666,25 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                         <span className="text-[#FF6B2B] text-xs font-bold w-5 text-center">{idx + 1}</span>
                       </div>
 
-                      {/* Icon */}
-                      <div className="w-9 h-9 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center shrink-0">
-                        <Dumbbell size={14} className="text-[var(--text-muted)]" />
+                      {/* Thumbnail */}
+                      <div className="w-9 h-9 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center shrink-0 overflow-hidden">
+                        {ex.gif_url ? (
+                          <img
+                            src={ex.gif_url}
+                            alt={ex.nom}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                            onError={e => { e.currentTarget.style.display = 'none' }}
+                          />
+                        ) : (
+                          <Dumbbell size={14} className="text-[var(--text-muted)]" />
+                        )}
                       </div>
 
                       {/* Name + muscle */}
                       <div className="flex-1 min-w-0">
                         <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.nom}</p>
-                        <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{ex.muscle_group || ''}</p>
+                        <p className="text-[var(--text-muted)] text-[10px] mt-0.5 capitalize">{ex.muscle_group || ''}</p>
                       </div>
 
                       {/* Series / Reps / Repos inputs */}
