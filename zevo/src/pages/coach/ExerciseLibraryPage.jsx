@@ -367,10 +367,10 @@ export default function ExerciseLibraryPage() {
       let total = 0
 
       while (hasMore) {
-        const res = await fetch('/api/translate-exercises', {
+        const res = await fetch('/api/sync-exercises', {
           method: 'POST',
           headers,
-          body: JSON.stringify({ limit: BATCH_SIZE }),
+          body: JSON.stringify({ action: 'translate', limit: BATCH_SIZE }),
         })
         const json = await res.json()
 
