@@ -6,7 +6,7 @@ import {
   Dumbbell, Target, Layers, Info,
   SlidersHorizontal, RotateCcw, Zap,
   ArrowUpDown, Heart, Footprints, Hand, CircleDot,
-  Activity, Crown, Shield
+  Activity, Crown, Shield, Languages
 } from 'lucide-react'
 
 const PER_PAGE = 12
@@ -214,7 +214,7 @@ function ExerciseCardImage({ exercise, bpIcon, onGifLoaded }) {
       {gif && !errored && (
         <img
           src={gif}
-          alt={exercise.name}
+          alt={exercise.name_fr || exercise.name}
           loading="lazy"
           className="relative max-h-full max-w-full object-contain transition-transform group-hover:scale-105 duration-500"
           onError={() => setErrored(true)}
@@ -267,6 +267,13 @@ export default function ExerciseLibraryPage() {
   const [gifUrl, setGifUrl] = useState(null)
   const [gifLoading, setGifLoading] = useState(false)
   const [gifError, setGifError] = useState(false)
+
+  // Translation
+  const [translating, setTranslating] = useState(false)
+  const [translateProgress, setTranslateProgress] = useState(0)
+  const [translateTotal, setTranslateTotal] = useState(0)
+  const [translateDone, setTranslateDone] = useState(0)
+  const [translateError, setTranslateError] = useState(null)
 
   // ── Load exercises from Supabase ──
   const loadExercises = useCallback(async () => {
@@ -340,6 +347,61 @@ export default function ExerciseLibraryPage() {
     setLoading(false)
   }
 
+  // ── Batch translate via DeepL ──
+  const triggerTranslate = async () => {
+    setTranslating(true)
+    setTranslateError(null)
+    setTranslateDone(0)
+    setTranslateProgress(0)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const headers = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token}`,
+      }
+
+      const BATCH_SIZE = 20
+      let hasMore = true
+      let totalDone = 0
+      let total = 0
+
+      while (hasMore) {
+        const res = await fetch('/api/translate-exercises', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ limit: BATCH_SIZE }),
+        })
+        const json = await res.json()
+
+        if (!res.ok) {
+          setTranslateError(json.error || 'Erreur traduction')
+          setTranslating(false)
+          return
+        }
+
+        totalDone += json.translated
+        total = json.total || total
+        hasMore = json.hasMore
+        setTranslateDone(totalDone)
+        setTranslateTotal(total)
+        setTranslateProgress(total > 0 ? Math.round(((total - json.totalRemaining) / total) * 100) : 0)
+
+        // Safety break
+        if (json.translated === 0 && !hasMore) break
+      }
+
+      setTranslateProgress(100)
+
+      // Reload
+      const { data } = await supabase.from('exercises').select('*').order('name')
+      setExercises(data || [])
+    } catch (err) {
+      setTranslateError(err.message)
+    }
+    setTranslating(false)
+  }
+
   useEffect(() => {
     loadExercises()
   }, [loadExercises])
@@ -354,7 +416,10 @@ export default function ExerciseLibraryPage() {
     let result = exercises
     if (search) {
       const q = search.toLowerCase()
-      result = result.filter(e => e.name.toLowerCase().includes(q))
+      result = result.filter(e =>
+        e.name.toLowerCase().includes(q) ||
+        (e.name_fr && e.name_fr.toLowerCase().includes(q))
+      )
     }
     if (bodyPartFilter) result = result.filter(e => e.body_part === bodyPartFilter)
     if (equipmentFilter) result = result.filter(e => e.equipment === equipmentFilter)
@@ -505,7 +570,50 @@ export default function ExerciseLibraryPage() {
             </p>
           </div>
         </div>
+
+        {/* Bouton traduction */}
+        {!translating && (
+          <button
+            onClick={triggerTranslate}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-base)] bg-[var(--bg-card)] text-[var(--text-secondary)] text-sm font-semibold hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B] transition-all"
+            title="Traduire tous les exercices en francais via DeepL"
+          >
+            <Languages size={15} />
+            Traduire
+          </button>
+        )}
       </div>
+
+      {/* Translation progress */}
+      {translating && (
+        <div className="mb-4 p-4 rounded-xl border border-[#FF6B2B]/20 bg-[#FF6B2B]/5">
+          <div className="flex items-center gap-3 mb-3">
+            <Loader2 size={16} className="text-[#FF6B2B] animate-spin" />
+            <p className="text-sm font-bold text-[var(--text-primary)]">
+              Traduction en cours via DeepL...
+            </p>
+            <span className="ml-auto text-sm font-bold text-[#FF6B2B]">{translateProgress}%</span>
+          </div>
+          <div className="h-2 w-full bg-[var(--bg-surface)] rounded-full overflow-hidden mb-2">
+            <div
+              className="h-full bg-[#FF6B2B] rounded-full transition-all duration-300"
+              style={{ width: `${translateProgress}%` }}
+            />
+          </div>
+          <p className="text-xs text-[var(--text-muted)]">
+            {translateDone} / {translateTotal} exercices traduits
+          </p>
+        </div>
+      )}
+
+      {/* Translation error */}
+      {translateError && (
+        <div className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
+          <Info size={16} />
+          {translateError}
+          <button onClick={triggerTranslate} className="ml-auto text-xs font-bold underline">Reessayer</button>
+        </div>
+      )}
 
       {/* Sync error */}
       {syncError && (
@@ -677,7 +785,7 @@ export default function ExerciseLibraryPage() {
                 {/* Info */}
                 <div className="p-4 space-y-2.5">
                   <h3 className="text-[13px] font-bold text-[var(--text-primary)] leading-tight line-clamp-2 capitalize">
-                    {ex.name}
+                    {ex.name_fr || ex.name}
                   </h3>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
@@ -780,7 +888,7 @@ export default function ExerciseLibraryPage() {
                   {showGif && (
                     <img
                       src={gifUrl}
-                      alt={selectedExercise.name}
+                      alt={selectedExercise.name_fr || selectedExercise.name}
                       className="relative max-h-full max-w-full object-contain"
                       onError={() => setGifError(true)}
                     />
@@ -828,7 +936,7 @@ export default function ExerciseLibraryPage() {
 
             <div className="p-6 -mt-4 relative">
               <h2 className="text-xl font-extrabold text-[var(--text-primary)] capitalize mb-3">
-                {selectedExercise.name}
+                {selectedExercise.name_fr || selectedExercise.name}
               </h2>
 
               {/* Tags */}
@@ -848,10 +956,12 @@ export default function ExerciseLibraryPage() {
               </div>
 
               {/* Description */}
-              {selectedExercise.description && (
+              {(selectedExercise.description_fr || selectedExercise.description) && (
                 <div className="mb-5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Description</p>
-                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{selectedExercise.description}</p>
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                    {selectedExercise.description_fr || selectedExercise.description}
+                  </p>
                 </div>
               )}
 
@@ -860,9 +970,12 @@ export default function ExerciseLibraryPage() {
                 <div className="mb-5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Muscles secondaires</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {selectedExercise.secondary_muscles.map((m, i) => (
+                    {(selectedExercise.secondary_muscles_fr?.length === selectedExercise.secondary_muscles.length
+                      ? selectedExercise.secondary_muscles_fr
+                      : selectedExercise.secondary_muscles
+                    ).map((m, i) => (
                       <span key={i} className="text-[10px] font-medium px-2.5 py-1 rounded-md bg-[var(--bg-surface)] text-[var(--text-secondary)] capitalize">
-                        {translate(m, MUSCLE_LABELS)}
+                        {selectedExercise.secondary_muscles_fr?.length ? m : translate(m, MUSCLE_LABELS)}
                       </span>
                     ))}
                   </div>
@@ -874,7 +987,10 @@ export default function ExerciseLibraryPage() {
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Instructions</p>
                   <div className="space-y-2.5">
-                    {selectedExercise.instructions.map((step, i) => (
+                    {(selectedExercise.instructions_fr?.length === selectedExercise.instructions.length
+                      ? selectedExercise.instructions_fr
+                      : selectedExercise.instructions
+                    ).map((step, i) => (
                       <div key={i} className="flex gap-3 items-start">
                         <div className="w-6 h-6 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 mt-0.5">
                           <span className="text-[10px] font-black text-[#FF6B2B]">{i + 1}</span>
