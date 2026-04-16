@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { usePageTransition, useStagger } from '../../hooks/useAnimations'
 import {
   Dumbbell, CheckCircle2, Circle, ChevronLeft, ChevronRight,
-  Flame, Clock, Loader2, Calendar, Sparkles, Trophy
+  Flame, Clock, Loader2, Calendar, Sparkles, Trophy, StickyNote
 } from 'lucide-react'
 
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
@@ -403,31 +403,41 @@ export default function SeancesPage() {
                             ) : (
                               <div className="space-y-2">
                                 {exos.map((ex, ei) => (
-                                  <div key={ei} className="flex items-center gap-3 bg-[var(--bg-elevated)] rounded-xl px-3.5 py-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 overflow-hidden">
-                                      {ex.exercices?.gif_url ? (
-                                        <img src={ex.exercices.gif_url} alt="" className="w-full h-full object-cover" />
-                                      ) : (
-                                        <Dumbbell size={14} className="text-[#FF6B2B]" />
-                                      )}
+                                  <div key={ei} className="bg-[var(--bg-elevated)] rounded-xl px-3.5 py-2.5">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 overflow-hidden">
+                                        {ex.exercices?.gif_url ? (
+                                          <img src={ex.exercices.gif_url} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                          <Dumbbell size={14} className="text-[#FF6B2B]" />
+                                        )}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-[var(--text-primary)] text-xs font-medium truncate">
+                                          {ex.exercices?.nom || 'Exercice'}
+                                        </p>
+                                        <p className="text-[var(--text-muted)] text-[10px]">
+                                          {ex.exercices?.muscle_group}
+                                        </p>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-[10px] shrink-0">
+                                        {ex.series && <span className="text-[#FF6B2B] font-bold">{ex.series}×</span>}
+                                        {ex.reps && <span className="text-[var(--text-muted)]">{ex.reps} reps</span>}
+                                        {ex.repos && (
+                                          <span className="text-[var(--text-muted)] flex items-center gap-0.5">
+                                            <Clock size={8} />{ex.repos}s
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-[var(--text-primary)] text-xs font-medium truncate">
-                                        {ex.exercices?.nom || 'Exercice'}
-                                      </p>
-                                      <p className="text-[var(--text-muted)] text-[10px]">
-                                        {ex.exercices?.muscle_group}
-                                      </p>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-[10px] shrink-0">
-                                      {ex.series && <span className="text-[#FF6B2B] font-bold">{ex.series}×</span>}
-                                      {ex.reps && <span className="text-[var(--text-muted)]">{ex.reps} reps</span>}
-                                      {ex.repos && (
-                                        <span className="text-[var(--text-muted)] flex items-center gap-0.5">
-                                          <Clock size={8} />{ex.repos}s
-                                        </span>
-                                      )}
-                                    </div>
+                                    {ex.note_coach && ex.note_coach.trim() && (
+                                      <div className="mt-2 flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-[#FF6B2B]/[0.08] border border-[#FF6B2B]/15">
+                                        <StickyNote size={10} className="text-[#FF6B2B] mt-0.5 shrink-0" />
+                                        <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed">
+                                          {ex.note_coach}
+                                        </p>
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>

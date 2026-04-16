@@ -89,11 +89,14 @@ export default function ProgramBuilder({ programme, onBack }) {
           nom: se.exercices?.nom || 'Exercice',
           muscle_group: se.exercices?.muscle_group || '',
           equipment: se.exercices?.equipment || '',
+          gif_url: se.exercices?.gif_url || null,
+          library_id: se.exercices?.library_id || null,
           _key: crypto.randomUUID(),
           series: se.series || 3,
           reps: se.reps || 10,
           repos: se.repos || 90,
           poids: se.poids || null,
+          note_coach: se.note_coach || '',
         }))
 
       // Extract fichiers from metadata
@@ -356,6 +359,7 @@ export default function ProgramBuilder({ programme, onBack }) {
             poids: ex.poids || null,
             repos: ex.repos || 90,
             ordre: idx,
+            note_coach: ex.note_coach || null,
           }))
           console.log('[ProgramBuilder] INSERT exercices:', exRows.length, 'pour séance', seanceData.id)
           const { error: eErr } = await supabase.from('seance_exercices').insert(exRows)

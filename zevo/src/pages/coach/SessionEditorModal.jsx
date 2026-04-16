@@ -5,7 +5,7 @@ import { useToast } from '../../components/ui/Toast'
 import {
   X, Search, Plus, Trash2, Dumbbell, GripVertical,
   Clock, Repeat, Timer, Loader2, Check, Filter,
-  FileText, Paperclip, Upload, File, ExternalLink
+  FileText, Paperclip, Upload, File, ExternalLink, StickyNote
 } from 'lucide-react'
 
 // Mappings labels (meme que dans ExerciseLibraryPage)
@@ -82,6 +82,9 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
 
   // Session title
   const [titre, setTitre] = useState(session?.titre || dayLabel || 'Séance')
+
+  // Note panel open state (store _key of the exercise whose note panel is open)
+  const [openNoteKey, setOpenNoteKey] = useState(null)
 
   // Load exercises from Supabase: library (exercises table, 1000 exos) + custom (exercices)
   useEffect(() => {
@@ -656,78 +659,131 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {canvas.map((ex, idx) => (
+                  {canvas.map((ex, idx) => {
+                    const hasNote = !!(ex.note_coach && ex.note_coach.trim())
+                    const isNoteOpen = openNoteKey === ex._key
+                    return (
                     <div key={ex._key}
-                      className="group flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)]/50 hover:border-[var(--border-base)] transition-all">
+                      className="group rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)]/50 hover:border-[var(--border-base)] transition-all overflow-hidden">
 
-                      {/* Drag handle + order */}
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <GripVertical size={14} className="text-[var(--text-muted)] cursor-grab" />
-                        <span className="text-[#FF6B2B] text-xs font-bold w-5 text-center">{idx + 1}</span>
-                      </div>
-
-                      {/* Thumbnail */}
-                      <div className="w-9 h-9 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center shrink-0 overflow-hidden">
-                        {ex.gif_url ? (
-                          <img
-                            src={ex.gif_url}
-                            alt={ex.nom}
-                            loading="lazy"
-                            className="w-full h-full object-cover"
-                            onError={e => { e.currentTarget.style.display = 'none' }}
-                          />
-                        ) : (
-                          <Dumbbell size={14} className="text-[var(--text-muted)]" />
-                        )}
-                      </div>
-
-                      {/* Name + muscle */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.nom}</p>
-                        <p className="text-[var(--text-muted)] text-[10px] mt-0.5 capitalize">{ex.muscle_group || ''}</p>
-                      </div>
-
-                      {/* Series / Reps / Repos inputs */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        <div className="flex flex-col items-center">
-                          <input
-                            type="number"
-                            value={ex.series}
-                            onChange={e => updateExField(ex._key, 'series', parseInt(e.target.value) || 0)}
-                            className="w-12 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-2 py-1.5 text-[var(--text-primary)] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
-                          />
-                          <span className="text-[var(--text-muted)] text-[8px] mt-0.5">séries</span>
+                      {/* Row principale */}
+                      <div className="flex items-center gap-3 p-3">
+                        {/* Drag handle + order */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <GripVertical size={14} className="text-[var(--text-muted)] cursor-grab" />
+                          <span className="text-[#FF6B2B] text-xs font-bold w-5 text-center">{idx + 1}</span>
                         </div>
-                        <span className="text-[var(--text-muted)] text-xs">×</span>
-                        <div className="flex flex-col items-center">
-                          <input
-                            type="number"
-                            value={ex.reps}
-                            onChange={e => updateExField(ex._key, 'reps', parseInt(e.target.value) || 0)}
-                            className="w-12 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-2 py-1.5 text-[var(--text-primary)] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
-                          />
-                          <span className="text-[var(--text-muted)] text-[8px] mt-0.5">reps</span>
+
+                        {/* Thumbnail */}
+                        <div className="w-9 h-9 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center shrink-0 overflow-hidden">
+                          {ex.gif_url ? (
+                            <img
+                              src={ex.gif_url}
+                              alt={ex.nom}
+                              loading="lazy"
+                              className="w-full h-full object-cover"
+                              onError={e => { e.currentTarget.style.display = 'none' }}
+                            />
+                          ) : (
+                            <Dumbbell size={14} className="text-[var(--text-muted)]" />
+                          )}
                         </div>
-                        <div className="flex flex-col items-center ml-1">
-                          <div className="flex items-center">
+
+                        {/* Name + muscle */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.nom}</p>
+                          <p className="text-[var(--text-muted)] text-[10px] mt-0.5 capitalize">{ex.muscle_group || ''}</p>
+                        </div>
+
+                        {/* Series / Reps / Repos inputs */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex flex-col items-center">
                             <input
                               type="number"
-                              value={ex.repos}
-                              onChange={e => updateExField(ex._key, 'repos', parseInt(e.target.value) || 0)}
-                              className="w-14 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-2 py-1.5 text-[var(--text-primary)] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
+                              value={ex.series}
+                              onChange={e => updateExField(ex._key, 'series', parseInt(e.target.value) || 0)}
+                              className="w-12 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-2 py-1.5 text-[var(--text-primary)] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
                             />
+                            <span className="text-[var(--text-muted)] text-[8px] mt-0.5">séries</span>
                           </div>
-                          <span className="text-[var(--text-muted)] text-[8px] mt-0.5">repos (s)</span>
+                          <span className="text-[var(--text-muted)] text-xs">×</span>
+                          <div className="flex flex-col items-center">
+                            <input
+                              type="number"
+                              value={ex.reps}
+                              onChange={e => updateExField(ex._key, 'reps', parseInt(e.target.value) || 0)}
+                              className="w-12 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-2 py-1.5 text-[var(--text-primary)] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
+                            />
+                            <span className="text-[var(--text-muted)] text-[8px] mt-0.5">reps</span>
+                          </div>
+                          <div className="flex flex-col items-center ml-1">
+                            <div className="flex items-center">
+                              <input
+                                type="number"
+                                value={ex.repos}
+                                onChange={e => updateExField(ex._key, 'repos', parseInt(e.target.value) || 0)}
+                                className="w-14 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-2 py-1.5 text-[var(--text-primary)] text-xs text-center font-semibold focus:outline-none focus:border-[#FF6B2B]/40 transition-all"
+                              />
+                            </div>
+                            <span className="text-[var(--text-muted)] text-[8px] mt-0.5">repos (s)</span>
+                          </div>
                         </div>
+
+                        {/* Note button */}
+                        <button
+                          onClick={() => setOpenNoteKey(isNoteOpen ? null : ex._key)}
+                          title={hasNote ? 'Modifier la note' : 'Ajouter une note'}
+                          className={`p-1.5 rounded-lg transition-all shrink-0 ${
+                            hasNote
+                              ? 'text-[#FF6B2B] bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/20'
+                              : 'text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 opacity-0 group-hover:opacity-100'
+                          } ${isNoteOpen ? 'bg-[#FF6B2B]/20 text-[#FF6B2B] opacity-100' : ''}`}>
+                          <StickyNote size={14} />
+                        </button>
+
+                        {/* Delete */}
+                        <button onClick={() => removeFromCanvas(ex._key)}
+                          className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+                          <Trash2 size={14} />
+                        </button>
                       </div>
 
-                      {/* Delete */}
-                      <button onClick={() => removeFromCanvas(ex._key)}
-                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
-                        <Trash2 size={14} />
-                      </button>
+                      {/* Note panel (expand) */}
+                      {isNoteOpen && (
+                        <div className="px-3 pb-3 border-t border-[var(--border-base)]/30 pt-3">
+                          <div className="flex items-start gap-2 mb-1.5">
+                            <StickyNote size={11} className="text-[#FF6B2B] mt-0.5" />
+                            <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                              Consigne pour le client
+                            </span>
+                          </div>
+                          <textarea
+                            value={ex.note_coach || ''}
+                            onChange={e => updateExField(ex._key, 'note_coach', e.target.value)}
+                            placeholder="Ex: RPE 8, focus gainage, charge 80% 1RM, tempo 3-1-1, descente lente..."
+                            rows={2}
+                            autoFocus
+                            className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-all resize-none"
+                          />
+                        </div>
+                      )}
+
+                      {/* Note preview (when closed but has content) */}
+                      {!isNoteOpen && hasNote && (
+                        <button
+                          onClick={() => setOpenNoteKey(ex._key)}
+                          className="w-full text-left px-3 pb-2.5 -mt-1 group/note"
+                        >
+                          <div className="flex items-start gap-2 px-2.5 py-1.5 rounded-lg bg-[#FF6B2B]/5 border border-[#FF6B2B]/15 hover:bg-[#FF6B2B]/10 transition-all">
+                            <StickyNote size={10} className="text-[#FF6B2B] mt-0.5 shrink-0" />
+                            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed truncate flex-1">
+                              {ex.note_coach}
+                            </p>
+                          </div>
+                        </button>
+                      )}
                     </div>
-                  ))}
+                  )})}
                 </div>
               )}
             </div>

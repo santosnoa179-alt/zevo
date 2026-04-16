@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import {
   X, ChevronLeft, ChevronRight, Check, Play, Pause,
-  Dumbbell, Timer, Trophy, Loader2, AlertCircle, RotateCcw
+  Dumbbell, Timer, Trophy, Loader2, AlertCircle, RotateCcw, StickyNote
 } from 'lucide-react'
 
 // ══════════════════════════════════════
@@ -128,7 +128,7 @@ export default function WorkoutTrackerPage() {
       // Charger les exercices
       const { data: exosData, error: exosErr } = await supabase
         .from('seance_exercices')
-        .select('id, series, reps, poids, repos, ordre, media_url, exercices(nom, muscle_group, equipment, image_url, video_url)')
+        .select('id, series, reps, poids, repos, ordre, media_url, note_coach, exercices(nom, muscle_group, equipment, image_url, video_url, gif_url)')
         .eq('seance_id', seanceId)
         .order('ordre')
 
@@ -613,6 +613,21 @@ export default function WorkoutTrackerPage() {
                   <p className="text-[var(--text-muted)] text-sm mt-1">{currentExo.series} séries × {currentExo.reps} reps</p>
                 )}
               </div>
+
+              {/* ═══════ NOTE COACH ═══════ */}
+              {currentExo.note_coach && currentExo.note_coach.trim() && (
+                <div className="mb-5 p-4 rounded-2xl bg-[#FF6B2B]/[0.08] border border-[#FF6B2B]/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <StickyNote className="w-4 h-4 text-[#FF6B2B]" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B2B]">
+                      Consigne coach
+                    </span>
+                  </div>
+                  <p className="text-[var(--text-primary)] text-sm leading-relaxed whitespace-pre-wrap">
+                    {currentExo.note_coach}
+                  </p>
+                </div>
+              )}
 
               {/* ═══════ CHRONO REPOS (overlay) ═══════ */}
               {isResting && (
