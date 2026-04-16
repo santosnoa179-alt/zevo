@@ -453,19 +453,20 @@ export default function WorkoutTrackerPage() {
         >
           {currentExo && (
             <>
-              {/* Média : media_url (coach) > video_url (exercice) > image_url > placeholder */}
+              {/* Média : media_url (coach) > gif_url (library/custom) > video_url > image_url > placeholder */}
               {(() => {
                 const mediaUrl = currentExo.media_url?.trim()
+                const gifUrl = currentExo.exercices?.gif_url
                 const videoUrl = currentExo.exercices?.video_url
                 const imageUrl = currentExo.exercices?.image_url
-                const url = mediaUrl || videoUrl || imageUrl || null
+                const url = mediaUrl || gifUrl || videoUrl || imageUrl || null
 
                 if (!url) {
                   return (
-                    <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl h-44 flex items-center justify-center mb-5">
+                    <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl h-64 flex items-center justify-center mb-5">
                       <div className="text-center">
                         <Dumbbell className="w-10 h-10 text-white/[0.08] mx-auto mb-2" />
-                        <p className="text-white/[0.15] text-[10px] font-medium">Vidéo de démonstration</p>
+                        <p className="text-white/[0.15] text-[10px] font-medium">Démonstration</p>
                       </div>
                     </div>
                   )
@@ -486,7 +487,7 @@ export default function WorkoutTrackerPage() {
                       <img
                         src={url}
                         alt={currentExo.exercices?.nom}
-                        className="w-full h-44 object-cover"
+                        className="w-full h-64 object-contain bg-[var(--bg-surface)]"
                       />
                     </div>
                   )
@@ -531,7 +532,7 @@ export default function WorkoutTrackerPage() {
                       <video
                         key={currentExo.id}
                         src={url}
-                        className="w-full h-44 object-contain bg-black"
+                        className="w-full h-64 object-contain bg-black"
                         autoPlay
                         loop
                         muted
@@ -550,7 +551,7 @@ export default function WorkoutTrackerPage() {
                       <img
                         src={url}
                         alt={currentExo.exercices?.nom}
-                        className="w-full h-44 object-cover"
+                        className="w-full h-64 object-contain bg-[var(--bg-surface)]"
                       />
                     </div>
                   )
@@ -563,7 +564,7 @@ export default function WorkoutTrackerPage() {
                       <video
                         key={currentExo.id}
                         src={url}
-                        className="w-full h-44 object-contain bg-black"
+                        className="w-full h-64 object-contain bg-black"
                         autoPlay
                         loop
                         muted
