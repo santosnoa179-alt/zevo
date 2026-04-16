@@ -9,19 +9,35 @@ import {
 } from 'lucide-react'
 import { useToast } from '../../components/ui/Toast'
 import CoachDisponibilites from '../../components/CoachDisponibilites'
+import Ring from '../../components/ui/Ring'
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const JOURS_FULL = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 
+// ── Langage Fitness OS : 3 familles au lieu de 8 couleurs ──
+//   seance  → orange Zevo (cœur métier)
+//   contact → slate (interactions client externes)
+//   perso   → gris neutre (organisation interne)
+const FAMILY = {
+  seance:  '#FF6B2B',
+  contact: '#64748b',
+  perso:   '#9ca3af',
+}
+function getEventFamily(typeId) {
+  if (typeId === 'seance') return 'seance'
+  if (['appel', 'bilan', 'reunion', 'reservation'].includes(typeId)) return 'contact'
+  return 'perso'
+}
+
 const EVENT_TYPES = [
-  { id: 'seance', label: 'Séance', icon: Dumbbell, color: '#FF6B2B' },
-  { id: 'bilan', label: 'Bilan', icon: CheckSquare, color: '#22c55e' },
-  { id: 'appel', label: 'Appel', icon: Phone, color: '#3b82f6' },
-  { id: 'reunion', label: 'Réunion', icon: UsersIcon, color: '#a855f7' },
-  { id: 'note', label: 'Note', icon: FileText, color: '#f59e0b' },
-  { id: 'perso', label: 'Personnel', icon: Star, color: '#ec4899' },
-  { id: 'autre', label: 'Autre', icon: Calendar, color: '#64748b' },
-  { id: 'reservation', label: 'Réservation', icon: CalendarCheck, color: '#06b6d4' },
+  { id: 'seance', label: 'Séance', icon: Dumbbell, color: FAMILY.seance },
+  { id: 'bilan', label: 'Bilan', icon: CheckSquare, color: FAMILY.contact },
+  { id: 'appel', label: 'Appel', icon: Phone, color: FAMILY.contact },
+  { id: 'reunion', label: 'Réunion', icon: UsersIcon, color: FAMILY.contact },
+  { id: 'note', label: 'Note', icon: FileText, color: FAMILY.perso },
+  { id: 'perso', label: 'Personnel', icon: Star, color: FAMILY.perso },
+  { id: 'autre', label: 'Autre', icon: Calendar, color: FAMILY.perso },
+  { id: 'reservation', label: 'Réservation', icon: CalendarCheck, color: FAMILY.contact },
 ]
 
 // ── Date helpers ──
@@ -453,32 +469,29 @@ export default function CoachGlobalCalendarPage() {
     return (
       <div className="p-4 md:p-6 w-full space-y-4 max-w-[1400px]">
         {/* Header skeleton */}
-        <div className="glass-card">
-          <div className="h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
-          <div className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl skel-block" />
-              <div className="h-6 w-40 rounded-lg skel-block" />
-            </div>
-            <div className="h-10 w-36 rounded-xl skel-block" />
+        <div className="hero-card p-4 md:p-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg skel-block" />
+            <div className="h-6 w-40 rounded-lg skel-block" />
           </div>
+          <div className="h-10 w-36 rounded-xl skel-block" />
         </div>
         {/* Stats skeleton */}
         <div className="grid grid-cols-3 gap-2 md:gap-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="glass-card p-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg skel-block" />
-                <div className="space-y-1.5 flex-1">
-                  <div className="h-3 w-16 rounded skel-block" />
-                  <div className="h-5 w-10 rounded skel-block" />
+            <div key={i} className="metric-card p-3 md:p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="space-y-2 flex-1">
+                  <div className="h-2.5 w-16 rounded skel-block" />
+                  <div className="h-6 w-10 rounded skel-block" />
                 </div>
+                <div className="w-10 h-10 rounded-full skel-block" />
               </div>
             </div>
           ))}
         </div>
         {/* Calendar skeleton */}
-        <div className="glass-card overflow-hidden">
+        <div className="hero-card overflow-hidden">
           <div className="grid grid-cols-7 gap-px">
             {Array.from({ length: 35 }, (_, i) => (
               <div key={i} className="p-2 h-20 md:h-24 skel-block" />
@@ -493,61 +506,86 @@ export default function CoachGlobalCalendarPage() {
     <div className="p-4 md:p-6 w-full space-y-3 md:space-y-4 max-w-[1400px]">
 
       {/* ═══════ HEADER ═══════ */}
-      <div className="glass-card">
-        <div className="h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
-        <div className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
-              <Calendar className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold text-[var(--text-primary)]">Calendrier</h1>
-              <p className="text-[11px] text-[var(--text-muted)] hidden sm:block">Planifiez et suivez vos sessions</p>
-            </div>
+      <div className="hero-card hero-card--accent p-4 md:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Calendar className="w-5 h-5 text-[var(--text-muted)] flex-shrink-0" strokeWidth={1.75} />
+          <div>
+            <h1 className="text-lg md:text-xl font-bold tracking-tight text-[var(--text-primary)] leading-tight">Calendrier</h1>
+            <p className="text-[11px] text-[var(--text-muted)] hidden sm:block mt-0.5">Planifiez et suivez vos sessions</p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setDispoOpen(true)}
-              className="flex items-center justify-center gap-2 text-[var(--text-secondary)] text-sm font-semibold px-4 py-2.5 rounded-xl border border-[var(--border-base)] hover:bg-[var(--bg-surface)] transition-all active:scale-[0.97]"
-            >
-              <Clock className="w-4 h-4" /> Disponibilités
-            </button>
-            <button
-              onClick={openNewModal}
-              className="flex items-center justify-center gap-2 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.97]"
-              style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 4px 14px rgba(255,107,43,0.25)' }}
-            >
-              <Plus className="w-4 h-4" /> Nouvel événement
-            </button>
-          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setDispoOpen(true)}
+            className="flex items-center justify-center gap-2 text-[var(--text-secondary)] text-sm font-semibold px-4 py-2.5 rounded-xl border border-[var(--border-base)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-all active:scale-[0.97]"
+          >
+            <Clock className="w-4 h-4" /> Disponibilités
+          </button>
+          <button
+            onClick={openNewModal}
+            className="flex items-center justify-center gap-2 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all active:scale-[0.97]"
+            style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 4px 14px rgba(255,107,43,0.25)' }}
+          >
+            <Plus className="w-4 h-4" /> Nouvel événement
+          </button>
         </div>
       </div>
 
-      {/* ═══════ STATS ═══════ */}
+      {/* ═══════ STATS — metric-card + mini ring (Fitness OS) ═══════ */}
       <div className="grid grid-cols-3 gap-2 md:gap-3">
-        {[
-          { label: view === 'week' ? 'Cette semaine' : 'Ce mois', value: totalItems, icon: Calendar, color: '#FF6B2B' },
-          { label: 'Clients', value: uniqueClients, icon: User, color: '#3b82f6' },
-          { label: "Aujourd'hui", value: itemsToday, icon: Clock, color: '#22c55e' },
-        ].map((s, i) => (
-          <div key={i} className="glass-card p-3 flex items-center gap-2 md:gap-3">
-            <div className="relative flex-shrink-0">
-              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
-              <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${s.color}12` }}>
-                <s.icon className="w-4 h-4" style={{ color: s.color }} />
+        {(() => {
+          // Calculs ring
+          const periodDays = view === 'week'
+            ? weekDates
+            : monthGrid.cells.filter(c => c.inMonth).map(c => c.date)
+          const daysOccupied = periodDays.filter(d => itemsForDay(d).length > 0).length
+          const occupRatio = periodDays.length > 0 ? daysOccupied / periodDays.length : 0
+          const clientsRatio = clients.length > 0 ? uniqueClients / clients.length : 0
+          const todayRatio = Math.min(1, itemsToday / 8)
+
+          return [
+            {
+              label: view === 'week' ? 'Cette semaine' : 'Ce mois',
+              value: totalItems, icon: Calendar,
+              ringValue: Math.round(occupRatio * 100), ringMax: 100,
+            },
+            {
+              label: 'Clients', value: uniqueClients, icon: User,
+              ringValue: Math.round(clientsRatio * 100), ringMax: 100,
+            },
+            {
+              label: "Aujourd'hui", value: itemsToday, icon: Clock,
+              ringValue: Math.round(todayRatio * 100), ringMax: 100,
+            },
+          ]
+        })().map((s, i) => (
+          <div key={i} className="metric-card p-3 md:p-4">
+            <div className="relative z-[1] flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <s.icon size={11} className="text-[var(--text-muted)]" />
+                  <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-[0.14em] truncate">{s.label}</p>
+                </div>
+                <p className="text-[var(--text-primary)] text-2xl md:text-[26px] font-black tabular-nums tracking-tight leading-none">{s.value}</p>
               </div>
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] text-[var(--text-muted)] truncate leading-tight">{s.label}</p>
-              <p className="text-lg font-bold text-[var(--text-primary)] leading-tight">{s.value}</p>
+              <Ring
+                value={s.ringValue}
+                max={s.ringMax}
+                size={42}
+                thickness={4}
+                color="#FF6B2B"
+                trackColor="var(--ring-track)"
+                className="shrink-0"
+              >
+                <span className="text-[9px] font-black tabular-nums text-[var(--text-primary)]">{s.ringValue}%</span>
+              </Ring>
             </div>
           </div>
         ))}
       </div>
 
       {/* ═══════ TOOLBAR : Nav + Toggle + Filtres ═══════ */}
-      <div className="glass-card p-3 md:p-4">
+      <div className="hero-card p-3 md:p-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
 
           {/* Navigation */}
@@ -558,8 +596,7 @@ export default function CoachGlobalCalendarPage() {
             <span className="text-sm font-semibold text-[var(--text-primary)] flex-1 text-center truncate">{navLabel}</span>
             {!isAtToday && (
               <button onClick={goToday}
-                className="text-[10px] px-2.5 py-1 rounded-full font-semibold transition-all flex-shrink-0 whitespace-nowrap"
-                style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.15), rgba(255,143,94,0.15))', color: '#FF6B2B' }}>
+                className="text-[10px] px-2.5 py-1 rounded-full font-semibold transition-all flex-shrink-0 whitespace-nowrap bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[#FF6B2B] border border-[var(--border-subtle)]">
                 Aujourd'hui
               </button>
             )}
@@ -568,7 +605,7 @@ export default function CoachGlobalCalendarPage() {
             </button>
           </div>
 
-          {/* Toggle Mois / Semaine */}
+          {/* Toggle Mois / Semaine — segmented control neutre */}
           <div className="flex items-center bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl p-1 flex-shrink-0">
             {[{ id: 'month', label: 'Mois' }, { id: 'week', label: 'Semaine' }].map(v => (
               <button
@@ -576,10 +613,9 @@ export default function CoachGlobalCalendarPage() {
                 onClick={() => setView(v.id)}
                 className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
                   view === v.id
-                    ? 'text-white shadow-lg'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                    ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-base)]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-transparent'
                 }`}
-                style={view === v.id ? { background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 2px 8px rgba(255,107,43,0.3)' } : {}}
               >
                 {v.label}
               </button>
@@ -622,11 +658,11 @@ export default function CoachGlobalCalendarPage() {
 
       {view === 'month' ? (
         /* ────────── VUE MOIS ────────── */
-        <div className="glass-card overflow-hidden">
+        <div className="hero-card overflow-hidden">
           {/* Jours header */}
           <div className="grid grid-cols-7 border-b border-[var(--border-base)]">
             {JOURS.map(j => (
-              <div key={j} className="px-1 py-2.5 text-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">{j}</div>
+              <div key={j} className="px-1 py-2.5 text-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.14em]">{j}</div>
             ))}
           </div>
 
@@ -645,26 +681,32 @@ export default function CoachGlobalCalendarPage() {
                   className={`group relative border-b border-r border-[var(--border-base)] min-h-[80px] md:min-h-[100px] p-1.5 flex flex-col cursor-pointer transition-all hover:bg-[var(--bg-surface)] ${
                     cell.inMonth ? '' : 'bg-[var(--bg-surface)]/40 opacity-50'
                   } ${isTo ? 'bg-[#FF6B2B]/[0.04] hover:bg-[#FF6B2B]/[0.07]' : ''}`}
-                  style={isTo ? { boxShadow: 'inset 0 0 20px rgba(255,107,43,0.06)' } : {}}
                 >
-                  {/* Date number */}
+                  {/* Date number — Ring orange pour aujourd'hui au lieu d'un disque plein */}
                   <div className="flex items-center justify-between mb-1">
-                    <span
-                      onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
-                      className={`text-xs font-medium leading-none ${
-                        isTo ? 'w-6 h-6 flex items-center justify-center rounded-full text-white text-[11px] font-bold'
-                          : cell.inMonth ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
-                      } ${dayItems.length > 0 ? 'hover:underline' : ''}`}
-                      style={isTo ? { background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 2px 8px rgba(255,107,43,0.35)' } : {}}
-                    >
-                      {cell.date.getDate()}
-                    </span>
+                    {isTo ? (
+                      <span
+                        onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
+                        className={`w-6 h-6 flex items-center justify-center rounded-full border-[1.5px] border-[#FF6B2B] text-[11px] font-bold text-[#FF6B2B] leading-none ${dayItems.length > 0 ? 'hover:bg-[#FF6B2B]/10' : ''}`}
+                      >
+                        {cell.date.getDate()}
+                      </span>
+                    ) : (
+                      <span
+                        onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
+                        className={`text-xs font-medium leading-none ${
+                          cell.inMonth ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
+                        } ${dayItems.length > 0 ? 'hover:underline' : ''}`}
+                      >
+                        {cell.date.getDate()}
+                      </span>
+                    )}
                     {dayItems.length > 0 && (
                       <span className="text-[9px] text-[var(--text-muted)] font-medium tabular-nums">{dayItems.length}</span>
                     )}
                   </div>
 
-                  {/* Compact events */}
+                  {/* Events — barre latérale 3px + texte (plus de fond saturé) */}
                   <div className="flex flex-col gap-0.5 flex-1 overflow-hidden">
                     {dayItems.slice(0, maxShow).map((item) => {
                       if (item._type === 'seance') {
@@ -672,23 +714,25 @@ export default function CoachGlobalCalendarPage() {
                           <div
                             key={`s-${item.id}`}
                             onClick={(e) => openSeanceDetail(item, e)}
-                            className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-[#FF6B2B]/10 truncate cursor-pointer hover:bg-[#FF6B2B]/20 transition-colors"
+                            className="relative flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-sm truncate cursor-pointer hover:bg-[var(--bg-surface)] transition-colors"
                           >
-                            <Dumbbell className="w-2.5 h-2.5 text-[#FF6B2B] flex-shrink-0" />
+                            <span className="absolute left-0 top-0.5 bottom-0.5 w-[3px] rounded-r-full" style={{ backgroundColor: FAMILY.seance }} />
+                            <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: FAMILY.seance }} />
                             <span className="text-[10px] text-[var(--text-primary)] truncate font-medium">{item.profiles?.nom || item.titre}</span>
                           </div>
                         )
                       } else {
                         const ti = getEventTypeInfo(item.event_type)
                         const TI = ti.icon
+                        const familyColor = FAMILY[getEventFamily(item.event_type)]
                         return (
                           <div
                             key={`e-${item.id}`}
                             onClick={(e) => openEventDetail(item, e)}
-                            className="flex items-center gap-1 px-1.5 py-0.5 rounded-md truncate cursor-pointer hover:brightness-125 transition-all"
-                            style={{ backgroundColor: `${ti.color}12` }}
+                            className="relative flex items-center gap-1 pl-2 pr-1.5 py-0.5 rounded-sm truncate cursor-pointer hover:bg-[var(--bg-surface)] transition-colors"
                           >
-                            <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
+                            <span className="absolute left-0 top-0.5 bottom-0.5 w-[3px] rounded-r-full" style={{ backgroundColor: familyColor }} />
+                            <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: familyColor }} />
                             <span className="text-[10px] text-[var(--text-primary)] truncate font-medium">{getClientName(item.client_id) || item.title}</span>
                           </div>
                         )
@@ -699,7 +743,7 @@ export default function CoachGlobalCalendarPage() {
                     {overflow > 0 && (
                       <button
                         onClick={(e) => openDayDetail(cell.date, e)}
-                        className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF8F5E] px-1.5 py-0.5 text-left transition-colors"
+                        className="text-[10px] text-[var(--text-muted)] font-semibold hover:text-[#FF6B2B] px-1.5 py-0.5 text-left transition-colors"
                       >
                         +{overflow} autre{overflow > 1 ? 's' : ''}
                       </button>
@@ -712,8 +756,8 @@ export default function CoachGlobalCalendarPage() {
         </div>
       ) : (
         /* ────────── VUE SEMAINE ────────── */
-        <div className="glass-card overflow-hidden">
-          {/* All-day section */}
+        <div className="hero-card overflow-hidden">
+          {/* All-day section — séances avec barre latérale */}
           {(() => {
             const hasAllDay = weekDates.some(d => {
               const items = itemsForDay(d)
@@ -736,9 +780,10 @@ export default function CoachGlobalCalendarPage() {
                             <div
                               key={`ad-${s.id}`}
                               onClick={(e) => openSeanceDetail(s, e)}
-                              className="flex items-center gap-1 px-1.5 py-1 rounded-md bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 cursor-pointer hover:bg-[#FF6B2B]/20 transition-colors"
+                              className="relative flex items-center gap-1 pl-2 pr-1.5 py-1 rounded-sm cursor-pointer hover:bg-[var(--bg-surface)] transition-colors"
                             >
-                              <Dumbbell className="w-2.5 h-2.5 text-[#FF6B2B] flex-shrink-0" />
+                              <span className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full" style={{ backgroundColor: FAMILY.seance }} />
+                              <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: FAMILY.seance }} />
                               <span className="text-[10px] font-medium text-[var(--text-primary)] truncate">{s.titre}</span>
                             </div>
                           ))}
@@ -751,21 +796,22 @@ export default function CoachGlobalCalendarPage() {
             )
           })()}
 
-          {/* Header row */}
+          {/* Header row — Ring orange autour du chiffre pour aujourd'hui */}
           <div className="grid grid-cols-[48px_repeat(7,1fr)] md:grid-cols-[60px_repeat(7,1fr)] border-b border-[var(--border-base)]">
             <div className="p-2 border-r border-[var(--border-base)]" />
             {weekDates.map((date, idx) => {
               const isTo = isSameDay(date, today)
               return (
                 <div key={idx} className={`p-2 border-r border-[var(--border-base)] last:border-r-0 text-center ${isTo ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
-                  <p className="text-[10px] text-[var(--text-muted)] uppercase font-semibold">{JOURS[idx]}</p>
+                  <p className="text-[10px] text-[var(--text-muted)] uppercase font-semibold tracking-[0.14em]">{JOURS[idx]}</p>
                   <div className="flex justify-center mt-1">
-                    <span
-                      className={`text-sm font-bold ${isTo ? 'w-7 h-7 rounded-full flex items-center justify-center text-white' : 'text-[var(--text-primary)]'}`}
-                      style={isTo ? { background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 2px 8px rgba(255,107,43,0.35)' } : {}}
-                    >
-                      {date.getDate()}
-                    </span>
+                    {isTo ? (
+                      <span className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-[#FF6B2B] border-[1.5px] border-[#FF6B2B]">
+                        {date.getDate()}
+                      </span>
+                    ) : (
+                      <span className="text-sm font-bold text-[var(--text-primary)]">{date.getDate()}</span>
+                    )}
                   </div>
                 </div>
               )
@@ -798,19 +844,20 @@ export default function CoachGlobalCalendarPage() {
                       {hourEvts.map(evt => {
                         const ti = getEventTypeInfo(evt.event_type)
                         const TI = ti.icon
+                        const familyColor = FAMILY[getEventFamily(evt.event_type)]
                         return (
                           <div
                             key={`we-${evt.id}`}
                             onClick={(e) => openEventDetail(evt, e)}
-                            className="absolute inset-x-0.5 top-0.5 rounded-md px-1 md:px-1.5 py-1 z-10 border cursor-pointer hover:brightness-125 transition-all"
-                            style={{ backgroundColor: `${ti.color}18`, borderColor: `${ti.color}30` }}
+                            className="absolute inset-x-0.5 top-0.5 rounded-sm pl-2 pr-1 md:pr-1.5 py-1 z-10 cursor-pointer hover:bg-[var(--bg-surface)] transition-colors"
                           >
+                            <span className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full" style={{ backgroundColor: familyColor }} />
                             <div className="flex items-center gap-1">
-                              <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
+                              <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: familyColor }} />
                               <span className="text-[10px] font-medium text-[var(--text-primary)] truncate">{evt.title}</span>
                             </div>
                             {getClientName(evt.client_id) && (
-                              <p className="text-[9px] text-[var(--text-muted)] truncate hidden md:block">{getClientName(evt.client_id)}</p>
+                              <p className="text-[9px] text-[var(--text-muted)] truncate hidden md:block pl-0.5">{getClientName(evt.client_id)}</p>
                             )}
                           </div>
                         )
