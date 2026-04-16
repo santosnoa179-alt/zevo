@@ -34,7 +34,8 @@ function isSameDay(a, b) {
 // SIDEBAR AVATAR
 // ═══════════════════════════════════════════════════════════════════════════
 
-const COULEURS = ['#FF6B2B', '#3b82f6', '#22c55e', '#a855f7', '#f59e0b', '#ec4899']
+// Palette atténuée — cohérence Fitness OS (orange Zevo + neutres)
+const COULEURS = ['#FF6B2B', '#64748b', '#475569', '#9ca3af', '#334155', '#FF9A6C']
 function Initiales({ nom, couleur, size = 'md' }) {
   const parts = (nom ?? '?').trim().split(' ')
   const initiales = parts.length >= 2 ? `${parts[0][0]}${parts[parts.length - 1][0]}` : (nom ?? '?')[0]

@@ -31,7 +31,8 @@ function Avatar({ nom, prenom, avatarUrl, couleur }) {
   )
 }
 
-const COULEURS_AVATAR = ['#FF6B2B', '#3b82f6', '#22c55e', '#a855f7', '#f59e0b', '#ec4899', '#14b8a6']
+// Palette atténuée — cohérence Fitness OS (orange Zevo + neutres)
+const COULEURS_AVATAR = ['#FF6B2B', '#64748b', '#475569', '#9ca3af', '#334155', '#7c7c7c', '#FF9A6C']
 
 export default function CoachClientsPage() {
   const { user } = useAuth()

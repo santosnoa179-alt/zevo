@@ -26,8 +26,8 @@ import {
   ClipboardList, AlertTriangle, Lock
 } from 'lucide-react'
 
-// ── Couleurs avatar ──
-const AVATAR_COLORS = ['#FF6B2B', '#3b82f6', '#22c55e', '#a855f7', '#f59e0b', '#ec4899', '#14b8a6']
+// ── Couleurs avatar (palette atténuée, cohérence Fitness OS) ──
+const AVATAR_COLORS = ['#FF6B2B', '#64748b', '#475569', '#9ca3af', '#334155', '#7c7c7c', '#FF9A6C']
 
 // ── Onglets internes (affichés dans la barre) ──
 // Infos/Partage accessibles via icônes header. Suivi fusionne dans Vue d'ensemble.

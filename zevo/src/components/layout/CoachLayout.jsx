@@ -25,35 +25,37 @@ import { ZevoLogo } from '../ui/ZevoLogo'
 // SIDEBAR NAV — Structure par sections
 // ══════════════════════════════════════
 
+// Plus de color par item — tous les onglets utilisent l'orange Zevo (via fallback itemColor).
+// Cohérence avec le langage Fitness OS : orange uniquement = état actif / signature brand.
 const NAV_SECTIONS = [
   {
     title: null,
     items: [
-      { to: '/coach/dashboard', icon: House, label: 'Tableau de bord', color: '#3B82F6' },
-      { to: '/coach/client-hub', icon: UsersRound, label: 'Clients', color: '#8B5CF6' },
-      { to: '/coach/calendar', icon: CalendarRange, label: 'Calendrier', color: '#10B981' },
-      { to: '/coach/messages', icon: MessageSquareText, label: 'Messages', msgBadge: true, color: '#06B6D4' },
-      { to: '/coach/prospects', icon: Magnet, label: 'Prospects', badge: 'Nouveau', color: '#F59E0B' },
+      { to: '/coach/dashboard', icon: House, label: 'Tableau de bord' },
+      { to: '/coach/client-hub', icon: UsersRound, label: 'Clients' },
+      { to: '/coach/calendar', icon: CalendarRange, label: 'Calendrier' },
+      { to: '/coach/messages', icon: MessageSquareText, label: 'Messages', msgBadge: true },
+      { to: '/coach/prospects', icon: Magnet, label: 'Prospects', badge: 'Nouveau' },
     ],
   },
   {
     title: 'RESSOURCES',
     items: [
-      { to: '/coach/sport', icon: Dumbbell, label: 'Sport', color: '#EF4444' },
-      { to: '/coach/exercices', icon: Target, label: 'Exercices', color: '#FF6B2B' },
-      { to: '/coach/nutrition', icon: Cherry, label: 'Nutrition', color: '#22C55E' },
-      { to: '/coach/bibliotheque', icon: BookMarked, label: 'Bibliothèque', color: '#A78BFA' },
-      { to: '/coach/formulaires', icon: ClipboardCheck, label: 'Formulaires', color: '#14B8A6' },
-      { to: '/coach/rapports', icon: ChartNoAxesCombined, label: 'Rapports', planRequired: 'pro', color: '#F97316' },
-      { to: '/coach/statistiques', icon: ChartSpline, label: 'Statistiques', planRequired: 'pro', color: '#EC4899' },
+      { to: '/coach/sport', icon: Dumbbell, label: 'Sport' },
+      { to: '/coach/exercices', icon: Target, label: 'Exercices' },
+      { to: '/coach/nutrition', icon: Cherry, label: 'Nutrition' },
+      { to: '/coach/bibliotheque', icon: BookMarked, label: 'Bibliothèque' },
+      { to: '/coach/formulaires', icon: ClipboardCheck, label: 'Formulaires' },
+      { to: '/coach/rapports', icon: ChartNoAxesCombined, label: 'Rapports', planRequired: 'pro' },
+      { to: '/coach/statistiques', icon: ChartSpline, label: 'Statistiques', planRequired: 'pro' },
     ],
   },
   {
     title: 'GESTION',
     items: [
-      { to: '/coach/abonnements', icon: Landmark, label: 'Paiements', color: '#F59E0B' },
-      { to: '/coach/app-builder', icon: Blocks, label: 'App Builder', planRequired: 'pro', color: '#FF6B2B' },
-      { to: '/coach/parametres', icon: Settings, label: 'Paramètres', color: '#6B7280' },
+      { to: '/coach/abonnements', icon: Landmark, label: 'Paiements' },
+      { to: '/coach/app-builder', icon: Blocks, label: 'App Builder', planRequired: 'pro' },
+      { to: '/coach/parametres', icon: Settings, label: 'Paramètres' },
     ],
   },
 ]
@@ -333,7 +335,7 @@ export function CoachLayout() {
                           <>
                             <div
                               className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                              style={{ backgroundColor: isActive ? `${itemColor}18` : `${itemColor}08` }}
+                              style={{ backgroundColor: isActive ? `${itemColor}18` : 'transparent' }}
                             >
                               <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} style={{ color: isActive ? itemColor : undefined }} className={isActive ? '' : 'text-[var(--text-muted)]'} />
                             </div>
@@ -414,13 +416,13 @@ export function CoachLayout() {
                     >
                       {({ isActive }) => (
                         <>
-                          {/* Icon container — Gymkee-style: large rounded square, filled bg on active */}
+                          {/* Icon container — actif : halo orange subtil, inactif : transparent */}
                           <div
                             className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
-                              isActive ? 'shadow-lg' : 'group-hover:scale-105'
+                              isActive ? '' : 'group-hover:scale-105'
                             }`}
                             style={{
-                              backgroundColor: isActive ? `${itemColor}18` : `${itemColor}08`,
+                              backgroundColor: isActive ? `${itemColor}18` : 'transparent',
                               boxShadow: isActive ? `0 4px 12px ${itemColor}15` : 'none',
                             }}
                           >
