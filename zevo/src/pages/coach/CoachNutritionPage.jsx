@@ -19,6 +19,7 @@ export default function CoachNutritionPage() {
   const navigate = useNavigate()
 
   const [plans, setPlans] = useState([])
+  const [programmes, setProgrammes] = useState([])
   const [suiviData, setSuiviData] = useState({}) // { plan_id_client_id: [{ numero_semaine }] }
   const [isLoading, setIsLoading] = useState(true)
   const [tab, setTab] = useState('assigned')
@@ -81,6 +82,20 @@ export default function CoachNutritionPage() {
 
     if (error) console.error('[NutritionPage] Erreur fetch:', error)
     setPlans(data || [])
+
+    // Fetch programmes multi-semaines (V1) — table séparée des plans simples
+    try {
+      const { data: progs, error: progsErr } = await supabase
+        .from('nutrition_programmes')
+        .select('*, profiles:client_id(id, nom, prenom)')
+        .eq('coach_id', user.id)
+        .order('created_at', { ascending: false })
+      if (progsErr) console.warn('[NutritionPage] fetch programmes err:', progsErr.message)
+      setProgrammes(progs || [])
+    } catch (e) {
+      console.warn('[NutritionPage] programmes table absente (run schema SQL ?)', e)
+      setProgrammes([])
+    }
 
     // Récupérer le suivi de progression nutrition via SECURITY DEFINER (bypass RLS)
     try {
@@ -264,13 +279,19 @@ export default function CoachNutritionPage() {
       {/* ═══ Header ═══ */}
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-[var(--text-primary)] text-2xl md:text-3xl font-bold tracking-tight">Plans Nutrition</h1>
-          <p className="text-[var(--text-muted)] text-sm mt-1.5">Plans nutritionnels, macros et suivi client</p>
+          <h1 className="text-[var(--text-primary)] text-2xl md:text-3xl font-bold tracking-tight">Nutrition</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1.5">Plans simples, programmes multi-semaines et bibliothèque de repas</p>
         </div>
-        <button onClick={() => navigate('/coach/nutrition/new')}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95 shrink-0">
-          <Plus size={15} /> Créer un plan
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button onClick={() => navigate('/coach/nutrition/new')}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[var(--text-secondary)] border border-[var(--border-base)] text-sm font-semibold hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all active:scale-95">
+            <Plus size={15} /> Plan simple
+          </button>
+          <button onClick={() => navigate('/coach/nutrition/programme/new')}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95">
+            <Plus size={15} /> Programme
+          </button>
+        </div>
       </div>
 
       {/* ═══ Stats overview — metric-card ═══ */}
@@ -310,8 +331,9 @@ export default function CoachNutritionPage() {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl p-1">
           {[
-            { key: 'assigned', label: 'Assignés', count: assignedPlans.length },
-            { key: 'templates', label: 'Modèles', count: templatePlans.length },
+            { key: 'assigned', label: 'Plans assignés', count: assignedPlans.length },
+            { key: 'templates', label: 'Plans modèles', count: templatePlans.length },
+            { key: 'programmes', label: 'Programmes', count: programmes.length },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`py-2 px-4 rounded-lg text-xs md:text-sm font-semibold transition-all ${
@@ -502,6 +524,82 @@ export default function CoachNutritionPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ═══════ ONGLET : PROGRAMMES MULTI-SEMAINES (V1 Piste C) ═══════ */}
+      {!isLoading && tab === 'programmes' && (
+        <>
+          {programmes.filter(p => !searchTerm || (p.nom || '').toLowerCase().includes(searchTerm.toLowerCase())).length === 0 ? (
+            <div className="hero-card p-12 text-center">
+              <Layers size={28} className="text-[var(--text-muted)] mx-auto mb-4 animate-breathe" strokeWidth={1.5} />
+              <h3 className="text-[var(--text-primary)] font-bold text-base mb-2 tracking-tight">
+                {searchTerm ? 'Aucun résultat' : 'Aucun programme multi-semaines'}
+              </h3>
+              <p className="text-[var(--text-muted)] text-sm mb-5 max-w-md mx-auto">
+                {searchTerm
+                  ? `Aucun programme pour "${searchTerm}"`
+                  : 'Les programmes te permettent de structurer un coaching nutrition sur plusieurs semaines avec des phases et des journées types réutilisables.'}
+              </p>
+              {!searchTerm && (
+                <button onClick={() => navigate('/coach/nutrition/programme/new')}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95">
+                  <Plus size={15} /> Créer mon premier programme
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+              {programmes
+                .filter(p => !searchTerm || (p.nom || '').toLowerCase().includes(searchTerm.toLowerCase()))
+                .map((prog, idx) => {
+                  const isTemplate = prog.is_template || !prog.client_id
+                  const clientName = prog.profiles ? [prog.profiles.prenom, prog.profiles.nom].filter(Boolean).join(' ') : null
+                  const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length]
+                  const initials = clientName
+                    ? clientName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                    : 'M'
+                  return (
+                    <div key={prog.id}
+                      onClick={() => navigate(`/coach/nutrition/programme/${prog.id}`)}
+                      className="group hero-card p-4 hover:border-[#FF6B2B]/30 transition-all cursor-pointer">
+                      <div className="flex items-start gap-3">
+                        {isTemplate ? (
+                          <Layers size={16} className="text-[var(--text-muted)] shrink-0 mt-0.5" strokeWidth={1.75} />
+                        ) : (
+                          <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0 uppercase"
+                            style={{ backgroundColor: avatarColor }}>
+                            {initials}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-[var(--text-primary)] font-bold text-sm leading-tight truncate">
+                            {isTemplate ? (prog.nom || 'Programme') : clientName}
+                          </h3>
+                          <p className="text-[var(--text-muted)] text-xs truncate mt-0.5">
+                            {isTemplate ? (prog.objectif || 'Modèle réutilisable') : (prog.nom || 'Programme')}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
+                            <span className="inline-flex items-center gap-1 bg-[var(--bg-base)] px-2 py-0.5 rounded-md text-[10px] text-[var(--text-muted)] font-semibold border border-[var(--border-subtle)] tabular-nums">
+                              <Calendar size={10} /> {prog.duree_semaines || 4} sem.
+                            </span>
+                            {isTemplate ? (
+                              <span className="text-[10px] font-semibold text-[var(--text-muted)]">Modèle</span>
+                            ) : (
+                              <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${prog.is_active ? 'text-emerald-400' : 'text-[var(--text-muted)]'}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${prog.is_active ? 'bg-emerald-400' : 'bg-[var(--text-muted)]'}`} />
+                                {prog.is_active ? 'Actif' : 'Inactif'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
             </div>
           )}
         </>
