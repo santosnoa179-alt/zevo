@@ -3,11 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/ui/Toast'
+import Ring from '../../components/ui/Ring'
 import {
   Search, Plus, UtensilsCrossed, Layers, Send,
-  Loader2, Trash2, Calendar,
+  Loader2, Trash2, Calendar, Users, CheckCircle, Activity,
   X, Edit3, UserPlus, Copy, Check
 } from 'lucide-react'
+
+// Palette avatar atténuée — cohérence Fitness OS
+const AVATAR_COLORS = ['#FF6B2B', '#64748b', '#475569', '#9ca3af', '#334155', '#7c7c7c', '#FF9A6C']
 
 export default function CoachNutritionPage() {
   const { user } = useAuth()
@@ -235,53 +239,105 @@ export default function CoachNutritionPage() {
   // Render
   // ═══════════════════════════════════════
 
+  // Stats overview
+  const totalAssigned = assignedPlans.length
+  const activeAssigned = assignedPlans.filter(p => p.is_active).length
+  const totalProgressPct = (() => {
+    if (assignedPlans.length === 0) return 0
+    let total = 0
+    assignedPlans.forEach(p => {
+      const weeks = p.duree_semaines || 4
+      const done = (suiviData[`${p.id}_${p.client_id}`] || []).length
+      total += Math.min(100, Math.round((done / weeks) * 100))
+    })
+    return Math.round(total / assignedPlans.length)
+  })()
+  const completedCount = assignedPlans.filter(p => {
+    const weeks = p.duree_semaines || 4
+    const done = (suiviData[`${p.id}_${p.client_id}`] || []).length
+    return done >= weeks
+  }).length
+
   return (
-    <div className="p-4 md:p-8 w-full max-w-5xl mx-auto space-y-8">
+    <div className="p-4 md:p-6 w-full max-w-[1400px] mx-auto space-y-5 md:space-y-6">
 
       {/* ═══ Header ═══ */}
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-[var(--text-primary)] text-3xl font-bold tracking-tight">Plans Nutrition</h1>
+          <h1 className="text-[var(--text-primary)] text-2xl md:text-3xl font-bold tracking-tight">Plans Nutrition</h1>
           <p className="text-[var(--text-muted)] text-sm mt-1.5">Plans nutritionnels, macros et suivi client</p>
         </div>
         <button onClick={() => navigate('/coach/nutrition/new')}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25 shrink-0">
-          <Plus size={16} /> Créer un plan
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95 shrink-0">
+          <Plus size={15} /> Créer un plan
         </button>
       </div>
 
+      {/* ═══ Stats overview — metric-card ═══ */}
+      {!isLoading && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: 'Plans assignés', value: totalAssigned, icon: Users, ringValue: totalAssigned, ringMax: Math.max(1, totalAssigned) },
+            { label: 'Actifs', value: activeAssigned, icon: Activity, ringValue: activeAssigned, ringMax: Math.max(1, totalAssigned) },
+            { label: 'Progression moy.', value: `${totalProgressPct}%`, icon: Send, ringValue: totalProgressPct, ringMax: 100 },
+            { label: 'Terminés', value: completedCount, icon: CheckCircle, ringValue: completedCount, ringMax: Math.max(1, totalAssigned) },
+          ].map((s, i) => (
+            <div key={i} className="metric-card p-3 md:p-4">
+              <div className="relative z-[1] flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <s.icon size={11} className="text-[var(--text-muted)]" />
+                    <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-[0.14em] truncate">{s.label}</p>
+                  </div>
+                  <p className="text-[var(--text-primary)] text-[22px] md:text-[24px] font-black tabular-nums tracking-tight leading-none">{s.value}</p>
+                </div>
+                <Ring
+                  value={s.ringValue}
+                  max={s.ringMax}
+                  size={40}
+                  thickness={3.5}
+                  color="#FF6B2B"
+                  trackColor="var(--ring-track)"
+                  className="shrink-0"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ═══ Tabs + Search ═══ */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-1 bg-[var(--bg-card)] rounded-2xl p-1 border border-[var(--border-base)]">
+        <div className="flex items-center bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl p-1">
           {[
             { key: 'assigned', label: 'Assignés', count: assignedPlans.length },
             { key: 'templates', label: 'Modèles', count: templatePlans.length },
           ].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`py-2.5 px-5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+              className={`py-2 px-4 rounded-lg text-xs md:text-sm font-semibold transition-all ${
                 tab === t.key
-                  ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-base)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-transparent'
               }`}>
               {t.label}
-              <span className={`ml-1.5 text-xs ${tab === t.key ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}`}>
+              <span className={`ml-1.5 text-[10px] font-bold tabular-nums ${tab === t.key ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
                 {t.count}
               </span>
             </button>
           ))}
         </div>
-        <div className="relative">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+        <div className="relative flex-1 md:flex-none max-w-xs">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
             placeholder="Rechercher..."
-            className="w-56 bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl pl-10 pr-4 py-2.5 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all" />
+            className="w-full md:w-56 bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl pl-9 pr-3 py-2 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/10 transition-all" />
         </div>
       </div>
 
       {/* Loading */}
       {isLoading && (
         <div className="flex items-center justify-center py-20 gap-3">
-          <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
+          <Loader2 className="animate-spin text-[#FF6B2B]" size={20} />
           <span className="text-[var(--text-muted)] text-sm">Chargement des plans...</span>
         </div>
       )}
@@ -290,28 +346,28 @@ export default function CoachNutritionPage() {
       {!isLoading && tab === 'assigned' && (
         <>
           {filteredAssigned.length === 0 ? (
-            <div className="bg-[var(--bg-card)] rounded-3xl border border-[var(--border-base)] p-16 text-center">
-              <div className="w-16 h-16 bg-[#FF6B2B]/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                <Send size={28} className="text-[#FF6B2B]" />
-              </div>
-              <h3 className="text-[var(--text-primary)] font-bold text-lg mb-2">
+            <div className="hero-card p-12 text-center">
+              <Send size={28} className="text-[var(--text-muted)] mx-auto mb-4 animate-breathe" strokeWidth={1.5} />
+              <h3 className="text-[var(--text-primary)] font-bold text-base mb-2 tracking-tight">
                 {searchTerm ? 'Aucun résultat' : 'Aucun plan assigné'}
               </h3>
-              <p className="text-[var(--text-muted)] text-sm mb-6 max-w-sm mx-auto">
+              <p className="text-[var(--text-muted)] text-sm mb-5 max-w-sm mx-auto">
                 {searchTerm ? `Aucun résultat pour "${searchTerm}"` : 'Crée un modèle puis assigne-le à un client.'}
               </p>
               {!searchTerm && (
                 <button onClick={() => setTab('templates')}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--bg-surface)] transition-all">
-                  <Layers size={14} /> Voir les modèles
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-xs font-semibold hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] border border-[var(--border-subtle)] transition-all">
+                  <Layers size={13} /> Voir les modèles
                 </button>
               )}
             </div>
           ) : (
-            <div className="space-y-3">
-              {filteredAssigned.map(plan => {
+            /* Grid responsive — scale avec beaucoup de clients (1 / 2 / 3 colonnes) */
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+              {filteredAssigned.map((plan, idx) => {
                 const clientName = getClientName(plan) || 'Client'
                 const initials = getInitials(plan)
+                const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length]
 
                 const totalWeeks = plan.duree_semaines || 4
                 const suiviKey = `${plan.id}_${plan.client_id}`
@@ -322,58 +378,55 @@ export default function CoachNutritionPage() {
                 return (
                   <div key={plan.id}
                     onClick={() => navigate(`/coach/nutrition/${plan.id}`)}
-                    className="group bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] p-5 md:p-6 hover:border-[var(--border-base)] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 transition-all duration-300 cursor-pointer">
+                    className="group hero-card p-4 hover:border-[#FF6B2B]/30 transition-all cursor-pointer">
 
-                    <div className="flex items-start gap-4">
-                      <div className={`w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold shrink-0 uppercase ${
-                        isComplete ? 'bg-emerald-500/15 text-emerald-400 ring-2 ring-emerald-500/20' : 'bg-[#FF6B2B]/15 text-[#FF6B2B] ring-2 ring-[#FF6B2B]/10'
-                      }`}>
+                    <div className="flex items-start gap-3">
+                      {/* Avatar palette atténuée */}
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0 uppercase"
+                        style={{ backgroundColor: avatarColor }}>
                         {initials}
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
-                          <h3 className="text-[var(--text-primary)] font-bold text-sm">{clientName}</h3>
-                          <span className="w-1 h-1 rounded-full bg-white/15" />
-                          <span className="text-[var(--text-muted)] text-sm truncate">{plan.nom || 'Plan du jour'}</span>
-                        </div>
+                        <h3 className="text-[var(--text-primary)] font-bold text-sm leading-tight truncate">{clientName}</h3>
+                        <p className="text-[var(--text-muted)] text-xs truncate mt-0.5">{plan.nom || 'Plan du jour'}</p>
 
-                        <div className="flex items-center gap-2 mb-3.5">
-                          <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
-                            plan.is_active
-                              ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
-                              : 'text-[var(--text-muted)] bg-white/5 border-white/10'
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${
+                            plan.is_active ? 'text-emerald-400' : 'text-[var(--text-muted)]'
                           }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${plan.is_active ? 'bg-emerald-400' : 'bg-[var(--text-muted)]'}`} />
                             {plan.is_active ? 'Actif' : 'Inactif'}
                           </span>
                           {plan.date_plan && (
-                            <span className="text-[var(--text-muted)] text-xs">
-                              Depuis le {new Date(plan.date_plan).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                            </span>
+                            <>
+                              <span className="text-[var(--text-muted)] text-[10px]">·</span>
+                              <span className="text-[var(--text-muted)] text-[10px]">
+                                {new Date(plan.date_plan).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                              </span>
+                            </>
                           )}
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 h-2 rounded-full bg-[var(--bg-surface)] overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-700 ease-out ${
-                                isComplete
-                                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
-                                  : 'bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]'
-                              }`}
-                              style={{ width: `${progressPct}%` }}
-                            />
-                          </div>
-                          <span className={`text-xs font-bold shrink-0 tabular-nums ${isComplete ? 'text-emerald-400' : 'text-[#FF6B2B]'}`}>
-                            {weeksDone}/{totalWeeks} sem.
-                          </span>
                         </div>
                       </div>
 
+                      {/* Mini-ring progression (langage Fitness OS) */}
+                      <Ring
+                        value={weeksDone}
+                        max={totalWeeks}
+                        size={42}
+                        thickness={3.5}
+                        color={isComplete ? '#22c55e' : '#FF6B2B'}
+                        trackColor="var(--ring-track)"
+                        className="shrink-0"
+                      >
+                        <span className={`text-[9px] font-black tabular-nums ${isComplete ? 'text-emerald-400' : 'text-[var(--text-primary)]'}`}>{weeksDone}/{totalWeeks}</span>
+                      </Ring>
+
                       <button onClick={e => { e.stopPropagation(); handleDelete(plan.id, e) }}
-                        className="p-2 rounded-xl text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
                         title="Supprimer le plan assigné">
-                        <Trash2 size={15} />
+                        <Trash2 size={13} />
                       </button>
                     </div>
                   </div>
@@ -388,69 +441,64 @@ export default function CoachNutritionPage() {
       {!isLoading && tab === 'templates' && (
         <>
           {filteredTemplates.length === 0 ? (
-            <div className="bg-[var(--bg-card)] rounded-3xl border border-[var(--border-base)] p-20 text-center">
-              <div className="w-20 h-20 bg-[#FF6B2B]/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <UtensilsCrossed size={32} className="text-[#FF6B2B]" />
-              </div>
-              <h3 className="text-[var(--text-primary)] font-bold text-xl mb-2">
+            <div className="hero-card p-16 text-center">
+              <UtensilsCrossed size={32} className="text-[var(--text-muted)] mx-auto mb-4 animate-breathe" strokeWidth={1.5} />
+              <h3 className="text-[var(--text-primary)] font-bold text-lg mb-2 tracking-tight">
                 {searchTerm ? 'Aucun résultat' : 'Aucun plan nutritionnel'}
               </h3>
-              <p className="text-[var(--text-muted)] text-sm mb-8 max-w-md mx-auto">
+              <p className="text-[var(--text-muted)] text-sm mb-6 max-w-md mx-auto">
                 {searchTerm ? `Aucun modèle pour "${searchTerm}"` : 'Crée ton premier plan nutritionnel pour commencer.'}
               </p>
               {!searchTerm && (
                 <button onClick={() => navigate('/coach/nutrition/new')}
-                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-xl shadow-[#FF6B2B]/25">
-                  <Plus size={16} /> Créer un plan
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95">
+                  <Plus size={15} /> Créer un plan
                 </button>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {filteredTemplates.map(plan => (
                 <div key={plan.id}
-                  className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] overflow-hidden hover:border-[var(--border-base)] hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 group">
+                  className="hero-card p-4 hover:border-[#FF6B2B]/30 transition-all group">
 
-                  <div className="p-6">
-                    <div className="flex items-start gap-4 mb-5">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C] flex items-center justify-center shrink-0 shadow-lg shadow-[#FF6B2B]/20">
-                        <UtensilsCrossed size={20} className="text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-[var(--text-primary)] font-bold text-base leading-tight truncate">{plan.nom || 'Plan du jour'}</h3>
-                        <p className="text-[var(--text-muted)] text-sm mt-1">
-                          Créé le {new Date(plan.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </p>
-                      </div>
-                      <button onClick={e => { e.stopPropagation(); handleDelete(plan.id, e) }}
-                        className="p-2 rounded-xl text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
-                        <Trash2 size={15} />
-                      </button>
+                  <div className="flex items-start gap-3 mb-4">
+                    <UtensilsCrossed size={16} className="text-[var(--text-muted)] shrink-0 mt-0.5" strokeWidth={1.75} />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-[var(--text-primary)] font-bold text-sm leading-tight truncate">{plan.nom || 'Plan du jour'}</h3>
+                      <p className="text-[var(--text-muted)] text-[11px] mt-0.5">
+                        Créé le {new Date(plan.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
                     </div>
+                    <button onClick={e => { e.stopPropagation(); handleDelete(plan.id, e) }}
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
 
-                    <div className="flex items-center gap-2 flex-wrap mb-6">
-                      <span className="inline-flex items-center gap-1.5 bg-[var(--bg-base)] px-3 py-1.5 rounded-xl text-xs text-[var(--text-muted)] font-medium border border-[var(--border-subtle)]">
-                        <Calendar size={12} /> {plan.duree_semaines || 4} sem.
-                      </span>
-                      <span className={`px-3 py-1.5 rounded-xl text-xs font-semibold border ${
-                        plan.is_active
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/15'
-                          : 'bg-white/5 text-[var(--text-muted)] border-[var(--border-subtle)]'
-                      }`}>
-                        {plan.is_active ? 'Actif' : 'Inactif'}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2 flex-wrap mb-4">
+                    <span className="inline-flex items-center gap-1 bg-[var(--bg-base)] px-2 py-1 rounded-md text-[10px] text-[var(--text-muted)] font-semibold border border-[var(--border-subtle)] tabular-nums">
+                      <Calendar size={11} /> {plan.duree_semaines || 4} sem.
+                    </span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold ${
+                      plan.is_active
+                        ? 'text-emerald-400 bg-emerald-500/10'
+                        : 'text-[var(--text-muted)] bg-[var(--bg-surface)]'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${plan.is_active ? 'bg-emerald-400' : 'bg-[var(--text-muted)]'}`} />
+                      {plan.is_active ? 'Actif' : 'Inactif'}
+                    </span>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <button onClick={() => navigate(`/coach/nutrition/${plan.id}`)}
-                        className="py-2.5 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--bg-surface)] hover:text-white transition-all flex items-center justify-center gap-2 border border-[var(--border-subtle)]">
-                        <Edit3 size={14} /> Modifier
-                      </button>
-                      <button onClick={() => setAssignPlan(plan)}
-                        className="py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
-                        <UserPlus size={14} /> Assigner
-                      </button>
-                    </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => navigate(`/coach/nutrition/${plan.id}`)}
+                      className="py-2 rounded-lg bg-[var(--bg-surface)] text-[var(--text-secondary)] text-xs font-semibold hover:text-[var(--text-primary)] transition-colors flex items-center justify-center gap-1.5 border border-[var(--border-subtle)]">
+                      <Edit3 size={12} /> Modifier
+                    </button>
+                    <button onClick={() => setAssignPlan(plan)}
+                      className="py-2 rounded-lg bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#FF6B2B]/90 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                      <UserPlus size={12} /> Assigner
+                    </button>
                   </div>
                 </div>
               ))}
@@ -463,10 +511,8 @@ export default function CoachNutritionPage() {
       {assignPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setAssignPlan(null)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="relative w-full max-w-md bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] shadow-2xl overflow-hidden"
+          <div className="relative w-full max-w-md hero-card shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
-            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-
             <div className="px-6 pt-5 pb-4 border-b border-[var(--border-base)] flex items-center justify-between">
               <div>
                 <h2 className="text-[var(--text-primary)] text-lg font-bold">Assigner le plan</h2>
@@ -515,7 +561,7 @@ export default function CoachNutritionPage() {
                 Annuler
               </button>
               <button onClick={handleAssign} disabled={!selectedClient || assigning}
-                className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-[#FF6B2B]/20">
+                className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 active:scale-95">
                 {assigning ? <Loader2 size={14} className="animate-spin" /> : <Copy size={14} />}
                 {assigning ? 'Assignation...' : 'Assigner le plan'}
               </button>
