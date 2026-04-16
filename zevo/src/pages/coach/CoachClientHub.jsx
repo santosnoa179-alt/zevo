@@ -652,14 +652,26 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 const JOURS_COURTS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
+// ── Langage Fitness OS : 3 familles au lieu de 7 couleurs ──
+const FAMILY_CAL = {
+  seance:  '#FF6B2B',   // orange = cœur métier
+  contact: '#64748b',   // slate = interactions client externes
+  perso:   '#9ca3af',   // gris = organisation interne
+}
+function getEventFamilyCal(typeId) {
+  if (typeId === 'seance') return 'seance'
+  if (['appel', 'bilan', 'reunion'].includes(typeId)) return 'contact'
+  return 'perso'
+}
+
 const EVENT_TYPES_CAL = [
-  { id: 'seance', label: 'Séance', icon: Dumbbell, color: '#FF6B2B' },
-  { id: 'bilan', label: 'Bilan', icon: CheckCircle2, color: '#22c55e' },
-  { id: 'appel', label: 'Appel', icon: Calendar, color: '#3b82f6' },
-  { id: 'reunion', label: 'Réunion', icon: Calendar, color: '#a855f7' },
-  { id: 'note', label: 'Note', icon: FileText, color: '#f59e0b' },
-  { id: 'perso', label: 'Personnel', icon: Star, color: '#ec4899' },
-  { id: 'autre', label: 'Autre', icon: Calendar, color: '#64748b' },
+  { id: 'seance', label: 'Séance', icon: Dumbbell, color: FAMILY_CAL.seance },
+  { id: 'bilan', label: 'Bilan', icon: CheckCircle2, color: FAMILY_CAL.contact },
+  { id: 'appel', label: 'Appel', icon: Calendar, color: FAMILY_CAL.contact },
+  { id: 'reunion', label: 'Réunion', icon: Calendar, color: FAMILY_CAL.contact },
+  { id: 'note', label: 'Note', icon: FileText, color: FAMILY_CAL.perso },
+  { id: 'perso', label: 'Personnel', icon: Star, color: FAMILY_CAL.perso },
+  { id: 'autre', label: 'Autre', icon: Calendar, color: FAMILY_CAL.perso },
 ]
 
 function getWeekDates(offset = 0) {
@@ -1561,14 +1573,16 @@ function CalendarTab({ clientId, clientName, coachId }) {
           </button>
         </div>
 
-        {/* Toggle Mois / Semaine */}
-        <div className="flex items-center glass-card p-1 flex-shrink-0">
+        {/* Toggle Mois / Semaine — segmented control neutre */}
+        <div className="flex items-center bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl p-1 flex-shrink-0">
           {[{ id: 'month', label: 'Mois' }, { id: 'week', label: 'Semaine' }].map(v => (
             <button
               key={v.id}
               onClick={() => setCalView(v.id)}
-              className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                calView === v.id ? 'bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                calView === v.id
+                  ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-base)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-transparent'
               }`}
             >
               {v.label}
@@ -1589,33 +1603,69 @@ function CalendarTab({ clientId, clientName, coachId }) {
             <Filter className="w-3.5 h-3.5 text-[var(--text-muted)] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
           <button onClick={() => setPanelOpen(p => !p)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-              panelOpen ? 'bg-[#FF6B2B] text-white' : 'glass-card !rounded-xl text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${
+              panelOpen
+                ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] border-[#FF6B2B]/30'
+                : 'bg-[var(--bg-card)] text-[var(--text-muted)] border-[var(--border-base)] hover:text-[var(--text-primary)]'
             }`}
             title="Modeles de seances">
             {panelOpen ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
             Modeles
           </button>
-          <button onClick={() => openNewModal()} className="flex items-center gap-1.5 bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] hover:shadow-lg hover:shadow-[#FF6B2B]/20 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all">
+          <button onClick={() => openNewModal()} className="flex items-center gap-1.5 bg-[#FF6B2B] hover:bg-[#FF6B2B]/90 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all active:scale-95">
             <Plus className="w-3.5 h-3.5" /> Ajouter
           </button>
         </div>
       </div>
 
-      {/* ═══════ STATS ═══════ */}
+      {/* ═══════ STATS — metric-card + mini ring (Fitness OS) ═══════ */}
       <div className="grid grid-cols-3 gap-2 md:gap-3">
-        {[
-          { label: calView === 'week' ? 'Semaine' : 'Ce mois', value: totalItems, icon: Calendar, color: '#FF6B2B' },
-          { label: 'Seances', value: allFiltered.filter(i => i._type === 'seance').length, icon: Dumbbell, color: '#3b82f6' },
-          { label: "Auj.", value: itemsToday, icon: Clock, color: '#22c55e' },
-        ].map((s, i) => (
-          <div key={i} className="glass-card !rounded-xl p-2.5 md:p-3 flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: `${s.color}12` }}>
-              <s.icon className="w-4 h-4" style={{ color: s.color }} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[9px] md:text-[10px] text-[var(--text-muted)] truncate">{s.label}</p>
-              <p className="text-base md:text-lg font-bold text-[var(--text-primary)] leading-tight">{s.value}</p>
+        {(() => {
+          const seancesCount = allFiltered.filter(i => i._type === 'seance').length
+          const periodDays = calView === 'week'
+            ? weekDates
+            : monthGrid.cells.filter(c => c.inMonth).map(c => c.date)
+          const daysOccupied = periodDays.filter(d => itemsForDayCal(d).length > 0).length
+          const occupRatio = periodDays.length > 0 ? daysOccupied / periodDays.length : 0
+          const seanceRatio = totalItems > 0 ? seancesCount / totalItems : 0
+          const todayRatio = Math.min(1, itemsToday / 4)
+
+          return [
+            {
+              label: calView === 'week' ? 'Semaine' : 'Ce mois',
+              value: totalItems, icon: Calendar,
+              ringValue: Math.round(occupRatio * 100),
+            },
+            {
+              label: 'Seances', value: seancesCount, icon: Dumbbell,
+              ringValue: Math.round(seanceRatio * 100),
+            },
+            {
+              label: "Auj.", value: itemsToday, icon: Clock,
+              ringValue: Math.round(todayRatio * 100),
+            },
+          ]
+        })().map((s, i) => (
+          <div key={i} className="metric-card p-2.5 md:p-3">
+            <div className="relative z-[1] flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1 mb-1">
+                  <s.icon size={10} className="text-[var(--text-muted)]" />
+                  <p className="text-[var(--text-muted)] text-[9px] md:text-[10px] font-semibold uppercase tracking-[0.12em] truncate">{s.label}</p>
+                </div>
+                <p className="text-[var(--text-primary)] text-lg md:text-xl font-black tabular-nums tracking-tight leading-none">{s.value}</p>
+              </div>
+              <Ring
+                value={s.ringValue}
+                max={100}
+                size={36}
+                thickness={3.5}
+                color="#FF6B2B"
+                trackColor="var(--ring-track)"
+                className="shrink-0"
+              >
+                <span className="text-[8px] font-black tabular-nums text-[var(--text-primary)]">{s.ringValue}%</span>
+              </Ring>
             </div>
           </div>
         ))}
@@ -1652,8 +1702,7 @@ function CalendarTab({ clientId, clientName, coachId }) {
               {/* ────────── VUE MOIS — MOBILE ────────── */}
               <div className="md:hidden space-y-3">
                 {/* Mini calendar grid */}
-                <div className="glass-card overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
+                <div className="hero-card overflow-hidden">
                   {/* Day headers */}
                   <div className="grid grid-cols-7 px-2 pt-3 pb-1">
                     {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((j, i) => (
@@ -1805,12 +1854,11 @@ function CalendarTab({ clientId, clientName, coachId }) {
               </div>
 
               {/* ────────── VUE MOIS — DESKTOP ────────── */}
-              <div className="hidden md:block glass-card overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
+              <div className="hidden md:block hero-card overflow-hidden">
                 {/* Jours header */}
                 <div className="grid grid-cols-7 border-b border-[var(--border-base)]">
                   {JOURS_COURTS.map(j => (
-                    <div key={j} className="px-2 py-2.5 text-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">{j}</div>
+                    <div key={j} className="px-2 py-2.5 text-center text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.14em]">{j}</div>
                   ))}
                 </div>
                 {/* Grid */}
@@ -1830,47 +1878,57 @@ function CalendarTab({ clientId, clientName, coachId }) {
                         } ${isTo ? 'bg-[#FF6B2B]/[0.04] hover:bg-[#FF6B2B]/[0.07]' : ''}`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span
-                            onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
-                            className={`text-xs font-medium leading-none ${
-                              isTo ? 'w-6 h-6 flex items-center justify-center rounded-full bg-[#FF6B2B] text-white text-[11px] font-bold'
-                                : cell.inMonth ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
-                            } ${dayItems.length > 0 ? 'hover:underline cursor-pointer' : ''}`}
-                          >
-                            {cell.date.getDate()}
-                          </span>
+                          {isTo ? (
+                            <span
+                              onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
+                              className={`w-6 h-6 flex items-center justify-center rounded-full border-[1.5px] border-[#FF6B2B] text-[11px] font-bold text-[#FF6B2B] leading-none ${dayItems.length > 0 ? 'hover:bg-[#FF6B2B]/10 cursor-pointer' : ''}`}
+                            >
+                              {cell.date.getDate()}
+                            </span>
+                          ) : (
+                            <span
+                              onClick={(e) => { if (dayItems.length > 0) openDayDetail(cell.date, e) }}
+                              className={`text-xs font-medium leading-none ${
+                                cell.inMonth ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
+                              } ${dayItems.length > 0 ? 'hover:underline cursor-pointer' : ''}`}
+                            >
+                              {cell.date.getDate()}
+                            </span>
+                          )}
                           {dayItems.length > 0 && (
-                            <span className="text-[9px] text-[var(--text-muted)] font-medium">{dayItems.length}</span>
+                            <span className="text-[9px] text-[var(--text-muted)] font-medium tabular-nums">{dayItems.length}</span>
                           )}
                         </div>
 
+                        {/* Events — barre latérale 3px + texte (langage unifié Calendar coach) */}
                         <div className="flex flex-col gap-0.5 flex-1 overflow-hidden">
                           {dayItems.slice(0, maxShow).map((item) => {
                             if (item._type === 'seance') {
+                              const seanceColor = item.is_completed ? '#22c55e' : FAMILY_CAL.seance
                               return (
                                 <div
                                   key={`s-${item.id}`}
                                   onClick={(e) => openSeanceDetail(item, e)}
-                                  className={`flex items-center gap-1 px-1 py-0.5 rounded truncate cursor-pointer transition-colors ${
-                                    item.is_completed ? 'bg-emerald-500/10 hover:bg-emerald-500/20' : 'bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/20'
-                                  }`}
+                                  className="relative flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-sm truncate cursor-pointer hover:bg-[var(--bg-surface)] transition-colors"
                                 >
-                                  <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: item.is_completed ? '#22c55e' : '#FF6B2B' }} />
-                                  <span className={`text-[10px] truncate ${item.is_completed ? 'text-emerald-300/70 line-through' : 'text-[var(--text-primary)]'}`}>{item.titre}</span>
+                                  <span className="absolute left-0 top-0.5 bottom-0.5 w-[3px] rounded-r-full" style={{ backgroundColor: seanceColor }} />
+                                  <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: seanceColor }} />
+                                  <span className={`text-[10px] truncate font-medium ${item.is_completed ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>{item.titre}</span>
                                 </div>
                               )
                             } else {
                               const ti = getEventTypeInfoCal(item.event_type)
                               const TI = ti.icon
+                              const familyColor = FAMILY_CAL[getEventFamilyCal(item.event_type)]
                               return (
                                 <div
                                   key={`e-${item.id}`}
                                   onClick={(e) => openEventDetail(item, e)}
-                                  className="flex items-center gap-1 px-1 py-0.5 rounded truncate cursor-pointer hover:brightness-125 transition-all"
-                                  style={{ backgroundColor: `${ti.color}15` }}
+                                  className="relative flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-sm truncate cursor-pointer hover:bg-[var(--bg-surface)] transition-colors"
                                 >
-                                  <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
-                                  <span className="text-[10px] text-[var(--text-primary)] truncate">{item.title}</span>
+                                  <span className="absolute left-0 top-0.5 bottom-0.5 w-[3px] rounded-r-full" style={{ backgroundColor: familyColor }} />
+                                  <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: familyColor }} />
+                                  <span className="text-[10px] text-[var(--text-primary)] truncate font-medium">{item.title}</span>
                                 </div>
                               )
                             }
@@ -1878,7 +1936,7 @@ function CalendarTab({ clientId, clientName, coachId }) {
                           {overflow > 0 && (
                             <button
                               onClick={(e) => openDayDetail(cell.date, e)}
-                              className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] px-1 py-0.5 text-left transition-colors"
+                              className="text-[10px] text-[var(--text-muted)] font-semibold hover:text-[#FF6B2B] px-1 py-0.5 text-left transition-colors"
                             >
                               +{overflow} autre{overflow > 1 ? 's' : ''}
                             </button>
@@ -2023,8 +2081,7 @@ function CalendarTab({ clientId, clientName, coachId }) {
               </div>
 
               {/* ────────── VUE SEMAINE — DESKTOP ────────── */}
-              <div className="hidden md:block glass-card overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-blue-500 via-blue-400 to-transparent" />
+              <div className="hidden md:block hero-card overflow-hidden">
                 {/* All-day seances section */}
                 {(() => {
                   const hasAllDay = weekDates.some(d => itemsForDayCal(d).some(i => i._type === 'seance'))
@@ -2040,20 +2097,20 @@ function CalendarTab({ clientId, clientName, coachId }) {
                           return (
                             <div key={idx} className={`p-1.5 border-r border-[var(--border-base)] last:border-r-0 min-h-[40px] ${isSameDayCal(date, todayCal) ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
                               <div className="flex flex-col gap-1">
-                                {daySeances.map(s => (
-                                  <div
-                                    key={`ad-${s.id}`}
-                                    onClick={(e) => openSeanceDetail(s, e)}
-                                    className={`flex items-center gap-1 px-1.5 py-1 rounded-md border cursor-pointer transition-colors ${
-                                      s.is_completed
-                                        ? 'bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20'
-                                        : 'bg-[#FF6B2B]/10 border-[#FF6B2B]/20 hover:bg-[#FF6B2B]/20'
-                                    }`}
-                                  >
-                                    <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: s.is_completed ? '#22c55e' : '#FF6B2B' }} />
-                                    <span className={`text-[10px] font-medium truncate ${s.is_completed ? 'text-emerald-300/70 line-through' : 'text-[var(--text-primary)]'}`}>{s.titre}</span>
-                                  </div>
-                                ))}
+                                {daySeances.map(s => {
+                                  const seanceColor = s.is_completed ? '#22c55e' : FAMILY_CAL.seance
+                                  return (
+                                    <div
+                                      key={`ad-${s.id}`}
+                                      onClick={(e) => openSeanceDetail(s, e)}
+                                      className="relative flex items-center gap-1 pl-2 pr-1.5 py-1 rounded-sm cursor-pointer hover:bg-[var(--bg-surface)] transition-colors"
+                                    >
+                                      <span className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full" style={{ backgroundColor: seanceColor }} />
+                                      <Dumbbell className="w-2.5 h-2.5 flex-shrink-0" style={{ color: seanceColor }} />
+                                      <span className={`text-[10px] font-medium truncate ${s.is_completed ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>{s.titre}</span>
+                                    </div>
+                                  )
+                                })}
                               </div>
                             </div>
                           )
@@ -2063,15 +2120,23 @@ function CalendarTab({ clientId, clientName, coachId }) {
                   )
                 })()}
 
-                {/* Header row */}
+                {/* Header row — Ring orange autour du chiffre pour aujourd'hui */}
                 <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[var(--border-base)]">
                   <div className="p-2 border-r border-[var(--border-base)]" />
                   {weekDates.map((date, idx) => {
                     const isTo = isSameDayCal(date, todayCal)
                     return (
                       <div key={idx} className={`p-2 border-r border-[var(--border-base)] last:border-r-0 text-center ${isTo ? 'bg-[#FF6B2B]/[0.03]' : ''}`}>
-                        <p className="text-[10px] text-[var(--text-muted)] uppercase font-semibold">{JOURS_COURTS[idx]}</p>
-                        <p className={`text-sm font-bold mt-0.5 ${isTo ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{date.getDate()}</p>
+                        <p className="text-[10px] text-[var(--text-muted)] uppercase font-semibold tracking-[0.14em]">{JOURS_COURTS[idx]}</p>
+                        <div className="flex justify-center mt-0.5">
+                          {isTo ? (
+                            <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-[#FF6B2B] border-[1.5px] border-[#FF6B2B]">
+                              {date.getDate()}
+                            </span>
+                          ) : (
+                            <span className="text-sm font-bold text-[var(--text-primary)]">{date.getDate()}</span>
+                          )}
+                        </div>
                       </div>
                     )
                   })}
@@ -2097,15 +2162,16 @@ function CalendarTab({ clientId, clientName, coachId }) {
                             {hourEvts.map(evt => {
                               const ti = getEventTypeInfoCal(evt.event_type)
                               const TI = ti.icon
+                              const familyColor = FAMILY_CAL[getEventFamilyCal(evt.event_type)]
                               return (
                                 <div
                                   key={`we-${evt.id}`}
                                   onClick={(e) => openEventDetail(evt, e)}
-                                  className="absolute inset-x-0.5 top-0.5 rounded-md px-1.5 py-1 z-10 border cursor-pointer hover:brightness-125 transition-all"
-                                  style={{ backgroundColor: `${ti.color}20`, borderColor: `${ti.color}40` }}
+                                  className="absolute inset-x-0.5 top-0.5 rounded-sm pl-2 pr-1.5 py-1 z-10 cursor-pointer hover:bg-[var(--bg-surface)] transition-colors"
                                 >
+                                  <span className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full" style={{ backgroundColor: familyColor }} />
                                   <div className="flex items-center gap-1">
-                                    <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: ti.color }} />
+                                    <TI className="w-2.5 h-2.5 flex-shrink-0" style={{ color: familyColor }} />
                                     <span className="text-[10px] font-medium text-[var(--text-primary)] truncate">{evt.title}</span>
                                   </div>
                                 </div>
