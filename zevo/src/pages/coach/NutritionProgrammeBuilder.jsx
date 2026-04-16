@@ -7,7 +7,8 @@ import Ring from '../../components/ui/Ring'
 import {
   ArrowLeft, Save, Plus, Trash2, Loader2, Calendar,
   Target, Users, Dumbbell, Moon, Flame, Coffee, Utensils, Apple,
-  ChevronDown, ChevronRight, Layers, X, Edit3, Copy
+  ChevronDown, ChevronRight, Layers, X, Edit3, Copy,
+  BookmarkPlus, Book, Minus, Search, ShoppingCart
 } from 'lucide-react'
 
 // ══════════════════════════════════════════════════════
@@ -35,6 +36,18 @@ const JOUR_TYPE_ICONS = {
 // Calories = 4 kcal/g pour P+G, 9 kcal/g pour L
 function calcKcal(p, g, l) {
   return Math.round((+p || 0) * 4 + (+g || 0) * 4 + (+l || 0) * 9)
+}
+
+// Recalcule P/G/L à partir d'une liste d'aliments
+function computeMacrosFromAliments(aliments) {
+  let p = 0, g = 0, l = 0
+  ;(aliments || []).forEach(a => {
+    const ratio = (a.quantite_g || 0) / 100
+    p += (a.proteines || 0) * ratio
+    g += (a.glucides || 0) * ratio
+    l += (a.lipides || 0) * ratio
+  })
+  return { p: Math.round(p * 10) / 10, g: Math.round(g * 10) / 10, l: Math.round(l * 10) / 10 }
 }
 
 // ══════════════════════════════════════════════════════
@@ -73,6 +86,19 @@ export default function NutritionProgrammeBuilder() {
   const [deletedJourTypeIds, setDeletedJourTypeIds] = useState([])
   const [deletedRepasIds, setDeletedRepasIds] = useState([])
 
+  // ── Aliments library ──
+  const [allAliments, setAllAliments] = useState([])
+  const [alimentDrawer, setAlimentDrawer] = useState(null) // { phaseIdx, jtIdx, repasIdx }
+  const [alimentSearch, setAlimentSearch] = useState('')
+
+  // ── Bibliothèque de repas ──
+  const [biblioRepas, setBiblioRepas] = useState([])
+  const [biblioDrawer, setBiblioDrawer] = useState(false) // open/close
+  const [biblioSearch, setBiblioSearch] = useState('')
+
+  // ── Shopping list ──
+  const [shoppingOpen, setShoppingOpen] = useState(false)
+
   // ══════════════════════════════════════════════════════
   // LOAD
   // ══════════════════════════════════════════════════════
@@ -89,6 +115,23 @@ export default function NutritionProgrammeBuilder() {
           .filter(c => c.profiles)
           .map(c => ({ id: c.profiles.id, nom: c.profiles.nom, prenom: c.profiles.prenom, email: c.profiles.email }))
         setClients(list)
+      })
+    // Charger aliments (officiels Zevo + perso coach)
+    supabase
+      .from('aliments')
+      .select('*')
+      .or(`coach_id.is.null,coach_id.eq.${user.id}`)
+      .order('categorie, nom')
+      .then(({ data }) => setAllAliments(data || []))
+    // Charger bibliothèque de repas
+    supabase
+      .from('nutrition_repas_biblio')
+      .select('*, nutrition_repas_biblio_aliments(*, aliments(*))')
+      .eq('coach_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) console.warn('[ProgBuilder] biblio fetch err:', error.message)
+        setBiblioRepas(data || [])
       })
   }, [user])
 
@@ -120,18 +163,30 @@ export default function NutritionProgrammeBuilder() {
       client_id: prog.client_id,
     })
 
-    // Charger phases, jour_types, phase_jours, repas en parallèle
+    // Charger phases, jour_types, phase_jours, repas (+aliments) en parallèle
     const [phasesRes, jourTypesRes, phaseJoursRes, repasRes] = await Promise.all([
       supabase.from('nutrition_phases').select('*').eq('programme_id', programmeId).order('ordre'),
       supabase.from('nutrition_jour_types').select('*, phase_id').order('ordre'),
       supabase.from('nutrition_phase_jours').select('*'),
-      supabase.from('nutrition_programme_repas').select('*').order('ordre'),
+      supabase.from('nutrition_programme_repas').select('*, nutrition_programme_repas_aliments(*, aliments(*))').order('ordre'),
     ])
 
     const allPhases = phasesRes.data || []
     const allJourTypes = jourTypesRes.data || []
     const allPhaseJours = phaseJoursRes.data || []
-    const allRepas = repasRes.data || []
+    const allRepas = (repasRes.data || []).map(r => ({
+      ...r,
+      aliments: (r.nutrition_programme_repas_aliments || []).map(ra => ({
+        aliment_id: ra.aliment_id,
+        nom: ra.aliments?.nom || 'Aliment',
+        quantite_g: ra.quantite_g,
+        kcal_100g: ra.aliments?.kcal_100g || 0,
+        proteines: ra.aliments?.proteines || 0,
+        glucides: ra.aliments?.glucides || 0,
+        lipides: ra.aliments?.lipides || 0,
+        categorie: ra.aliments?.categorie || '',
+      })),
+    }))
 
     // Structurer : phases → jour_types (appartenant à cette phase) → repas
     const structured = allPhases.map(ph => {
@@ -336,6 +391,206 @@ export default function NutritionProgrammeBuilder() {
   }
 
   // ══════════════════════════════════════════════════════
+  // ALIMENTS ACTIONS (dans un repas)
+  // ══════════════════════════════════════════════════════
+  const addAlimentToRepas = (repasIdx, aliment) => {
+    const newAliment = {
+      aliment_id: aliment.id,
+      nom: aliment.nom,
+      quantite_g: 100,
+      kcal_100g: aliment.kcal_100g || 0,
+      proteines: aliment.proteines || 0,
+      glucides: aliment.glucides || 0,
+      lipides: aliment.lipides || 0,
+      categorie: aliment.categorie || '',
+    }
+    setPhases(prev => prev.map((p, i) => {
+      if (i !== activePhaseIdx) return p
+      return {
+        ...p,
+        jour_types: p.jour_types.map((jt, k) => {
+          if (k !== activeJourTypeIdx) return jt
+          return {
+            ...jt,
+            repas: jt.repas.map((r, m) => {
+              if (m !== repasIdx) return r
+              const newAliments = [...(r.aliments || []), newAliment]
+              const macros = computeMacrosFromAliments(newAliments)
+              return { ...r, aliments: newAliments, proteines_g: macros.p, glucides_g: macros.g, lipides_g: macros.l }
+            }),
+          }
+        }),
+      }
+    }))
+  }
+
+  const updateAlimentQty = (repasIdx, alimentIdx, newQty) => {
+    setPhases(prev => prev.map((p, i) => {
+      if (i !== activePhaseIdx) return p
+      return {
+        ...p,
+        jour_types: p.jour_types.map((jt, k) => {
+          if (k !== activeJourTypeIdx) return jt
+          return {
+            ...jt,
+            repas: jt.repas.map((r, m) => {
+              if (m !== repasIdx) return r
+              const newAliments = (r.aliments || []).map((a, ai) =>
+                ai === alimentIdx ? { ...a, quantite_g: Math.max(0, +newQty || 0) } : a
+              )
+              const macros = computeMacrosFromAliments(newAliments)
+              return { ...r, aliments: newAliments, proteines_g: macros.p, glucides_g: macros.g, lipides_g: macros.l }
+            }),
+          }
+        }),
+      }
+    }))
+  }
+
+  const removeAlimentFromRepas = (repasIdx, alimentIdx) => {
+    setPhases(prev => prev.map((p, i) => {
+      if (i !== activePhaseIdx) return p
+      return {
+        ...p,
+        jour_types: p.jour_types.map((jt, k) => {
+          if (k !== activeJourTypeIdx) return jt
+          return {
+            ...jt,
+            repas: jt.repas.map((r, m) => {
+              if (m !== repasIdx) return r
+              const newAliments = (r.aliments || []).filter((_, ai) => ai !== alimentIdx)
+              const macros = computeMacrosFromAliments(newAliments)
+              return { ...r, aliments: newAliments, proteines_g: macros.p, glucides_g: macros.g, lipides_g: macros.l }
+            }),
+          }
+        }),
+      }
+    }))
+  }
+
+  // ══════════════════════════════════════════════════════
+  // BIBLIOTHÈQUE DE REPAS
+  // ══════════════════════════════════════════════════════
+  const saveRepasToBiblio = async (repasIdx) => {
+    const r = activeJourType?.repas?.[repasIdx]
+    if (!r) return
+    if (!r.titre?.trim()) { toast.error('Nomme le repas avant de l\'enregistrer'); return }
+    try {
+      const { data: biblio, error } = await supabase
+        .from('nutrition_repas_biblio')
+        .insert({
+          coach_id: user.id,
+          nom: r.titre,
+          type: r.type,
+          description: r.description || null,
+          proteines_g: +r.proteines_g || 0,
+          glucides_g: +r.glucides_g || 0,
+          lipides_g: +r.lipides_g || 0,
+        })
+        .select()
+        .single()
+      if (error) throw error
+
+      // Copier les aliments
+      if (r.aliments?.length) {
+        const rows = r.aliments.map((a, i) => ({
+          repas_biblio_id: biblio.id,
+          aliment_id: a.aliment_id,
+          quantite_g: a.quantite_g,
+          ordre: i,
+        }))
+        const { error: alErr } = await supabase.from('nutrition_repas_biblio_aliments').insert(rows)
+        if (alErr) throw alErr
+      }
+
+      toast.success(`Repas "${r.titre}" ajouté à ta bibliothèque`)
+      // Refresh biblio
+      const { data: refreshed } = await supabase
+        .from('nutrition_repas_biblio')
+        .select('*, nutrition_repas_biblio_aliments(*, aliments(*))')
+        .eq('coach_id', user.id)
+        .order('created_at', { ascending: false })
+      setBiblioRepas(refreshed || [])
+    } catch (err) {
+      console.error('[saveRepasToBiblio]', err)
+      toast.error('Erreur : ' + (err.message || err))
+    }
+  }
+
+  const insertRepasFromBiblio = (biblio) => {
+    if (!activeJourType) { toast.error('Sélectionne un jour type d\'abord'); return }
+    const aliments = (biblio.nutrition_repas_biblio_aliments || []).map(ra => ({
+      aliment_id: ra.aliment_id,
+      nom: ra.aliments?.nom || 'Aliment',
+      quantite_g: ra.quantite_g,
+      kcal_100g: ra.aliments?.kcal_100g || 0,
+      proteines: ra.aliments?.proteines || 0,
+      glucides: ra.aliments?.glucides || 0,
+      lipides: ra.aliments?.lipides || 0,
+      categorie: ra.aliments?.categorie || '',
+    }))
+    const macros = computeMacrosFromAliments(aliments)
+    const newRepas = {
+      id: `new-repas-${Date.now()}`,
+      jour_type_id: activeJourType.id,
+      type: biblio.type || 'dejeuner',
+      ordre: (activeJourType.repas?.length || 0) + 1,
+      titre: biblio.nom,
+      description: biblio.description || '',
+      proteines_g: aliments.length ? macros.p : biblio.proteines_g,
+      glucides_g: aliments.length ? macros.g : biblio.glucides_g,
+      lipides_g: aliments.length ? macros.l : biblio.lipides_g,
+      aliments,
+    }
+    setPhases(prev => prev.map((p, i) => {
+      if (i !== activePhaseIdx) return p
+      return {
+        ...p,
+        jour_types: p.jour_types.map((jt, k) => {
+          if (k !== activeJourTypeIdx) return jt
+          return { ...jt, repas: [...(jt.repas || []), newRepas] }
+        }),
+      }
+    }))
+    setBiblioDrawer(false)
+    toast.success(`"${biblio.nom}" ajouté au jour`)
+  }
+
+  const deleteFromBiblio = async (biblioId) => {
+    if (!window.confirm('Supprimer ce repas de ta bibliothèque ?')) return
+    const { error } = await supabase.from('nutrition_repas_biblio').delete().eq('id', biblioId)
+    if (error) { toast.error('Erreur'); return }
+    setBiblioRepas(prev => prev.filter(b => b.id !== biblioId))
+  }
+
+  // ══════════════════════════════════════════════════════
+  // DUPLICATION
+  // ══════════════════════════════════════════════════════
+  const duplicateJourType = (jtIdx) => {
+    const jt = activePhase.jour_types[jtIdx]
+    if (!jt) return
+    const cloned = {
+      id: `new-jt-${Date.now()}`,
+      phase_id: activePhase.id,
+      nom: `${jt.nom} (copie)`,
+      icon: jt.icon,
+      ordre: (activePhase.jour_types.length || 0) + 1,
+      notes: jt.notes,
+      repas: (jt.repas || []).map(r => ({
+        ...r,
+        id: `new-repas-${Date.now()}-${Math.random()}`,
+        aliments: (r.aliments || []).map(a => ({ ...a })),
+      })),
+    }
+    setPhases(prev => prev.map((p, i) => {
+      if (i !== activePhaseIdx) return p
+      return { ...p, jour_types: [...p.jour_types, cloned] }
+    }))
+    setActiveJourTypeIdx(activePhase.jour_types.length)
+    toast.success(`"${jt.nom}" dupliqué`)
+  }
+
+  // ══════════════════════════════════════════════════════
   // SAVE
   // ══════════════════════════════════════════════════════
   const handleSave = async () => {
@@ -429,12 +684,27 @@ export default function NutritionProgrammeBuilder() {
               glucides_g: +r.glucides_g || 0,
               lipides_g: +r.lipides_g || 0,
             }
+            let repasId = r.id
             if (r.id.startsWith('new-')) {
-              const { error } = await supabase.from('nutrition_programme_repas').insert(rPayload)
+              const { data, error } = await supabase.from('nutrition_programme_repas').insert(rPayload).select().single()
               if (error) throw error
+              repasId = data.id
             } else {
-              const { error } = await supabase.from('nutrition_programme_repas').update(rPayload).eq('id', r.id)
+              const { error } = await supabase.from('nutrition_programme_repas').update(rPayload).eq('id', repasId)
               if (error) throw error
+            }
+
+            // Aliments du repas — replace all (delete + reinsert)
+            await supabase.from('nutrition_programme_repas_aliments').delete().eq('repas_id', repasId)
+            if (r.aliments?.length) {
+              const rows = r.aliments.map((a, ai) => ({
+                repas_id: repasId,
+                aliment_id: a.aliment_id,
+                quantite_g: a.quantite_g,
+                ordre: ai,
+              }))
+              const { error: alErr } = await supabase.from('nutrition_programme_repas_aliments').insert(rows)
+              if (alErr) throw alErr
             }
           }
         }
@@ -787,12 +1057,29 @@ export default function NutritionProgrammeBuilder() {
                               <span className="text-[8px] font-black tabular-nums text-[var(--text-primary)]">{kcalPct}%</span>
                             </Ring>
                           )}
+                          <button onClick={() => duplicateJourType(activeJourTypeIdx)}
+                            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-all"
+                            title="Dupliquer ce jour type">
+                            <Copy size={13} />
+                          </button>
                           <button onClick={() => removeJourType(activeJourTypeIdx)}
                             className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all"
                             title="Supprimer le jour type">
                             <Trash2 size={13} />
                           </button>
                         </div>
+                      </div>
+
+                      {/* Bibliothèque + Shopping list */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button onClick={() => { setBiblioDrawer(true); setBiblioSearch('') }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] hover:bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-[10px] font-semibold transition-colors">
+                          <Book size={11} strokeWidth={1.75} /> Bibliothèque ({biblioRepas.length})
+                        </button>
+                        <button onClick={() => setShoppingOpen(true)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] hover:bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-[10px] font-semibold transition-colors">
+                          <ShoppingCart size={11} strokeWidth={1.75} /> Liste de courses
+                        </button>
                       </div>
 
                       {/* Repas list */}
@@ -813,6 +1100,11 @@ export default function NutritionProgrammeBuilder() {
                                   <RepasIcon size={13} className="text-[var(--text-muted)]" strokeWidth={1.75} />
                                   <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-[0.14em] flex-1">{typeMeta?.label || r.type}</span>
                                   <span className="text-[var(--text-primary)] text-xs font-black tabular-nums">{rKcal} <span className="text-[var(--text-muted)] font-semibold">kcal</span></span>
+                                  <button onClick={() => saveRepasToBiblio(rIdx)}
+                                    className="p-1 rounded text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-all opacity-0 group-hover:opacity-100"
+                                    title="Enregistrer dans ma bibliothèque">
+                                    <BookmarkPlus size={12} />
+                                  </button>
                                   <button onClick={() => removeRepas(rIdx)}
                                     className="p-1 rounded text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
                                     <Trash2 size={11} />
@@ -828,34 +1120,82 @@ export default function NutritionProgrammeBuilder() {
                                     placeholder="Ingrédients, instructions..."
                                     rows={2}
                                     className="w-full bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/30 transition-all resize-none" />
-                                  <div className="grid grid-cols-3 gap-2">
-                                    <div className="flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-2 py-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-sm bg-[#FF6B2B]" />
-                                      <span className="text-[10px] text-[var(--text-muted)] font-semibold">P</span>
-                                      <input type="number" min={0} value={r.proteines_g || ''}
-                                        onChange={e => updateRepas(rIdx, 'proteines_g', e.target.value)}
-                                        placeholder="0"
-                                        className="w-10 bg-transparent text-[var(--text-primary)] text-xs font-black tabular-nums text-right border-none focus:outline-none" />
-                                      <span className="text-[10px] text-[var(--text-muted)]">g</span>
+
+                                  {/* Aliments list (V2) */}
+                                  {(r.aliments || []).length > 0 && (
+                                    <div className="space-y-1 pt-1">
+                                      <p className="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-[0.14em]">Aliments · macros auto</p>
+                                      {r.aliments.map((a, aIdx) => {
+                                        const ratio = (a.quantite_g || 0) / 100
+                                        const aKcal = Math.round((a.kcal_100g || 0) * ratio)
+                                        return (
+                                          <div key={aIdx} className="flex items-center gap-2 py-1.5 px-2.5 rounded-lg bg-[var(--bg-card)] group/alim">
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-[var(--text-primary)] text-xs font-semibold truncate">{a.nom}</p>
+                                              <p className="text-[var(--text-muted)] text-[9px] tabular-nums">{aKcal} kcal · {Math.round((a.proteines || 0) * ratio * 10) / 10}P / {Math.round((a.glucides || 0) * ratio * 10) / 10}G / {Math.round((a.lipides || 0) * ratio * 10) / 10}L</p>
+                                            </div>
+                                            <div className="flex items-center gap-1 shrink-0">
+                                              <button onClick={() => updateAlimentQty(rIdx, aIdx, (a.quantite_g || 0) - 25)}
+                                                className="w-5 h-5 rounded bg-[var(--bg-surface)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
+                                                <Minus size={10} />
+                                              </button>
+                                              <input type="number" min={0} value={a.quantite_g || 0}
+                                                onChange={e => updateAlimentQty(rIdx, aIdx, e.target.value)}
+                                                className="w-12 bg-[var(--bg-surface)] rounded px-1 py-0.5 text-[var(--text-primary)] text-[10px] font-bold tabular-nums text-center border-none focus:outline-none" />
+                                              <span className="text-[var(--text-muted)] text-[9px]">g</span>
+                                              <button onClick={() => updateAlimentQty(rIdx, aIdx, (a.quantite_g || 0) + 25)}
+                                                className="w-5 h-5 rounded bg-[var(--bg-surface)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
+                                                <Plus size={10} />
+                                              </button>
+                                              <button onClick={() => removeAlimentFromRepas(rIdx, aIdx)}
+                                                className="w-5 h-5 rounded text-[var(--text-muted)] hover:text-red-400 opacity-0 group-hover/alim:opacity-100 transition-all">
+                                                <X size={10} />
+                                              </button>
+                                            </div>
+                                          </div>
+                                        )
+                                      })}
                                     </div>
-                                    <div className="flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-2 py-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-sm bg-[#FF9A6C]" />
-                                      <span className="text-[10px] text-[var(--text-muted)] font-semibold">G</span>
-                                      <input type="number" min={0} value={r.glucides_g || ''}
-                                        onChange={e => updateRepas(rIdx, 'glucides_g', e.target.value)}
-                                        placeholder="0"
-                                        className="w-10 bg-transparent text-[var(--text-primary)] text-xs font-black tabular-nums text-right border-none focus:outline-none" />
-                                      <span className="text-[10px] text-[var(--text-muted)]">g</span>
+                                  )}
+
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="grid grid-cols-3 gap-2 flex-1">
+                                      <div className="flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-2 py-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-sm bg-[#FF6B2B]" />
+                                        <span className="text-[10px] text-[var(--text-muted)] font-semibold">P</span>
+                                        <input type="number" min={0} value={r.proteines_g || ''}
+                                          onChange={e => updateRepas(rIdx, 'proteines_g', e.target.value)}
+                                          placeholder="0"
+                                          disabled={(r.aliments || []).length > 0}
+                                          className="w-10 bg-transparent text-[var(--text-primary)] text-xs font-black tabular-nums text-right border-none focus:outline-none disabled:opacity-70" />
+                                        <span className="text-[10px] text-[var(--text-muted)]">g</span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-2 py-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-sm bg-[#FF9A6C]" />
+                                        <span className="text-[10px] text-[var(--text-muted)] font-semibold">G</span>
+                                        <input type="number" min={0} value={r.glucides_g || ''}
+                                          onChange={e => updateRepas(rIdx, 'glucides_g', e.target.value)}
+                                          placeholder="0"
+                                          disabled={(r.aliments || []).length > 0}
+                                          className="w-10 bg-transparent text-[var(--text-primary)] text-xs font-black tabular-nums text-right border-none focus:outline-none disabled:opacity-70" />
+                                        <span className="text-[10px] text-[var(--text-muted)]">g</span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-2 py-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-sm bg-[#FFCBA4]" />
+                                        <span className="text-[10px] text-[var(--text-muted)] font-semibold">L</span>
+                                        <input type="number" min={0} value={r.lipides_g || ''}
+                                          onChange={e => updateRepas(rIdx, 'lipides_g', e.target.value)}
+                                          placeholder="0"
+                                          disabled={(r.aliments || []).length > 0}
+                                          className="w-10 bg-transparent text-[var(--text-primary)] text-xs font-black tabular-nums text-right border-none focus:outline-none disabled:opacity-70" />
+                                        <span className="text-[10px] text-[var(--text-muted)]">g</span>
+                                      </div>
                                     </div>
-                                    <div className="flex items-center gap-1.5 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-2 py-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-sm bg-[#FFCBA4]" />
-                                      <span className="text-[10px] text-[var(--text-muted)] font-semibold">L</span>
-                                      <input type="number" min={0} value={r.lipides_g || ''}
-                                        onChange={e => updateRepas(rIdx, 'lipides_g', e.target.value)}
-                                        placeholder="0"
-                                        className="w-10 bg-transparent text-[var(--text-primary)] text-xs font-black tabular-nums text-right border-none focus:outline-none" />
-                                      <span className="text-[10px] text-[var(--text-muted)]">g</span>
-                                    </div>
+                                    <button onClick={() => { setAlimentDrawer({ repasIdx: rIdx }); setAlimentSearch('') }}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 border border-[#FF6B2B]/20 text-[10px] font-semibold transition-colors shrink-0"
+                                      title="Ajouter un aliment (macros auto-calculées)">
+                                      <Plus size={11} /> Aliment
+                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -885,6 +1225,214 @@ export default function NutritionProgrammeBuilder() {
           </div>
         </div>
       )}
+
+      {/* ══════════════════════════════════════ */}
+      {/* DRAWER ALIMENTS                        */}
+      {/* ══════════════════════════════════════ */}
+      {alimentDrawer && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setAlimentDrawer(null)} />
+          <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-[var(--bg-card)] border-l border-[var(--border-base)] shadow-2xl overflow-hidden flex flex-col">
+            <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
+              <div>
+                <h3 className="text-[var(--text-primary)] text-base font-bold tracking-tight">Ajouter un aliment</h3>
+                <p className="text-[var(--text-muted)] text-xs mt-0.5">{allAliments.length} aliments disponibles</p>
+              </div>
+              <button onClick={() => setAlimentDrawer(null)} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="px-5 py-3 border-b border-[var(--border-base)]">
+              <div className="relative">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                <input type="text" value={alimentSearch} onChange={e => setAlimentSearch(e.target.value)}
+                  placeholder="Rechercher un aliment..."
+                  autoFocus
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl pl-9 pr-3 py-2 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40" />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-1">
+              {allAliments.filter(a => !alimentSearch.trim() || a.nom.toLowerCase().includes(alimentSearch.toLowerCase())).slice(0, 100).map(a => (
+                <button key={a.id}
+                  onClick={() => { addAlimentToRepas(alimentDrawer.repasIdx, a); setAlimentDrawer(null) }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-surface)] transition-colors text-left">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{a.nom}</p>
+                    <p className="text-[var(--text-muted)] text-[10px] tabular-nums">{a.kcal_100g || 0} kcal/100g · {a.proteines || 0}P / {a.glucides || 0}G / {a.lipides || 0}L</p>
+                  </div>
+                  {a.categorie && (
+                    <span className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider bg-[var(--bg-base)] px-2 py-0.5 rounded-md shrink-0">
+                      {a.categorie}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ══════════════════════════════════════ */}
+      {/* DRAWER BIBLIOTHÈQUE REPAS              */}
+      {/* ══════════════════════════════════════ */}
+      {biblioDrawer && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setBiblioDrawer(false)} />
+          <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-[var(--bg-card)] border-l border-[var(--border-base)] shadow-2xl overflow-hidden flex flex-col">
+            <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
+              <div>
+                <h3 className="text-[var(--text-primary)] text-base font-bold tracking-tight">Bibliothèque de repas</h3>
+                <p className="text-[var(--text-muted)] text-xs mt-0.5">{biblioRepas.length} repas enregistrés · clic pour ajouter</p>
+              </div>
+              <button onClick={() => setBiblioDrawer(false)} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="px-5 py-3 border-b border-[var(--border-base)]">
+              <div className="relative">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                <input type="text" value={biblioSearch} onChange={e => setBiblioSearch(e.target.value)}
+                  placeholder="Rechercher dans ta bibliothèque..."
+                  autoFocus
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl pl-9 pr-3 py-2 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40" />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {biblioRepas.length === 0 ? (
+                <div className="text-center py-12 animate-breathe">
+                  <Book size={22} className="text-[var(--text-muted)] mx-auto mb-3" strokeWidth={1.5} />
+                  <p className="text-[var(--text-muted)] text-xs">Aucun repas enregistré</p>
+                  <p className="text-[var(--text-muted)] text-[11px] mt-1">Utilise l'icône 🔖 sur un repas pour l'enregistrer ici</p>
+                </div>
+              ) : (
+                biblioRepas
+                  .filter(b => !biblioSearch.trim() || (b.nom || '').toLowerCase().includes(biblioSearch.toLowerCase()))
+                  .map(b => {
+                    const typeMeta = REPAS_TYPES.find(t => t.id === b.type)
+                    const BIcon = typeMeta?.icon || Utensils
+                    const bKcal = calcKcal(b.proteines_g, b.glucides_g, b.lipides_g)
+                    const nAliments = b.nutrition_repas_biblio_aliments?.length || 0
+                    return (
+                      <div key={b.id}
+                        className="group bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-3 hover:border-[#FF6B2B]/30 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <BIcon size={14} className="text-[var(--text-muted)] shrink-0" strokeWidth={1.75} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[var(--text-primary)] text-sm font-bold truncate">{b.nom}</p>
+                            <p className="text-[var(--text-muted)] text-[10px] tabular-nums">{bKcal} kcal · {b.proteines_g}P/{b.glucides_g}G/{b.lipides_g}L · {nAliments} aliment{nAliments > 1 ? 's' : ''}</p>
+                          </div>
+                          <button onClick={() => insertRepasFromBiblio(b)}
+                            className="px-3 py-1.5 rounded-lg bg-[#FF6B2B] text-white text-[10px] font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95">
+                            Ajouter
+                          </button>
+                          <button onClick={() => deleteFromBiblio(b.id)}
+                            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                            title="Supprimer">
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ══════════════════════════════════════ */}
+      {/* MODAL SHOPPING LIST                    */}
+      {/* ══════════════════════════════════════ */}
+      {shoppingOpen && (() => {
+        // Agrège tous les aliments de tout le programme avec quantité × nb de jours où ils apparaissent
+        const totalsByAliment = {} // aliment_id → { nom, categorie, totalG }
+        phases.forEach(phase => {
+          // Compte combien de fois chaque jour_type apparaît dans la semaine
+          const jourTypeUseCount = {}
+          for (let d = 0; d < 7; d++) {
+            const jtId = phase.phase_jours[d]
+            if (jtId) jourTypeUseCount[jtId] = (jourTypeUseCount[jtId] || 0) + 1
+          }
+          // Pour chaque jour_type, additionne ses aliments × nb apparitions × nb semaines phase
+          phase.jour_types.forEach(jt => {
+            const nUse = (jourTypeUseCount[jt.id] || 0) * phase.duree_semaines
+            if (nUse === 0) return
+            jt.repas?.forEach(r => {
+              r.aliments?.forEach(a => {
+                const key = a.aliment_id
+                if (!totalsByAliment[key]) {
+                  totalsByAliment[key] = { nom: a.nom, categorie: a.categorie, totalG: 0 }
+                }
+                totalsByAliment[key].totalG += (a.quantite_g || 0) * nUse
+              })
+            })
+          })
+        })
+        const grouped = {}
+        Object.values(totalsByAliment).forEach(a => {
+          const cat = a.categorie || 'Autres'
+          if (!grouped[cat]) grouped[cat] = []
+          grouped[cat].push(a)
+        })
+
+        return (
+          <>
+            <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setShoppingOpen(false)} />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="w-full max-w-2xl max-h-[85vh] bg-[var(--bg-card)] border border-[var(--border-base)] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+                <div className="px-6 py-5 border-b border-[var(--border-base)] flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <ShoppingCart size={16} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+                    <div>
+                      <h3 className="text-[var(--text-primary)] text-lg font-bold tracking-tight">Liste de courses</h3>
+                      <p className="text-[var(--text-muted)] text-xs mt-0.5">Totaux sur toute la durée du programme ({programme.duree_semaines} semaines)</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setShoppingOpen(false)} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all">
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6">
+                  {Object.keys(grouped).length === 0 ? (
+                    <div className="text-center py-12 animate-breathe">
+                      <ShoppingCart size={24} className="text-[var(--text-muted)] mx-auto mb-3" strokeWidth={1.5} />
+                      <p className="text-[var(--text-muted)] text-sm">Aucun aliment dans le programme</p>
+                      <p className="text-[var(--text-muted)] text-[11px] mt-1">Ajoute des aliments aux repas pour voir la liste ici</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-5">
+                      {Object.entries(grouped).map(([cat, list]) => (
+                        <div key={cat}>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mb-2">{cat}</p>
+                          <div className="space-y-1">
+                            {list.sort((a, b) => b.totalG - a.totalG).map((a, i) => (
+                              <div key={i} className="flex items-center justify-between gap-3 py-2 px-3 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)]">
+                                <p className="text-[var(--text-primary)] text-sm font-semibold truncate flex-1">{a.nom}</p>
+                                <p className="text-[var(--text-primary)] text-sm font-black tabular-nums shrink-0">
+                                  {a.totalG >= 1000 ? `${(a.totalG / 1000).toFixed(1)} kg` : `${Math.round(a.totalG)} g`}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="px-6 py-4 border-t border-[var(--border-base)] flex items-center justify-between">
+                  <p className="text-[var(--text-muted)] text-[11px]">
+                    <span className="text-[var(--text-primary)] font-semibold">{Object.values(totalsByAliment).length}</span> aliments · {Object.keys(grouped).length} catégories
+                  </p>
+                  <button onClick={() => setShoppingOpen(false)}
+                    className="px-4 py-2 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-xs font-semibold hover:text-[var(--text-primary)] transition-colors border border-[var(--border-subtle)]">
+                    Fermer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )
+      })()}
     </div>
   )
 }
