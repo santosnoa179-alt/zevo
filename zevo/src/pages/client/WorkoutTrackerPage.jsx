@@ -3,8 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import {
-  X, ChevronLeft, ChevronRight, Check, Play, Pause,
-  Dumbbell, Timer, Trophy, Loader2, AlertCircle, RotateCcw, StickyNote
+  X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Check, Play, Pause,
+  Dumbbell, Timer, Trophy, Loader2, AlertCircle, RotateCcw, StickyNote, Info
 } from 'lucide-react'
 
 // ══════════════════════════════════════
@@ -97,6 +97,9 @@ export default function WorkoutTrackerPage() {
   // ── Séance terminée ──
   const [finished, setFinished] = useState(false)
 
+  // ── Description/Instructions expand state (un seul à la fois car 1 exo affiché) ──
+  const [showDescription, setShowDescription] = useState(false)
+
   // ── Charger les données ──
   useEffect(() => {
     const load = async () => {
@@ -125,10 +128,10 @@ export default function WorkoutTrackerPage() {
         return
       }
 
-      // Charger les exercices
+      // Charger les exercices (+ description coach + library_id pour fetch instructions)
       const { data: exosData, error: exosErr } = await supabase
         .from('seance_exercices')
-        .select('id, series, reps, poids, repos, ordre, media_url, note_coach, exercices(nom, muscle_group, equipment, image_url, video_url, gif_url)')
+        .select('id, series, reps, poids, repos, ordre, media_url, note_coach, exercices(nom, muscle_group, equipment, image_url, video_url, gif_url, description, library_id)')
         .eq('seance_id', seanceId)
         .order('ordre')
 
@@ -144,8 +147,32 @@ export default function WorkoutTrackerPage() {
         return
       }
 
+      // Enrichir avec les instructions ExerciseDB (pour exos bridgés depuis la library)
+      const libraryIds = exosData
+        .map(ex => ex.exercices?.library_id)
+        .filter(Boolean)
+
+      let enriched = exosData
+      if (libraryIds.length > 0) {
+        const { data: libData, error: libErr } = await supabase
+          .from('exercises')
+          .select('id, instructions')
+          .in('id', libraryIds)
+        if (libErr) {
+          console.error('[Workout] Erreur fetch library instructions:', libErr.message)
+        }
+        const instructionsMap = Object.fromEntries(
+          (libData || []).map(ex => [ex.id, ex.instructions])
+        )
+        enriched = exosData.map(ex => {
+          if (!ex.exercices) return ex
+          const libInstr = ex.exercices.library_id ? instructionsMap[ex.exercices.library_id] : null
+          return { ...ex, exercices: { ...ex.exercices, instructions: libInstr || null } }
+        })
+      }
+
       setSeance(seanceData)
-      setExercices(exosData)
+      setExercices(enriched)
       setLoading(false)
     }
     load()
@@ -223,6 +250,8 @@ export default function WorkoutTrackerPage() {
     setAnimating(true)
     // Annuler repos en cours
     skipRest()
+    // Refermer la description (on change d'exo)
+    setShowDescription(false)
     setTimeout(() => {
       setCurrentIdx(newIdx)
       setDirection(0)
@@ -613,6 +642,59 @@ export default function WorkoutTrackerPage() {
                 {!currentExo.poids && (
                   <p className="text-[var(--text-muted)] text-sm mt-1">{currentExo.series} séries × {currentExo.reps} reps</p>
                 )}
+
+                {/* ═══ Description / Instructions (toggle) ═══ */}
+                {(() => {
+                  const desc = (currentExo.exercices?.description || '').trim()
+                  const instr = currentExo.exercices?.instructions
+                  const hasDesc = !!desc
+                  const hasInstr = Array.isArray(instr) && instr.filter(s => s && s.trim()).length > 0
+                  if (!hasDesc && !hasInstr) return null
+                  return (
+                    <div className="mt-3">
+                      <button
+                        onClick={() => setShowDescription(v => !v)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-semibold transition-all active:scale-95 ${
+                          showDescription
+                            ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/25 text-[#FF6B2B]'
+                            : 'bg-[var(--bg-surface)] border-[var(--border-base)] text-[var(--text-secondary)] hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]'
+                        }`}
+                      >
+                        <Info className="w-3 h-3" />
+                        {showDescription ? 'Masquer la description' : 'Voir la description'}
+                        {showDescription
+                          ? <ChevronUp className="w-3 h-3" />
+                          : <ChevronDown className="w-3 h-3" />}
+                      </button>
+
+                      {showDescription && (
+                        <div className="mt-3 p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-base)]">
+                          {hasDesc && (
+                            <p className={`text-[var(--text-primary)] text-sm leading-relaxed whitespace-pre-wrap ${hasInstr ? 'mb-4' : ''}`}>
+                              {desc}
+                            </p>
+                          )}
+                          {hasInstr && (
+                            <>
+                              {hasDesc && (
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2">
+                                  Étapes
+                                </p>
+                              )}
+                              <ol className="list-decimal pl-5 space-y-1.5 marker:text-[#FF6B2B] marker:font-bold">
+                                {instr.filter(s => s && s.trim()).map((step, i) => (
+                                  <li key={i} className="text-[var(--text-secondary)] text-sm leading-relaxed pl-1">
+                                    {step}
+                                  </li>
+                                ))}
+                              </ol>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
 
               {/* ═══════ NOTE COACH ═══════ */}
