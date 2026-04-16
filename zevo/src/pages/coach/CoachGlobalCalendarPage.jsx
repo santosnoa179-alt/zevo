@@ -212,7 +212,7 @@ export default function CoachGlobalCalendarPage() {
         .order('event_date', { ascending: true }),
       supabase
         .from('clients')
-        .select('id, profiles(nom)')
+        .select('id, profiles(nom, prenom)')
         .eq('coach_id', user.id)
         .eq('actif', true),
       supabase
@@ -229,15 +229,19 @@ export default function CoachGlobalCalendarPage() {
     if (eventsRes.error) console.error('[Calendar] Erreur fetch events:', eventsRes.error.message)
 
     // Résoudre les noms des clients pour les séances (pas de FK directe vers profiles)
+    // On stocke le nom complet (prenom + nom) dans le champ `nom` — sinon seul
+    // le nom de famille s'affichait (bug "noa santos" → "santos").
     const seancesRaw = seancesRes.data ?? []
     const seanceClientIds = [...new Set(seancesRaw.map(s => s.client_id).filter(Boolean))]
     let clientNamesMap = {}
     if (seanceClientIds.length > 0) {
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('id, nom')
+        .select('id, nom, prenom')
         .in('id', seanceClientIds)
-      ;(profilesData ?? []).forEach(p => { clientNamesMap[p.id] = p.nom })
+      ;(profilesData ?? []).forEach(p => {
+        clientNamesMap[p.id] = [p.prenom, p.nom].filter(Boolean).join(' ') || null
+      })
     }
 
     const enrichedSeances = seancesRaw.map(s => ({
@@ -245,9 +249,18 @@ export default function CoachGlobalCalendarPage() {
       profiles: { nom: clientNamesMap[s.client_id] || null },
     }))
 
+    // Enrichir aussi la liste clients avec le nom complet
+    const enrichedClients = (clientsRes.data ?? []).map(c => ({
+      ...c,
+      profiles: {
+        ...c.profiles,
+        nom: [c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || c.profiles?.nom || null,
+      },
+    }))
+
     setSeances(enrichedSeances)
     setEvents(eventsRes.data ?? [])
-    setClients(clientsRes.data ?? [])
+    setClients(enrichedClients)
     setReservations(reservRes.data ?? [])
     setLoading(false)
   }, [user?.id, getDateRange])
