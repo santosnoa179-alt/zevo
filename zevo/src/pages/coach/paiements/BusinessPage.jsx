@@ -166,43 +166,42 @@ export default function BusinessPage() {
   const totalPeriod = chartData.reduce((s, d) => s + d.value, 0)
 
   const QUICK_ACTIONS = [
-    { icon: Package, label: 'Créer un produit', desc: 'Offre ou programme', path: '/coach/abonnements/produits', color: '#8B5CF6' },
-    { icon: Link2, label: 'Créer un lien', desc: 'Lien de paiement', path: '/coach/abonnements/liens', color: '#3B82F6' },
-    { icon: TicketPercent, label: 'Créer un code', desc: 'Code de réduction', path: '/coach/abonnements/codes', color: '#F59E0B' },
+    { icon: Package, label: 'Créer un produit', desc: 'Offre ou programme', path: '/coach/abonnements/produits' },
+    { icon: Link2, label: 'Créer un lien', desc: 'Lien de paiement', path: '/coach/abonnements/liens' },
+    { icon: TicketPercent, label: 'Créer un code', desc: 'Code de réduction', path: '/coach/abonnements/codes' },
   ]
 
   if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-6 max-w-5xl">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[1,2,3,4].map(i => <div key={i} className="glass-card p-4 h-24 animate-pulse"><div className="skel-block h-4 w-16 rounded mb-3" /><div className="skel-block h-6 w-20 rounded" /></div>)}
+          {[1,2,3,4].map(i => <div key={i} className="hero-card p-4 h-24 animate-pulse"><div className="skel-block h-4 w-16 rounded mb-3" /><div className="skel-block h-6 w-20 rounded" /></div>)}
         </div>
-        <div className="glass-card p-5 h-64 animate-pulse" />
+        <div className="hero-card p-5 h-64 animate-pulse" />
       </div>
     )
   }
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl">
-      {/* Stats row */}
+      {/* Stats row — Fitness OS metric-card */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: 'Revenus ce mois', value: `${(totalMois / 100).toLocaleString('fr-FR')} €`, icon: TrendingUp, color: '#22C55E' },
-          { label: '7 derniers jours', value: `${(total7j / 100).toLocaleString('fr-FR')} €`, icon: Calendar, color: '#F59E0B' },
-          { label: 'Clients payants', value: `${clientsPayants}/${clientsActifs}`, icon: Users, color: '#3B82F6' },
-          { label: 'Abonnements actifs', value: abosActifs.toString(), icon: RefreshCw, color: '#8B5CF6' },
+          { label: 'Revenus ce mois', value: `${(totalMois / 100).toLocaleString('fr-FR')} €`, icon: TrendingUp },
+          { label: '7 derniers jours', value: `${(total7j / 100).toLocaleString('fr-FR')} €`, icon: Calendar },
+          { label: 'Clients payants', value: `${clientsPayants}/${clientsActifs}`, icon: Users },
+          { label: 'Abonnements actifs', value: abosActifs.toString(), icon: RefreshCw },
         ].map((stat, i) => {
           const Icon = stat.icon
           return (
-            <div key={i} className="glass-card p-4 relative overflow-hidden">
-              <div className="absolute -right-3 -top-3 w-16 h-16 rounded-full opacity-[0.04]" style={{ backgroundColor: stat.color }} />
-              <div className="flex items-center justify-between mb-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${stat.color}15` }}>
-                  <Icon size={15} style={{ color: stat.color }} />
+            <div key={i} className="metric-card p-4">
+              <div className="relative z-[1]">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Icon size={11} className="text-[var(--text-muted)]" />
+                  <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-[0.14em] truncate">{stat.label}</p>
                 </div>
+                <p className="text-[var(--text-primary)] text-[22px] font-black tabular-nums tracking-tight leading-none">{stat.value}</p>
               </div>
-              <p className="text-lg font-bold text-[var(--text-primary)]">{stat.value}</p>
-              <p className="text-[10px] text-[var(--text-muted)] font-medium mt-0.5">{stat.label}</p>
             </div>
           )
         })}
@@ -210,17 +209,17 @@ export default function BusinessPage() {
 
       {/* Revenue chart + Quick actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 glass-card p-5">
+        <div className="lg:col-span-2 hero-card p-5">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-sm font-bold text-[var(--text-primary)]">Revenus</h3>
-              <p className="text-xs text-[var(--text-muted)] mt-0.5">
-                {totalPeriod.toLocaleString('fr-FR')} € {period === 'semaine' ? 'cette semaine' : period === 'mois' ? 'ce mois' : 'cette année'}
+              <h3 className="text-sm font-bold tracking-tight text-[var(--text-primary)]">Revenus</h3>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5 tabular-nums">
+                <span className="text-[var(--text-primary)] font-semibold">{totalPeriod.toLocaleString('fr-FR')} €</span> {period === 'semaine' ? 'cette semaine' : period === 'mois' ? 'ce mois' : 'cette année'}
               </p>
             </div>
-            <div className="flex gap-1 bg-[var(--bg-surface)] rounded-lg p-0.5">
+            <div className="flex gap-1 bg-[var(--bg-surface)] rounded-lg p-0.5 border border-[var(--border-subtle)]">
               {['semaine', 'mois', 'annee'].map(p => (
-                <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all ${period === p ? 'bg-[#F59E0B]/15 text-[#F59E0B]' : 'text-[var(--text-muted)]'}`}>
+                <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all ${period === p ? 'bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-base)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
                   {p === 'semaine' ? 'Semaine' : p === 'mois' ? 'Mois' : 'Année'}
                 </button>
               ))}
@@ -232,9 +231,9 @@ export default function BusinessPage() {
             <div className="flex items-end gap-2 h-44">
               {chartData.map((d, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-                  <span className="text-[10px] font-semibold text-[var(--text-muted)]">{d.value > 0 ? `${d.value}€` : ''}</span>
+                  <span className="text-[10px] font-semibold text-[var(--text-muted)] tabular-nums">{d.value > 0 ? `${d.value}€` : ''}</span>
                   <div className="w-full relative" style={{ height: '140px' }}>
-                    <div className="absolute bottom-0 w-full rounded-t-md transition-all duration-500" style={{ height: `${Math.max((d.value / maxValue) * 100, 2)}%`, background: d.value > 0 ? 'linear-gradient(180deg, #F59E0B, #F59E0B80)' : 'var(--bg-surface)' }} />
+                    <div className="absolute bottom-0 w-full rounded-t-md transition-all duration-500" style={{ height: `${Math.max((d.value / maxValue) * 100, 2)}%`, background: d.value > 0 ? 'linear-gradient(180deg, #FF6B2B, #FF8F5E)' : 'var(--bg-surface)' }} />
                   </div>
                   <span className="text-[10px] text-[var(--text-muted)] font-medium">{d.label}</span>
                 </div>
@@ -243,22 +242,20 @@ export default function BusinessPage() {
           )}
         </div>
 
-        <div className="glass-card p-5 flex flex-col">
-          <h3 className="text-sm font-bold text-[var(--text-primary)] mb-1">Actions rapides</h3>
+        <div className="hero-card p-5 flex flex-col">
+          <h3 className="text-sm font-bold tracking-tight text-[var(--text-primary)] mb-1">Actions rapides</h3>
           <p className="text-[11px] text-[var(--text-muted)] mb-4">Créez en un clic</p>
-          <div className="space-y-2 flex-1">
+          <div className="space-y-0.5 flex-1">
             {QUICK_ACTIONS.map((action, i) => {
               const Icon = action.icon
               return (
-                <button key={i} onClick={() => navigate(action.path)} className="w-full flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[var(--text-muted)]/15 hover:bg-[var(--bg-surface)] transition-all group text-left">
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${action.color}15` }}>
-                    <Icon size={16} style={{ color: action.color }} />
-                  </div>
+                <button key={i} onClick={() => navigate(action.path)} className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--bg-surface)]/60 transition-colors group text-left">
+                  <Icon size={15} strokeWidth={1.75} className="text-[var(--text-muted)] group-hover:text-[#FF6B2B] transition-colors flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-semibold text-[var(--text-primary)]">{action.label}</p>
                     <p className="text-[10px] text-[var(--text-muted)]">{action.desc}</p>
                   </div>
-                  <Plus size={14} className="text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors" />
+                  <Plus size={13} className="text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors" />
                 </button>
               )
             })}
@@ -267,13 +264,13 @@ export default function BusinessPage() {
       </div>
 
       {/* Recent events */}
-      <div className="glass-card overflow-hidden">
+      <div className="hero-card overflow-hidden">
         <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-[var(--text-primary)]">Derniers événements</h3>
+            <h3 className="text-sm font-bold tracking-tight text-[var(--text-primary)]">Derniers événements</h3>
             <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Activité récente de paiement</p>
           </div>
-          <button onClick={() => navigate('/coach/abonnements/transactions')} className="text-[11px] text-[#F59E0B] font-semibold hover:underline">Voir tout</button>
+          <button onClick={() => navigate('/coach/abonnements/transactions')} className="text-[11px] text-[#FF6B2B] font-semibold hover:underline">Voir tout</button>
         </div>
         {recentEvents.length === 0 ? (
           <div className="px-5 py-10 text-center">
@@ -286,7 +283,7 @@ export default function BusinessPage() {
               const clientName = [event.clients?.profiles?.prenom, event.clients?.profiles?.nom].filter(Boolean).join(' ') || 'Client'
               const offreName = event.offres_coaching?.titre || ''
               const isPositive = event.statut === 'paye'
-              const color = isPositive ? '#22C55E' : event.statut === 'rembourse' ? '#EF4444' : '#F59E0B'
+              const color = isPositive ? '#22C55E' : event.statut === 'rembourse' ? '#EF4444' : '#FF6B2B'
               const EventIcon = isPositive ? CreditCard : event.statut === 'rembourse' ? ArrowDownRight : ShoppingBag
               const diff = Date.now() - new Date(event.created_at).getTime()
               const mins = Math.floor(diff / 60000)

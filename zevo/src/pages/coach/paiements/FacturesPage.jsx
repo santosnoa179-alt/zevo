@@ -301,8 +301,8 @@ export default function FacturesPage() {
   if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-4 max-w-5xl">
-        <div className="grid grid-cols-3 gap-3">{[1,2,3].map(i => <div key={i} className="glass-card p-4 h-20 animate-pulse" />)}</div>
-        {[1,2,3].map(i => <div key={i} className="glass-card p-4 h-16 animate-pulse" />)}
+        <div className="grid grid-cols-3 gap-3">{[1,2,3].map(i => <div key={i} className="hero-card p-4 h-20 animate-pulse" />)}</div>
+        {[1,2,3].map(i => <div key={i} className="hero-card p-4 h-16 animate-pulse" />)}
       </div>
     )
   }
@@ -319,7 +319,7 @@ export default function FacturesPage() {
         <button
           onClick={openModal}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95"
-          style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.25)' }}
+          style={{ background: 'linear-gradient(135deg, #FF6B2B, #D97706)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.25)' }}
         >
           <Plus size={14} />
           Nouvelle facture
@@ -328,16 +328,16 @@ export default function FacturesPage() {
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="glass-card p-4">
+        <div className="hero-card p-4">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center">
-              <Receipt size={13} className="text-[#F59E0B]" />
+            <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
+              <Receipt size={13} className="text-[#FF6B2B]" />
             </div>
             <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Total factures</span>
           </div>
           <p className="text-2xl font-bold text-[var(--text-primary)]">{factures.length}</p>
         </div>
-        <div className="glass-card p-4">
+        <div className="hero-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
               <Euro size={13} className="text-emerald-400" />
@@ -346,7 +346,7 @@ export default function FacturesPage() {
           </div>
           <p className="text-2xl font-bold text-[var(--text-primary)]">{(totalPayees / 100).toLocaleString('fr-FR')} €</p>
         </div>
-        <div className="glass-card p-4">
+        <div className="hero-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-lg bg-yellow-500/10 flex items-center justify-center">
               <AlertCircle size={13} className="text-yellow-400" />
@@ -362,11 +362,11 @@ export default function FacturesPage() {
         <div className="relative flex-1">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par client ou numéro..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/40 focus:outline-none transition-all" />
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/40 focus:outline-none transition-all" />
         </div>
         <div className="flex gap-1 bg-[var(--bg-surface)] rounded-xl p-1 border border-[var(--border-base)]">
           {['tous', 'payee', 'en_attente', 'annulee'].map(s => (
-            <button key={s} onClick={() => setFiltre(s)} className={`px-3 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all ${filtre === s ? 'bg-[#F59E0B]/15 text-[#F59E0B]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
+            <button key={s} onClick={() => setFiltre(s)} className={`px-3 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all ${filtre === s ? 'bg-[#FF6B2B]/15 text-[#FF6B2B]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
               {s === 'tous' ? 'Toutes' : STATUT_CONFIG[s]?.label}
             </button>
           ))}
@@ -374,7 +374,7 @@ export default function FacturesPage() {
       </div>
 
       {loadError && (
-        <div className="glass-card p-4 border border-red-500/30 bg-red-500/5">
+        <div className="hero-card p-4 border border-red-500/30 bg-red-500/5">
           <p className="text-[13px] font-semibold text-red-400">Erreur de chargement</p>
           <p className="text-[11px] text-[var(--text-muted)] mt-1">{loadError}</p>
         </div>
@@ -382,8 +382,8 @@ export default function FacturesPage() {
 
       {/* ── Factures list ── */}
       {factures.length === 0 && !loadError ? (
-        <div className="glass-card border-dashed p-10 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-[#F59E0B]/8 flex items-center justify-center mx-auto mb-4">
+        <div className="hero-card border-dashed p-10 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/8 flex items-center justify-center mx-auto mb-4">
             <FileText size={26} className="text-[var(--text-muted)]" />
           </div>
           <p className="text-[15px] font-semibold text-[var(--text-primary)]">Aucune facture émise</p>
@@ -394,7 +394,7 @@ export default function FacturesPage() {
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block glass-card overflow-hidden">
+          <div className="hidden md:block hero-card overflow-hidden">
             <div className="grid grid-cols-[1fr_1fr_100px_100px_80px_40px] gap-3 px-5 py-3 border-b border-[var(--border-base)] text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
               <span>Numéro</span>
               <span>Client</span>
@@ -420,11 +420,11 @@ export default function FacturesPage() {
                     className="grid grid-cols-[1fr_1fr_100px_100px_80px_40px] gap-3 px-5 py-3.5 border-b border-[var(--border-base)]/50 items-center hover:bg-[var(--bg-surface)]/30 transition-colors cursor-pointer group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center flex-shrink-0">
-                        <FileText size={14} className="text-[#F59E0B]" />
+                      <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                        <FileText size={14} className="text-[#FF6B2B]" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[12px] font-mono font-bold text-[#F59E0B] truncate">{f.numero}</p>
+                        <p className="text-[12px] font-mono font-bold text-[#FF6B2B] truncate">{f.numero}</p>
                         <p className="text-[10px] text-[var(--text-muted)] truncate">{f.description || f.offres_coaching?.titre || '—'}</p>
                       </div>
                     </div>
@@ -439,7 +439,7 @@ export default function FacturesPage() {
                     </span>
                     <button
                       onClick={(e) => { e.stopPropagation(); generatePDF(f) }}
-                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors opacity-0 group-hover:opacity-100"
                       title="Télécharger PDF"
                     >
                       <Download size={13} />
@@ -456,15 +456,15 @@ export default function FacturesPage() {
               const cfg = STATUT_CONFIG[f.statut] || STATUT_CONFIG.en_attente
               const clientName = [f.clients?.profiles?.prenom, f.clients?.profiles?.nom].filter(Boolean).join(' ') || '—'
               return (
-                <div key={f.id} onClick={() => setDetailFacture(f)} className="glass-card p-4 active:scale-[0.99] transition-transform cursor-pointer">
+                <div key={f.id} onClick={() => setDetailFacture(f)} className="hero-card p-4 active:scale-[0.99] transition-transform cursor-pointer">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center flex-shrink-0">
-                        <FileText size={14} className="text-[#F59E0B]" />
+                      <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                        <FileText size={14} className="text-[#FF6B2B]" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-[12px] font-mono font-bold text-[#F59E0B]">{f.numero}</p>
+                          <p className="text-[12px] font-mono font-bold text-[#FF6B2B]">{f.numero}</p>
                           <span className={`inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-md ${cfg.color} ${cfg.bg}`}>
                             <div className={`w-1 h-1 rounded-full ${cfg.dot}`} />
                             {cfg.label}
@@ -475,7 +475,7 @@ export default function FacturesPage() {
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); generatePDF(f) }}
-                      className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors shrink-0"
+                      className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors shrink-0"
                     >
                       <Download size={14} />
                     </button>
@@ -496,11 +496,11 @@ export default function FacturesPage() {
       {/* ── Modal : Nouvelle facture ── */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4">
-          <div className="glass-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }} />
+          <div className="hero-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #FF6B2B, #D97706)' }} />
             <div className="p-4 md:p-5 border-b border-[var(--border-base)] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FF6B2B, #D97706)' }}>
                   <FileText size={18} className="text-white" />
                 </div>
                 <div>
@@ -521,7 +521,7 @@ export default function FacturesPage() {
               )}
               <div>
                 <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Client *</label>
-                <select value={formClient} onChange={e => setFormClient(e.target.value)} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                <select value={formClient} onChange={e => setFormClient(e.target.value)} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all">
                   <option value="">-- Sélectionner --</option>
                   {clientsList.map(c => (
                     <option key={c.id} value={c.id}>{[c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || 'Sans nom'} {c.profiles?.email ? `· ${c.profiles.email}` : ''}</option>
@@ -530,7 +530,7 @@ export default function FacturesPage() {
               </div>
               <div>
                 <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Produit (optionnel)</label>
-                <select value={formOffre} onChange={e => onSelectOffre(e.target.value)} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                <select value={formOffre} onChange={e => onSelectOffre(e.target.value)} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all">
                   <option value="">-- Aucun --</option>
                   {offresList.map(o => (
                     <option key={o.id} value={o.id}>{o.titre} · {(o.prix / 100).toFixed(2)} €</option>
@@ -540,11 +540,11 @@ export default function FacturesPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Montant (€) *</label>
-                  <input type="number" step="0.01" min="0" value={formMontant} onChange={e => setFormMontant(e.target.value)} placeholder="0.00" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+                  <input type="number" step="0.01" min="0" value={formMontant} onChange={e => setFormMontant(e.target.value)} placeholder="0.00" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all" />
                 </div>
                 <div>
                   <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Statut</label>
-                  <select value={formStatut} onChange={e => setFormStatut(e.target.value)} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                  <select value={formStatut} onChange={e => setFormStatut(e.target.value)} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all">
                     <option value="payee">Payée</option>
                     <option value="en_attente">En attente</option>
                     <option value="annulee">Annulée</option>
@@ -553,12 +553,12 @@ export default function FacturesPage() {
               </div>
               <div>
                 <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Description</label>
-                <input type="text" value={formDescription} onChange={e => setFormDescription(e.target.value)} placeholder="Prestation de coaching..." className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+                <input type="text" value={formDescription} onChange={e => setFormDescription(e.target.value)} placeholder="Prestation de coaching..." className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all" />
               </div>
             </div>
             <div className="p-4 md:p-5 border-t border-[var(--border-base)] flex gap-3 justify-end">
               <button onClick={closeModal} className="px-4 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-all">Annuler</button>
-              <button onClick={createFacture} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 active:scale-95" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}>
+              <button onClick={createFacture} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 active:scale-95" style={{ background: 'linear-gradient(135deg, #FF6B2B, #D97706)' }}>
                 {saving ? <Loader2 size={14} className="animate-spin" /> : 'Créer la facture'}
               </button>
             </div>
@@ -574,18 +574,18 @@ export default function FacturesPage() {
         const clientEmail = f.clients?.profiles?.email || ''
         return (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4" onClick={() => setDetailFacture(null)}>
-            <div className="glass-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }} />
+            <div className="hero-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #FF6B2B, #D97706)' }} />
 
               {/* Header */}
               <div className="p-5 border-b border-[var(--border-base)]">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center">
-                      <FileText size={20} className="text-[#F59E0B]" />
+                    <div className="w-11 h-11 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+                      <FileText size={20} className="text-[#FF6B2B]" />
                     </div>
                     <div>
-                      <p className="text-[12px] font-mono font-bold text-[#F59E0B]">{f.numero}</p>
+                      <p className="text-[12px] font-mono font-bold text-[#FF6B2B]">{f.numero}</p>
                       <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-lg mt-1 ${cfg.color} ${cfg.bg}`}>
                         <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
                         {cfg.label}
@@ -655,7 +655,7 @@ export default function FacturesPage() {
                 <button
                   onClick={() => generatePDF(f)}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all active:scale-95"
-                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                  style={{ background: 'linear-gradient(135deg, #FF6B2B, #D97706)' }}
                 >
                   <Download size={14} />
                   Télécharger PDF

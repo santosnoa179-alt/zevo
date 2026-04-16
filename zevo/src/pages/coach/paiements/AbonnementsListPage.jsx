@@ -115,8 +115,8 @@ export default function AbonnementsListPage() {
   if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-4 max-w-5xl">
-        <div className="grid grid-cols-2 gap-3">{[1,2].map(i => <div key={i} className="glass-card p-4 h-20 animate-pulse" />)}</div>
-        {[1,2,3].map(i => <div key={i} className="glass-card p-4 h-16 animate-pulse" />)}
+        <div className="grid grid-cols-2 gap-3">{[1,2].map(i => <div key={i} className="hero-card p-4 h-20 animate-pulse" />)}</div>
+        {[1,2,3].map(i => <div key={i} className="hero-card p-4 h-16 animate-pulse" />)}
       </div>
     )
   }
@@ -125,16 +125,16 @@ export default function AbonnementsListPage() {
     <div className="p-4 md:p-6 space-y-4 max-w-5xl">
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="glass-card p-4">
+        <div className="hero-card p-4">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center">
-              <RefreshCw size={13} className="text-[#8B5CF6]" />
+            <div className="w-7 h-7 rounded-lg bg-[#64748b]/10 flex items-center justify-center">
+              <RefreshCw size={13} className="text-[#64748b]" />
             </div>
             <span className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">Abonnements actifs</span>
           </div>
           <p className="text-2xl font-bold text-[var(--text-primary)]">{actifs}</p>
         </div>
-        <div className="glass-card p-4">
+        <div className="hero-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-lg bg-[#22C55E]/10 flex items-center justify-center">
               <Users size={13} className="text-[#22C55E]" />
@@ -149,11 +149,11 @@ export default function AbonnementsListPage() {
         <div className="relative flex-1">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un client..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/40 focus:outline-none transition-all" />
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/40 focus:outline-none transition-all" />
         </div>
         <div className="flex gap-1 bg-[var(--bg-surface)] rounded-xl p-1 border border-[var(--border-base)]">
           {['tous', 'actif', 'en_pause', 'annule', 'expire'].map(s => (
-            <button key={s} onClick={() => setFiltre(s)} className={`px-3 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all ${filtre === s ? 'bg-[#F59E0B]/15 text-[#F59E0B]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
+            <button key={s} onClick={() => setFiltre(s)} className={`px-3 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all ${filtre === s ? 'bg-[#FF6B2B]/15 text-[#FF6B2B]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
               {s === 'tous' ? 'Tous' : STATUT_CONFIG[s]?.label}
             </button>
           ))}
@@ -161,7 +161,7 @@ export default function AbonnementsListPage() {
       </div>
 
       {loadError && (
-        <div className="glass-card p-4 border border-red-500/30 bg-red-500/5">
+        <div className="hero-card p-4 border border-red-500/30 bg-red-500/5">
           <p className="text-[13px] font-semibold text-red-400">Erreur de chargement</p>
           <p className="text-[11px] text-[var(--text-muted)] mt-1">{loadError}</p>
           <p className="text-[11px] text-[var(--text-muted)] mt-1">La table <code className="text-[var(--text-secondary)]">abonnements_clients</code> existe-t-elle ? Exécute <code className="text-[var(--text-secondary)]">schema-paiements-complet.sql</code> + <code className="text-[var(--text-secondary)]">fix-grants-paiements.sql</code> dans Supabase.</p>
@@ -170,10 +170,10 @@ export default function AbonnementsListPage() {
 
       <div className="space-y-2" style={{ overflow: 'visible' }}>
         {abonnements.length === 0 && !loadError ? (
-          <div className="glass-card p-8">
+          <div className="hero-card p-8">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 rounded-xl bg-[#8B5CF6]/10 flex items-center justify-center">
-                <RefreshCw size={20} className="text-[#8B5CF6]" />
+              <div className="w-11 h-11 rounded-xl bg-[#64748b]/10 flex items-center justify-center">
+                <RefreshCw size={20} className="text-[#64748b]" />
               </div>
               <div>
                 <h3 className="text-base font-bold text-[var(--text-primary)]">Aucun abonnement actif</h3>
@@ -183,20 +183,20 @@ export default function AbonnementsListPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <button
                 onClick={() => navigate('/coach/abonnements/produits')}
-                className="p-4 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[#8B5CF6]/40 hover:bg-[var(--bg-surface)] transition-all text-left"
+                className="p-4 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[#64748b]/40 hover:bg-[var(--bg-surface)] transition-all text-left"
               >
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-[#8B5CF6]/15">
-                  <Package size={16} className="text-[#8B5CF6]" />
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-[#64748b]/15">
+                  <Package size={16} className="text-[#64748b]" />
                 </div>
                 <p className="text-[13px] font-semibold text-[var(--text-primary)]">1. Crée un produit récurrent</p>
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Mensuel, trimestriel ou annuel</p>
               </button>
               <button
                 onClick={() => navigate('/coach/abonnements/liens')}
-                className="p-4 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[#3B82F6]/40 hover:bg-[var(--bg-surface)] transition-all text-left"
+                className="p-4 rounded-xl bg-[var(--bg-surface)]/50 border border-[var(--border-base)] hover:border-[#64748b]/40 hover:bg-[var(--bg-surface)] transition-all text-left"
               >
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-[#3B82F6]/15">
-                  <Link2 size={16} className="text-[#3B82F6]" />
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-[#64748b]/15">
+                  <Link2 size={16} className="text-[#64748b]" />
                 </div>
                 <p className="text-[13px] font-semibold text-[var(--text-primary)]">2. Partage le lien à ton client</p>
                 <p className="text-[11px] text-[var(--text-muted)] mt-0.5">L'abonnement s'active à la 1re facture</p>
@@ -207,7 +207,7 @@ export default function AbonnementsListPage() {
             </p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="glass-card p-12 text-center">
+          <div className="hero-card p-12 text-center">
             <RefreshCw size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
             <p className="text-[var(--text-muted)] text-sm">Aucun abonnement ne correspond aux filtres</p>
           </div>
@@ -218,10 +218,10 @@ export default function AbonnementsListPage() {
             const clientName = [p?.prenom, p?.nom].filter(Boolean).join(' ') || 'Client'
             const initials = clientName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
             return (
-              <div key={a.id} className="glass-card p-4 hover:border-[var(--text-muted)]/10 transition-all group" style={{ overflow: 'visible' }}>
+              <div key={a.id} className="hero-card p-4 hover:border-[var(--text-muted)]/10 transition-all group" style={{ overflow: 'visible' }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8B5CF6]/20 to-[#8B5CF6]/5 flex items-center justify-center flex-shrink-0">
-                    <span className="text-[11px] font-bold text-[#8B5CF6]">{initials}</span>
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#64748b]/20 to-[#64748b]/5 flex items-center justify-center flex-shrink-0">
+                    <span className="text-[11px] font-bold text-[#64748b]">{initials}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">

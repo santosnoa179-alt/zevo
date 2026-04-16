@@ -105,7 +105,7 @@ export default function CodesReductionPage() {
     return (
       <div className="p-4 md:p-6 space-y-4 max-w-5xl">
         <div className="skel-block h-8 w-48 rounded mb-4" />
-        {[1,2,3].map(i => <div key={i} className="glass-card p-4 h-16 animate-pulse" />)}
+        {[1,2,3].map(i => <div key={i} className="hero-card p-4 h-16 animate-pulse" />)}
       </div>
     )
   }
@@ -117,17 +117,17 @@ export default function CodesReductionPage() {
           <h2 className="text-lg font-bold text-[var(--text-primary)]">Codes de réduction</h2>
           <p className="text-xs text-[var(--text-muted)]">{codes.filter(c => c.actif).length} code{codes.filter(c => c.actif).length > 1 ? 's' : ''} actif{codes.filter(c => c.actif).length > 1 ? 's' : ''}</p>
         </div>
-        <button onClick={() => { setError(null); setShowModal(true) }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.25)' }}>
+        <button onClick={() => { setError(null); setShowModal(true) }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.25)' }}>
           <Plus size={14} />
           Nouveau code
         </button>
       </div>
 
       {/* Comment ça marche */}
-      <div className="glass-card p-4 border border-[#F59E0B]/15 bg-[#F59E0B]/5">
+      <div className="hero-card p-4 border border-[#FF6B2B]/15 bg-[#FF6B2B]/5">
         <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center shrink-0">
-            <Info size={14} className="text-[#F59E0B]" />
+          <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
+            <Info size={14} className="text-[#FF6B2B]" />
           </div>
           <div className="flex-1">
             <p className="text-[13px] font-semibold text-[var(--text-primary)] mb-1">Comment ça marche</p>
@@ -139,8 +139,8 @@ export default function CodesReductionPage() {
       </div>
 
       {codes.length === 0 ? (
-        <div className="glass-card border-dashed p-10 text-center">
-          <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center bg-[#F59E0B]/8">
+        <div className="hero-card border-dashed p-10 text-center">
+          <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center bg-[#FF6B2B]/8">
             <TicketPercent size={24} className="text-[var(--text-muted)]" />
           </div>
           <p className="text-[var(--text-secondary)] text-sm font-medium">Aucun code de réduction</p>
@@ -149,7 +149,7 @@ export default function CodesReductionPage() {
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block glass-card overflow-hidden">
+          <div className="hidden md:block hero-card overflow-hidden">
             <div className="grid grid-cols-[1fr_120px_100px_100px_90px_50px] gap-3 px-5 py-3 border-b border-[var(--border-base)] text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
               <span>Code</span>
               <span>Réduction</span>
@@ -161,8 +161,8 @@ export default function CodesReductionPage() {
             {codes.map(c => (
               <div key={c.id} className={`grid grid-cols-[1fr_120px_100px_100px_90px_50px] gap-3 px-5 py-3.5 border-b border-[var(--border-base)]/50 items-center hover:bg-[var(--bg-surface)]/30 transition-colors group ${!c.actif ? 'opacity-50' : ''}`}>
                 <div className="flex items-center gap-2">
-                  <code className="text-[13px] font-mono font-bold text-[#F59E0B]">{c.code}</code>
-                  <button onClick={() => handleCopy(c.id, c.code)} className="p-1 rounded-md text-[var(--text-muted)] hover:text-[#F59E0B] hover:bg-[#F59E0B]/10 transition-colors">
+                  <code className="text-[13px] font-mono font-bold text-[#FF6B2B]">{c.code}</code>
+                  <button onClick={() => handleCopy(c.id, c.code)} className="p-1 rounded-md text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors">
                     {copied === c.id ? <CheckCircle size={12} className="text-emerald-400" /> : <Copy size={12} />}
                   </button>
                 </div>
@@ -190,10 +190,10 @@ export default function CodesReductionPage() {
           {/* Mobile cards */}
           <div className="md:hidden space-y-2">
             {codes.map(c => (
-              <div key={c.id} className={`glass-card p-4 ${!c.actif ? 'opacity-50' : ''}`}>
+              <div key={c.id} className={`hero-card p-4 ${!c.actif ? 'opacity-50' : ''}`}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <code className="text-[14px] font-mono font-bold text-[#F59E0B]">{c.code}</code>
+                    <code className="text-[14px] font-mono font-bold text-[#FF6B2B]">{c.code}</code>
                     <button onClick={() => handleCopy(c.id, c.code)} className="p-1 rounded-md text-[var(--text-muted)]">
                       {copied === c.id ? <CheckCircle size={12} className="text-emerald-400" /> : <Copy size={12} />}
                     </button>
@@ -214,11 +214,11 @@ export default function CodesReductionPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4">
-          <div className="glass-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)' }} />
+          <div className="hero-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)' }} />
             <div className="p-4 md:p-5 border-b border-[var(--border-base)] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)' }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)' }}>
                   <TicketPercent size={18} className="text-white" />
                 </div>
                 <div>
@@ -239,35 +239,35 @@ export default function CodesReductionPage() {
               )}
               <div>
                 <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Code *</label>
-                <input type="text" value={form.code} onChange={e => setForm({...form, code: e.target.value})} placeholder="Ex : BIENVENUE20" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all uppercase font-mono" />
+                <input type="text" value={form.code} onChange={e => setForm({...form, code: e.target.value})} placeholder="Ex : BIENVENUE20" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all uppercase font-mono" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Type</label>
-                  <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                  <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all">
                     <option value="pourcentage">Pourcentage (%)</option>
                     <option value="fixe">Montant fixe (€)</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Valeur *</label>
-                  <input type="number" value={form.valeur} onChange={e => setForm({...form, valeur: e.target.value})} placeholder="20" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+                  <input type="number" value={form.valeur} onChange={e => setForm({...form, valeur: e.target.value})} placeholder="20" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Limite d'utilisation</label>
-                  <input type="number" value={form.limite} onChange={e => setForm({...form, limite: e.target.value})} placeholder="Illimité" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+                  <input type="number" value={form.limite} onChange={e => setForm({...form, limite: e.target.value})} placeholder="Illimité" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all" />
                 </div>
                 <div>
                   <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Expiration</label>
-                  <input type="date" value={form.expiration} onChange={e => setForm({...form, expiration: e.target.value})} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+                  <input type="date" value={form.expiration} onChange={e => setForm({...form, expiration: e.target.value})} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all" />
                 </div>
               </div>
             </div>
             <div className="p-4 md:p-5 border-t border-[var(--border-base)] flex gap-3 justify-end">
               <button onClick={() => setShowModal(false)} className="px-4 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-all">Annuler</button>
-              <button onClick={creerCode} disabled={saving || !form.code.trim() || !form.valeur} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 active:scale-95" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)' }}>
+              <button onClick={creerCode} disabled={saving || !form.code.trim() || !form.valeur} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 active:scale-95" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)' }}>
                 {saving ? 'Création...' : 'Créer le code'}
               </button>
             </div>

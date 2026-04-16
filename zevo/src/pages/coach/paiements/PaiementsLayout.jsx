@@ -25,14 +25,9 @@ export default function PaiementsLayout() {
         {/* Header */}
         <div className="p-4 pb-3 border-b border-[var(--border-base)]">
           <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0B90)' }}
-            >
-              <Wallet size={16} className="text-white" />
-            </div>
+            <Wallet size={16} className="text-[var(--text-muted)]" strokeWidth={1.75} />
             <div>
-              <h2 className="text-sm font-bold text-[var(--text-primary)]">Paiements</h2>
+              <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight">Paiements</h2>
               <p className="text-[10px] text-[var(--text-muted)]">Gérez vos revenus</p>
             </div>
           </div>
@@ -53,18 +48,18 @@ export default function PaiementsLayout() {
                 end={item.end}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all group ${
                   isActive
-                    ? 'bg-[#F59E0B]/10 text-[#F59E0B]'
+                    ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]'
                 }`}
               >
                 <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
-                  isActive ? 'bg-[#F59E0B]/20' : 'bg-transparent group-hover:bg-[var(--bg-surface)]'
+                  isActive ? 'bg-[#FF6B2B]/20' : 'bg-transparent group-hover:bg-[var(--bg-surface)]'
                 }`}>
-                  <Icon size={14} className={isActive ? 'text-[#F59E0B]' : ''} />
+                  <Icon size={14} className={isActive ? 'text-[#FF6B2B]' : ''} />
                 </div>
                 {item.label}
                 {isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" />
                 )}
               </NavLink>
             )
@@ -108,7 +103,7 @@ export default function PaiementsLayout() {
                   end={item.end}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all shrink-0 ${
                     isActive
-                      ? 'bg-[#F59E0B]/10 text-[#F59E0B]'
+                      ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
                       : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                   }`}
                 >

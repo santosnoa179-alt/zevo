@@ -113,7 +113,7 @@ export default function LiensPaiementPage() {
     return (
       <div className="p-4 md:p-6 space-y-4 max-w-5xl">
         <div className="skel-block h-8 w-48 rounded mb-4" />
-        {[1,2,3].map(i => <div key={i} className="glass-card p-4 h-24 animate-pulse" />)}
+        {[1,2,3].map(i => <div key={i} className="hero-card p-4 h-24 animate-pulse" />)}
       </div>
     )
   }
@@ -125,15 +125,15 @@ export default function LiensPaiementPage() {
           <h2 className="text-lg font-bold text-[var(--text-primary)]">Liens de paiement</h2>
           <p className="text-xs text-[var(--text-muted)]">Générés par Stripe — le paiement arrive directement sur votre compte</p>
         </div>
-        <button onClick={() => { setError(null); setShowModal(true) }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95" style={{ background: 'linear-gradient(135deg, #3B82F6, #3B82F6D0)', boxShadow: '0 4px 14px rgba(59, 130, 246, 0.25)' }}>
+        <button onClick={() => { setError(null); setShowModal(true) }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)', boxShadow: '0 4px 14px rgba(255, 107, 43, 0.25)' }}>
           <Plus size={14} />
           Nouveau lien
         </button>
       </div>
 
       {liens.length === 0 ? (
-        <div className="glass-card border-dashed p-10 text-center">
-          <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center bg-[#3B82F6]/8">
+        <div className="hero-card border-dashed p-10 text-center">
+          <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center bg-[#64748b]/8">
             <Link2 size={24} className="text-[var(--text-muted)]" />
           </div>
           <p className="text-[var(--text-secondary)] text-sm font-medium">Aucun lien de paiement</p>
@@ -142,16 +142,16 @@ export default function LiensPaiementPage() {
       ) : (
         <div className="space-y-3">
           {liens.map(l => (
-            <div key={l.id} className={`glass-card p-4 group hover:border-[var(--text-muted)]/10 transition-all ${!l.actif ? 'opacity-50' : ''}`}>
+            <div key={l.id} className={`hero-card p-4 group hover:border-[var(--text-muted)]/10 transition-all ${!l.actif ? 'opacity-50' : ''}`}>
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#3B82F6]/10">
-                  <Link2 size={16} className="text-[#3B82F6]" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#64748b]/10">
+                  <Link2 size={16} className="text-[#64748b]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="text-[14px] font-semibold text-[var(--text-primary)]">{l.titre}</h3>
                     {l.montant > 0 ? (
-                      <span className="text-[12px] font-bold text-[#F59E0B]">{(l.montant / 100).toFixed(2)} €</span>
+                      <span className="text-[12px] font-bold text-[#FF6B2B]">{(l.montant / 100).toFixed(2)} €</span>
                     ) : (
                       <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400">Gratuit</span>
                     )}
@@ -159,15 +159,15 @@ export default function LiensPaiementPage() {
                   {l.stripe_url ? (
                     <div className="flex items-center gap-2 mb-2">
                       <code className="text-[11px] text-[var(--text-muted)] font-mono truncate">{l.stripe_url}</code>
-                      <button onClick={() => handleCopy(l)} className="p-1 rounded-md text-[var(--text-muted)] hover:text-[#3B82F6] hover:bg-[#3B82F6]/10 transition-colors flex-shrink-0" title="Copier le lien">
+                      <button onClick={() => handleCopy(l)} className="p-1 rounded-md text-[var(--text-muted)] hover:text-[#64748b] hover:bg-[#64748b]/10 transition-colors flex-shrink-0" title="Copier le lien">
                         {copied === l.id ? <CheckCircle size={13} className="text-emerald-400" /> : <Copy size={13} />}
                       </button>
-                      <button onClick={() => ouvrirLien(l)} className="p-1 rounded-md text-[var(--text-muted)] hover:text-[#3B82F6] hover:bg-[#3B82F6]/10 transition-colors flex-shrink-0" title="Ouvrir dans Stripe">
+                      <button onClick={() => ouvrirLien(l)} className="p-1 rounded-md text-[var(--text-muted)] hover:text-[#64748b] hover:bg-[#64748b]/10 transition-colors flex-shrink-0" title="Ouvrir dans Stripe">
                         <ExternalLink size={13} />
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 mb-2 text-[11px] text-amber-400">
+                    <div className="flex items-center gap-1.5 mb-2 text-[11px] text-[#FF6B2B]">
                       <AlertCircle size={11} />
                       Lien non connecté à Stripe — supprimez-le et recréez-le
                     </div>
@@ -190,11 +190,11 @@ export default function LiensPaiementPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4">
-          <div className="glass-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #3B82F6, #3B82F6D0)' }} />
+          <div className="hero-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)' }} />
             <div className="p-4 md:p-5 border-b border-[var(--border-base)] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#3B82F6]">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#64748b]">
                   <Link2 size={18} className="text-white" />
                 </div>
                 <div>
@@ -215,20 +215,20 @@ export default function LiensPaiementPage() {
               )}
               <div>
                 <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Titre *</label>
-                <input type="text" value={form.titre} onChange={e => setForm({...form, titre: e.target.value})} placeholder="Ex : Coaching Premium" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#3B82F6]/50 focus:outline-none transition-all" />
+                <input type="text" value={form.titre} onChange={e => setForm({...form, titre: e.target.value})} placeholder="Ex : Coaching Premium" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#64748b]/50 focus:outline-none transition-all" />
               </div>
               <div>
                 <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Montant (€) *</label>
-                <input type="number" min="0.5" step="0.01" value={form.montant} onChange={e => setForm({...form, montant: e.target.value})} placeholder="Minimum 0.50 €" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#3B82F6]/50 focus:outline-none transition-all" />
+                <input type="number" min="0.5" step="0.01" value={form.montant} onChange={e => setForm({...form, montant: e.target.value})} placeholder="Minimum 0.50 €" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#64748b]/50 focus:outline-none transition-all" />
               </div>
               <div>
                 <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Description</label>
-                <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={2} placeholder="Ce que le client recevra..." className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#3B82F6]/50 focus:outline-none transition-all resize-none" />
+                <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={2} placeholder="Ce que le client recevra..." className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#64748b]/50 focus:outline-none transition-all resize-none" />
               </div>
             </div>
             <div className="p-4 md:p-5 border-t border-[var(--border-base)] flex gap-3 justify-end">
               <button onClick={() => setShowModal(false)} className="px-4 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-all">Annuler</button>
-              <button onClick={creerLien} disabled={saving || !form.titre.trim()} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 active:scale-95" style={{ background: 'linear-gradient(135deg, #3B82F6, #3B82F6D0)' }}>
+              <button onClick={creerLien} disabled={saving || !form.titre.trim()} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 active:scale-95" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)' }}>
                 {saving ? 'Création...' : 'Créer le lien'}
               </button>
             </div>

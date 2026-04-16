@@ -9,9 +9,9 @@ import {
 
 const STATUT_CONFIG = {
   paye: { label: 'Payé', color: 'text-emerald-400', bg: 'bg-emerald-500/10', dot: 'bg-emerald-400' },
-  en_attente: { label: 'En attente', color: 'text-yellow-400', bg: 'bg-yellow-500/10', dot: 'bg-yellow-400' },
+  en_attente: { label: 'En attente', color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10', dot: 'bg-[#FF6B2B]' },
   echoue: { label: 'Échoué', color: 'text-red-400', bg: 'bg-red-500/10', dot: 'bg-red-400' },
-  rembourse: { label: 'Remboursé', color: 'text-blue-400', bg: 'bg-blue-500/10', dot: 'bg-blue-400' },
+  rembourse: { label: 'Remboursé', color: 'text-slate-400', bg: 'bg-slate-500/10', dot: 'bg-slate-400' },
 }
 
 const STATUTS_LIST = ['paye', 'en_attente', 'echoue', 'rembourse']
@@ -196,7 +196,7 @@ export default function TransactionsPage() {
     return (
       <div className="p-4 md:p-6 space-y-4 max-w-5xl">
         <div className="skel-block h-8 w-48 rounded mb-4" />
-        {[1,2,3,4].map(i => <div key={i} className="glass-card p-4 h-16 animate-pulse"><div className="skel-block h-4 w-full rounded" /></div>)}
+        {[1,2,3,4].map(i => <div key={i} className="hero-card p-4 h-16 animate-pulse"><div className="skel-block h-4 w-full rounded" /></div>)}
       </div>
     )
   }
@@ -212,7 +212,7 @@ export default function TransactionsPage() {
         <button
           onClick={() => { setModalError(null); setShowModal(true) }}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95 self-start sm:self-auto"
-          style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.25)' }}
+          style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)', boxShadow: '0 4px 14px rgba(245, 158, 11, 0.25)' }}
         >
           <Plus size={14} />
           Nouvelle transaction
@@ -227,12 +227,12 @@ export default function TransactionsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Rechercher un client ou produit..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/40 focus:outline-none transition-all"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/40 focus:outline-none transition-all"
           />
         </div>
         <div className="flex gap-1 bg-[var(--bg-surface)] rounded-xl p-1 border border-[var(--border-base)]">
           {['tous', 'paye', 'en_attente', 'rembourse', 'echoue'].map(s => (
-            <button key={s} onClick={() => setFiltre(s)} className={`px-3 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all ${filtre === s ? 'bg-[#F59E0B]/15 text-[#F59E0B]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
+            <button key={s} onClick={() => setFiltre(s)} className={`px-3 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all ${filtre === s ? 'bg-[#FF6B2B]/15 text-[#FF6B2B]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}>
               {s === 'tous' ? 'Tous' : STATUT_CONFIG[s]?.label}
             </button>
           ))}
@@ -241,7 +241,7 @@ export default function TransactionsPage() {
 
       {/* Error banner */}
       {loadError && (
-        <div className="glass-card p-4 border border-red-500/30 bg-red-500/5">
+        <div className="hero-card p-4 border border-red-500/30 bg-red-500/5">
           <p className="text-[13px] font-semibold text-red-400">Erreur de chargement</p>
           <p className="text-[11px] text-[var(--text-muted)] mt-1">{loadError}</p>
           <p className="text-[11px] text-[var(--text-muted)] mt-1">Vérifie que le script <code className="text-[var(--text-secondary)]">fix-grants-paiements.sql</code> a bien été exécuté dans Supabase.</p>
@@ -250,10 +250,10 @@ export default function TransactionsPage() {
 
       {/* Empty state onboarding — visible uniquement quand 0 transactions au total */}
       {transactions.length === 0 && !loadError && (
-        <div className="glass-card p-8">
+        <div className="hero-card p-8">
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-11 h-11 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center">
-              <CreditCard size={20} className="text-[#F59E0B]" />
+            <div className="w-11 h-11 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <CreditCard size={20} className="text-[#FF6B2B]" />
             </div>
             <div>
               <h3 className="text-base font-bold text-[var(--text-primary)]">Aucune transaction encore</h3>
@@ -263,8 +263,8 @@ export default function TransactionsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {[
-              { num: 1, icon: Package, label: 'Crée un produit', desc: 'Offre, programme, abonnement', path: '/coach/abonnements/produits', color: '#8B5CF6' },
-              { num: 2, icon: Link2, label: 'Génère un lien', desc: 'Lien de paiement Stripe', path: '/coach/abonnements/liens', color: '#3B82F6' },
+              { num: 1, icon: Package, label: 'Crée un produit', desc: 'Offre, programme, abonnement', path: '/coach/abonnements/produits', color: '#64748b' },
+              { num: 2, icon: Link2, label: 'Génère un lien', desc: 'Lien de paiement Stripe', path: '/coach/abonnements/liens', color: '#64748b' },
               { num: 3, icon: ArrowRight, label: 'Partage à ton client', desc: 'Email, WhatsApp, SMS', path: '/coach/abonnements/liens', color: '#22C55E' },
             ].map(step => {
               const Icon = step.icon
@@ -295,7 +295,7 @@ export default function TransactionsPage() {
 
       {/* Table desktop */}
       {transactions.length > 0 && (
-      <div className="hidden md:block glass-card overflow-visible">
+      <div className="hidden md:block hero-card overflow-visible">
         <div className="grid grid-cols-[1fr_1fr_100px_100px_100px_40px] gap-4 px-5 py-3 border-b border-[var(--border-base)] text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
           <span>Client</span>
           <span>Produit</span>
@@ -324,7 +324,7 @@ export default function TransactionsPage() {
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-[13px] text-[var(--text-secondary)] truncate">{t.offres_coaching?.titre || t.description || '—'}</span>
                   {t.source === 'manuel' && (
-                    <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#F59E0B]/10 text-[#F59E0B] shrink-0" title={`Méthode : ${t.methode_paiement || '—'}`}>
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] shrink-0" title={`Méthode : ${t.methode_paiement || '—'}`}>
                       <Banknote size={9} />
                       MANUEL
                     </span>
@@ -380,13 +380,13 @@ export default function TransactionsPage() {
           const cfg = STATUT_CONFIG[t.statut] || STATUT_CONFIG.en_attente
           const clientName = [t.clients?.profiles?.prenom, t.clients?.profiles?.nom].filter(Boolean).join(' ') || '—'
           return (
-            <div key={t.id} className="glass-card p-4">
+            <div key={t.id} className="hero-card p-4">
               <div className="flex items-start justify-between mb-2">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-[var(--text-primary)] truncate">{clientName}</p>
                     {t.source === 'manuel' && (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#F59E0B]/10 text-[#F59E0B] shrink-0">
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] shrink-0">
                         <Banknote size={9} />
                         MANUEL
                       </span>
@@ -439,11 +439,11 @@ export default function TransactionsPage() {
       {/* ── Modal Nouvelle transaction manuelle ── */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4">
-          <div className="glass-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)' }} />
+          <div className="hero-card relative w-full md:max-w-md md:rounded-2xl rounded-t-2xl rounded-b-none md:rounded-b-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)' }} />
             <div className="p-4 md:p-5 border-b border-[var(--border-base)] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)' }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)' }}>
                   <Banknote size={18} className="text-white" />
                 </div>
                 <div>
@@ -465,7 +465,7 @@ export default function TransactionsPage() {
 
               <div>
                 <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Client *</label>
-                <select value={form.clientId} onChange={e => setForm({ ...form, clientId: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                <select value={form.clientId} onChange={e => setForm({ ...form, clientId: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all">
                   <option value="">-- Sélectionner un client --</option>
                   {clientsList.map(c => (
                     <option key={c.id} value={c.id}>
@@ -478,11 +478,11 @@ export default function TransactionsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Montant (€) *</label>
-                  <input type="number" min="0" step="0.01" value={form.montant} onChange={e => setForm({ ...form, montant: e.target.value })} placeholder="50.00" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+                  <input type="number" min="0" step="0.01" value={form.montant} onChange={e => setForm({ ...form, montant: e.target.value })} placeholder="50.00" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all" />
                 </div>
                 <div>
                   <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Méthode</label>
-                  <select value={form.methode} onChange={e => setForm({ ...form, methode: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                  <select value={form.methode} onChange={e => setForm({ ...form, methode: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all">
                     {METHODES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                   </select>
                 </div>
@@ -491,11 +491,11 @@ export default function TransactionsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Date</label>
-                  <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+                  <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all" />
                 </div>
                 <div>
                   <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Statut</label>
-                  <select value={form.statut} onChange={e => setForm({ ...form, statut: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/50 focus:outline-none transition-all">
+                  <select value={form.statut} onChange={e => setForm({ ...form, statut: e.target.value })} className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all">
                     <option value="paye">Payé</option>
                     <option value="en_attente">En attente</option>
                   </select>
@@ -504,11 +504,11 @@ export default function TransactionsPage() {
 
               <div>
                 <label className="block text-[var(--text-secondary)] text-xs font-medium mb-1.5">Description</label>
-                <input type="text" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Ex : Séance coaching du 10/04" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/50 focus:outline-none transition-all" />
+                <input type="text" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Ex : Séance coaching du 10/04" className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-all" />
               </div>
 
               <label className="flex items-center gap-2.5 p-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] cursor-pointer">
-                <input type="checkbox" checked={form.genererFacture} onChange={e => setForm({ ...form, genererFacture: e.target.checked })} className="w-4 h-4 accent-[#F59E0B]" />
+                <input type="checkbox" checked={form.genererFacture} onChange={e => setForm({ ...form, genererFacture: e.target.checked })} className="w-4 h-4 accent-[#FF6B2B]" />
                 <div className="flex-1">
                   <p className="text-[12px] font-medium text-[var(--text-primary)]">Générer une facture</p>
                   <p className="text-[10px] text-[var(--text-muted)]">Uniquement si statut = Payé</p>
@@ -517,7 +517,7 @@ export default function TransactionsPage() {
             </div>
             <div className="p-4 md:p-5 border-t border-[var(--border-base)] flex gap-3 justify-end">
               <button onClick={() => setShowModal(false)} className="px-4 py-2.5 rounded-xl text-sm text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-all">Annuler</button>
-              <button onClick={creerTransactionManuelle} disabled={saving || !form.clientId || !form.montant} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 active:scale-95" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)' }}>
+              <button onClick={creerTransactionManuelle} disabled={saving || !form.clientId || !form.montant} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 active:scale-95" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)' }}>
                 {saving ? 'Enregistrement...' : 'Enregistrer'}
               </button>
             </div>

@@ -30,7 +30,7 @@ export default function ParametresPaiementPage() {
   if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-6 max-w-3xl">
-        {[1,2,3].map(i => <div key={i} className="glass-card p-5 h-32 animate-pulse" />)}
+        {[1,2,3].map(i => <div key={i} className="hero-card p-5 h-32 animate-pulse" />)}
       </div>
     )
   }
@@ -44,7 +44,7 @@ export default function ParametresPaiementPage() {
       </div>
 
       {/* Stripe Connect */}
-      <div className="glass-card p-5">
+      <div className="hero-card p-5">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#635BFF]/10">
             <CreditCard size={18} className="text-[#635BFF]" />
@@ -99,17 +99,17 @@ export default function ParametresPaiementPage() {
       </div>
 
       {/* Devise */}
-      <div className="glass-card p-5">
+      <div className="hero-card p-5">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#F59E0B]/10">
-            <Globe size={18} className="text-[#F59E0B]" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#FF6B2B]/10">
+            <Globe size={18} className="text-[#FF6B2B]" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-[var(--text-primary)]">Devise</h3>
             <p className="text-[11px] text-[var(--text-muted)]">Devise utilisée pour vos produits et factures</p>
           </div>
         </div>
-        <select className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#F59E0B]/40 focus:outline-none transition-all">
+        <select className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/40 focus:outline-none transition-all">
           <option value="EUR">Euro (€)</option>
           <option value="USD">Dollar US ($)</option>
           <option value="GBP">Livre Sterling (£)</option>
@@ -118,10 +118,10 @@ export default function ParametresPaiementPage() {
       </div>
 
       {/* Notifications */}
-      <div className="glass-card p-5">
+      <div className="hero-card p-5">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#3B82F6]/10">
-            <Bell size={18} className="text-[#3B82F6]" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#64748b]/10">
+            <Bell size={18} className="text-[#64748b]" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-[var(--text-primary)]">Notifications</h3>
@@ -139,7 +139,7 @@ export default function ParametresPaiementPage() {
                 <p className="text-[13px] font-medium text-[var(--text-primary)]">{item.label}</p>
                 <p className="text-[10px] text-[var(--text-muted)]">{item.desc}</p>
               </div>
-              <div className="w-10 h-6 rounded-full bg-[#F59E0B] relative cursor-pointer">
+              <div className="w-10 h-6 rounded-full bg-[#FF6B2B] relative cursor-pointer">
                 <div className="absolute top-1 left-5 w-4 h-4 rounded-full bg-white transition-all" />
               </div>
             </div>
@@ -148,11 +148,9 @@ export default function ParametresPaiementPage() {
       </div>
 
       {/* Politique remboursement */}
-      <div className="glass-card p-5">
+      <div className="hero-card p-5">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#EF4444]/10">
-            <Shield size={18} className="text-[#EF4444]" />
-          </div>
+          <Shield size={16} className="text-[var(--text-muted)]" strokeWidth={1.75} />
           <div>
             <h3 className="text-sm font-bold text-[var(--text-primary)]">Politique de remboursement</h3>
             <p className="text-[11px] text-[var(--text-muted)]">Conditions affichées à vos clients</p>
@@ -161,9 +159,9 @@ export default function ParametresPaiementPage() {
         <textarea
           rows={3}
           defaultValue="Remboursement possible dans les 14 jours suivant l'achat, sous réserve que le programme n'ait pas été commencé."
-          className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#F59E0B]/40 focus:outline-none transition-all resize-none"
+          className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/40 focus:outline-none transition-all resize-none"
         />
-        <button className="mt-3 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95" style={{ background: 'linear-gradient(135deg, #F59E0B, #F59E0BD0)' }}>
+        <button className="mt-3 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF6B2BD0)' }}>
           Sauvegarder
         </button>
       </div>
