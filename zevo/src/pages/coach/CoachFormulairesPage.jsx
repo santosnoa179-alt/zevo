@@ -474,52 +474,37 @@ export default function CoachFormulairesPage() {
   // ══════════════════════════════════════════
   if (vue === 'liste') {
     return (
-      <div className="p-4 md:p-6 w-full">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8 md:mb-10">
-          <div className="flex items-center gap-3 md:gap-4">
-            <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
-              <FileText size={20} className="text-white" />
-            </div>
+      <div className="p-4 md:p-6 w-full max-w-[1400px] mx-auto">
+        {/* Header — Fitness OS sobre */}
+        <div className="flex items-center justify-between mb-6 md:mb-7">
+          <div className="flex items-center gap-3">
+            <FileText size={18} className="text-[var(--text-muted)]" strokeWidth={1.75} />
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight">Formulaires</h1>
-              <p className="text-[var(--text-secondary)] text-xs md:text-sm mt-0.5">Créez et envoyez des questionnaires à vos clients</p>
+              <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight leading-tight">Formulaires</h1>
+              <p className="text-[var(--text-muted)] text-xs md:text-sm mt-0.5">Créez et envoyez des questionnaires à vos clients</p>
             </div>
           </div>
           <button onClick={creerVide}
-            className="flex items-center gap-2 text-white px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg shadow-[#FF6B2B]/25 hover:shadow-xl hover:shadow-[#FF6B2B]/30 hover:-translate-y-0.5"
-            style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
-            <Plus size={18} /> <span className="hidden md:inline">Nouveau formulaire</span><span className="md:hidden">Nouveau</span>
+            className="inline-flex items-center gap-2 bg-[#FF6B2B] hover:bg-[#FF6B2B]/90 text-white px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95">
+            <Plus size={15} /> <span className="hidden md:inline">Nouveau formulaire</span><span className="md:hidden">Nouveau</span>
           </button>
         </div>
 
-        {/* Gradient accent bar */}
-        <div className="h-[2px] rounded-full mb-8 md:mb-10 opacity-20"
-          style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E, transparent)' }} />
-
-        {/* Templates */}
-        <div className="mb-8 md:mb-10">
-          <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-3 md:mb-4">Templates</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+        {/* Templates — grid scalable */}
+        <div className="mb-6 md:mb-7">
+          <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-3">Templates</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {TEMPLATES.map(t => {
               const Icon = t.icon
               return (
                 <button key={t.type} onClick={() => creerDepuisTemplate(t)}
-                  className="glass-card group relative bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden text-left transition-all duration-200 hover:border-[#FF6B2B]/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#FF6B2B]/[0.06]">
-                  {/* Gradient accent bar */}
-                  <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }} />
-                  <div className="p-3 md:p-4">
-                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center mb-2 md:mb-3"
-                      style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.15), rgba(255,143,94,0.08))' }}>
-                      <Icon size={18} className="text-[#FF6B2B]" />
-                    </div>
-                    <p className="text-[var(--text-primary)] font-semibold text-xs md:text-sm">{t.titre}</p>
-                    <p className="text-[var(--text-secondary)] text-[10px] md:text-xs mt-1 md:mt-1.5 leading-relaxed line-clamp-2">{t.description}</p>
-                    <p className="text-[#FF6B2B] text-[10px] md:text-[11px] font-medium mt-2 md:mt-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
-                      Utiliser ce template
-                    </p>
-                  </div>
+                  className="hero-card group p-4 text-left transition-all hover:border-[#FF6B2B]/30">
+                  <Icon size={16} className="text-[var(--text-muted)] group-hover:text-[#FF6B2B] transition-colors mb-2.5" strokeWidth={1.75} />
+                  <p className="text-[var(--text-primary)] font-bold text-xs md:text-sm leading-tight">{t.titre}</p>
+                  <p className="text-[var(--text-muted)] text-[10px] md:text-[11px] mt-1 md:mt-1.5 leading-relaxed line-clamp-2">{t.description}</p>
+                  <p className="text-[#FF6B2B] text-[10px] font-semibold mt-2.5 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    Utiliser ce template →
+                  </p>
                 </button>
               )
             })}
@@ -527,8 +512,8 @@ export default function CoachFormulairesPage() {
         </div>
 
         {/* Filters bar */}
-        <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden mb-4 md:mb-5">
-          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 p-3 md:p-4">
+        <div className="hero-card p-3 md:p-4 mb-4 md:mb-5">
+          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
             <h2 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em]">Mes formulaires</h2>
             <div className="flex-1" />
             <div className="flex items-center gap-2 flex-wrap">
@@ -538,12 +523,12 @@ export default function CoachFormulairesPage() {
                 <input
                   type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Rechercher..."
-                  className="w-full md:w-40 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg pl-9 pr-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+                  className="w-full md:w-40 bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg pl-9 pr-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
                 />
               </div>
               {/* Type filter */}
               <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-                className="appearance-none bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
+                className="appearance-none bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
                 <option value="">Tous types</option>
                 {Object.entries(TYPE_LABELS).filter(([k]) => !['texte','nombre','note_1_10','choix_multiple','oui_non','date'].includes(k)).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
@@ -551,7 +536,7 @@ export default function CoachFormulairesPage() {
               </select>
               {/* Status filter */}
               <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-                className="appearance-none bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
+                className="appearance-none bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors cursor-pointer">
                 <option value="">Tous statuts</option>
                 <option value="actif">Actifs</option>
                 <option value="brouillon">Brouillons</option>
@@ -562,7 +547,7 @@ export default function CoachFormulairesPage() {
 
         {/* Liste */}
         {loading ? (
-          <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
+          <div className="hero-card overflow-hidden">
             {[1, 2, 3].map(i => (
               <div key={i} className="px-4 md:px-5 py-4 border-b border-[var(--border-base)] last:border-b-0">
                 <div className="flex items-center gap-3 md:gap-4">
@@ -577,29 +562,23 @@ export default function CoachFormulairesPage() {
           </div>
         ) : filteredFormulaires.length === 0 ? (
           /* Empty state */
-          <div className="glass-card bg-[var(--bg-card)] rounded-xl border border-dashed border-[var(--border-base)] overflow-hidden">
-            <div className="p-10 md:p-14 text-center">
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-5 animate-breathe"
-                style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.08), rgba(255,143,94,0.04))' }}>
-                <FileText size={24} className="text-[#FF6B2B]/40 md:w-7 md:h-7" />
-              </div>
-              <p className="text-[var(--text-secondary)] text-sm font-medium mb-1">
-                {formulaires.length === 0 ? 'Aucun formulaire créé' : 'Aucun résultat'}
-              </p>
-              <p className="text-[var(--text-muted)] text-xs mb-5">
-                {formulaires.length === 0 ? 'Commencez avec un template ou créez-en un de zéro' : 'Essayez de modifier vos filtres'}
-              </p>
-              {formulaires.length === 0 && (
-                <button onClick={creerVide}
-                  className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#FF6B2B]/25"
-                  style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
-                  <Plus size={16} /> Créer mon premier formulaire
-                </button>
-              )}
-            </div>
+          <div className="hero-card border-dashed p-10 md:p-14 text-center">
+            <FileText size={28} className="text-[var(--text-muted)] mx-auto mb-4 animate-breathe" strokeWidth={1.5} />
+            <p className="text-[var(--text-primary)] text-sm font-bold mb-1 tracking-tight">
+              {formulaires.length === 0 ? 'Aucun formulaire créé' : 'Aucun résultat'}
+            </p>
+            <p className="text-[var(--text-muted)] text-xs mb-5">
+              {formulaires.length === 0 ? 'Commencez avec un template ou créez-en un de zéro' : 'Essayez de modifier vos filtres'}
+            </p>
+            {formulaires.length === 0 && (
+              <button onClick={creerVide}
+                className="inline-flex items-center gap-2 bg-[#FF6B2B] hover:bg-[#FF6B2B]/90 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95">
+                <Plus size={15} /> Créer mon premier formulaire
+              </button>
+            )}
           </div>
         ) : (
-          <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
+          <div className="hero-card overflow-hidden">
             {filteredFormulaires.map((f, idx) => {
               const nbRep = f.formulaire_reponses?.[0]?.count || 0
               const isActif = (f.statut || 'actif') === 'actif'
@@ -608,23 +587,17 @@ export default function CoachFormulairesPage() {
 
               return (
                 <div key={f.id}
-                  className={`group flex items-center gap-3 md:gap-4 px-4 md:px-5 py-3 md:py-4 transition-colors duration-150 hover:bg-[var(--bg-surface)]/50 ${
+                  className={`group relative flex items-center gap-3 md:gap-4 pl-5 md:pl-6 pr-4 md:pr-5 py-3 md:py-3.5 transition-colors hover:bg-[var(--bg-surface)]/50 ${
                     idx < filteredFormulaires.length - 1 ? 'border-b border-[var(--border-base)]' : ''
                   }`}>
 
-                  {/* Status dot + icon with left accent */}
-                  <div className="relative flex-shrink-0">
-                    <div className="absolute -left-4 md:-left-5 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full"
-                      style={{ background: isActif ? 'linear-gradient(180deg, #FF6B2B, #FF8F5E)' : 'var(--text-muted)', opacity: isActif ? 1 : 0.3 }} />
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                      style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.15), rgba(255,143,94,0.08))' }}>
-                      <FileText size={16} className="text-[#FF6B2B]" />
-                    </div>
-                    {/* Status dot overlay */}
-                    <div className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--bg-card)] ${
-                      isActif ? 'bg-green-400' : 'bg-[var(--text-muted)]'
-                    }`} />
-                  </div>
+                  {/* Barre latérale 3px — langage unifié Calendar/Dashboard */}
+                  <span className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full ${
+                    isActif ? 'bg-[#FF6B2B]' : 'bg-[var(--border-strong)]'
+                  }`} />
+
+                  {/* Icon neutre */}
+                  <FileText size={16} className="text-[var(--text-muted)] flex-shrink-0" strokeWidth={1.75} />
 
                   {/* Infos */}
                   <div className="flex-1 min-w-0">
@@ -690,9 +663,9 @@ export default function CoachFormulairesPage() {
           <>
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => { setModalEnvoi(false); setFormEnvoi(null) }} />
             <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
-              <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-t-2xl md:rounded-xl w-full max-w-md max-h-[85vh] md:max-h-[80vh] overflow-hidden shadow-2xl">
+              <div className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-t-2xl md:rounded-xl w-full max-w-md max-h-[85vh] md:max-h-[80vh] overflow-hidden shadow-2xl">
                 {/* Gradient accent bar */}
-                <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }} />
+                <div className="h-[2px] w-full" style={{ background: 'var(--metric-highlight)' }} />
                 {/* Header */}
                 <div className="px-4 md:px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
                   <div>
@@ -707,8 +680,8 @@ export default function CoachFormulairesPage() {
                 {!loadingClients && clients.length > 0 && (
                   <div className="px-4 md:px-5 py-3 border-b border-[var(--border-base)] flex items-center gap-2">
                     <button onClick={envoyerATous}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold transition-all shadow-lg shadow-[#FF6B2B]/25"
-                      style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold transition-all "
+                      style={{ background: '#FF6B2B' }}>
                       <Users size={12} /> Envoyer à tous
                     </button>
                     {selectedClients.size > 0 && (
@@ -770,8 +743,8 @@ export default function CoachFormulairesPage() {
                               <span className="text-[11px] text-[#FF6B2B] font-medium">Relancé</span>
                             ) : (
                               <button onClick={() => envoyerAuClient(c.id)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold transition-all shadow-lg shadow-[#FF6B2B]/25"
-                                style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold transition-all "
+                                style={{ background: '#FF6B2B' }}>
                                 <Send size={12} /> Envoyer
                               </button>
                             )}
@@ -807,7 +780,7 @@ export default function CoachFormulairesPage() {
 
         <div className="flex items-center gap-3 md:gap-4 mb-6">
           <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+            style={{ background: '#FF6B2B' }}>
             <BarChart3 size={20} className="text-white" />
           </div>
           <div>
@@ -818,19 +791,19 @@ export default function CoachFormulairesPage() {
 
         {/* Gradient accent bar */}
         <div className="h-[2px] rounded-full mb-6 opacity-20"
-          style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E, transparent)' }} />
+          style={{ background: 'var(--metric-highlight)' }} />
 
         {/* Stats summary */}
         {repStats && reponses.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-6 md:mb-8">
-            <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
+            <div className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
               <div className="h-[2px] w-full bg-green-400/50" />
               <div className="p-3 md:p-4">
                 <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Complétées</p>
                 <p className="text-lg md:text-xl font-bold text-green-400 mt-1">{repStats.completed}</p>
               </div>
             </div>
-            <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
+            <div className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
               <div className="h-[2px] w-full bg-yellow-400/50" />
               <div className="p-3 md:p-4">
                 <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">En attente</p>
@@ -840,8 +813,8 @@ export default function CoachFormulairesPage() {
             {repStats.avgScore !== null && (() => {
               const sc = scoreColor(repStats.avgScore)
               return (
-                <div className={`glass-card ${sc.bg} border ${sc.border} rounded-xl overflow-hidden`}>
-                  <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }} />
+                <div className={`hero-card ${sc.bg} border ${sc.border} rounded-xl overflow-hidden`}>
+                  <div className="h-[2px] w-full" style={{ background: 'var(--metric-highlight)' }} />
                   <div className="p-3 md:p-4">
                     <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold flex items-center gap-1">
                       <Zap size={10} /> Score moyen
@@ -851,8 +824,8 @@ export default function CoachFormulairesPage() {
                 </div>
               )
             })()}
-            <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
-              <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }} />
+            <div className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
+              <div className="h-[2px] w-full" style={{ background: 'var(--metric-highlight)' }} />
               <div className="p-3 md:p-4">
                 <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Taux complétion</p>
                 <p className="text-lg md:text-xl font-bold text-[#FF6B2B] mt-1">
@@ -865,8 +838,8 @@ export default function CoachFormulairesPage() {
 
         {/* Per-field stats */}
         {repStats?.champStats && repStats.completed > 0 && (
-          <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden mb-6 md:mb-8">
-            <div className="h-[2px] w-full opacity-50" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E, transparent)' }} />
+          <div className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden mb-6 md:mb-8">
+            <div className="h-[2px] w-full opacity-50" style={{ background: 'var(--metric-highlight)' }} />
             <div className="p-4 md:p-5">
               <h3 className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-[0.15em] mb-4">Synthèse par question</h3>
               <div className="space-y-4">
@@ -918,7 +891,7 @@ export default function CoachFormulairesPage() {
 
         {/* Individual responses */}
         {reponses.length === 0 ? (
-          <div className="glass-card bg-[var(--bg-card)] rounded-xl border border-dashed border-[var(--border-base)] overflow-hidden">
+          <div className="hero-card bg-[var(--bg-card)] rounded-xl border border-dashed border-[var(--border-base)] overflow-hidden">
             <div className="p-10 md:p-14 text-center">
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-breathe"
                 style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.08), rgba(255,143,94,0.04))' }}>
@@ -935,11 +908,11 @@ export default function CoachFormulairesPage() {
               const score = r.complete ? computeScore(r.reponses, repChamps) : null
 
               return (
-                <div key={r.id} className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
+                <div key={r.id} className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
                   {/* Response header */}
                   <div className="px-4 md:px-5 py-3 md:py-4 flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+                      style={{ background: '#FF6B2B' }}>
                       {nom.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1032,7 +1005,7 @@ export default function CoachFormulairesPage() {
       <div className="flex items-center justify-between mb-5 md:mb-6">
         <div className="flex items-center gap-3 md:gap-4">
           <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+            style={{ background: '#FF6B2B' }}>
             <Edit3 size={20} className="text-white" />
           </div>
           <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
@@ -1062,11 +1035,11 @@ export default function CoachFormulairesPage() {
 
       {/* Gradient accent bar */}
       <div className="h-[2px] rounded-full mb-5 md:mb-6 opacity-20"
-        style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E, transparent)' }} />
+        style={{ background: 'var(--metric-highlight)' }} />
 
       {/* Infos */}
-      <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden mb-4 md:mb-6">
-        <div className="h-[2px] w-full opacity-40" style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E, transparent)' }} />
+      <div className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden mb-4 md:mb-6">
+        <div className="h-[2px] w-full opacity-40" style={{ background: 'var(--metric-highlight)' }} />
         <div className="p-4 md:p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div>
@@ -1095,8 +1068,8 @@ export default function CoachFormulairesPage() {
       </div>
 
       {/* Récurrence */}
-      <div className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden mb-4 md:mb-6">
-        <div className="h-[2px] w-full opacity-30" style={{ background: recurrenceActif ? 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' : 'transparent' }} />
+      <div className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden mb-4 md:mb-6">
+        <div className="h-[2px] w-full opacity-30" style={{ background: recurrenceActif ? 'var(--metric-highlight)' : 'transparent' }} />
         <div className="p-4 md:p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -1167,11 +1140,11 @@ export default function CoachFormulairesPage() {
 
       <div className="space-y-2 md:space-y-3 mb-4 md:mb-5">
         {champs.map((champ, idx) => (
-          <div key={champ.id} className="glass-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden hover:border-[var(--border-base)] transition-colors">
+          <div key={champ.id} className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden hover:border-[var(--border-base)] transition-colors">
             {/* Numbered accent bar */}
             <div className="flex items-stretch">
               <div className="w-1 md:w-1.5 flex-shrink-0 rounded-l-xl"
-                style={{ background: 'linear-gradient(180deg, #FF6B2B, #FF8F5E)' }} />
+                style={{ background: '#FF6B2B' }} />
               <div className="flex-1 p-3 md:p-4">
                 <div className="flex items-start gap-2 md:gap-3">
                   {/* Number + reorder */}
@@ -1313,8 +1286,8 @@ export default function CoachFormulairesPage() {
       {/* Actions */}
       <div className="flex items-center gap-3">
         <button onClick={sauvegarder} disabled={saving || !titre.trim() || champs.length === 0}
-          className="flex items-center gap-2 text-white px-5 md:px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#FF6B2B]/25 hover:shadow-xl hover:shadow-[#FF6B2B]/30 hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
-          style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+          className="flex items-center gap-2 text-white px-5 md:px-6 py-2.5 rounded-xl text-sm font-semibold transition-all  hover:shadow-xl hover:shadow-[#FF6B2B]/30 hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
+          style={{ background: '#FF6B2B' }}>
           {saving ? 'Enregistrement...' : formId ? 'Mettre à jour' : 'Créer le formulaire'}
         </button>
         <button onClick={() => setVue('liste')}
@@ -1328,7 +1301,7 @@ export default function CoachFormulairesPage() {
           <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
             <div className="bg-white rounded-t-2xl md:rounded-xl w-full max-w-md max-h-[90vh] md:max-h-[85vh] overflow-hidden shadow-2xl">
               {/* Phone-like header with gradient */}
-              <div className="px-5 md:px-6 py-5" style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+              <div className="px-5 md:px-6 py-5" style={{ background: '#FF6B2B' }}>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-white/70 text-[10px] font-semibold uppercase tracking-wider">Aperçu client</span>
                   <button onClick={() => setPreviewOpen(false)} className="p-2 text-white/70 hover:text-white transition-colors"><X size={18} /></button>
@@ -1371,7 +1344,7 @@ export default function CoachFormulairesPage() {
                           {Array.from({ length: 10 }, (_, i) => (
                             <div key={i} className={`w-8 h-8 rounded-lg border text-xs font-bold flex items-center justify-center ${
                               i === 6 ? 'text-white border-transparent' : 'bg-gray-50 text-gray-400 border-gray-200'
-                            }`} style={i === 6 ? { background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', borderColor: 'transparent' } : {}}>{i + 1}</div>
+                            }`} style={i === 6 ? { background: '#FF6B2B', borderColor: 'transparent' } : {}}>{i + 1}</div>
                           ))}
                         </div>
                       )}
@@ -1401,8 +1374,8 @@ export default function CoachFormulairesPage() {
                 })}
 
                 {champs.length > 0 && (
-                  <button className="w-full py-3 rounded-xl text-white font-semibold text-sm mt-4 shadow-lg shadow-[#FF6B2B]/25"
-                    style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }} disabled>
+                  <button className="w-full py-3 rounded-xl text-white font-semibold text-sm mt-4 "
+                    style={{ background: '#FF6B2B' }} disabled>
                     Envoyer mes réponses
                   </button>
                 )}
