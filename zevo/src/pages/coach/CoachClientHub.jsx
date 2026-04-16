@@ -8,6 +8,7 @@ import { useToast } from '../../components/ui/Toast'
 import { Modal } from '../../components/ui/Modal'
 import { calculerScoreBienEtre, couleurScore } from '../../utils/wellbeing'
 import ProgramBuilder from './ProgramBuilder'
+import SessionEditorModal from './SessionEditorModal'
 import {
   Search, MessageCircle, Settings, UserPlus, Mail, Phone,
   Target, Apple, Scale, Activity, Dumbbell,
@@ -369,69 +370,93 @@ const GROUP_COLORS = {
 // SPORT TAB — Catalogue + Éditeur
 // ══════════════════════════════════════
 
-function SportTab({ clientName, coachId, clientId }) {
+function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgramme }) {
   const [loading, setLoading] = useState(true)
-  const [seances, setSeances] = useState([])
   const [programme, setProgramme] = useState(null)
-  const [expandedSeance, setExpandedSeance] = useState(null)
+  const [seancesSemaine, setSeancesSemaine] = useState([])
+  const [dernieresCompletions, setDernieresCompletions] = useState([])
+  const [stats30j, setStats30j] = useState({ planifiees: 0, completees: 0, exercices: 0, series: 0 })
 
-  // ── Charger les séances du client ──
+  // ── Charger les donnees ──
   useEffect(() => {
     if (!coachId || !clientId) return
     const load = async () => {
       setLoading(true)
 
-      // Charger le programme assigné
+      // 1. Programme assigne
       const { data: assignations } = await supabase
         .from('programme_assignations')
-        .select('*, programmes(id, nom, description, nb_semaines)')
+        .select('*, programmes(id, nom, description, nb_semaines, date_debut, actif)')
         .eq('client_id', clientId)
         .eq('coach_id', coachId)
         .order('created_at', { ascending: false })
         .limit(1)
+      if (assignations?.length > 0) setProgramme(assignations[0].programmes)
 
-      if (assignations?.length > 0) {
-        setProgramme(assignations[0].programmes)
-      }
+      // 2. Seances de cette semaine (Lundi -> Dimanche)
+      const now = new Date()
+      const jourSemaine = now.getDay() || 7 // Lundi = 1
+      const lundi = new Date(now); lundi.setDate(now.getDate() - (jourSemaine - 1)); lundi.setHours(0, 0, 0, 0)
+      const dimanche = new Date(lundi); dimanche.setDate(lundi.getDate() + 6); dimanche.setHours(23, 59, 59, 999)
+      const lundiISO = lundi.toISOString().slice(0, 10)
+      const dimancheISO = dimanche.toISOString().slice(0, 10)
 
-      // Charger les séances du client
-      const { data: seancesData } = await supabase
+      const { data: semaineData } = await supabase
         .from('seances')
-        .select('id, titre, date_prevue, is_completed, notes')
-        .eq('client_id', clientId)
-        .eq('coach_id', coachId)
-        .order('date_prevue', { ascending: false })
-        .limit(20)
+        .select('id, titre, date_prevue, is_completed')
+        .eq('coach_id', coachId).eq('client_id', clientId).eq('is_template', false)
+        .gte('date_prevue', lundiISO).lte('date_prevue', dimancheISO)
+        .order('date_prevue', { ascending: true })
 
-      if (seancesData && seancesData.length > 0) {
-        // Pour chaque séance, charger ses exercices
-        const seancesAvecExos = await Promise.all(
-          seancesData.map(async (s) => {
-            const { data: exos } = await supabase
-              .from('seance_exercices')
-              .select('id, series, reps, poids, repos, ordre, exercices(nom, muscle_group, equipment)')
-              .eq('seance_id', s.id)
-              .order('ordre')
-            return { ...s, exercices: exos || [] }
-          })
-        )
-        setSeances(seancesAvecExos)
-        if (seancesAvecExos.length > 0) setExpandedSeance(seancesAvecExos[0].id)
+      const semaineAvecCompte = await Promise.all((semaineData || []).map(async s => {
+        const { count } = await supabase
+          .from('seance_exercices')
+          .select('id', { count: 'exact', head: true })
+          .eq('seance_id', s.id)
+        return { ...s, nb_exos: count || 0 }
+      }))
+      setSeancesSemaine(semaineAvecCompte)
+
+      // 3. Stats 30 derniers jours
+      const il30j = new Date(now); il30j.setDate(now.getDate() - 30); il30j.setHours(0, 0, 0, 0)
+      const { data: seances30j } = await supabase
+        .from('seances')
+        .select('id, is_completed')
+        .eq('coach_id', coachId).eq('client_id', clientId).eq('is_template', false)
+        .gte('date_prevue', il30j.toISOString().slice(0, 10))
+
+      const seanceIds30j = (seances30j || []).map(s => s.id)
+      let nbExos = 0, nbSeries = 0
+      if (seanceIds30j.length > 0) {
+        const { data: exos30j } = await supabase
+          .from('seance_exercices')
+          .select('id, series')
+          .in('seance_id', seanceIds30j)
+        nbExos = exos30j?.length || 0
+        nbSeries = (exos30j || []).reduce((a, e) => a + (e.series || 0), 0)
       }
+      setStats30j({
+        planifiees: seances30j?.length || 0,
+        completees: (seances30j || []).filter(s => s.is_completed).length,
+        exercices: nbExos,
+        series: nbSeries,
+      })
+
+      // 4. Dernieres seances completees (5 max)
+      const { data: completed } = await supabase
+        .from('seances')
+        .select('id, titre, date_prevue')
+        .eq('coach_id', coachId).eq('client_id', clientId).eq('is_template', false).eq('is_completed', true)
+        .order('date_prevue', { ascending: false }).limit(5)
+      setDernieresCompletions(completed || [])
 
       setLoading(false)
     }
     load()
   }, [coachId, clientId])
 
-  const GROUP_COLORS_RO = {
-    Pectoraux: '#3b82f6', Dos: '#8b5cf6', Epaules: '#6366f1', Biceps: '#f59e0b',
-    Triceps: '#ef4444', Abdominaux: '#f43f5e', Jambes: '#10b981', 'Full body': '#FF6B2B',
-    Cardio: '#ec4899', Hanches: '#14b8a6', Mollets: '#84cc16',
-  }
-
-  const totalSeries = seances.reduce((acc, s) => acc + s.exercices.reduce((a, e) => a + (e.series || 0), 0), 0)
-  const totalExercices = seances.reduce((acc, s) => acc + s.exercices.length, 0)
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const completionPct = stats30j.planifiees > 0 ? Math.round((stats30j.completees / stats30j.planifiees) * 100) : 0
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
@@ -442,166 +467,180 @@ function SportTab({ clientName, coachId, clientId }) {
           <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
             <Dumbbell size={15} className="text-[#FF6B2B]" />
           </div>
-          <h3 className="text-[var(--text-primary)] text-base font-bold">Programme sportif</h3>
+          <h3 className="text-[var(--text-primary)] text-base font-bold">Sport</h3>
         </div>
-        <a href="/coach/sport" className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
-          Gérer les séances →
-        </a>
+        {onOpenCalendar && (
+          <button onClick={onOpenCalendar}
+            className="inline-flex items-center gap-1.5 text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
+            <Calendar size={12} /> Gérer les séances
+          </button>
+        )}
       </div>
 
-      {/* ── Loading ── */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
         </div>
-      ) : seances.length === 0 ? (
-        /* ── Aucune séance ── */
-        <div className="glass-card rounded-2xl p-10 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-          <Dumbbell size={36} className="text-[var(--text-muted)] mx-auto mb-3" />
-          <h3 className="text-[var(--text-primary)] text-base font-bold mb-1">Aucune séance</h3>
-          <p className="text-[var(--text-muted)] text-xs mb-5 max-w-xs mx-auto">
-            Créez des séances pour {clientName} depuis la page Sport pour les voir ici
-          </p>
-          <a href="/coach/sport"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-xs font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
-            <Plus size={13} /> Créer une séance
-          </a>
-        </div>
       ) : (
-        <div className="space-y-4">
-
-          {/* ── Programme header (si existant) ── */}
-          {programme && (
-            <div className="glass-card rounded-2xl p-4 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[var(--text-primary)] text-base font-bold">{programme.nom}</h3>
-                  <p className="text-[var(--text-muted)] text-[11px] mt-0.5">
-                    {programme.description || `Programme ${programme.nb_semaines || '—'} semaines`}
-                  </p>
-                </div>
-                <span className="px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold">
-                  Actif
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* ── Stats résumé ── */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="glass-card rounded-xl p-3 text-center">
-              <p className="text-lg font-extrabold text-[#FF6B2B]">{seances.length}</p>
-              <p className="text-[var(--text-muted)] text-[10px] mt-0.5">Séance{seances.length > 1 ? 's' : ''}</p>
-            </div>
-            <div className="glass-card rounded-xl p-3 text-center">
-              <p className="text-lg font-extrabold text-[var(--text-primary)]">{totalExercices}</p>
-              <p className="text-[var(--text-muted)] text-[10px] mt-0.5">Exercices</p>
-            </div>
-            <div className="glass-card rounded-xl p-3 text-center">
-              <p className="text-lg font-extrabold text-[var(--text-primary)]">{totalSeries}</p>
-              <p className="text-[var(--text-muted)] text-[10px] mt-0.5">Séries totales</p>
-            </div>
-          </div>
-
-          {/* ── Liste des séances ── */}
-          {seances.map((seance) => {
-            const isExpanded = expandedSeance === seance.id
-            const nbExos = seance.exercices.length
-            const nbSeries = seance.exercices.reduce((a, e) => a + (e.series || 0), 0)
-            const estMinutes = Math.round(seance.exercices.reduce((a, e) => a + (e.series || 0) * ((e.repos || 60) + 40), 0) / 60)
-
-            return (
-              <div key={seance.id} className="glass-card rounded-2xl overflow-hidden relative">
+        <>
+          {/* ═══ SECTION 1 : Programme actuel ═══ */}
+          <div className="space-y-2">
+            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Programme actuel</p>
+            {programme ? (
+              <button onClick={() => onOpenProgramme?.(programme)}
+                className="w-full text-left glass-card rounded-2xl p-4 relative overflow-hidden hover:bg-[var(--bg-surface)]/30 transition-colors">
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-
-                {/* Seance header — cliquable */}
-                <button
-                  onClick={() => setExpandedSeance(isExpanded ? null : seance.id)}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[var(--bg-surface)]/30 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
-                      <Dumbbell size={16} className="text-[#FF6B2B]" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                      <Layers size={18} className="text-[#FF6B2B]" />
                     </div>
-                    <div>
-                      <h4 className="text-[var(--text-primary)] text-sm font-bold">{seance.titre || 'Séance'}</h4>
-                      <p className="text-[var(--text-muted)] text-[10px] mt-0.5 flex items-center gap-2">
-                        <span>{nbExos} exercice{nbExos > 1 ? 's' : ''}</span>
-                        <span>·</span>
-                        <span>{nbSeries} séries</span>
-                        <span>·</span>
-                        <span>~{estMinutes} min</span>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-[var(--text-primary)] text-sm font-bold truncate">{programme.nom}</h4>
+                      <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
+                        {programme.description || `${programme.nb_semaines || '—'} semaines`}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {seance.is_completed && (
-                      <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 text-[9px] font-bold">Terminée</span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {programme.actif && (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">Actif</span>
                     )}
-                    {seance.date_prevue && (
-                      <span className="text-[var(--text-muted)] text-[10px]">
-                        {new Date(seance.date_prevue).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                      </span>
-                    )}
-                    <ChevronDownIcon size={14} className={`text-[var(--text-muted)] transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                    <ChevronRight size={14} className="text-[var(--text-muted)]" />
                   </div>
-                </button>
-
-                {/* Exercices détaillés (accordéon) */}
-                {isExpanded && nbExos > 0 && (
-                  <div className="border-t border-[var(--border-base)] divide-y divide-[var(--border-base)]">
-                    {seance.exercices.map((se, idx) => {
-                      const exo = se.exercices || {}
-                      const couleur = GROUP_COLORS_RO[exo.muscle_group] || '#6b7280'
-                      return (
-                        <div key={se.id} className="px-4 py-3 flex items-center gap-3">
-                          <span className="w-6 h-6 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center flex-shrink-0">
-                            {idx + 1}
-                          </span>
-                          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${couleur}15` }}>
-                            <Dumbbell size={12} style={{ color: couleur }} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[var(--text-primary)] text-xs font-medium truncate">{exo.nom || '—'}</p>
-                            <p className="text-[var(--text-muted)] text-[9px]">{exo.equipment || '—'}</p>
-                          </div>
-                          <div className="flex items-center gap-3 flex-shrink-0">
-                            <div className="text-center">
-                              <p className="text-[var(--text-primary)] text-xs font-bold">{se.series || '—'}</p>
-                              <p className="text-[var(--text-muted)] text-[8px] uppercase">Séries</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-[var(--text-primary)] text-xs font-bold">{se.reps || '—'}</p>
-                              <p className="text-[var(--text-muted)] text-[8px] uppercase">Reps</p>
-                            </div>
-                            {se.poids && (
-                              <div className="text-center">
-                                <p className="text-[var(--text-primary)] text-xs font-bold">{se.poids}kg</p>
-                                <p className="text-[var(--text-muted)] text-[8px] uppercase">Poids</p>
-                              </div>
-                            )}
-                            <div className="text-center">
-                              <p className="text-[var(--text-primary)] text-xs font-bold">{se.repos || '—'}s</p>
-                              <p className="text-[var(--text-muted)] text-[8px] uppercase">Repos</p>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-
-                {isExpanded && nbExos === 0 && (
-                  <div className="border-t border-[var(--border-base)] p-4 text-center">
-                    <p className="text-[var(--text-muted)] text-xs">Aucun exercice dans cette séance</p>
-                  </div>
+                </div>
+              </button>
+            ) : (
+              <div className="glass-card rounded-2xl p-5 text-center relative overflow-hidden">
+                <Layers size={24} className="text-[var(--text-muted)] mx-auto mb-2" />
+                <p className="text-[var(--text-primary)] text-xs font-semibold mb-1">Aucun programme assigné</p>
+                <p className="text-[var(--text-muted)] text-[10px] mb-3">Créez un programme ou planifiez des séances ponctuelles depuis le calendrier.</p>
+                {onOpenCalendar && (
+                  <button onClick={onOpenCalendar}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B] text-white text-[11px] font-bold hover:bg-[#FF6B2B]/90 transition-colors">
+                    <Calendar size={12} /> Ouvrir le calendrier
+                  </button>
                 )}
               </div>
-            )
-          })}
-        </div>
+            )}
+          </div>
+
+          {/* ═══ SECTION 2 : Cette semaine ═══ */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Cette semaine</p>
+              {seancesSemaine.length > 0 && (
+                <span className="text-[var(--text-muted)] text-[10px]">
+                  {seancesSemaine.filter(s => s.is_completed).length} / {seancesSemaine.length} faites
+                </span>
+              )}
+            </div>
+            {seancesSemaine.length === 0 ? (
+              <div className="glass-card rounded-2xl p-5 text-center">
+                <Calendar size={22} className="text-[var(--text-muted)] mx-auto mb-2" />
+                <p className="text-[var(--text-muted)] text-xs mb-3">Aucune séance planifiée cette semaine</p>
+                {onOpenCalendar && (
+                  <button onClick={onOpenCalendar}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-bold hover:bg-[#FF6B2B]/20 transition-colors">
+                    <Plus size={12} /> Planifier une séance
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {seancesSemaine.map(s => {
+                  const dateS = new Date(s.date_prevue + 'T00:00:00')
+                  const isPast = dateS < today
+                  const isToday = dateS.getTime() === today.getTime()
+                  return (
+                    <button key={s.id} onClick={onOpenCalendar}
+                      className="w-full glass-card rounded-xl p-3 flex items-center gap-3 hover:bg-[var(--bg-surface)]/30 transition-colors text-left">
+                      <div className={`w-10 h-10 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${
+                        s.is_completed ? 'bg-emerald-500/10' : isPast ? 'bg-red-500/10' : isToday ? 'bg-[#FF6B2B]/15' : 'bg-[var(--bg-elevated)]'
+                      }`}>
+                        <span className={`text-[8px] uppercase font-bold ${
+                          s.is_completed ? 'text-emerald-400' : isPast ? 'text-red-400' : isToday ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
+                        }`}>{dateS.toLocaleDateString('fr-FR', { weekday: 'short' }).slice(0, 3)}</span>
+                        <span className={`text-xs font-bold ${
+                          s.is_completed ? 'text-emerald-400' : isPast ? 'text-red-400' : isToday ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'
+                        }`}>{dateS.getDate()}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{s.titre || 'Séance'}</p>
+                        <p className="text-[var(--text-muted)] text-[10px] mt-0.5">
+                          {s.nb_exos} exercice{s.nb_exos > 1 ? 's' : ''}
+                          {isToday && !s.is_completed && <span className="ml-1.5 text-[#FF6B2B] font-semibold">· Aujourd'hui</span>}
+                        </p>
+                      </div>
+                      {s.is_completed ? (
+                        <CheckCircle2 size={18} className="text-emerald-400 flex-shrink-0" />
+                      ) : isPast ? (
+                        <AlertTriangle size={16} className="text-red-400 flex-shrink-0" />
+                      ) : (
+                        <ChevronRight size={14} className="text-[var(--text-muted)] flex-shrink-0" />
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ═══ SECTION 3 : Progression (30 derniers jours) ═══ */}
+          <div className="space-y-2">
+            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Progression (30 derniers jours)</p>
+            <div className="glass-card rounded-2xl p-4 space-y-4">
+              {/* Taux de completion */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[var(--text-primary)] text-xs font-semibold">Taux de réalisation</span>
+                  <span className="text-[#FF6B2B] text-sm font-bold">{completionPct}%</span>
+                </div>
+                <div className="w-full h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] rounded-full transition-all"
+                    style={{ width: `${completionPct}%` }} />
+                </div>
+                <p className="text-[var(--text-muted)] text-[10px] mt-1.5">
+                  {stats30j.completees} séance{stats30j.completees > 1 ? 's' : ''} complétée{stats30j.completees > 1 ? 's' : ''} sur {stats30j.planifiees} planifiée{stats30j.planifiees > 1 ? 's' : ''}
+                </p>
+              </div>
+
+              {/* Stats secondaires */}
+              <div className="grid grid-cols-3 gap-3 pt-3 border-t border-[var(--border-base)]">
+                <div className="text-center">
+                  <p className="text-lg font-extrabold text-[var(--text-primary)]">{stats30j.planifiees}</p>
+                  <p className="text-[var(--text-muted)] text-[9px] uppercase mt-0.5">Séances</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-extrabold text-[var(--text-primary)]">{stats30j.exercices}</p>
+                  <p className="text-[var(--text-muted)] text-[9px] uppercase mt-0.5">Exercices</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-extrabold text-[var(--text-primary)]">{stats30j.series}</p>
+                  <p className="text-[var(--text-muted)] text-[9px] uppercase mt-0.5">Séries</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Dernieres completions */}
+            {dernieresCompletions.length > 0 && (
+              <div className="glass-card rounded-2xl p-4">
+                <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold mb-2.5">Dernières séances terminées</p>
+                <div className="space-y-1.5">
+                  {dernieresCompletions.map(c => (
+                    <div key={c.id} className="flex items-center gap-3 py-1">
+                      <CheckCircle2 size={14} className="text-emerald-400 flex-shrink-0" />
+                      <span className="text-[var(--text-primary)] text-xs flex-1 truncate">{c.titre}</span>
+                      <span className="text-[var(--text-muted)] text-[10px] flex-shrink-0">
+                        {new Date(c.date_prevue + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   )
@@ -678,7 +717,7 @@ function formatHHmmCal(dateStr) {
 
 const HOURS_CAL = Array.from({ length: 14 }, (_, i) => i + 7) // 7h → 20h
 
-function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
+function CalendarTab({ clientId, clientName, coachId }) {
   const toast = useToast()
 
   // ── View state (Mois / Semaine) ──
@@ -715,6 +754,20 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
   const [creatingSeance, setCreatingSeance] = useState(false)
   const [seanceStep, setSeanceStep] = useState(1)
   const [selectedTemplateForPlan, setSelectedTemplateForPlan] = useState(null)
+
+  // ── Inline SessionEditorModal (remplace la redirection vers l'onglet Sport) ──
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [editorSeance, setEditorSeance] = useState(null) // { id, titre, exercices, fichiers }
+  const [editorDayLabel, setEditorDayLabel] = useState('')
+  const [editorLoading, setEditorLoading] = useState(false)
+
+  // ── Duplication de seance ──
+  const [duplicateSeance, setDuplicateSeance] = useState(null) // seance-like
+  const [duplicateDate, setDuplicateDate] = useState('')
+  const [duplicating, setDuplicating] = useState(false)
+
+  // ── Filtre par tag ──
+  const [tagFilter, setTagFilter] = useState('')
 
   // ── Detail modals ──
   const [dayDetailDate, setDayDetailDate] = useState(null)
@@ -789,7 +842,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     const [seancesRes, eventsRes] = await Promise.all([
       supabase
         .from('seances')
-        .select('id, titre, date_prevue, notes, is_completed, is_template')
+        .select('id, titre, date_prevue, notes, is_completed, is_template, tags')
         .eq('coach_id', coachId)
         .eq('client_id', clientId)
         .eq('is_template', false)
@@ -836,7 +889,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       setLoadingTemplates(true)
       const { data } = await supabase
         .from('seances')
-        .select('id, titre, notes, created_at')
+        .select('id, titre, notes, created_at, tags')
         .eq('coach_id', coachId)
         .eq('is_template', true)
         .order('created_at', { ascending: false })
@@ -864,8 +917,18 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       if (filterType === 'seance') items = items.filter(i => i._type === 'seance')
       else items = items.filter(i => i._type === 'event' && i.event_type === filterType)
     }
+    if (tagFilter) {
+      items = items.filter(i => i._type === 'seance' && Array.isArray(i.tags) && i.tags.includes(tagFilter))
+    }
     return items
   }
+
+  // ── Tags disponibles (union de tous les tags des seances chargees) ──
+  const availableTags = (() => {
+    const set = new Set()
+    seances.forEach(s => { (s.tags || []).forEach(t => set.add(t)) })
+    return Array.from(set).sort()
+  })()
 
   // ── Navigation ──
   const goBack = () => calView === 'week' ? setWeekOffset(o => o - 1) : setMonthOffset(o => o - 1)
@@ -936,7 +999,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     setLoadingDetail(true)
     const { data } = await supabase
       .from('seance_exercices')
-      .select('*, exercices(nom, muscle_group, equipment)')
+      .select('id, series, reps, poids, repos, ordre, note_coach, exercices(nom, muscle_group, equipment, gif_url)')
       .eq('seance_id', seance.id)
       .order('ordre')
     setDetailExercices(data || [])
@@ -990,6 +1053,139 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     setModalOpen(false)
   }
 
+  // ── Ouvrir l'editeur inline pour une seance (creation ou modification) ──
+  const openSeanceEditor = async (seanceId, presetDate = null) => {
+    setEditorLoading(true)
+    setEditorOpen(true)
+    try {
+      // 1. Charger la seance
+      const { data: seance, error: sErr } = await supabase
+        .from('seances')
+        .select('id, titre, date_prevue, notes, metadata, tags')
+        .eq('id', seanceId)
+        .single()
+      if (sErr || !seance) {
+        console.error('[Hub/openSeanceEditor] Erreur load seance:', sErr?.message)
+        toast.error('Impossible de charger la seance')
+        setEditorOpen(false)
+        setEditorLoading(false)
+        return
+      }
+
+      // 2. Charger les exercices lies, avec note_coach + gif_url + library_id
+      const { data: exos } = await supabase
+        .from('seance_exercices')
+        .select('id, exercice_id, series, reps, poids, repos, ordre, note_coach, media_url, exercices(id, nom, muscle_group, equipment, gif_url, library_id)')
+        .eq('seance_id', seanceId)
+        .order('ordre')
+
+      const exercices = (exos || []).map(se => ({
+        id: se.exercice_id,
+        nom: se.exercices?.nom || 'Exercice',
+        muscle_group: se.exercices?.muscle_group || '',
+        equipment: se.exercices?.equipment || '',
+        gif_url: se.exercices?.gif_url || null,
+        library_id: se.exercices?.library_id || null,
+        _key: crypto.randomUUID(),
+        series: se.series || 3,
+        reps: se.reps || 10,
+        repos: se.repos || 90,
+        poids: se.poids || null,
+        note_coach: se.note_coach || '',
+      }))
+
+      const fichiers = seance.metadata?.fichiers || []
+
+      setEditorSeance({
+        id: seance.id,
+        titre: seance.titre,
+        date_prevue: seance.date_prevue,
+        tags: Array.isArray(seance.tags) ? seance.tags : [],
+        exercices,
+        fichiers,
+      })
+
+      const dateForLabel = presetDate || seance.date_prevue
+      if (dateForLabel) {
+        const d = new Date(dateForLabel + 'T00:00:00')
+        setEditorDayLabel(d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }))
+      } else {
+        setEditorDayLabel('')
+      }
+    } catch (err) {
+      console.error('[Hub/openSeanceEditor] Erreur:', err)
+      toast.error('Erreur lors de l\'ouverture de l\'editeur')
+      setEditorOpen(false)
+    } finally {
+      setEditorLoading(false)
+    }
+  }
+
+  // ── Sauvegarder la seance depuis l'editeur inline ──
+  const saveSeanceFromEditor = async (sessionData) => {
+    if (!editorSeance?.id) return
+    try {
+      // 1. Mettre a jour le titre + metadata (fichiers)
+      const metadata = sessionData.fichiers && sessionData.fichiers.length > 0
+        ? { fichiers: sessionData.fichiers }
+        : {}
+      const { error: updErr } = await supabase
+        .from('seances')
+        .update({
+          titre: sessionData.titre || 'Seance',
+          metadata,
+          tags: Array.isArray(sessionData.tags) ? sessionData.tags : [],
+        })
+        .eq('id', editorSeance.id)
+      if (updErr) {
+        console.error('[Hub/saveSeanceFromEditor] Erreur UPDATE seance:', updErr.message)
+        toast.error('Erreur lors de la sauvegarde')
+        return
+      }
+
+      // 2. Supprimer les anciens seance_exercices
+      const { error: delErr } = await supabase
+        .from('seance_exercices')
+        .delete()
+        .eq('seance_id', editorSeance.id)
+      if (delErr) {
+        console.error('[Hub/saveSeanceFromEditor] Erreur DELETE seance_exercices:', delErr.message)
+        toast.error('Erreur lors de la sauvegarde des exercices')
+        return
+      }
+
+      // 3. Re-inserer les exercices avec note_coach
+      if (sessionData.exercices && sessionData.exercices.length > 0) {
+        const exRows = sessionData.exercices.map((ex, idx) => ({
+          seance_id: editorSeance.id,
+          exercice_id: ex.id,
+          series: ex.series || 3,
+          reps: ex.reps || 10,
+          poids: ex.poids || null,
+          repos: ex.repos || 90,
+          ordre: idx,
+          note_coach: ex.note_coach || null,
+        }))
+        const { error: insErr } = await supabase
+          .from('seance_exercices')
+          .insert(exRows)
+        if (insErr) {
+          console.error('[Hub/saveSeanceFromEditor] Erreur INSERT seance_exercices:', insErr.message)
+          toast.error('Erreur lors de l\'enregistrement des exercices')
+          return
+        }
+      }
+
+      toast.success('Seance enregistree !')
+      setEditorOpen(false)
+      setEditorSeance(null)
+      fetchCalData(true)
+    } catch (err) {
+      console.error('[Hub/saveSeanceFromEditor] Erreur:', err)
+      toast.error('Erreur : ' + (err.message || 'inconnu'))
+    }
+  }
+
   const creerSeance = async (e) => {
     e.preventDefault()
     if (!newSeanceTitre.trim()) return
@@ -1009,14 +1205,15 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       .single()
     if (error) {
       console.error('[Hub/creerSeance] Erreur INSERT:', error.message, error.details)
-      toast.error('Erreur lors de la création')
+      toast.error('Erreur lors de la creation')
     } else {
-      toast.success('Séance créée ! Ajoutez des exercices.')
+      toast.success('Seance creee ! Ajoutez les exercices.')
       setModalSeance(false)
       setNewSeanceTitre('')
       setNewSeanceNotes('')
       fetchCalData(true)
-      if (onEditSeance) onEditSeance(data.id)
+      // Ouvrir directement l'editeur inline (au lieu de rediriger vers l'onglet Sport)
+      openSeanceEditor(data.id, modalDate)
     }
     setCreatingSeance(false)
   }
@@ -1090,38 +1287,38 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
     setLoadingPreview(false)
   }
 
-  // ── Planifier un modèle : copier la séance + ses exercices ──
-  const planifierTemplate = async () => {
-    if (!modalPlanifier || !planifDate) return
-    setPlanifying(true)
+  // ── Copier un modèle sur une date donnée (helper reutilisable) ──
+  // Retourne l'id de la nouvelle seance, ou null en cas d'erreur.
+  const copyTemplateToDate = async (template, dateISO) => {
+    if (!template || !dateISO) return null
 
-    // 1. Créer la copie de la séance
+    // 1. Créer la copie de la séance (on copie aussi les tags du template)
     const { data: newSeance, error: errSeance } = await supabase
       .from('seances')
       .insert({
         coach_id: coachId,
         client_id: clientId,
-        titre: modalPlanifier.titre,
-        date_prevue: planifDate,
-        notes: modalPlanifier.notes,
+        titre: template.titre,
+        date_prevue: dateISO,
+        notes: template.notes,
         is_template: false,
         is_completed: false,
+        tags: Array.isArray(template.tags) ? template.tags : [],
       })
       .select()
       .single()
 
     if (errSeance || !newSeance) {
-      console.error('[Hub/planifier] Erreur INSERT:', errSeance?.message, errSeance?.details)
+      console.error('[Hub/copyTemplate] Erreur INSERT:', errSeance?.message, errSeance?.details)
       toast.error('Erreur lors de la planification')
-      setPlanifying(false)
-      return
+      return null
     }
 
-    // 2. Copier tous les exercices du template
+    // 2. Copier tous les exercices du template (avec note_coach)
     const { data: templateExos } = await supabase
       .from('seance_exercices')
-      .select('exercice_id, series, reps, poids, repos, ordre')
-      .eq('seance_id', modalPlanifier.id)
+      .select('exercice_id, series, reps, poids, repos, ordre, note_coach')
+      .eq('seance_id', template.id)
       .order('ordre')
 
     if (templateExos && templateExos.length > 0) {
@@ -1133,15 +1330,35 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
         poids: ex.poids,
         repos: ex.repos,
         ordre: ex.ordre,
+        note_coach: ex.note_coach || null,
       }))
       await supabase.from('seance_exercices').insert(copies)
     }
 
-    // 3. Mettre à jour le calendrier
     fetchCalData(true)
 
     const exoCount = templateExos?.length || 0
-    toast.success(`"${modalPlanifier.titre}" planifié le ${new Date(planifDate + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} (${exoCount} exercice${exoCount > 1 ? 's' : ''} copiés)`)
+    toast.success(`"${template.titre}" planifié le ${new Date(dateISO + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} (${exoCount} exercice${exoCount > 1 ? 's' : ''} copiés)`)
+
+    return newSeance.id
+  }
+
+  // ── Dupliquer une seance vers une autre date ──
+  const handleDuplicateSeance = async () => {
+    if (!duplicateSeance?.id || !duplicateDate) return
+    setDuplicating(true)
+    const newId = await copyTemplateToDate(duplicateSeance, duplicateDate)
+    setDuplicating(false)
+    setDuplicateSeance(null)
+    setDuplicateDate('')
+    if (newId) openSeanceEditor(newId, duplicateDate)
+  }
+
+  // ── Planifier un modèle depuis le drawer des modeles (modal dediée) ──
+  const planifierTemplate = async () => {
+    if (!modalPlanifier || !planifDate) return
+    setPlanifying(true)
+    await copyTemplateToDate(modalPlanifier, planifDate)
     setModalPlanifier(null)
     setPlanifDate('')
     setPlanifying(false)
@@ -1404,6 +1621,27 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
           </div>
         ))}
       </div>
+
+      {/* ═══════ TAG FILTER CHIPS ═══════ */}
+      {availableTags.length > 0 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mb-1">
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-muted)] shrink-0 mr-1">Tags :</span>
+          <button onClick={() => setTagFilter('')}
+            className={`shrink-0 px-3 py-1 rounded-full text-[10px] font-semibold transition-colors ${
+              tagFilter === '' ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] border border-[var(--border-base)]'
+            }`}>
+            Tous
+          </button>
+          {availableTags.map(tag => (
+            <button key={tag} onClick={() => setTagFilter(t => t === tag ? '' : tag)}
+              className={`shrink-0 px-3 py-1 rounded-full text-[10px] font-semibold transition-colors ${
+                tagFilter === tag ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-base)]'
+              }`}>
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ═══════ CALENDAR + TEMPLATES DRAWER ═══════ */}
       <div className="flex gap-4">
@@ -2138,19 +2376,29 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
               <div className="text-center py-6 bg-[var(--bg-elevated)] rounded-lg">
                 <Dumbbell size={20} className="text-[var(--text-muted)] mx-auto mb-2" />
                 <p className="text-[var(--text-muted)] text-xs">Aucun exercice ajouté</p>
-                <p className="text-[var(--text-muted)] text-[10px] mt-1">Ouvrez l'onglet Sport pour composer la séance</p>
+                <p className="text-[var(--text-muted)] text-[10px] mt-1">Cliquez sur « Modifier les exercices » pour composer la séance</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {detailExercices.map((ex, i) => (
-                  <div key={ex.id} className="flex items-center gap-3 bg-[var(--bg-elevated)] rounded-lg p-3">
-                    <span className="w-5 h-5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.exercices?.nom || 'Exercice'}</p>
-                      <p className="text-[var(--text-muted)] text-[10px]">{ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''} {ex.repos ? `· ${ex.repos}s repos` : ''}</p>
+                  <div key={ex.id} className="bg-[var(--bg-elevated)] rounded-lg p-3">
+                    <div className="flex items-center gap-3">
+                      <span className="w-5 h-5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                      {ex.exercices?.gif_url && (
+                        <img src={ex.exercices.gif_url} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.exercices?.nom || 'Exercice'}</p>
+                        <p className="text-[var(--text-muted)] text-[10px]">{ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''} {ex.repos ? `· ${ex.repos}s repos` : ''}</p>
+                      </div>
+                      {ex.exercices?.muscle_group && (
+                        <span className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400">{ex.exercices.muscle_group}</span>
+                      )}
                     </div>
-                    {ex.exercices?.muscle_group && (
-                      <span className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400">{ex.exercices.muscle_group}</span>
+                    {ex.note_coach && (
+                      <div className="mt-2 ml-8 px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 border border-[#FF6B2B]/20">
+                        <p className="text-[10px] text-[#FF9A6C] leading-snug whitespace-pre-wrap">{ex.note_coach}</p>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -2159,10 +2407,16 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
           </div>
           <div className="flex gap-2 pt-1">
             <button onClick={() => supprimerSeance(detailSeance?.id)}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-400 bg-red-500/10 hover:bg-red-500/15 transition-colors">
-              <Trash2 size={14} /> Supprimer
+              title="Supprimer"
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm text-red-400 bg-red-500/10 hover:bg-red-500/15 transition-colors">
+              <Trash2 size={14} />
             </button>
-            <button onClick={() => { if (onEditSeance) onEditSeance(detailSeance?.id); setDetailSeance(null) }}
+            <button onClick={() => { setDuplicateSeance(detailSeance); setDuplicateDate(''); setDetailSeance(null) }}
+              title="Dupliquer vers une autre date"
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm text-[var(--text-secondary)] bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] transition-colors">
+              <Copy size={14} />
+            </button>
+            <button onClick={() => { const id = detailSeance?.id; setDetailSeance(null); if (id) openSeanceEditor(id) }}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors">
               <Pencil size={14} /> Modifier les exercices
             </button>
@@ -2350,7 +2604,7 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                       {selectedTemplateForPlan === 'new' ? newSeanceTitre : selectedTemplateForPlan?.titre}
                     </p>
                     <p className="text-[var(--text-muted)] text-[10px]">
-                      {selectedTemplateForPlan === 'new' ? 'Nouvelle séance' : 'Modèle existant (exercices copiés)'}
+                      {selectedTemplateForPlan === 'new' ? 'Nouvelle séance — ajoutez les exercices ensuite' : 'Modèle copié — personnalisez ensuite si besoin'}
                     </p>
                   </div>
                 </div>
@@ -2373,10 +2627,14 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
                   <button
                     onClick={async (e) => {
                       if (selectedTemplateForPlan && selectedTemplateForPlan !== 'new') {
-                        setModalPlanifier(selectedTemplateForPlan)
-                        setPlanifDate(modalDate || formatDateISO(new Date()))
+                        // Template : copier directement + ouvrir l'editeur pour personnaliser
+                        setCreatingSeance(true)
+                        const newId = await copyTemplateToDate(selectedTemplateForPlan, modalDate)
+                        setCreatingSeance(false)
                         setModalSeance(false); setSeanceStep(1); setSelectedTemplateForPlan(null)
+                        if (newId) openSeanceEditor(newId, modalDate)
                       } else {
+                        // Nouvelle seance : creer + ouvrir l'editeur
                         await creerSeance(e)
                         setSeanceStep(1); setSelectedTemplateForPlan(null)
                       }
@@ -2694,6 +2952,53 @@ function CalendarTab({ clientId, clientName, coachId, onEditSeance }) {
       {/* Overlay pour le drawer */}
       {drawerTemplate && (
         <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setDrawerTemplate(null)} />
+      )}
+
+      {/* ═══════ MODAL — Dupliquer une seance vers une autre date ═══════ */}
+      <Modal isOpen={!!duplicateSeance} onClose={() => { setDuplicateSeance(null); setDuplicateDate('') }} title="Dupliquer la séance">
+        {duplicateSeance && (
+          <div className="space-y-4">
+            <div className="bg-[var(--bg-elevated)] rounded-xl p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                <Copy size={16} className="text-[#FF6B2B]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{duplicateSeance.titre}</p>
+                <p className="text-[var(--text-muted)] text-[10px]">La séance et ses exercices seront copiés</p>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-[var(--text-muted)] mb-1.5 font-semibold uppercase tracking-wider">Nouvelle date</label>
+              <input type="date" value={duplicateDate} onChange={(e) => setDuplicateDate(e.target.value)} required
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B] transition-colors" />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => { setDuplicateSeance(null); setDuplicateDate('') }}
+                className="flex-1 py-2.5 rounded-xl text-sm text-[var(--text-muted)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] transition-colors">
+                Annuler
+              </button>
+              <button onClick={handleDuplicateSeance} disabled={duplicating || !duplicateDate}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-40">
+                {duplicating ? <Loader2 size={14} className="animate-spin" /> : <Copy size={14} />} Dupliquer
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ═══════ MODAL — Editeur de seance inline (remplace la redirection vers Sport) ═══════ */}
+      {editorOpen && editorLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <Loader2 size={32} className="animate-spin text-[#FF6B2B]" />
+        </div>
+      )}
+      {editorOpen && !editorLoading && editorSeance && (
+        <SessionEditorModal
+          session={editorSeance}
+          dayLabel={editorDayLabel}
+          onSave={saveSeanceFromEditor}
+          onClose={() => { setEditorOpen(false); setEditorSeance(null) }}
+        />
       )}
     </div>
   )
@@ -5778,7 +6083,7 @@ export default function CoachClientHub() {
               return (
                 <button
                   key={c.id}
-                  onClick={() => { setSelectedId(c.id); setActiveTab('overview'); setEditingSeanceId(null); setOpenProgramme(null) }}
+                  onClick={() => { setSelectedId(c.id); setActiveTab('overview'); setOpenProgramme(null) }}
                   className={`w-full flex items-center gap-3.5 px-5 py-3.5 text-left transition-all relative ${
                     isSelected
                       ? 'bg-[var(--bg-base)]'
@@ -6408,7 +6713,6 @@ export default function CoachClientHub() {
                 clientId={selectedId}
                 clientName={fullName}
                 coachId={user?.id}
-                onEditSeance={(seanceId) => { setEditingSeanceId(seanceId); setActiveTab('sport') }}
               />
             )}
 
@@ -6424,6 +6728,8 @@ export default function CoachClientHub() {
                   clientName={fullName}
                   coachId={user?.id}
                   clientId={selectedId}
+                  onOpenCalendar={() => setActiveTab('calendar')}
+                  onOpenProgramme={(p) => setOpenProgramme(p)}
                 />
               )
             )}

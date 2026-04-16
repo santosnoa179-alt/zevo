@@ -83,6 +83,10 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
   // Session title
   const [titre, setTitre] = useState(session?.titre || dayLabel || 'Séance')
 
+  // Tags state
+  const [tags, setTags] = useState(Array.isArray(session?.tags) ? session.tags : [])
+  const [tagInput, setTagInput] = useState('')
+
   // Note panel open state (store _key of the exercise whose note panel is open)
   const [openNoteKey, setOpenNoteKey] = useState(null)
 
@@ -342,10 +346,22 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
     }
   }
 
+  // Tag helpers
+  const addTag = (rawTag) => {
+    const t = (rawTag || '').trim().slice(0, 40)
+    if (!t) return
+    setTags(prev => prev.includes(t) ? prev : [...prev, t])
+    setTagInput('')
+  }
+  const removeTag = (tag) => {
+    setTags(prev => prev.filter(t => t !== tag))
+  }
+
   // Save
   const handleSave = () => {
     const sessionData = {
       titre,
+      tags,
       exercices: canvas.map(({ _key, ...rest }) => ({ ...rest, _key })),
       fichiers: attachedFiles.map(f => ({ id: f.id, name: f.name, type: f.type, size: f.size, url: f.url || null, path: f.path || null })),
     }
@@ -370,28 +386,54 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
         onClick={e => e.stopPropagation()}>
 
         {/* ═══ Header ═══ */}
-        <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+        <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-start justify-between shrink-0 gap-4">
+          <div className="flex items-start gap-3 min-w-0 flex-1">
+            <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 mt-0.5">
               <Dumbbell size={16} className="text-[#FF6B2B]" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h2 className="text-[var(--text-primary)] text-base font-bold">Édition de séance</h2>
-                <span className="text-[var(--text-muted)] text-sm">—</span>
-                <span className="text-[var(--text-muted)] text-sm">{dayLabel}</span>
+                {dayLabel && <>
+                  <span className="text-[var(--text-muted)] text-sm">—</span>
+                  <span className="text-[var(--text-muted)] text-sm">{dayLabel}</span>
+                </>}
               </div>
               <input
                 type="text"
                 value={titre}
                 onChange={e => setTitre(e.target.value)}
-                className="bg-transparent text-[var(--text-secondary)] text-xs border-none focus:outline-none focus:text-[var(--text-primary)] placeholder:text-[var(--text-muted)] mt-0.5"
+                className="bg-transparent text-[var(--text-secondary)] text-xs border-none focus:outline-none focus:text-[var(--text-primary)] placeholder:text-[var(--text-muted)] mt-0.5 w-full"
                 placeholder="Nom de la séance..."
               />
+              {/* Tags */}
+              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                {tags.map(tag => (
+                  <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold">
+                    {tag}
+                    <button type="button" onClick={() => removeTag(tag)}
+                      className="ml-0.5 hover:text-[#FF9A6C] transition-colors" aria-label={`Retirer ${tag}`}>
+                      <X size={10} />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(tagInput) }
+                    else if (e.key === 'Backspace' && !tagInput && tags.length > 0) { removeTag(tags[tags.length - 1]) }
+                  }}
+                  onBlur={() => tagInput && addTag(tagInput)}
+                  placeholder={tags.length === 0 ? '+ Ajouter un tag (Push, Pull, Cardio…)' : '+ tag'}
+                  className="bg-transparent text-[var(--text-muted)] text-[10px] border-none focus:outline-none focus:text-[var(--text-secondary)] placeholder:text-[var(--text-muted)] min-w-[110px] flex-1"
+                />
+              </div>
             </div>
           </div>
           <button onClick={onClose}
-            className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all">
+            className="p-2 rounded-xl text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)] transition-all shrink-0">
             <X size={18} />
           </button>
         </div>
