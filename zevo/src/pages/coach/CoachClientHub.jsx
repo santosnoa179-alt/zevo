@@ -6179,7 +6179,7 @@ export default function CoachClientHub() {
                       size={84}
                       thickness={5}
                       color={couleurScore(score)}
-                      trackColor="rgba(255,255,255,0.05)"
+                      trackColor="var(--ring-track)"
                       gradient
                     >
                       {p?.avatar_url ? (
@@ -6192,7 +6192,7 @@ export default function CoachClientHub() {
                       )}
                     </Ring>
                     {/* Status dot collé au ring */}
-                    <div className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2 border-[#1E1E1E] ${selectedClient?.actif ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <div className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2 border-[var(--bg-card)] ${selectedClient?.actif ? 'bg-emerald-500' : 'bg-red-500'}`} />
                   </div>
 
                   <div>
@@ -6360,9 +6360,6 @@ export default function CoachClientHub() {
                   })().map((card, ci) => (
                     <div key={ci} onClick={card.onClick || undefined}
                       className={`metric-card group p-4 flex flex-col justify-between min-h-[140px] ${card.onClick ? 'metric-card--interactive' : ''}`}>
-                      {/* Ghost icon décoratif */}
-                      <card.icon size={72} strokeWidth={1.25} className="metric-card__ghost" />
-
                       <div className="relative z-[1] flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 mb-2">
@@ -6383,7 +6380,7 @@ export default function CoachClientHub() {
                           size={46}
                           thickness={4}
                           color="#FF6B2B"
-                          trackColor="rgba(255,255,255,0.06)"
+                          trackColor="var(--ring-track)"
                           className="shrink-0"
                         >
                           <span className="text-[10px] font-black tabular-nums text-[var(--text-primary)]">{card.ringLabel}</span>

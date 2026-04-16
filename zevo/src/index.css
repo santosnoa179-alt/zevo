@@ -37,6 +37,13 @@
   --shadow-card: 0 2px 12px rgba(0,0,0,0.4);
   --skeleton-from: rgba(255,255,255,0.04);
   --skeleton-via: rgba(255,255,255,0.08);
+  /* Fitness OS — surfaces adaptatives */
+  --metric-bg: linear-gradient(155deg, #1E1E1E 0%, #161616 100%);
+  --metric-highlight: rgba(255,255,255,0.08);
+  --hero-bg: linear-gradient(165deg, #1E1E1E 0%, #171717 60%, #141414 100%);
+  --hero-accent-bg: radial-gradient(ellipse at top right, rgba(255,107,43,0.06), transparent 60%), linear-gradient(165deg, #1E1E1E 0%, #171717 60%, #141414 100%);
+  --hero-highlight: rgba(255,255,255,0.1);
+  --ring-track: rgba(255,255,255,0.06);
   color-scheme: dark;
 }
 
@@ -61,6 +68,13 @@
   --shadow-card: 0 2px 12px rgba(0,0,0,0.06);
   --skeleton-from: rgba(0,0,0,0.04);
   --skeleton-via: rgba(0,0,0,0.08);
+  /* Fitness OS — surfaces adaptatives (clair) */
+  --metric-bg: linear-gradient(155deg, #FFFFFF 0%, #F6F5F2 100%);
+  --metric-highlight: rgba(0,0,0,0.06);
+  --hero-bg: linear-gradient(165deg, #FFFFFF 0%, #FAFAF7 60%, #F3F2EE 100%);
+  --hero-accent-bg: radial-gradient(ellipse at top right, rgba(255,107,43,0.08), transparent 60%), linear-gradient(165deg, #FFFFFF 0%, #FAFAF7 60%, #F3F2EE 100%);
+  --hero-highlight: rgba(0,0,0,0.08);
+  --ring-track: rgba(0,0,0,0.08);
   color-scheme: light;
 }
 
@@ -262,11 +276,11 @@ body {
 
 /* ─── Premium metric card (Hub Client KPI) ───
    Linear/Vercel inspired : gradient subtle, top highlight line,
-   ghost icon corner, hover glow orange. */
+   hover glow orange. Thème-aware via CSS variables. */
 .metric-card {
   position: relative;
-  background: linear-gradient(155deg, #1E1E1E 0%, #161616 100%);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--metric-bg);
+  border: 1px solid var(--border-base);
   border-radius: 1rem;
   overflow: hidden;
   transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
@@ -282,18 +296,7 @@ body {
   left: 10%;
   right: 10%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-  pointer-events: none;
-}
-
-/* Grain subtil pour éviter les dégradés "plastiques" */
-.metric-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(255,255,255,0.015) 1px, transparent 1px);
-  background-size: 3px 3px;
-  opacity: 0.5;
+  background: linear-gradient(90deg, transparent, var(--metric-highlight), transparent);
   pointer-events: none;
 }
 
@@ -307,25 +310,11 @@ body {
               0 0 0 1px rgba(255, 107, 43, 0.08);
 }
 
-/* Ghost icon qui vit dans un coin — décoratif, doux */
-.metric-card__ghost {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  color: rgba(255,255,255,0.04);
-  transition: color 250ms ease, transform 300ms ease;
-  pointer-events: none;
-}
-.metric-card--interactive:hover .metric-card__ghost {
-  color: rgba(255, 107, 43, 0.12);
-  transform: rotate(-8deg) scale(1.05);
-}
-
 /* Hero card — Poids / Nutrition / Habitudes / Objectifs */
 .hero-card {
   position: relative;
-  background: linear-gradient(165deg, #1E1E1E 0%, #171717 60%, #141414 100%);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--hero-bg);
+  border: 1px solid var(--border-base);
   border-radius: 1.25rem;
   overflow: hidden;
   transition: border-color 200ms ease;
@@ -338,12 +327,10 @@ body {
   left: 15%;
   right: 15%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  background: linear-gradient(90deg, transparent, var(--hero-highlight), transparent);
   pointer-events: none;
 }
 
 .hero-card--accent {
-  background:
-    radial-gradient(ellipse at top right, rgba(255,107,43,0.06), transparent 60%),
-    linear-gradient(165deg, #1E1E1E 0%, #171717 60%, #141414 100%);
+  background: var(--hero-accent-bg);
 }

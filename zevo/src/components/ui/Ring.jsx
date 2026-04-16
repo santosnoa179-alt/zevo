@@ -26,7 +26,7 @@ export default function Ring({
   size = 64,
   thickness,
   color = '#FF6B2B',
-  trackColor = 'rgba(255,255,255,0.06)',
+  trackColor = 'var(--ring-track, rgba(255,255,255,0.06))',
   gradient = false,
   children,
   label,
@@ -160,7 +160,7 @@ export function MultiRing({
               size={innerSize}
               thickness={stroke}
               color={ring.color}
-              trackColor={ring.trackColor || 'rgba(255,255,255,0.05)'}
+              trackColor={ring.trackColor || 'var(--ring-track, rgba(255,255,255,0.05))'}
               animate={animate}
             />
           </div>
