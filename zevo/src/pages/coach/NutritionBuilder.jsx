@@ -586,22 +586,28 @@ export default function NutritionBuilder() {
 
           {/* Save */}
           <button onClick={handleSaveClick} disabled={saving}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-50 shadow-lg shadow-[#FF6B2B]/20 shrink-0">
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95 disabled:opacity-50 shrink-0">
             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {saving ? 'Sauvegarde...' : 'Sauvegarder'}
           </button>
         </div>
 
-        {/* Weekly stats */}
-        <div className="flex items-center gap-5 mt-3 pl-12">
+        {/* Weekly stats — 3 tons orange (cohérent Hub Client nutrition) */}
+        <div className="flex items-center gap-4 mt-3 pl-12 flex-wrap">
           <div className="flex items-center gap-1.5">
-            <Flame size={12} className="text-[#FF6B2B]" />
-            <span className="text-[var(--text-muted)] text-[10px]">Moy. journalière :</span>
+            <Flame size={11} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+            <span className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-[0.12em]">Moy. journalière</span>
           </div>
-          <span className="text-[#FF6B2B] text-xs font-bold">{weeklyAvg.kcal} kcal</span>
-          <span className="text-blue-400 text-[10px] font-semibold">P {weeklyAvg.p}g</span>
-          <span className="text-amber-400 text-[10px] font-semibold">G {weeklyAvg.g}g</span>
-          <span className="text-rose-400 text-[10px] font-semibold">L {weeklyAvg.l}g</span>
+          <span className="text-[var(--text-primary)] text-xs font-black tabular-nums">{weeklyAvg.kcal} <span className="text-[var(--text-muted)] font-semibold">kcal</span></span>
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold tabular-nums text-[var(--text-secondary)]">
+            <span className="w-1.5 h-1.5 rounded-sm bg-[#FF6B2B]" /> P {weeklyAvg.p}g
+          </span>
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold tabular-nums text-[var(--text-secondary)]">
+            <span className="w-1.5 h-1.5 rounded-sm bg-[#FF9A6C]" /> G {weeklyAvg.g}g
+          </span>
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold tabular-nums text-[var(--text-secondary)]">
+            <span className="w-1.5 h-1.5 rounded-sm bg-[#FFCBA4]" /> L {weeklyAvg.l}g
+          </span>
         </div>
       </div>
 
@@ -670,21 +676,27 @@ export default function NutritionBuilder() {
         <div className="flex-1 overflow-y-auto p-5 md:p-6">
 
           {/* Day header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
             <div>
-              <h2 className="text-[var(--text-primary)] text-xl font-bold">{JOURS[activeDay]}</h2>
-              <div className="flex items-center gap-4 mt-1.5">
-                <span className="text-[#FF6B2B] text-sm font-bold">{currentTotals.kcal} kcal</span>
-                <span className="text-blue-400 text-xs font-semibold">P {currentTotals.p}g</span>
-                <span className="text-amber-400 text-xs font-semibold">G {currentTotals.g}g</span>
-                <span className="text-rose-400 text-xs font-semibold">L {currentTotals.l}g</span>
+              <h2 className="text-[var(--text-primary)] text-xl font-bold tracking-tight">{JOURS[activeDay]}</h2>
+              <div className="flex items-center gap-4 mt-2 flex-wrap">
+                <span className="text-[var(--text-primary)] text-sm font-black tabular-nums">{currentTotals.kcal} <span className="text-[var(--text-muted)] font-semibold text-xs">kcal</span></span>
+                <span className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums text-[var(--text-secondary)]">
+                  <span className="w-1.5 h-1.5 rounded-sm bg-[#FF6B2B]" /> P {currentTotals.p}g
+                </span>
+                <span className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums text-[var(--text-secondary)]">
+                  <span className="w-1.5 h-1.5 rounded-sm bg-[#FF9A6C]" /> G {currentTotals.g}g
+                </span>
+                <span className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums text-[var(--text-secondary)]">
+                  <span className="w-1.5 h-1.5 rounded-sm bg-[#FFCBA4]" /> L {currentTotals.l}g
+                </span>
               </div>
             </div>
 
             {/* Add repas */}
             <div className="relative">
               <button onClick={() => setShowRepasMenu(!showRepasMenu)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95">
                 <Plus size={14} /> Ajouter un repas <ChevronDown size={12} />
               </button>
               {showRepasMenu && (
@@ -711,11 +723,9 @@ export default function NutritionBuilder() {
 
           {/* Repas list */}
           {currentDay.repas.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-[var(--border-base)] flex items-center justify-center mb-4">
-                <UtensilsCrossed size={24} className="text-[var(--text-muted)]" />
-              </div>
-              <p className="text-[var(--text-muted)] text-sm font-medium mb-1">Aucun repas pour {JOURS[activeDay]}</p>
+            <div className="flex flex-col items-center justify-center py-20 text-center animate-breathe">
+              <UtensilsCrossed size={28} className="text-[var(--text-muted)] mb-4" strokeWidth={1.5} />
+              <p className="text-[var(--text-primary)] text-sm font-bold mb-1 tracking-tight">Aucun repas pour {JOURS[activeDay]}</p>
               <p className="text-[var(--text-muted)] text-xs mb-5">Cliquez sur "Ajouter un repas" pour commencer</p>
             </div>
           ) : (
@@ -732,13 +742,11 @@ export default function NutritionBuilder() {
                     {/* Repas header */}
                     <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg ${config.bg} flex items-center justify-center`}>
-                          <Icon size={14} className={config.color} />
-                        </div>
-                        <span className="text-[var(--text-muted)] text-xs font-semibold uppercase tracking-wider">{config.label}</span>
+                        <Icon size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+                        <span className="text-[var(--text-muted)] text-xs font-bold uppercase tracking-[0.14em]">{config.label}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-[#FF6B2B] text-sm font-bold">{kcal} kcal</span>
+                        <span className="text-[var(--text-primary)] text-sm font-black tabular-nums">{kcal} <span className="text-[var(--text-muted)] font-semibold text-xs">kcal</span></span>
                         <button onClick={() => removeRepas(repas.id)}
                           className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
                           <Trash2 size={13} />
@@ -761,41 +769,44 @@ export default function NutritionBuilder() {
                         rows={2}
                         className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/30 transition-all resize-none" />
 
-                      {/* Macros */}
+                      {/* Macros — 3 tons orange (cohérent Hub Client nutrition) */}
                       <div className="grid grid-cols-4 gap-3">
-                        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-3 text-center">
-                          <label className="text-blue-400 text-[9px] font-bold uppercase tracking-wider block mb-1.5">Protéines</label>
+                        <div className="relative bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-3 text-center overflow-hidden">
+                          <span className="absolute top-0 left-3 right-3 h-[2px] rounded-b-full bg-[#FF6B2B]" />
+                          <label className="text-[var(--text-muted)] text-[9px] font-bold uppercase tracking-[0.14em] block mb-1.5">Protéines</label>
                           <div className="flex items-center justify-center gap-1">
                             <input type="number" min={0} value={repas.macros.p || ''}
                               onChange={e => updateMacro(repas.id, 'p', e.target.value)}
-                              className="w-14 bg-transparent text-[var(--text-primary)] text-lg font-bold text-center border-none focus:outline-none placeholder:text-[var(--text-muted)]"
+                              className="w-14 bg-transparent text-[var(--text-primary)] text-lg font-black tabular-nums text-center border-none focus:outline-none placeholder:text-[var(--text-muted)]"
                               placeholder="0" />
                             <span className="text-[var(--text-muted)] text-xs">g</span>
                           </div>
                         </div>
-                        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-3 text-center">
-                          <label className="text-amber-400 text-[9px] font-bold uppercase tracking-wider block mb-1.5">Glucides</label>
+                        <div className="relative bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-3 text-center overflow-hidden">
+                          <span className="absolute top-0 left-3 right-3 h-[2px] rounded-b-full bg-[#FF9A6C]" />
+                          <label className="text-[var(--text-muted)] text-[9px] font-bold uppercase tracking-[0.14em] block mb-1.5">Glucides</label>
                           <div className="flex items-center justify-center gap-1">
                             <input type="number" min={0} value={repas.macros.g || ''}
                               onChange={e => updateMacro(repas.id, 'g', e.target.value)}
-                              className="w-14 bg-transparent text-[var(--text-primary)] text-lg font-bold text-center border-none focus:outline-none placeholder:text-[var(--text-muted)]"
+                              className="w-14 bg-transparent text-[var(--text-primary)] text-lg font-black tabular-nums text-center border-none focus:outline-none placeholder:text-[var(--text-muted)]"
                               placeholder="0" />
                             <span className="text-[var(--text-muted)] text-xs">g</span>
                           </div>
                         </div>
-                        <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-3 text-center">
-                          <label className="text-rose-400 text-[9px] font-bold uppercase tracking-wider block mb-1.5">Lipides</label>
+                        <div className="relative bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-3 text-center overflow-hidden">
+                          <span className="absolute top-0 left-3 right-3 h-[2px] rounded-b-full bg-[#FFCBA4]" />
+                          <label className="text-[var(--text-muted)] text-[9px] font-bold uppercase tracking-[0.14em] block mb-1.5">Lipides</label>
                           <div className="flex items-center justify-center gap-1">
                             <input type="number" min={0} value={repas.macros.l || ''}
                               onChange={e => updateMacro(repas.id, 'l', e.target.value)}
-                              className="w-14 bg-transparent text-[var(--text-primary)] text-lg font-bold text-center border-none focus:outline-none placeholder:text-[var(--text-muted)]"
+                              className="w-14 bg-transparent text-[var(--text-primary)] text-lg font-black tabular-nums text-center border-none focus:outline-none placeholder:text-[var(--text-muted)]"
                               placeholder="0" />
                             <span className="text-[var(--text-muted)] text-xs">g</span>
                           </div>
                         </div>
-                        <div className="bg-[#FF6B2B]/5 border border-[#FF6B2B]/10 rounded-xl p-3 text-center">
-                          <label className="text-[#FF6B2B] text-[9px] font-bold uppercase tracking-wider block mb-1.5">Calories</label>
-                          <p className="text-[#FF6B2B] text-lg font-bold">{kcal}</p>
+                        <div className="bg-[#FF6B2B]/8 border border-[#FF6B2B]/20 rounded-xl p-3 text-center">
+                          <label className="text-[#FF6B2B] text-[9px] font-bold uppercase tracking-[0.14em] block mb-1.5">Calories</label>
+                          <p className="text-[#FF6B2B] text-lg font-black tabular-nums">{kcal}</p>
                           <p className="text-[var(--text-muted)] text-[8px]">auto</p>
                         </div>
                       </div>
