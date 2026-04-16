@@ -383,10 +383,10 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
     const load = async () => {
       setLoading(true)
 
-      // 1. Programme assigne
+      // 1. Programme assigne (schema: titre + duree_semaines, pas nom/nb_semaines)
       const { data: assignations } = await supabase
         .from('programme_assignations')
-        .select('*, programmes(id, nom, description, nb_semaines, date_debut, actif)')
+        .select('*, programmes(id, titre, description, duree_semaines, categorie)')
         .eq('client_id', clientId)
         .eq('coach_id', coachId)
         .order('created_at', { ascending: false })
@@ -496,16 +496,14 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
                       <Layers size={18} className="text-[#FF6B2B]" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-[var(--text-primary)] text-sm font-bold truncate">{programme.nom}</h4>
+                      <h4 className="text-[var(--text-primary)] text-sm font-bold truncate">{programme.titre}</h4>
                       <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
-                        {programme.description || `${programme.nb_semaines || '—'} semaines`}
+                        {programme.description || `${programme.duree_semaines || '—'} semaines${programme.categorie ? ' · ' + programme.categorie : ''}`}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {programme.actif && (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">Actif</span>
-                    )}
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">En cours</span>
                     <ChevronRight size={14} className="text-[var(--text-muted)]" />
                   </div>
                 </div>

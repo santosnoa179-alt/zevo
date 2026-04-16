@@ -40,6 +40,9 @@ const TARGET_LABELS = {
   traps: 'Trapezes', triceps: 'Triceps', 'upper back': 'Haut du dos',
 }
 
+// Utilise pour la dropdown "Muscle" du formulaire "+ Creer un exercice" custom
+const MUSCLE_GROUPS = ['Tous', 'Poitrine', 'Dos', 'Cuisses', 'Mollets', 'Epaules', 'Bras', 'Avant-bras', 'Abdos', 'Cardio', 'Cou']
+
 const normalizeBodyPart = (bp) => BODY_PART_LABELS[bp] || bp || ''
 const normalizeEquipment = (eq) => EQUIPMENT_LABELS[eq] || eq || ''
 const translate = (key, map) =>
