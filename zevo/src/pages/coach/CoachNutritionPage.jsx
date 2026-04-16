@@ -137,7 +137,6 @@ export default function CoachNutritionPage() {
       console.error('CRASH SUPPRESSION:', error)
       toast.error('Échec de la suppression. Regardez la console (F12).')
     }
-    setActionMenu(null)
   }
 
   // Assign plan to client (copy)
@@ -323,7 +322,7 @@ export default function CoachNutritionPage() {
                 return (
                   <div key={plan.id}
                     onClick={() => navigate(`/coach/nutrition/${plan.id}`)}
-                    className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] p-5 md:p-6 hover:border-[var(--border-base)] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 transition-all duration-300 cursor-pointer">
+                    className="group bg-[var(--bg-card)] rounded-2xl border border-[var(--border-base)] p-5 md:p-6 hover:border-[var(--border-base)] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 transition-all duration-300 cursor-pointer">
 
                     <div className="flex items-start gap-4">
                       <div className={`w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold shrink-0 uppercase ${
@@ -370,6 +369,12 @@ export default function CoachNutritionPage() {
                           </span>
                         </div>
                       </div>
+
+                      <button onClick={e => { e.stopPropagation(); handleDelete(plan.id, e) }}
+                        className="p-2 rounded-xl text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                        title="Supprimer le plan assigné">
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   </div>
                 )
