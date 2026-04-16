@@ -28,18 +28,18 @@ import {
 // ── Couleurs avatar ──
 const AVATAR_COLORS = ['#FF6B2B', '#3b82f6', '#22c55e', '#a855f7', '#f59e0b', '#ec4899', '#14b8a6']
 
-// ── Onglets internes ──
+// ── Onglets internes (affichés dans la barre) ──
+// Infos/Partage accessibles via icônes header. Suivi fusionne dans Vue d'ensemble.
 const TABS = [
   { id: 'overview', label: 'Vue d\'ensemble', icon: Eye },
-  { id: 'infos', label: 'Informations', icon: User },
   { id: 'calendar', label: 'Calendrier', icon: Calendar },
   { id: 'sport', label: 'Sport', icon: Dumbbell },
   { id: 'nutrition', label: 'Nutrition', icon: Apple },
   { id: 'habitudes', label: 'Habitudes', icon: Flame },
   { id: 'objectifs', label: 'Objectifs', icon: Target },
-  { id: 'suivi', label: 'Suivi', icon: BarChart3 },
-  { id: 'partage', label: 'Partage', icon: Share2 },
 ]
+// Onglets cachés mais handlers conservés (accès via icônes header / deep-link)
+const HIDDEN_TABS = ['infos', 'suivi', 'partage']
 
 // ══════════════════════════════════════
 // STAT CARD — Carte réutilisable
@@ -4230,11 +4230,13 @@ function calcProgress(depart, actuelle, cible) {
   return Math.max(0, Math.min(100, Math.round(pct)))
 }
 
+// Couleur de progression minimaliste : orange par défaut,
+// vert uniquement à l'objectif atteint, rouge uniquement sous les 10% (alerte).
+// Plus de dégradé jaune/orange arbitraire — la valeur % porte l'info.
 function progressColor(pct) {
-  if (pct >= 80) return '#22c55e'
-  if (pct >= 50) return '#f59e0b'
-  if (pct >= 25) return '#FF6B2B'
-  return '#ef4444'
+  if (pct >= 100) return '#22c55e'
+  if (pct < 10) return '#ef4444'
+  return '#FF6B2B'
 }
 
 function joursRestants(dateLimite) {
@@ -6229,6 +6231,13 @@ export default function CoachClientHub() {
                     <MessageCircle size={15} />
                   </button>
                   <button
+                    onClick={() => setActiveTab('partage')}
+                    title="Partage"
+                    className="w-9 h-9 rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all"
+                  >
+                    <Share2 size={15} />
+                  </button>
+                  <button
                     onClick={() => setActiveTab('infos')}
                     title="Informations client"
                     className="w-9 h-9 rounded-xl bg-[var(--bg-base)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all"
@@ -6295,41 +6304,41 @@ export default function CoachClientHub() {
                       ? habLogs7j.map(h => h.count)
                       : habitudes.length > 0 ? [habitudeLogs.length] : [0, 0]
 
-                    return [
-                      { icon: Scale, label: 'Poids', value: (() => { const po = objectifs.find(o => o.type_objectif === 'poids' && o.statut === 'en_cours'); return po ? `${po.valeur_actuelle ?? po.valeur_depart} kg` : (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—' })(), spark: poidsSpark, color: '#FF6B2B' },
-                      { icon: Moon, label: 'Sommeil', value: sommeilMoy ? `${sommeilMoy}h` : 'N/A', sub: sommeil7j.length > 0 ? `moy. 7j (${sommeil7j.length} entrée${sommeil7j.length > 1 ? 's' : ''})` : 'Aucune donnée', spark: sommeilSpark, color: '#8b5cf6' },
-                      { icon: Smile, label: 'Humeur', value: humeurMoy ? `${humeurMoy}/10` : 'N/A', sub: humeur7j.length > 0 ? `moy. 7j (${humeur7j.length} entrée${humeur7j.length > 1 ? 's' : ''})` : 'Aucune donnée', spark: humeurSpark, color: '#f59e0b' },
-                      { icon: Flame, label: 'Habitudes', value: habitudes.length > 0 ? `${habitudeLogs.length}/${habitudes.length}` : 'N/A', sub: habitudes.length > 0 ? "aujourd'hui" : 'Aucune assignée', spark: habSpark.length >= 2 ? habSpark : [0, 0], color: '#22c55e', onClick: () => setActiveTab('habitudes') },
-                      { icon: Dumbbell, label: 'Séances', value: weekSeances.total > 0 ? `${weekSeances.total}` : '—', sub: weekSeances.total > 0 ? `${weekSeances.done} faite${weekSeances.done > 1 ? 's' : ''} sur ${weekSeances.total}` : 'cette sem.', spark: weekSeances.spark.some(v => v > 0) ? weekSeances.spark : [0, 0], color: '#3b82f6', onClick: () => setActiveTab('sport') },
-                      { icon: Target, label: 'Objectifs', value: `${objectifs.filter(o => o.statut === 'en_cours').length}`, sub: 'en cours', spark: [objectifs.filter(o => o.statut === 'en_cours').length], color: '#a855f7', onClick: () => setActiveTab('objectifs') },
+                    // Direction data-first : toutes les KPI cards en teinte neutre,
+                      // l'orange est reservé au CTA & tab actif. La hierarchie vient
+                      // de la typographie et des nombres tabulaires, pas de la couleur.
+                      return [
+                      { icon: Scale, label: 'Poids', value: (() => { const po = objectifs.find(o => o.type_objectif === 'poids' && o.statut === 'en_cours'); return po ? `${po.valeur_actuelle ?? po.valeur_depart} kg` : (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—' })(), spark: poidsSpark },
+                      { icon: Moon, label: 'Sommeil', value: sommeilMoy ? `${sommeilMoy}h` : 'N/A', sub: sommeil7j.length > 0 ? `moy. 7j (${sommeil7j.length} entrée${sommeil7j.length > 1 ? 's' : ''})` : 'Aucune donnée', spark: sommeilSpark },
+                      { icon: Smile, label: 'Humeur', value: humeurMoy ? `${humeurMoy}/10` : 'N/A', sub: humeur7j.length > 0 ? `moy. 7j (${humeur7j.length} entrée${humeur7j.length > 1 ? 's' : ''})` : 'Aucune donnée', spark: humeurSpark },
+                      { icon: Flame, label: 'Habitudes', value: habitudes.length > 0 ? `${habitudeLogs.length}/${habitudes.length}` : 'N/A', sub: habitudes.length > 0 ? "aujourd'hui" : 'Aucune assignée', spark: habSpark.length >= 2 ? habSpark : [0, 0], onClick: () => setActiveTab('habitudes') },
+                      { icon: Dumbbell, label: 'Séances', value: weekSeances.total > 0 ? `${weekSeances.total}` : '—', sub: weekSeances.total > 0 ? `${weekSeances.done} faite${weekSeances.done > 1 ? 's' : ''} sur ${weekSeances.total}` : 'cette sem.', spark: weekSeances.spark.some(v => v > 0) ? weekSeances.spark : [0, 0], onClick: () => setActiveTab('sport') },
+                      { icon: Target, label: 'Objectifs', value: `${objectifs.filter(o => o.statut === 'en_cours').length}`, sub: 'en cours', spark: [objectifs.filter(o => o.statut === 'en_cours').length], onClick: () => setActiveTab('objectifs') },
                     ]
                   })().map((card, ci) => (
                     <div key={ci} onClick={card.onClick || undefined}
                       className={`glass-card p-4 flex flex-col justify-between min-h-[120px] transition-all group ${card.onClick ? 'cursor-pointer hover:border-[var(--border-strong)] active:scale-[0.98]' : ''}`}>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-[var(--text-muted)] text-[10px] font-medium uppercase tracking-wider">{card.label}</p>
-                          <p className="text-[var(--text-primary)] text-lg font-bold mt-1">{card.value}</p>
-                          {card.sub && <p className="text-[var(--text-muted)] text-[10px] mt-0.5">{card.sub}</p>}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-[var(--text-muted)] text-[10px] font-medium uppercase tracking-[0.12em]">{card.label}</p>
+                          <p className="text-[var(--text-primary)] text-xl font-bold mt-1.5 tabular-nums leading-none">{card.value}</p>
+                          {card.sub && <p className="text-[var(--text-muted)] text-[10px] mt-1.5">{card.sub}</p>}
                         </div>
-                        <div className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
-                          style={{ backgroundColor: `${card.color}12` }}>
-                          <card.icon size={15} style={{ color: card.color }} />
-                        </div>
+                        <card.icon size={14} className="text-[var(--text-muted)] opacity-60 shrink-0 mt-0.5 group-hover:opacity-100 group-hover:text-[#FF6B2B] transition-all" />
                       </div>
-                      {/* Mini sparkline */}
-                      <svg viewBox="0 0 100 24" className="w-full h-5 mt-2" preserveAspectRatio="none">
+                      {/* Mini sparkline — teinte neutre, devient orange au survol pour signaler l'action */}
+                      <svg viewBox="0 0 100 24" className="w-full h-5 mt-2 text-[rgba(255,255,255,0.22)] group-hover:text-[#FF6B2B] transition-colors" preserveAspectRatio="none">
                         <defs>
                           <linearGradient id={`spark-${ci}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={card.color} stopOpacity="0.2" />
-                            <stop offset="100%" stopColor={card.color} stopOpacity="0" />
+                            <stop offset="0%" stopColor="currentColor" stopOpacity="0.15" />
+                            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
                           </linearGradient>
                         </defs>
                         {(() => {
                           const d = card.spark
                           // Guard: pas assez de points → ligne plate
                           if (!d || d.length < 2) {
-                            return <path d="M0,12 L100,12" fill="none" stroke={card.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.2" />
+                            return <path d="M0,12 L100,12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
                           }
                           const numD = d.map(v => (typeof v === 'number' && isFinite(v)) ? v : 0)
                           const rawMin = Math.min(...numD)
@@ -6337,7 +6346,7 @@ export default function CoachClientHub() {
                           const range = rawMax - rawMin
                           // Guard: toutes les valeurs identiques → ligne plate centrée
                           if (range === 0) {
-                            return <path d="M0,12 L100,12" fill="none" stroke={card.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+                            return <path d="M0,12 L100,12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                           }
                           const min = rawMin - 0.5
                           const max = rawMax + 0.5
@@ -6347,7 +6356,7 @@ export default function CoachClientHub() {
                           return (
                             <>
                               <path d={areaD} fill={`url(#spark-${ci})`} />
-                              <path d={lineD} fill="none" stroke={card.color} strokeWidth="1.5" strokeLinecap="round" />
+                              <path d={lineD} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                             </>
                           )
                         })()}
@@ -6374,19 +6383,15 @@ export default function CoachClientHub() {
 
                     return (
                       <div className="glass-card p-5">
-                        {/* Accent bar */}
-                        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
                         <div className="flex items-center justify-between mb-5">
-                          <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
-                              <Scale size={13} className="text-[#FF6B2B]" />
-                            </div>
+                          <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2.5">
+                            <Scale size={14} className="text-[var(--text-muted)]" />
                             Poids
                           </h3>
                           <div className="flex items-center gap-3">
                             {jours !== null && (
-                              <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${
-                                jours < 0 ? 'bg-red-500/10 text-red-400' : jours <= 14 ? 'bg-amber-500/10 text-amber-400' : 'bg-white/5 text-[var(--text-muted)]'
+                              <span className={`text-[10px] font-semibold tabular-nums ${
+                                jours < 0 ? 'text-red-400' : jours <= 14 ? 'text-amber-400' : 'text-[var(--text-muted)]'
                               }`}>
                                 {jours < 0 ? `${Math.abs(jours)}j retard` : jours === 0 ? "Auj." : `${jours}j restants`}
                               </span>
@@ -6400,26 +6405,24 @@ export default function CoachClientHub() {
                         {/* Depart - Actuel - Cible */}
                         <div className="bg-[var(--bg-base)] rounded-xl p-4 flex items-center border border-[var(--border-subtle)]">
                           <div className="flex-1 text-center">
-                            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider mb-1">Départ</p>
-                            <p className="text-[var(--text-primary)] text-2xl font-bold">{depart || '—'}<span className="text-sm text-[var(--text-muted)] ml-1">{unite}</span></p>
+                            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-[0.12em] mb-1.5">Départ</p>
+                            <p className="text-[var(--text-primary)] text-2xl font-bold tabular-nums">{depart || '—'}<span className="text-sm text-[var(--text-muted)] ml-1 font-normal">{unite}</span></p>
                           </div>
                           <div className="flex flex-col items-center gap-0.5 px-2 shrink-0">
                             <div className="flex items-center gap-1">
-                              <div className="w-4 h-[1.5px] bg-[var(--bg-surface)]" />
-                              <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
-                                {isLoss ? <TrendingDown size={11} style={{ color }} /> : <TrendingUp size={11} style={{ color }} />}
-                              </div>
-                              <div className="w-4 h-[1.5px] bg-[var(--bg-surface)]" />
+                              <div className="w-4 h-[1px] bg-[var(--border-base)]" />
+                              {isLoss ? <TrendingDown size={13} className="text-[var(--text-muted)]" /> : <TrendingUp size={13} className="text-[var(--text-muted)]" />}
+                              <div className="w-4 h-[1px] bg-[var(--border-base)]" />
                             </div>
                             {delta && delta !== '0.0' && (
-                              <span className="text-[9px] font-bold" style={{ color }}>
-                                {isLoss ? '-' : '+'}{delta}
+                              <span className="text-[10px] font-bold tabular-nums text-[var(--text-muted)]">
+                                {isLoss ? '−' : '+'}{delta}
                               </span>
                             )}
                           </div>
                           <div className="flex-1 text-center">
-                            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider mb-1">Cible</p>
-                            <p className="text-2xl font-bold" style={{ color: '#FF6B2B' }}>{cible || '—'}<span className="text-sm opacity-40 ml-1">{unite}</span></p>
+                            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-[0.12em] mb-1.5">Cible</p>
+                            <p className="text-2xl font-bold tabular-nums" style={{ color: '#FF6B2B' }}>{cible || '—'}<span className="text-sm opacity-40 ml-1 font-normal">{unite}</span></p>
                           </div>
                         </div>
 
@@ -6470,24 +6473,20 @@ export default function CoachClientHub() {
 
                     return (
                   <div className="glass-card p-5">
-                    {/* Accent bar */}
-                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#a855f7] via-[#c084fc] to-transparent" />
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                          <Target size={13} className="text-purple-400" />
-                        </div>
+                      <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2.5">
+                        <Target size={14} className="text-[var(--text-muted)]" />
                         Objectifs
                       </h3>
                       <div className="flex items-center gap-2">
                         {totalEnCours > 0 && (
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-bold">
+                          <span className="text-[10px] font-semibold text-[var(--text-muted)] tabular-nums">
                             {totalEnCours} en cours
                           </span>
                         )}
                         <button
                           onClick={() => setActiveTab('objectifs')}
-                          className="text-[var(--text-muted)] hover:text-purple-400 transition-colors"
+                          className="text-[var(--text-muted)] hover:text-[#FF6B2B] transition-colors"
                           title="Gerer les objectifs"
                         >
                           <Settings size={13} />
@@ -6565,14 +6564,11 @@ export default function CoachClientHub() {
                 {/* ── Row: Nutrition + Habitudes ── */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                  {/* Carte Nutrition recap */}
+                  {/* Carte Nutrition recap — Donut en 3 teintes d'orange (Zevo) */}
                   <div className="glass-card p-5">
-                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-emerald-500 via-emerald-400 to-transparent" />
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                          <Apple size={13} className="text-emerald-400" />
-                        </div>
+                      <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2.5">
+                        <Apple size={14} className="text-[var(--text-muted)]" />
                         Nutrition
                       </h3>
                       <button onClick={() => setActiveTab('nutrition')} className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
@@ -6580,18 +6576,18 @@ export default function CoachClientHub() {
                       </button>
                     </div>
                     <div className="flex items-center gap-5">
-                      {/* Donut SVG */}
+                      {/* Donut SVG — gradient monochrome orange */}
                       <div className="relative w-20 h-20 shrink-0">
                         <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                          <circle cx="18" cy="18" r="15" fill="none" stroke="#27272a" strokeWidth="3" />
-                          <circle cx="18" cy="18" r="15" fill="none" stroke="#3b82f6" strokeWidth="3" strokeDasharray={`${(p?.proteines_cibles || 30) * 0.94} 100`} strokeLinecap="round" />
-                          <circle cx="18" cy="18" r="15" fill="none" stroke="#f59e0b" strokeWidth="3" strokeDasharray={`${(p?.glucides_cibles || 40) * 0.94} 100`} strokeDashoffset={`-${(p?.proteines_cibles || 30) * 0.94}`} strokeLinecap="round" />
-                          <circle cx="18" cy="18" r="15" fill="none" stroke="#ef4444" strokeWidth="3" strokeDasharray={`${(p?.lipides_cibles || 30) * 0.94} 100`} strokeDashoffset={`-${((p?.proteines_cibles || 30) + (p?.glucides_cibles || 40)) * 0.94}`} strokeLinecap="round" />
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="#FF6B2B" strokeWidth="3" strokeDasharray={`${(p?.proteines_cibles || 30) * 0.94} 100`} strokeLinecap="round" />
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="#FF9A6C" strokeWidth="3" strokeDasharray={`${(p?.glucides_cibles || 40) * 0.94} 100`} strokeDashoffset={`-${(p?.proteines_cibles || 30) * 0.94}`} strokeLinecap="round" />
+                          <circle cx="18" cy="18" r="15" fill="none" stroke="#FFCBA4" strokeWidth="3" strokeDasharray={`${(p?.lipides_cibles || 30) * 0.94} 100`} strokeDashoffset={`-${((p?.proteines_cibles || 30) + (p?.glucides_cibles || 40)) * 0.94}`} strokeLinecap="round" />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="text-center">
-                            <p className="text-[var(--text-primary)] text-sm font-bold">{planCalories || p?.calories_cibles || '—'}</p>
-                            <p className="text-[var(--text-muted)] text-[8px]">kcal</p>
+                            <p className="text-[var(--text-primary)] text-sm font-bold tabular-nums">{planCalories || p?.calories_cibles || '—'}</p>
+                            <p className="text-[var(--text-muted)] text-[8px] uppercase tracking-wider">kcal</p>
                           </div>
                         </div>
                       </div>
@@ -6599,24 +6595,24 @@ export default function CoachClientHub() {
                       <div className="flex-1 space-y-2.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-blue-500" />
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#FF6B2B' }} />
                             <span className="text-[var(--text-muted)] text-xs">Protéines</span>
                           </div>
-                          <span className="text-[var(--text-primary)] text-xs font-semibold">{p?.proteines_cibles || 30}%</span>
+                          <span className="text-[var(--text-primary)] text-xs font-semibold tabular-nums">{p?.proteines_cibles || 30}%</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-amber-500" />
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#FF9A6C' }} />
                             <span className="text-[var(--text-muted)] text-xs">Glucides</span>
                           </div>
-                          <span className="text-[var(--text-primary)] text-xs font-semibold">{p?.glucides_cibles || 40}%</span>
+                          <span className="text-[var(--text-primary)] text-xs font-semibold tabular-nums">{p?.glucides_cibles || 40}%</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-red-500" />
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#FFCBA4' }} />
                             <span className="text-[var(--text-muted)] text-xs">Lipides</span>
                           </div>
-                          <span className="text-[var(--text-primary)] text-xs font-semibold">{p?.lipides_cibles || 30}%</span>
+                          <span className="text-[var(--text-primary)] text-xs font-semibold tabular-nums">{p?.lipides_cibles || 30}%</span>
                         </div>
                       </div>
                     </div>
@@ -6624,19 +6620,16 @@ export default function CoachClientHub() {
 
                   {/* Carte Habitudes du jour */}
                   <div className="glass-card p-5">
-                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-500 via-amber-400 to-transparent" />
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                          <Flame size={13} className="text-amber-400" />
-                        </div>
+                      <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2.5">
+                        <Flame size={14} className="text-[var(--text-muted)]" />
                         Habitudes du jour
                       </h3>
                       <div className="flex items-center gap-2">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                        <span className={`text-[11px] font-bold tabular-nums ${
                           habitudes.length > 0 && habitudeLogs.length === habitudes.length
-                            ? 'bg-emerald-500/10 text-emerald-400'
-                            : 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
+                            ? 'text-emerald-400'
+                            : 'text-[var(--text-muted)]'
                         }`}>
                           {habitudeLogs.length}/{habitudes.length}
                         </span>
