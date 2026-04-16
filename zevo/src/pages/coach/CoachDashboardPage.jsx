@@ -10,9 +10,17 @@ import {
   CheckCircle, ArrowUpRight, ArrowDownRight,
   Activity, Dumbbell, Phone, ClipboardList, Star, RefreshCw
 } from 'lucide-react'
+import Ring from '../../components/ui/Ring'
 
-// ── Couleurs avatar ──
-const COULEURS_AVATAR = ['#FF6B2B', '#3b82f6', '#22c55e', '#a855f7', '#f59e0b', '#ec4899', '#14b8a6']
+// ── Langage Fitness OS : 3 familles de couleurs ──
+const FAMILY = {
+  seance:  '#FF6B2B',
+  contact: '#64748b',
+  perso:   '#9ca3af',
+}
+
+// ── Palette avatar atténuée (identité conservée sans saturer) ──
+const COULEURS_AVATAR = ['#FF6B2B', '#64748b', '#475569', '#9ca3af', '#334155', '#7c7c7c', '#FF9A6C']
 
 function initialesFrom(nom) {
   const parts = (nom ?? '?').trim().split(' ')
@@ -24,29 +32,28 @@ function initialesFrom(nom) {
 const MOIS_COURTS = ['Janv', 'Fev', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Aout', 'Sept', 'Oct', 'Nov', 'Dec']
 
 const EVENT_META = {
-  seance:  { icon: Dumbbell, color: '#FF6B2B', label: 'Seance' },
-  bilan:   { icon: ClipboardList, color: '#a855f7', label: 'Bilan' },
-  appel:   { icon: Phone, color: '#3b82f6', label: 'Appel' },
-  reunion: { icon: Users, color: '#f59e0b', label: 'Reunion' },
-  perso:   { icon: Star, color: '#71717a', label: 'Perso' },
-  note:    { icon: FileText, color: '#71717a', label: 'Note' },
-  autre:   { icon: Activity, color: '#71717a', label: 'Autre' },
+  seance:  { icon: Dumbbell, color: FAMILY.seance, label: 'Seance' },
+  bilan:   { icon: ClipboardList, color: FAMILY.contact, label: 'Bilan' },
+  appel:   { icon: Phone, color: FAMILY.contact, label: 'Appel' },
+  reunion: { icon: Users, color: FAMILY.contact, label: 'Reunion' },
+  perso:   { icon: Star, color: FAMILY.perso, label: 'Perso' },
+  note:    { icon: FileText, color: FAMILY.perso, label: 'Note' },
+  autre:   { icon: Activity, color: FAMILY.perso, label: 'Autre' },
 }
 
+// ── Statuts prospects : progression nuancée orange → neutre ──
 const STATUT_COLORS = {
-  contact: '#f59e0b',
-  appel: '#3b82f6',
-  proposition: '#a855f7',
-  closing: '#22c55e',
+  contact:     '#9ca3af',
+  appel:       '#64748b',
+  proposition: '#FF9A6C',
+  closing:     '#FF6B2B',
 }
 
 // ── Revenue Chart ──
 function RevenueChart({ data }) {
   if (!data.length) return (
     <div className="flex flex-col items-center justify-center py-10">
-      <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-3 animate-breathe">
-        <Euro size={22} className="text-amber-400/50" />
-      </div>
+      <Euro size={22} className="text-[var(--text-muted)] mb-3 animate-breathe" strokeWidth={1.5} />
       <p className="text-[var(--text-muted)] text-xs">Aucun paiement enregistre</p>
     </div>
   )
@@ -100,15 +107,6 @@ function RevenueChart({ data }) {
           )
         })}
       </svg>
-    </div>
-  )
-}
-
-// ── Section Card wrapper ──
-function DashCard({ children, className = '' }) {
-  return (
-    <div className={`glass-card overflow-hidden ${className}`}>
-      {children}
     </div>
   )
 }
@@ -382,132 +380,153 @@ export default function CoachDashboardPage() {
       {/* ══════════════════════════════════════ */}
       {/* HERO BANNER                            */}
       {/* ══════════════════════════════════════ */}
-      <div className="glass-card overflow-hidden relative">
-        {/* Top gradient accent */}
-        <div className="h-1.5 bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
-
-        {/* Subtle dot pattern overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.03]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
-            backgroundSize: '20px 20px',
-          }}
-        />
-
-        <div className="relative p-5 md:p-7">
-          {/* Decorative gradient circle */}
-          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(255,107,43,0.08) 0%, transparent 70%)' }} />
-          <div className="absolute -bottom-12 left-1/4 w-48 h-48 rounded-full pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.05) 0%, transparent 70%)' }} />
-
-          <div className="relative flex flex-col md:flex-row md:items-center gap-4 md:gap-5">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg"
-                style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 4px 24px rgba(255,107,43,0.3)' }}>
-                <Flame size={26} className="text-white" />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <h1 className="text-[var(--text-primary)] text-2xl md:text-[28px] font-extrabold tracking-tight leading-tight">
-                  Bonjour, {prenom}
-                </h1>
-                <p className="text-[var(--text-muted)] text-sm mt-1">
-                  {todayPlanning.length > 0
-                    ? <><span className="text-[var(--color-primary,#FF6B2B)] font-semibold">{todayPlanning.length}</span> tache{todayPlanning.length > 1 ? 's' : ''} prevue{todayPlanning.length > 1 ? 's' : ''} — {dateAffichee}</>
-                    : <>Aucune tache prevue — {dateAffichee}</>
-                  }
-                </p>
-              </div>
+      <div className="hero-card hero-card--accent p-5 md:p-6">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-5">
+          <div className="flex items-center gap-4 min-w-0">
+            <Flame size={22} strokeWidth={1.75} className="text-[#FF6B2B] flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <h1 className="text-[var(--text-primary)] text-2xl md:text-[28px] font-extrabold tracking-tight leading-tight">
+                Bonjour, {prenom}
+              </h1>
+              <p className="text-[var(--text-muted)] text-sm mt-1">
+                {todayPlanning.length > 0
+                  ? <><span className="text-[var(--text-primary)] font-semibold tabular-nums">{todayPlanning.length}</span> tache{todayPlanning.length > 1 ? 's' : ''} prevue{todayPlanning.length > 1 ? 's' : ''} — {dateAffichee}</>
+                  : <>Aucune tache prevue — {dateAffichee}</>
+                }
+              </p>
             </div>
+          </div>
 
-            {/* Mobile compact stats row */}
-            <div className="flex md:hidden items-center gap-2 -mt-1">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
-                <Users size={12} className="text-[#FF6B2B]" />
-                <span className="text-[var(--text-primary)] text-xs font-bold">{stats.actifs}</span>
-                <span className="text-[var(--text-muted)] text-[10px]">clients</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
-                <Calendar size={12} className="text-emerald-400" />
-                <span className="text-[var(--text-primary)] text-xs font-bold">{stats.seancesAujourdhui}</span>
-                <span className="text-[var(--text-muted)] text-[10px]">seances</span>
-              </div>
-              {pendingForms > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/[0.06] border border-amber-500/15">
-                  <FileText size={12} className="text-amber-400" />
-                  <span className="text-amber-300 text-xs font-bold">{pendingForms}</span>
-                </div>
-              )}
-              <button
-                onClick={() => chargerDonnees()}
-                className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors ml-auto"
-                title="Rafraichir"
-              >
-                <RefreshCw size={13} />
-              </button>
+          {/* Mobile compact stats row */}
+          <div className="flex md:hidden items-center gap-2 -mt-1">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+              <Users size={12} className="text-[var(--text-muted)]" />
+              <span className="text-[var(--text-primary)] text-xs font-bold tabular-nums">{stats.actifs}</span>
+              <span className="text-[var(--text-muted)] text-[10px]">clients</span>
             </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+              <Calendar size={12} className="text-[var(--text-muted)]" />
+              <span className="text-[var(--text-primary)] text-xs font-bold tabular-nums">{stats.seancesAujourdhui}</span>
+              <span className="text-[var(--text-muted)] text-[10px]">seances</span>
+            </div>
+            {pendingForms > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                <FileText size={12} className="text-[#FF6B2B]" />
+                <span className="text-[var(--text-primary)] text-xs font-bold tabular-nums">{pendingForms}</span>
+              </div>
+            )}
+            <button
+              onClick={() => chargerDonnees()}
+              className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors ml-auto"
+              title="Rafraichir"
+            >
+              <RefreshCw size={13} />
+            </button>
+          </div>
 
-            {/* Desktop badges */}
-            <div className="hidden md:flex items-center gap-2.5 ml-auto flex-shrink-0">
+          {/* Desktop badges */}
+          <div className="hidden md:flex items-center gap-2.5 ml-auto flex-shrink-0">
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+              <Users size={13} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+              <span className="text-[var(--text-primary)] text-sm font-bold tabular-nums">{stats.actifs}</span>
+              <span className="text-[var(--text-muted)] text-xs">clients</span>
+            </div>
+            {pendingForms > 0 && (
               <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
-                <Zap size={13} className="text-[#FF6B2B]" />
-                <span className="text-[var(--text-primary)] text-sm font-bold">{stats.actifs}</span>
-                <span className="text-[var(--text-muted)] text-xs">clients</span>
+                <FileText size={13} className="text-[#FF6B2B]" strokeWidth={1.75} />
+                <span className="text-[var(--text-primary)] text-sm font-bold tabular-nums">{pendingForms}</span>
+                <span className="text-[var(--text-muted)] text-xs">en attente</span>
               </div>
-              {pendingForms > 0 && (
-                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/[0.06] border border-amber-500/15">
-                  <FileText size={13} className="text-amber-400" />
-                  <span className="text-amber-300 text-sm font-bold">{pendingForms}</span>
-                  <span className="text-amber-400/50 text-xs">en attente</span>
-                </div>
-              )}
-              <button
-                onClick={() => chargerDonnees()}
-                className="p-2 rounded-xl text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors"
-                title="Rafraichir"
-              >
-                <RefreshCw size={14} />
-              </button>
-            </div>
+            )}
+            <button
+              onClick={() => chargerDonnees()}
+              className="p-2 rounded-xl text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors"
+              title="Rafraichir"
+            >
+              <RefreshCw size={14} />
+            </button>
           </div>
         </div>
       </div>
 
       {/* ══════════════════════════════════════ */}
-      {/* 4 STAT CARDS                           */}
+      {/* 4 STAT CARDS — Fitness OS              */}
       {/* ══════════════════════════════════════ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { label: 'Clients actifs', value: stats.actifs, icon: Users, color: '#FF6B2B' },
-          { label: 'Seances aujourd\'hui', value: stats.seancesAujourdhui, icon: Calendar, color: '#22c55e' },
-          { label: 'Prospects', value: stats.prospects, icon: Target, color: '#3b82f6' },
-          { label: 'Revenus ce mois', value: stats.mrr > 0 ? `${stats.mrr}` : '0', suffix: '\u20AC', icon: Euro, color: '#f59e0b', evolution: revenueEvolution },
-        ].map((s, i) => (
-          <DashCard key={i} className={`group transition-colors duration-200`}>
-            {/* Colored accent bar */}
-            <div className="h-[2px]" style={{ background: `linear-gradient(to right, ${s.color}, ${s.color}66, transparent)` }} />
-            <div className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-105" style={{ backgroundColor: `${s.color}14` }}>
-                  <s.icon size={18} style={{ color: s.color }} />
+        {(() => {
+          // Ring values — chaque carte a son indicateur de progression
+          const activePct = stats.actifs > 0
+            ? Math.min(100, Math.round((stats.nouveaux / stats.actifs) * 100))
+            : 0
+          const seancesPct = Math.min(100, Math.round((stats.seancesAujourdhui / 8) * 100))
+          const prospectPct = stats.prospects > 0
+            ? Math.min(100, Math.round((prospects.filter(p => p.statut === 'closing' || p.statut === 'proposition').length / stats.prospects) * 100))
+            : 0
+          const revPct = stats.revenuMoisPrecedent > 0
+            ? Math.min(100, Math.round((stats.revenuMoisActuel / stats.revenuMoisPrecedent) * 100))
+            : (stats.revenuMoisActuel > 0 ? 100 : 0)
+
+          return [
+            {
+              label: 'Clients actifs', value: stats.actifs, icon: Users,
+              sub: stats.nouveaux > 0 ? `+${stats.nouveaux} ce mois` : 'base stable',
+              ringValue: activePct,
+            },
+            {
+              label: 'Seances aujourd\'hui', value: stats.seancesAujourdhui, icon: Calendar,
+              sub: stats.seancesAujourdhui > 0 ? `sur 8 creneaux` : 'journee libre',
+              ringValue: seancesPct,
+            },
+            {
+              label: 'Prospects', value: stats.prospects, icon: Target,
+              sub: 'en pipeline',
+              ringValue: prospectPct,
+            },
+            {
+              label: 'Revenus ce mois', value: stats.mrr > 0 ? `${stats.mrr}` : '0', suffix: '\u20AC',
+              sub: stats.revenuMoisPrecedent > 0 ? `vs ${stats.revenuMoisPrecedent}\u20AC mois passe` : 'premier mois',
+              icon: Euro,
+              evolution: revenueEvolution,
+              ringValue: revPct,
+            },
+          ]
+        })().map((s, i) => (
+          <div key={i} className="metric-card p-4 min-h-[130px]">
+            <div className="relative z-[1] flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <s.icon size={11} className="text-[var(--text-muted)]" />
+                  <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-[0.14em] truncate">{s.label}</p>
                 </div>
-                {s.evolution && (
-                  <span className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                    s.evolution.positive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                <div className="flex items-baseline gap-0.5">
+                  <p className="text-[var(--text-primary)] text-[26px] font-black tabular-nums tracking-tight leading-none">{s.value}</p>
+                  {s.suffix && <span className="text-[var(--text-muted)] text-base font-semibold tabular-nums">{s.suffix}</span>}
+                </div>
+                {s.evolution ? (
+                  <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold mt-1.5 ${
+                    s.evolution.positive ? 'text-emerald-400' : 'text-red-400'
                   }`}>
                     {s.evolution.positive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
                     {s.evolution.positive ? '+' : ''}{s.evolution.pct}%
+                    <span className="text-[var(--text-muted)] font-medium ml-1 normal-case">vs mois passe</span>
                   </span>
+                ) : (
+                  <p className="text-[var(--text-muted)] text-[10px] mt-1.5 font-medium truncate">{s.sub}</p>
                 )}
               </div>
-              <p className="text-[var(--text-primary)] text-2xl font-bold tabular-nums leading-none">
-                {s.value}{s.suffix && <span className="text-base font-semibold text-[var(--text-muted)] ml-0.5">{s.suffix}</span>}
-              </p>
-              <p className="text-[var(--text-muted)] text-[11px] mt-1.5">{s.label}</p>
+              <Ring
+                value={s.ringValue}
+                max={100}
+                size={46}
+                thickness={4}
+                color="#FF6B2B"
+                trackColor="var(--ring-track)"
+                className="shrink-0"
+              >
+                <span className="text-[10px] font-black tabular-nums text-[var(--text-primary)]">{s.ringValue}%</span>
+              </Ring>
             </div>
-          </DashCard>
+          </div>
         ))}
       </div>
 
@@ -520,123 +539,106 @@ export default function CoachDashboardPage() {
         <div className="lg:col-span-2 space-y-4 md:space-y-5">
 
           {/* ── Activite du jour ── */}
-          <DashCard>
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
-                    <Activity size={16} className="text-[#FF6B2B]" />
-                  </div>
-                  <h2 className="text-[var(--text-primary)] text-[15px] font-semibold">Activite du jour</h2>
-                </div>
-                <button
-                  onClick={() => chargerDonnees()}
-                  className="md:hidden p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors"
-                >
-                  <RefreshCw size={13} />
-                </button>
+          <div className="hero-card p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <Activity size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+                <h2 className="text-[var(--text-primary)] text-[15px] font-semibold tracking-tight">Activite du jour</h2>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {[
-                  { label: 'seance', labelPlural: 'seances', sublabel: 'prevue', value: todaySeances.length, icon: Dumbbell, color: '#FF6B2B' },
-                  { label: 'evenement', labelPlural: 'evenements', sublabel: '', value: todayEvents.length, icon: Calendar, color: '#3b82f6' },
-                  { label: 'formulaire', labelPlural: 'formulaires', sublabel: 'en attente', value: pendingForms, icon: FileText, color: '#f59e0b' },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3.5 bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-subtle)] relative overflow-hidden"
-                  >
-                    {/* Colored left accent border */}
-                    <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full" style={{ backgroundColor: item.color }} />
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ml-1" style={{ backgroundColor: `${item.color}14` }}>
-                      <item.icon size={20} style={{ color: item.color }} />
-                    </div>
-                    <div>
-                      <p className="text-[var(--text-primary)] text-xl font-bold tabular-nums">{item.value}</p>
-                      <p className="text-[var(--text-muted)] text-[11px]">
-                        {item.value !== 1 ? item.labelPlural : item.label}{item.sublabel ? ` ${item.sublabel}` : ''}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <button
+                onClick={() => chargerDonnees()}
+                className="md:hidden p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors"
+              >
+                <RefreshCw size={13} />
+              </button>
             </div>
-          </DashCard>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {[
+                { label: 'seance', labelPlural: 'seances', sublabel: 'prevue', value: todaySeances.length, icon: Dumbbell, color: FAMILY.seance },
+                { label: 'evenement', labelPlural: 'evenements', sublabel: '', value: todayEvents.length, icon: Calendar, color: FAMILY.contact },
+                { label: 'formulaire', labelPlural: 'formulaires', sublabel: 'en attente', value: pendingForms, icon: FileText, color: FAMILY.perso },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="relative flex items-center gap-3.5 bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-subtle)]"
+                >
+                  {/* Barre latérale 3px — langage unifié events Calendar */}
+                  <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full" style={{ backgroundColor: item.color }} />
+                  <item.icon size={18} strokeWidth={1.75} style={{ color: item.color }} className="flex-shrink-0 ml-1" />
+                  <div>
+                    <p className="text-[var(--text-primary)] text-xl font-black tabular-nums leading-none">{item.value}</p>
+                    <p className="text-[var(--text-muted)] text-[11px] mt-1">
+                      {item.value !== 1 ? item.labelPlural : item.label}{item.sublabel ? ` ${item.sublabel}` : ''}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* ── Revenus ── */}
-          <DashCard>
-            {/* Gradient accent bar at top */}
-            <div className="h-[2px] bg-gradient-to-r from-amber-500/60 via-[#FF6B2B]/40 to-transparent" />
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                      <Euro size={16} className="text-amber-400" />
-                    </div>
-                    <h2 className="text-[var(--text-primary)] text-[15px] font-semibold">Suivi des Revenus</h2>
-                  </div>
-                  <p className="text-[var(--text-muted)] text-[11px] mt-1.5 ml-[42px]">
-                    6 derniers mois — Total : {totalRevenu6Mois > 0 ? `${totalRevenu6Mois.toLocaleString('fr-FR')}€` : '--'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {revenueEvolution && (
-                    <span className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold ${
-                      revenueEvolution.positive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-                    }`}>
-                      {revenueEvolution.positive ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
-                      {revenueEvolution.positive ? '+' : ''}{revenueEvolution.pct}%
-                    </span>
-                  )}
-                  <button
-                    onClick={() => navigate(hasFeature('statistiques') ? '/coach/statistiques' : '/pricing')}
-                    className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] transition-colors"
-                  >
-                    {hasFeature('statistiques') ? <BarChart3 size={14} /> : <Lock size={14} />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex justify-center py-2 overflow-x-auto">
-                <RevenueChart data={revenueData} />
-              </div>
-            </div>
-          </DashCard>
-
-          {/* ── Prospects ── */}
-          <DashCard>
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-4">
+          <div className="hero-card p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <Target size={16} className="text-blue-400" />
-                  </div>
-                  <h2 className="text-[var(--text-primary)] text-[15px] font-semibold">Vos prospects</h2>
+                  <Euro size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+                  <h2 className="text-[var(--text-primary)] text-[15px] font-semibold tracking-tight">Suivi des Revenus</h2>
                 </div>
+                <p className="text-[var(--text-muted)] text-[11px] mt-1.5 ml-[22px]">
+                  6 derniers mois — Total : <span className="text-[var(--text-primary)] font-semibold tabular-nums">{totalRevenu6Mois > 0 ? `${totalRevenu6Mois.toLocaleString('fr-FR')}€` : '--'}</span>
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {revenueEvolution && (
+                  <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${
+                    revenueEvolution.positive ? 'text-emerald-400' : 'text-red-400'
+                  }`}>
+                    {revenueEvolution.positive ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
+                    {revenueEvolution.positive ? '+' : ''}{revenueEvolution.pct}%
+                  </span>
+                )}
                 <button
-                  onClick={() => navigate('/coach/prospects')}
-                  className="text-[var(--color-primary,#FF6B2B)] text-xs font-semibold flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-[#FF6B2B]/10 transition-colors"
+                  onClick={() => navigate(hasFeature('statistiques') ? '/coach/statistiques' : '/pricing')}
+                  className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors"
                 >
-                  Voir tout <ChevronRight size={12} />
+                  {hasFeature('statistiques') ? <BarChart3 size={14} /> : <Lock size={14} />}
                 </button>
               </div>
+            </div>
 
-              {prospects.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mx-auto mb-3 animate-breathe">
-                    <Target size={22} className="text-blue-400/50" />
-                  </div>
-                  <p className="text-[var(--text-muted)] text-xs mb-3">Aucun prospect pour le moment</p>
-                  <button
-                    onClick={() => navigate('/coach/prospects')}
-                    className="px-4 py-2 rounded-xl bg-[var(--color-primary,#FF6B2B)]/10 text-[var(--color-primary,#FF6B2B)] text-xs font-semibold hover:bg-[var(--color-primary,#FF6B2B)]/20 transition-colors"
-                  >
-                    Ajouter un prospect
-                  </button>
-                </div>
-              ) : (
+            <div className="flex justify-center py-2 overflow-x-auto">
+              <RevenueChart data={revenueData} />
+            </div>
+          </div>
+
+          {/* ── Prospects ── */}
+          <div className="hero-card p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <Target size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+                <h2 className="text-[var(--text-primary)] text-[15px] font-semibold tracking-tight">Vos prospects</h2>
+              </div>
+              <button
+                onClick={() => navigate('/coach/prospects')}
+                className="text-[var(--color-primary,#FF6B2B)] text-xs font-semibold flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-[#FF6B2B]/10 transition-colors"
+              >
+                Voir tout <ChevronRight size={12} />
+              </button>
+            </div>
+
+            {prospects.length === 0 ? (
+              <div className="text-center py-8">
+                <Target size={22} className="text-[var(--text-muted)] mx-auto mb-3 animate-breathe" strokeWidth={1.5} />
+                <p className="text-[var(--text-muted)] text-xs mb-3">Aucun prospect pour le moment</p>
+                <button
+                  onClick={() => navigate('/coach/prospects')}
+                  className="px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-xs font-semibold hover:bg-[#FF6B2B]/20 transition-colors"
+                >
+                  Ajouter un prospect
+                </button>
+              </div>
+            ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Par statut */}
                   <div className="space-y-2.5">
@@ -686,202 +688,165 @@ export default function CoachDashboardPage() {
                   </div>
                 </div>
               )}
-            </div>
-          </DashCard>
+          </div>
         </div>
 
         {/* ── COLONNE DROITE (1/3) ── */}
         <div className="space-y-4 md:space-y-5">
 
           {/* ── Planning d'aujourd'hui ── */}
-          <DashCard>
-            <div className="h-[2px] bg-gradient-to-r from-[#FF6B2B]/60 via-[#FF8F5E]/30 to-transparent" />
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.15), rgba(255,143,94,0.08))' }}>
-                    <Clock size={16} className="text-[#FF6B2B]" />
-                  </div>
-                  <div>
-                    <h2 className="text-[var(--text-primary)] text-[15px] font-semibold leading-tight">Aujourd'hui</h2>
-                    {lastRefresh && (
-                      <span className="text-[var(--text-muted)] text-[9px]">
-                        MAJ {lastRefresh.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    )}
-                  </div>
+          <div className="hero-card p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <Clock size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+                <div>
+                  <h2 className="text-[var(--text-primary)] text-[15px] font-semibold tracking-tight leading-tight">Aujourd'hui</h2>
+                  {lastRefresh && (
+                    <span className="text-[var(--text-muted)] text-[9px]">
+                      MAJ {lastRefresh.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
                 </div>
-                {todayPlanning.length > 0 && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] tabular-nums">
-                    {todayPlanning.length}
-                  </span>
-                )}
               </div>
-
-              {todayPlanning.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3 animate-breathe">
-                    <CheckCircle size={22} className="text-emerald-400/50" />
-                  </div>
-                  <p className="text-[var(--text-primary)] text-sm font-medium">Journee libre !</p>
-                  <p className="text-[var(--text-muted)] text-[11px] mt-0.5">Aucune seance ni evenement prevu</p>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {todayPlanning.map((item) => {
-                    const meta = EVENT_META[item.type] || EVENT_META.autre
-                    const IconComp = meta.icon
-                    return (
-                      <button
-                        key={`${item.type}-${item.id}`}
-                        onClick={() => item.clientId ? navigate(`/coach/clients/${item.clientId}`) : null}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-[var(--bg-surface)]/50 transition-colors text-left group relative overflow-hidden`}
-                      >
-                        {/* Left border for completed items */}
-                        {item.isCompleted && (
-                          <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full bg-emerald-400/60" />
-                        )}
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{ backgroundColor: `${meta.color}14` }}>
-                          <IconComp size={16} style={{ color: item.isCompleted ? '#22c55e' : meta.color }} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium truncate ${item.isCompleted ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
-                            {item.clientName ?? item.label}
-                          </p>
-                          <p className="text-[var(--text-muted)] text-[11px]">
-                            {meta.label}{item.label && item.clientName ? ` — ${item.label}` : ''}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
-                          {item.isCompleted && <CheckCircle size={13} className="text-emerald-400" />}
-                          <span className={`text-[11px] font-medium tabular-nums px-1.5 py-0.5 rounded-md ${
-                            item.time ? 'bg-[var(--bg-surface)] text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
-                          }`}>
-                            {item.time ?? 'Journee'}
-                          </span>
-                        </div>
-                        {item.clientId && (
-                          <div className="md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
-                            <Eye size={13} className="text-[var(--text-muted)]" />
-                          </div>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
+              {todayPlanning.length > 0 && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] tabular-nums">
+                  {todayPlanning.length}
+                </span>
               )}
-
-              <button
-                onClick={() => navigate('/coach/calendar')}
-                className="w-full mt-3 py-2.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-muted)] text-xs font-medium hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-colors flex items-center justify-center gap-2"
-              >
-                <Calendar size={12} />
-                Voir le calendrier complet
-              </button>
             </div>
-          </DashCard>
+
+            {todayPlanning.length === 0 ? (
+              <div className="text-center py-8">
+                <CheckCircle size={22} className="text-[var(--text-muted)] mx-auto mb-3 animate-breathe" strokeWidth={1.5} />
+                <p className="text-[var(--text-primary)] text-sm font-medium">Journee libre !</p>
+                <p className="text-[var(--text-muted)] text-[11px] mt-0.5">Aucune seance ni evenement prevu</p>
+              </div>
+            ) : (
+              <div className="space-y-0.5">
+                {todayPlanning.map((item) => {
+                  const meta = EVENT_META[item.type] || EVENT_META.autre
+                  const IconComp = meta.icon
+                  return (
+                    <button
+                      key={`${item.type}-${item.id}`}
+                      onClick={() => item.clientId ? navigate(`/coach/clients/${item.clientId}`) : null}
+                      className="w-full flex items-center gap-2.5 pl-3 pr-2 py-2.5 rounded-lg hover:bg-[var(--bg-surface)]/60 transition-colors text-left group relative"
+                    >
+                      {/* Barre latérale 3px — même langage que le Calendar */}
+                      <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full" style={{ backgroundColor: item.isCompleted ? '#22c55e' : meta.color }} />
+                      <IconComp size={14} strokeWidth={1.75} style={{ color: item.isCompleted ? '#22c55e' : meta.color }} className="flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium truncate ${item.isCompleted ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
+                          {item.clientName ?? item.label}
+                        </p>
+                        <p className="text-[var(--text-muted)] text-[11px] truncate">
+                          {meta.label}{item.label && item.clientName ? ` — ${item.label}` : ''}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {item.isCompleted && <CheckCircle size={13} className="text-emerald-400" />}
+                        <span className={`text-[10px] font-semibold tabular-nums px-1.5 py-0.5 rounded-md ${
+                          item.time ? 'bg-[var(--bg-surface)] text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
+                        }`}>
+                          {item.time ?? 'Journee'}
+                        </span>
+                      </div>
+                      {item.clientId && (
+                        <Eye size={12} className="text-[var(--text-muted)] md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            <button
+              onClick={() => navigate('/coach/calendar')}
+              className="w-full mt-3 py-2.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-muted)] text-xs font-medium hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-colors flex items-center justify-center gap-2"
+            >
+              <Calendar size={12} />
+              Voir le calendrier complet
+            </button>
+          </div>
 
           {/* ── Actions rapides ── */}
-          <DashCard>
-            <div className="p-5">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                  <Zap size={16} className="text-purple-400" />
-                </div>
-                <h2 className="text-[var(--text-primary)] text-[15px] font-semibold">Actions rapides</h2>
-              </div>
-              <div className="space-y-1">
-                {[
-                  { label: 'Nouveau client', icon: UserPlus, action: () => navigate('/coach/client-hub'), color: '#FF6B2B' },
-                  { label: 'Creer un programme', icon: Dumbbell, action: () => navigate('/coach/sport'), color: '#3b82f6' },
-                  { label: 'Envoyer un formulaire', icon: FileText, action: () => navigate('/coach/formulaires'), color: '#a855f7' },
-                  { label: hasFeature('statistiques') ? 'Voir les stats' : 'Stats (Pro)', icon: hasFeature('statistiques') ? TrendingUp : Lock, action: () => navigate(hasFeature('statistiques') ? '/coach/statistiques' : '/pricing'), color: hasFeature('statistiques') ? '#22c55e' : '#9ca3af' },
-                ].map((a, i) => (
-                  <button
-                    key={i}
-                    onClick={a.action}
-                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-[var(--bg-surface)]/50 transition-all text-left group"
-                  >
-                    <div
-                      className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
-                      style={{ backgroundColor: `${a.color}12` }}
-                    >
-                      <a.icon size={16} style={{ color: a.color }} className="transition-transform duration-200 group-hover:scale-110" />
-                    </div>
-                    <span className="text-[var(--text-primary)] text-sm font-medium flex-1">{a.label}</span>
-                    <ChevronRight size={13} className="text-[var(--text-muted)] md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
-                  </button>
-                ))}
-              </div>
+          <div className="hero-card p-5">
+            <div className="flex items-center gap-2.5 mb-4">
+              <Zap size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+              <h2 className="text-[var(--text-primary)] text-[15px] font-semibold tracking-tight">Actions rapides</h2>
             </div>
-          </DashCard>
+            <div className="space-y-0.5">
+              {[
+                { label: 'Nouveau client', icon: UserPlus, action: () => navigate('/coach/client-hub') },
+                { label: 'Creer un programme', icon: Dumbbell, action: () => navigate('/coach/sport') },
+                { label: 'Envoyer un formulaire', icon: FileText, action: () => navigate('/coach/formulaires') },
+                { label: hasFeature('statistiques') ? 'Voir les stats' : 'Stats (Pro)', icon: hasFeature('statistiques') ? TrendingUp : Lock, action: () => navigate(hasFeature('statistiques') ? '/coach/statistiques' : '/pricing'), locked: !hasFeature('statistiques') },
+              ].map((a, i) => (
+                <button
+                  key={i}
+                  onClick={a.action}
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-[var(--bg-surface)]/60 transition-colors text-left group"
+                >
+                  <a.icon size={15} strokeWidth={1.75} className={`flex-shrink-0 transition-colors ${a.locked ? 'text-[var(--text-muted)]' : 'text-[var(--text-muted)] group-hover:text-[#FF6B2B]'}`} />
+                  <span className="text-[var(--text-primary)] text-sm font-medium flex-1">{a.label}</span>
+                  <ChevronRight size={13} className="text-[var(--text-muted)] md:opacity-0 md:group-hover:opacity-100 transition-opacity" />
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* ── Derniers clients ── */}
-          <DashCard>
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <Users size={16} className="text-emerald-400" />
-                  </div>
-                  <h2 className="text-[var(--text-primary)] text-[15px] font-semibold">Derniers clients</h2>
-                </div>
-                <button
-                  onClick={() => navigate('/coach/client-hub')}
-                  className="text-[var(--color-primary,#FF6B2B)] text-xs font-semibold px-2 py-1 rounded-lg hover:bg-[#FF6B2B]/10 transition-colors"
-                >
-                  Tous
-                </button>
+          <div className="hero-card p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <Users size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+                <h2 className="text-[var(--text-primary)] text-[15px] font-semibold tracking-tight">Derniers clients</h2>
               </div>
-
-              {clients.length === 0 ? (
-                <div className="text-center py-6">
-                  <div className="w-12 h-12 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3 animate-breathe">
-                    <Users size={22} className="text-[var(--text-muted)]" />
-                  </div>
-                  <p className="text-[var(--text-muted)] text-xs">Aucun client</p>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {clients.slice(0, 5).map((c, i) => {
-                    const avatarColor = COULEURS_AVATAR[i % COULEURS_AVATAR.length]
-                    return (
-                      <button
-                        key={c.id}
-                        onClick={() => navigate(`/coach/clients/${c.id}`)}
-                        className="w-full flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-[var(--bg-surface)]/50 transition-colors text-left group"
-                      >
-                        {/* Avatar with gradient ring */}
-                        <div className="relative flex-shrink-0">
-                          <div className="absolute -inset-[2px] rounded-full opacity-40 group-hover:opacity-70 transition-opacity"
-                            style={{ background: `linear-gradient(135deg, ${avatarColor}, ${avatarColor}88)` }} />
-                          <div
-                            className="relative w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                            style={{ backgroundColor: avatarColor }}
-                          >
-                            {initialesFrom(c.profiles?.nom)}
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[var(--text-primary)] text-sm font-medium truncate">
-                            {c.profiles?.nom ?? c.profiles?.email}
-                          </p>
-                        </div>
-                        <span className="text-[var(--text-muted)] text-[10px] flex-shrink-0 tabular-nums">
-                          {new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                        </span>
-                        <div className="md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
-                          <ChevronRight size={12} className="text-[var(--text-muted)]" />
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
+              <button
+                onClick={() => navigate('/coach/client-hub')}
+                className="text-[var(--color-primary,#FF6B2B)] text-xs font-semibold px-2 py-1 rounded-lg hover:bg-[#FF6B2B]/10 transition-colors"
+              >
+                Tous
+              </button>
             </div>
-          </DashCard>
+
+            {clients.length === 0 ? (
+              <div className="text-center py-6">
+                <Users size={22} className="text-[var(--text-muted)] mx-auto mb-3 animate-breathe" strokeWidth={1.5} />
+                <p className="text-[var(--text-muted)] text-xs">Aucun client</p>
+              </div>
+            ) : (
+              <div className="space-y-0.5">
+                {clients.slice(0, 5).map((c, i) => {
+                  const avatarColor = COULEURS_AVATAR[i % COULEURS_AVATAR.length]
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => navigate(`/coach/clients/${c.id}`)}
+                      className="w-full flex items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-[var(--bg-surface)]/60 transition-colors text-left group"
+                    >
+                      {/* Avatar sobre (palette atténuée, plus de glow ring) */}
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                        style={{ backgroundColor: avatarColor }}
+                      >
+                        {initialesFrom(c.profiles?.nom)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[var(--text-primary)] text-sm font-medium truncate">
+                          {c.profiles?.nom ?? c.profiles?.email}
+                        </p>
+                      </div>
+                      <span className="text-[var(--text-muted)] text-[10px] flex-shrink-0 tabular-nums">
+                        {new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                      </span>
+                      <ChevronRight size={12} className="text-[var(--text-muted)] md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
