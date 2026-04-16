@@ -148,6 +148,7 @@ export default function WorkoutTrackerPage() {
       }
 
       // Enrichir avec les instructions ExerciseDB (pour exos bridgés depuis la library)
+      // Prefere instructions_fr (traduction OpenAI via /api/sync-exercises?action=translate)
       const libraryIds = exosData
         .map(ex => ex.exercices?.library_id)
         .filter(Boolean)
@@ -156,13 +157,19 @@ export default function WorkoutTrackerPage() {
       if (libraryIds.length > 0) {
         const { data: libData, error: libErr } = await supabase
           .from('exercises')
-          .select('id, instructions')
+          .select('id, instructions, instructions_fr')
           .in('id', libraryIds)
         if (libErr) {
           console.error('[Workout] Erreur fetch library instructions:', libErr.message)
         }
         const instructionsMap = Object.fromEntries(
-          (libData || []).map(ex => [ex.id, ex.instructions])
+          (libData || []).map(ex => {
+            // Prefere la version FR si elle existe ET a la meme longueur que l'EN (sinon fallback EN)
+            const en = Array.isArray(ex.instructions) ? ex.instructions : []
+            const fr = Array.isArray(ex.instructions_fr) ? ex.instructions_fr : []
+            const chosen = fr.length === en.length && fr.length > 0 ? fr : en
+            return [ex.id, chosen]
+          })
         )
         enriched = exosData.map(ex => {
           if (!ex.exercices) return ex
