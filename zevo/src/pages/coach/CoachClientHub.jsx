@@ -6,7 +6,8 @@ import { supabase } from '../../lib/supabase'
 import { sendInvitation } from '../../lib/invitations'
 import { useToast } from '../../components/ui/Toast'
 import { Modal } from '../../components/ui/Modal'
-import { calculerScoreBienEtre, couleurScore } from '../../utils/wellbeing'
+import { calculerScoreBienEtre, couleurScore, labelScore } from '../../utils/wellbeing'
+import Ring, { MultiRing } from '../../components/ui/Ring'
 import ProgramBuilder from './ProgramBuilder'
 import SessionEditorModal from './SessionEditorModal'
 import {
@@ -6166,41 +6167,46 @@ export default function CoachClientHub() {
               <ChevronLeft size={16} /> Retour
             </button>
 
-            {/* ── En-tete client — glass-card hero ── */}
-            <div className="glass-card p-5 md:p-6">
-              {/* Accent bar */}
-              <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-transparent via-[#FF6B2B] to-transparent opacity-40" />
-
+            {/* ── En-tete client — Hero avec ring score Apple Fitness ── */}
+            <div className="hero-card hero-card--accent p-5 md:p-6">
               <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  {/* Avatar with glow */}
-                  <div className="relative">
-                    {p?.avatar_url ? (
-                      <img src={p.avatar_url} alt="" className="w-14 h-14 md:w-16 md:h-16 rounded-2xl object-cover ring-2 ring-[var(--border-base)]" />
-                    ) : (
-                      <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center ring-2 ring-[#FF6B2B]/20"
-                        style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
-                        <span className="text-white text-lg md:text-xl font-bold">{initials}</span>
-                      </div>
-                    )}
-                    {/* Status dot */}
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-[var(--bg-card)] ${selectedClient?.actif ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                <div className="flex items-center gap-5">
+                  {/* Avatar entouré du ring de score (langage Fitness OS) */}
+                  <div className="relative shrink-0">
+                    <Ring
+                      value={score}
+                      max={100}
+                      size={84}
+                      thickness={5}
+                      color={couleurScore(score)}
+                      trackColor="rgba(255,255,255,0.05)"
+                      gradient
+                    >
+                      {p?.avatar_url ? (
+                        <img src={p.avatar_url} alt="" className="w-[62px] h-[62px] rounded-full object-cover" />
+                      ) : (
+                        <div className="w-[62px] h-[62px] rounded-full flex items-center justify-center"
+                          style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+                          <span className="text-white text-lg font-bold">{initials}</span>
+                        </div>
+                      )}
+                    </Ring>
+                    {/* Status dot collé au ring */}
+                    <div className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2 border-[#1E1E1E] ${selectedClient?.actif ? 'bg-emerald-500' : 'bg-red-500'}`} />
                   </div>
+
                   <div>
-                    <h2 className="text-[var(--text-primary)] text-xl md:text-2xl font-bold tracking-tight">{fullName}</h2>
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                        selectedClient?.actif
-                          ? 'bg-emerald-500/10 text-emerald-400'
-                          : 'bg-red-500/10 text-red-400'
+                    <h2 className="text-[var(--text-primary)] text-xl md:text-2xl font-bold tracking-tight leading-tight">{fullName}</h2>
+                    <div className="flex items-center gap-2.5 mt-2">
+                      <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${
+                        selectedClient?.actif ? 'text-emerald-400' : 'text-red-400'
                       }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${selectedClient?.actif ? 'bg-emerald-400' : 'bg-red-400'}`} />
                         {selectedClient?.actif ? 'Actif' : 'Inactif'}
                       </span>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{
-                        color: couleurScore(score),
-                        backgroundColor: `${couleurScore(score)}15`
-                      }}>
-                        {score}/100
+                      <span className="text-[var(--text-muted)]">·</span>
+                      <span className="text-[11px] font-semibold tabular-nums" style={{ color: couleurScore(score) }}>
+                        {score}/100 <span className="text-[var(--text-muted)] font-normal">· {labelScore(score)}</span>
                       </span>
                     </div>
                   </div>
@@ -6278,89 +6284,111 @@ export default function CoachClientHub() {
             {activeTab === 'overview' && (
               <div className="space-y-5">
 
-                {/* ── Données de suivi — 6 cartes avec sparklines ── */}
+                {/* ── KPI row — langage Fitness OS : chaque métrique a son ring de progression ── */}
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
                   {(() => {
-                    // ── Sparklines dynamiques ──
-                    const poidsSparkRaw = poids7j.map(p => p.poids)
-                    const poidsSpark = poidsSparkRaw.length >= 2 ? poidsSparkRaw : [1, 1]
-
-                    // Sommeil : heures par jour sur 7j
-                    const sommeilSparkRaw = sommeil7j.map(s => s.heures || 0)
-                    const sommeilSpark = sommeilSparkRaw.length >= 2 ? sommeilSparkRaw : [0, 0]
+                    // Stats dérivées
                     const sommeilMoy = sommeil7j.length > 0
-                      ? (sommeil7j.reduce((s, v) => s + (v.heures || 0), 0) / sommeil7j.length).toFixed(1)
+                      ? (sommeil7j.reduce((s, v) => s + (v.heures || 0), 0) / sommeil7j.length)
                       : null
-
-                    // Humeur : score par jour sur 7j
-                    const humeurSparkRaw = humeur7j.map(h => h.score || 0)
-                    const humeurSpark = humeurSparkRaw.length >= 2 ? humeurSparkRaw : [0, 0]
                     const humeurMoy = humeur7j.length > 0
-                      ? (humeur7j.reduce((s, v) => s + (v.score || 0), 0) / humeur7j.length).toFixed(1)
+                      ? (humeur7j.reduce((s, v) => s + (v.score || 0), 0) / humeur7j.length)
                       : null
 
-                    // Habitudes : ratio complété par jour
-                    const habSpark = habLogs7j.length >= 2
-                      ? habLogs7j.map(h => h.count)
-                      : habitudes.length > 0 ? [habitudeLogs.length] : [0, 0]
+                    const poidsObj = objectifs.find(o => o.type_objectif === 'poids' && o.statut === 'en_cours')
+                    const poidsPct = poidsObj ? calcProgress(poidsObj.valeur_depart, poidsObj.valeur_actuelle, poidsObj.valeur_cible) : 0
+                    const poidsVal = poidsObj ? `${poidsObj.valeur_actuelle ?? poidsObj.valeur_depart}` : ((p?.poids_actuel || p?.poids_depart) || '—')
+                    const poidsUnit = (poidsVal === '—' ? '' : 'kg')
 
-                    // Direction data-first : toutes les KPI cards en teinte neutre,
-                      // l'orange est reservé au CTA & tab actif. La hierarchie vient
-                      // de la typographie et des nombres tabulaires, pas de la couleur.
-                      return [
-                      { icon: Scale, label: 'Poids', value: (() => { const po = objectifs.find(o => o.type_objectif === 'poids' && o.statut === 'en_cours'); return po ? `${po.valeur_actuelle ?? po.valeur_depart} kg` : (p?.poids_actuel || p?.poids_depart) ? `${p.poids_actuel || p.poids_depart} kg` : '—' })(), spark: poidsSpark },
-                      { icon: Moon, label: 'Sommeil', value: sommeilMoy ? `${sommeilMoy}h` : 'N/A', sub: sommeil7j.length > 0 ? `moy. 7j (${sommeil7j.length} entrée${sommeil7j.length > 1 ? 's' : ''})` : 'Aucune donnée', spark: sommeilSpark },
-                      { icon: Smile, label: 'Humeur', value: humeurMoy ? `${humeurMoy}/10` : 'N/A', sub: humeur7j.length > 0 ? `moy. 7j (${humeur7j.length} entrée${humeur7j.length > 1 ? 's' : ''})` : 'Aucune donnée', spark: humeurSpark },
-                      { icon: Flame, label: 'Habitudes', value: habitudes.length > 0 ? `${habitudeLogs.length}/${habitudes.length}` : 'N/A', sub: habitudes.length > 0 ? "aujourd'hui" : 'Aucune assignée', spark: habSpark.length >= 2 ? habSpark : [0, 0], onClick: () => setActiveTab('habitudes') },
-                      { icon: Dumbbell, label: 'Séances', value: weekSeances.total > 0 ? `${weekSeances.total}` : '—', sub: weekSeances.total > 0 ? `${weekSeances.done} faite${weekSeances.done > 1 ? 's' : ''} sur ${weekSeances.total}` : 'cette sem.', spark: weekSeances.spark.some(v => v > 0) ? weekSeances.spark : [0, 0], onClick: () => setActiveTab('sport') },
-                      { icon: Target, label: 'Objectifs', value: `${objectifs.filter(o => o.statut === 'en_cours').length}`, sub: 'en cours', spark: [objectifs.filter(o => o.statut === 'en_cours').length], onClick: () => setActiveTab('objectifs') },
+                    const objEnCours = objectifs.filter(o => o.statut === 'en_cours').length
+                    const objTotal = objectifs.length
+                    const objAtteints = objectifs.filter(o => o.statut === 'atteint').length
+
+                    return [
+                      {
+                        icon: Scale, label: 'Poids',
+                        value: poidsVal, unit: poidsUnit,
+                        sub: poidsObj ? `objectif ${poidsObj.valeur_cible}kg` : 'pas d\'objectif',
+                        ringValue: poidsPct, ringMax: 100, ringLabel: `${poidsPct}%`,
+                        onClick: () => setActiveTab('objectifs'),
+                      },
+                      {
+                        icon: Moon, label: 'Sommeil',
+                        value: sommeilMoy ? sommeilMoy.toFixed(1) : '—', unit: sommeilMoy ? 'h' : '',
+                        sub: sommeil7j.length > 0 ? `moy. 7j · cible 8h` : 'Aucune donnée',
+                        ringValue: sommeilMoy || 0, ringMax: 8,
+                        ringLabel: sommeilMoy ? `${Math.min(100, Math.round((sommeilMoy / 8) * 100))}%` : '—',
+                      },
+                      {
+                        icon: Smile, label: 'Humeur',
+                        value: humeurMoy ? humeurMoy.toFixed(1) : '—', unit: humeurMoy ? '/10' : '',
+                        sub: humeur7j.length > 0 ? 'moy. 7j' : 'Aucune donnée',
+                        ringValue: humeurMoy || 0, ringMax: 10,
+                        ringLabel: humeurMoy ? `${Math.round((humeurMoy / 10) * 100)}%` : '—',
+                      },
+                      {
+                        icon: Flame, label: 'Habitudes',
+                        value: habitudes.length > 0 ? `${habitudeLogs.length}` : '—',
+                        unit: habitudes.length > 0 ? `/${habitudes.length}` : '',
+                        sub: habitudes.length > 0 ? "aujourd'hui" : 'Aucune assignée',
+                        ringValue: habitudeLogs.length, ringMax: Math.max(1, habitudes.length),
+                        ringLabel: habitudes.length > 0
+                          ? `${Math.round((habitudeLogs.length / habitudes.length) * 100)}%`
+                          : '—',
+                        onClick: () => setActiveTab('habitudes'),
+                      },
+                      {
+                        icon: Dumbbell, label: 'Séances',
+                        value: weekSeances.total > 0 ? `${weekSeances.done}` : '—',
+                        unit: weekSeances.total > 0 ? `/${weekSeances.total}` : '',
+                        sub: weekSeances.total > 0 ? 'cette semaine' : 'aucune prévue',
+                        ringValue: weekSeances.done, ringMax: Math.max(1, weekSeances.total),
+                        ringLabel: weekSeances.total > 0
+                          ? `${Math.round((weekSeances.done / weekSeances.total) * 100)}%`
+                          : '—',
+                        onClick: () => setActiveTab('sport'),
+                      },
+                      {
+                        icon: Target, label: 'Objectifs',
+                        value: `${objEnCours}`, unit: objTotal ? ` / ${objTotal}` : '',
+                        sub: objAtteints > 0 ? `${objAtteints} atteint${objAtteints > 1 ? 's' : ''}` : 'en cours',
+                        ringValue: objTotal > 0 ? objAtteints : 0, ringMax: Math.max(1, objTotal),
+                        ringLabel: objTotal > 0 ? `${Math.round((objAtteints / objTotal) * 100)}%` : '—',
+                        onClick: () => setActiveTab('objectifs'),
+                      },
                     ]
                   })().map((card, ci) => (
                     <div key={ci} onClick={card.onClick || undefined}
-                      className={`glass-card p-4 flex flex-col justify-between min-h-[120px] transition-all group ${card.onClick ? 'cursor-pointer hover:border-[var(--border-strong)] active:scale-[0.98]' : ''}`}>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="text-[var(--text-muted)] text-[10px] font-medium uppercase tracking-[0.12em]">{card.label}</p>
-                          <p className="text-[var(--text-primary)] text-xl font-bold mt-1.5 tabular-nums leading-none">{card.value}</p>
-                          {card.sub && <p className="text-[var(--text-muted)] text-[10px] mt-1.5">{card.sub}</p>}
+                      className={`metric-card group p-4 flex flex-col justify-between min-h-[140px] ${card.onClick ? 'metric-card--interactive' : ''}`}>
+                      {/* Ghost icon décoratif */}
+                      <card.icon size={72} strokeWidth={1.25} className="metric-card__ghost" />
+
+                      <div className="relative z-[1] flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <card.icon size={11} className="text-[var(--text-muted)] opacity-80 group-hover:text-[#FF6B2B] transition-colors" />
+                            <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-[0.14em]">{card.label}</p>
+                          </div>
+                          <div className="flex items-baseline gap-0.5">
+                            <p className="text-[var(--text-primary)] text-[26px] font-black tabular-nums tracking-tight leading-none">{card.value}</p>
+                            {card.unit && <span className="text-[var(--text-muted)] text-sm font-semibold tabular-nums">{card.unit}</span>}
+                          </div>
+                          {card.sub && <p className="text-[var(--text-muted)] text-[10px] mt-1.5 font-medium truncate">{card.sub}</p>}
                         </div>
-                        <card.icon size={14} className="text-[var(--text-muted)] opacity-60 shrink-0 mt-0.5 group-hover:opacity-100 group-hover:text-[#FF6B2B] transition-all" />
+
+                        {/* Mini Ring — indicateur visuel central du langage Fitness OS */}
+                        <Ring
+                          value={card.ringValue}
+                          max={card.ringMax}
+                          size={46}
+                          thickness={4}
+                          color="#FF6B2B"
+                          trackColor="rgba(255,255,255,0.06)"
+                          className="shrink-0"
+                        >
+                          <span className="text-[10px] font-black tabular-nums text-[var(--text-primary)]">{card.ringLabel}</span>
+                        </Ring>
                       </div>
-                      {/* Mini sparkline — teinte neutre, devient orange au survol pour signaler l'action */}
-                      <svg viewBox="0 0 100 24" className="w-full h-5 mt-2 text-[rgba(255,255,255,0.22)] group-hover:text-[#FF6B2B] transition-colors" preserveAspectRatio="none">
-                        <defs>
-                          <linearGradient id={`spark-${ci}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="currentColor" stopOpacity="0.15" />
-                            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-                          </linearGradient>
-                        </defs>
-                        {(() => {
-                          const d = card.spark
-                          // Guard: pas assez de points → ligne plate
-                          if (!d || d.length < 2) {
-                            return <path d="M0,12 L100,12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
-                          }
-                          const numD = d.map(v => (typeof v === 'number' && isFinite(v)) ? v : 0)
-                          const rawMin = Math.min(...numD)
-                          const rawMax = Math.max(...numD)
-                          const range = rawMax - rawMin
-                          // Guard: toutes les valeurs identiques → ligne plate centrée
-                          if (range === 0) {
-                            return <path d="M0,12 L100,12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                          }
-                          const min = rawMin - 0.5
-                          const max = rawMax + 0.5
-                          const pts = numD.map((v, i) => `${(i / (numD.length - 1)) * 100},${24 - ((v - min) / (max - min)) * 20}`)
-                          const lineD = `M${pts.join(' L')}`
-                          const areaD = `${lineD} L100,24 L0,24 Z`
-                          return (
-                            <>
-                              <path d={areaD} fill={`url(#spark-${ci})`} />
-                              <path d={lineD} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                            </>
-                          )
-                        })()}
-                      </svg>
                     </div>
                   ))}
                 </div>
@@ -6564,9 +6592,9 @@ export default function CoachClientHub() {
                 {/* ── Row: Nutrition + Habitudes ── */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                  {/* Carte Nutrition recap — Donut en 3 teintes d'orange (Zevo) */}
-                  <div className="glass-card p-5">
-                    <div className="flex items-center justify-between mb-4">
+                  {/* Carte Nutrition — 3 anneaux concentriques (Apple Fitness) */}
+                  <div className="hero-card p-5">
+                    <div className="flex items-center justify-between mb-5">
                       <h3 className="text-[var(--text-primary)] text-sm font-bold flex items-center gap-2.5">
                         <Apple size={14} className="text-[var(--text-muted)]" />
                         Nutrition
@@ -6575,44 +6603,55 @@ export default function CoachClientHub() {
                         Ouvrir le plan →
                       </button>
                     </div>
-                    <div className="flex items-center gap-5">
-                      {/* Donut SVG — gradient monochrome orange */}
-                      <div className="relative w-20 h-20 shrink-0">
-                        <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                          <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
-                          <circle cx="18" cy="18" r="15" fill="none" stroke="#FF6B2B" strokeWidth="3" strokeDasharray={`${(p?.proteines_cibles || 30) * 0.94} 100`} strokeLinecap="round" />
-                          <circle cx="18" cy="18" r="15" fill="none" stroke="#FF9A6C" strokeWidth="3" strokeDasharray={`${(p?.glucides_cibles || 40) * 0.94} 100`} strokeDashoffset={`-${(p?.proteines_cibles || 30) * 0.94}`} strokeLinecap="round" />
-                          <circle cx="18" cy="18" r="15" fill="none" stroke="#FFCBA4" strokeWidth="3" strokeDasharray={`${(p?.lipides_cibles || 30) * 0.94} 100`} strokeDashoffset={`-${((p?.proteines_cibles || 30) + (p?.glucides_cibles || 40)) * 0.94}`} strokeLinecap="round" />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center">
-                            <p className="text-[var(--text-primary)] text-sm font-bold tabular-nums">{planCalories || p?.calories_cibles || '—'}</p>
-                            <p className="text-[var(--text-muted)] text-[8px] uppercase tracking-wider">kcal</p>
-                          </div>
+                    <div className="flex items-center gap-6">
+                      {/* 3 rings Apple Fitness */}
+                      <MultiRing
+                        size={108}
+                        thickness={9}
+                        gap={3}
+                        rings={[
+                          { value: p?.proteines_cibles || 30, max: 100, color: '#FF6B2B' },
+                          { value: p?.glucides_cibles || 40, max: 100, color: '#FF9A6C' },
+                          { value: p?.lipides_cibles || 30, max: 100, color: '#FFCBA4' },
+                        ]}
+                      >
+                        <div className="text-center">
+                          <p className="text-[var(--text-primary)] text-base font-black tabular-nums leading-none">{planCalories || p?.calories_cibles || '—'}</p>
+                          <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-wider mt-0.5">kcal</p>
                         </div>
-                      </div>
-                      {/* Macros */}
-                      <div className="flex-1 space-y-2.5">
+                      </MultiRing>
+
+                      {/* Légende macros */}
+                      <div className="flex-1 space-y-3">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#FF6B2B' }} />
-                            <span className="text-[var(--text-muted)] text-xs">Protéines</span>
+                          <div className="flex items-center gap-2.5">
+                            <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: '#FF6B2B' }} />
+                            <div>
+                              <p className="text-[var(--text-primary)] text-xs font-semibold">Protéines</p>
+                              <p className="text-[var(--text-muted)] text-[10px]">Anneau externe</p>
+                            </div>
                           </div>
-                          <span className="text-[var(--text-primary)] text-xs font-semibold tabular-nums">{p?.proteines_cibles || 30}%</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#FF9A6C' }} />
-                            <span className="text-[var(--text-muted)] text-xs">Glucides</span>
-                          </div>
-                          <span className="text-[var(--text-primary)] text-xs font-semibold tabular-nums">{p?.glucides_cibles || 40}%</span>
+                          <span className="text-[var(--text-primary)] text-sm font-black tabular-nums">{p?.proteines_cibles || 30}%</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#FFCBA4' }} />
-                            <span className="text-[var(--text-muted)] text-xs">Lipides</span>
+                          <div className="flex items-center gap-2.5">
+                            <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: '#FF9A6C' }} />
+                            <div>
+                              <p className="text-[var(--text-primary)] text-xs font-semibold">Glucides</p>
+                              <p className="text-[var(--text-muted)] text-[10px]">Anneau médian</p>
+                            </div>
                           </div>
-                          <span className="text-[var(--text-primary)] text-xs font-semibold tabular-nums">{p?.lipides_cibles || 30}%</span>
+                          <span className="text-[var(--text-primary)] text-sm font-black tabular-nums">{p?.glucides_cibles || 40}%</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: '#FFCBA4' }} />
+                            <div>
+                              <p className="text-[var(--text-primary)] text-xs font-semibold">Lipides</p>
+                              <p className="text-[var(--text-muted)] text-[10px]">Anneau interne</p>
+                            </div>
+                          </div>
+                          <span className="text-[var(--text-primary)] text-sm font-black tabular-nums">{p?.lipides_cibles || 30}%</span>
                         </div>
                       </div>
                     </div>
