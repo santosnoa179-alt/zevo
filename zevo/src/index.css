@@ -37,8 +37,8 @@
   --shadow-card: 0 2px 12px rgba(0,0,0,0.4);
   --skeleton-from: rgba(255,255,255,0.04);
   --skeleton-via: rgba(255,255,255,0.08);
-  /* Fitness OS — surfaces adaptatives */
-  --metric-bg: linear-gradient(155deg, #1E1E1E 0%, #161616 100%);
+  /* Fitness OS — surfaces adaptatives (sombre) avec halo orange subtil */
+  --metric-bg: radial-gradient(ellipse at top right, rgba(255,107,43,0.05), transparent 55%), linear-gradient(155deg, #1E1E1E 0%, #161616 100%);
   --metric-highlight: rgba(255,255,255,0.08);
   --hero-bg: linear-gradient(165deg, #1E1E1E 0%, #171717 60%, #141414 100%);
   --hero-accent-bg: radial-gradient(ellipse at top right, rgba(255,107,43,0.06), transparent 60%), linear-gradient(165deg, #1E1E1E 0%, #171717 60%, #141414 100%);
@@ -68,8 +68,8 @@
   --shadow-card: 0 2px 12px rgba(0,0,0,0.06);
   --skeleton-from: rgba(0,0,0,0.04);
   --skeleton-via: rgba(0,0,0,0.08);
-  /* Fitness OS — surfaces adaptatives (clair) */
-  --metric-bg: linear-gradient(155deg, #FFFFFF 0%, #F6F5F2 100%);
+  /* Fitness OS — surfaces adaptatives (clair) avec halo orange subtil */
+  --metric-bg: radial-gradient(ellipse at top right, rgba(255,107,43,0.06), transparent 55%), linear-gradient(155deg, #FFFFFF 0%, #F6F5F2 100%);
   --metric-highlight: rgba(0,0,0,0.06);
   --hero-bg: linear-gradient(165deg, #FFFFFF 0%, #FAFAF7 60%, #F3F2EE 100%);
   --hero-accent-bg: radial-gradient(ellipse at top right, rgba(255,107,43,0.08), transparent 60%), linear-gradient(165deg, #FFFFFF 0%, #FAFAF7 60%, #F3F2EE 100%);
