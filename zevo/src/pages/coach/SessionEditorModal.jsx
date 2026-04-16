@@ -5,7 +5,8 @@ import { useToast } from '../../components/ui/Toast'
 import {
   X, Search, Plus, Trash2, Dumbbell, GripVertical,
   Clock, Repeat, Timer, Loader2, Check, Filter,
-  FileText, Paperclip, Upload, File, ExternalLink, StickyNote
+  FileText, Paperclip, Upload, File, ExternalLink, StickyNote,
+  SlidersHorizontal, RotateCcw,
 } from 'lucide-react'
 
 // Mappings labels (meme que dans ExerciseLibraryPage)
@@ -29,10 +30,20 @@ const EQUIPMENT_LABELS = {
   stepmill: 'Stepmill', 'stationary bike': 'Velo stationnaire',
 }
 
-const MUSCLE_GROUPS = ['Tous', 'Poitrine', 'Dos', 'Cuisses', 'Mollets', 'Epaules', 'Bras', 'Avant-bras', 'Abdos', 'Cardio', 'Cou']
+const TARGET_LABELS = {
+  abductors: 'Abducteurs', abs: 'Abdominaux', adductors: 'Adducteurs',
+  biceps: 'Biceps', calves: 'Mollets', 'cardiovascular system': 'Cardio',
+  delts: 'Deltoides', forearms: 'Avant-bras', glutes: 'Fessiers',
+  hamstrings: 'Ischio-jambiers', lats: 'Dorsaux',
+  'levator scapulae': 'Elevateur scapulaire', pectorals: 'Pectoraux',
+  quads: 'Quadriceps', 'serratus anterior': 'Dentele', spine: 'Colonne',
+  traps: 'Trapezes', triceps: 'Triceps', 'upper back': 'Haut du dos',
+}
 
 const normalizeBodyPart = (bp) => BODY_PART_LABELS[bp] || bp || ''
 const normalizeEquipment = (eq) => EQUIPMENT_LABELS[eq] || eq || ''
+const translate = (key, map) =>
+  map[key] || (key ? key.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : '—')
 
 export default function SessionEditorModal({ session, dayLabel, onSave, onClose }) {
   const { user } = useAuth()
@@ -42,7 +53,10 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
   const [allExercises, setAllExercises] = useState([])
   const [loadingLib, setLoadingLib] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [muscleFilter, setMuscleFilter] = useState('Tous')
+  // 3 filtres identiques a ExerciseLibraryPage (stockent la valeur EN brute)
+  const [bodyPartFilter, setBodyPartFilter] = useState('')
+  const [equipmentFilter, setEquipmentFilter] = useState('')
+  const [targetFilter, setTargetFilter] = useState('')
   const [showFilters, setShowFilters] = useState(false)
 
   // Left panel tab
@@ -108,11 +122,17 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
       ])
 
       // Normaliser shape: { id, nom, muscle_group, equipment, gif_url, source, library_id? }
+      // On garde AUSSI les valeurs EN brutes (body_part, equipment_raw, target_muscle)
+      // pour que les filtres "Zone / Equipement / Muscle cible" matchent exactement
+      // ceux de la page ExerciseLibraryPage.
       const libraryExos = (libraryRes.data || []).map(ex => ({
         id: ex.id, // ExerciseDB id (text)
         nom: ex.name_fr || ex.name,
-        muscle_group: normalizeBodyPart(ex.body_part),
-        equipment: normalizeEquipment(ex.equipment),
+        muscle_group: normalizeBodyPart(ex.body_part), // FR pour affichage
+        equipment: normalizeEquipment(ex.equipment),    // FR pour affichage
+        body_part: ex.body_part || '',                  // EN brut pour filtre
+        equipment_raw: ex.equipment || '',              // EN brut pour filtre
+        target_muscle: ex.target_muscle || '',          // EN brut pour filtre
         gif_url: ex.gif_url,
         source: 'library',
         library_id: ex.id, // meme valeur, utilise pour bridging
@@ -126,6 +146,9 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
           nom: ex.nom,
           muscle_group: ex.muscle_group,
           equipment: ex.equipment,
+          body_part: '',          // custom n'ont pas de body_part EN
+          equipment_raw: '',
+          target_muscle: '',
           gif_url: ex.gif_url,
           source: 'custom',
         }))
@@ -137,15 +160,39 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
     load()
   }, [user?.id])
 
+  // Derived filter options (uniquement depuis exos library, car custom n'ont pas ces champs EN)
+  const bodyParts = useMemo(
+    () => [...new Set(allExercises.map(e => e.body_part))].filter(Boolean).sort(),
+    [allExercises]
+  )
+  const equipments = useMemo(
+    () => [...new Set(allExercises.map(e => e.equipment_raw))].filter(Boolean).sort(),
+    [allExercises]
+  )
+  const targets = useMemo(
+    () => [...new Set(allExercises.map(e => e.target_muscle))].filter(Boolean).sort(),
+    [allExercises]
+  )
+
   // Filtered exercises (memoized for 1000+ items performance)
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
     return allExercises.filter(ex => {
       const matchSearch = !q || (ex.nom || '').toLowerCase().includes(q)
-      const matchMuscle = muscleFilter === 'Tous' || ex.muscle_group === muscleFilter
-      return matchSearch && matchMuscle
+      const matchBodyPart = !bodyPartFilter || ex.body_part === bodyPartFilter
+      const matchEquipment = !equipmentFilter || ex.equipment_raw === equipmentFilter
+      const matchTarget = !targetFilter || ex.target_muscle === targetFilter
+      return matchSearch && matchBodyPart && matchEquipment && matchTarget
     })
-  }, [allExercises, searchQuery, muscleFilter])
+  }, [allExercises, searchQuery, bodyPartFilter, equipmentFilter, targetFilter])
+
+  const activeFilterCount = [bodyPartFilter, equipmentFilter, targetFilter].filter(Boolean).length
+
+  const clearFilters = () => {
+    setBodyPartFilter('')
+    setEquipmentFilter('')
+    setTargetFilter('')
+  }
 
   // Add exercise to canvas
   // Si l'exo vient de la library (source: 'library'), on le bridge dans exercices pour que
@@ -523,31 +570,84 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                   />
                 </div>
                 <button onClick={() => setShowFilters(!showFilters)}
-                  className={`p-2.5 rounded-xl border transition-all ${
-                    showFilters ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/30 text-[#FF6B2B]' : 'bg-[var(--bg-base)] border-[var(--border-base)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                  }`}>
-                  <Filter size={14} />
+                  className={`relative p-2.5 rounded-xl border transition-all ${
+                    showFilters || activeFilterCount > 0
+                      ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/30 text-[#FF6B2B]'
+                      : 'bg-[var(--bg-base)] border-[var(--border-base)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  }`}
+                  title="Filtres avances">
+                  <SlidersHorizontal size={14} />
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                      {activeFilterCount}
+                    </span>
+                  )}
                 </button>
               </div>
 
-              {/* Muscle group filters */}
+              {/* Filtres avances : Zone / Equipement / Muscle cible */}
               {showFilters && (
-                <div className="flex flex-wrap gap-1.5">
-                  {MUSCLE_GROUPS.map(mg => (
-                    <button key={mg} onClick={() => setMuscleFilter(mg)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-all ${
-                        muscleFilter === mg
-                          ? 'bg-[#FF6B2B] text-white'
-                          : 'bg-[var(--bg-base)] text-[var(--text-muted)] hover:text-[var(--text-secondary)] border border-[var(--border-base)]'
-                      }`}>
-                      {mg}
-                    </button>
-                  ))}
+                <div className="rounded-xl border border-[var(--border-base)] bg-[var(--bg-base)]/50 p-3 space-y-2.5 animate-page-enter">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Filtres</p>
+                    {activeFilterCount > 0 && (
+                      <button onClick={clearFilters}
+                        className="text-[10px] font-semibold text-[#FF6B2B] hover:underline flex items-center gap-1">
+                        <RotateCcw size={10} />
+                        Reinitialiser
+                      </button>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 block">Zone du corps</label>
+                    <select
+                      value={bodyPartFilter}
+                      onChange={e => setBodyPartFilter(e.target.value)}
+                      className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-lg px-2.5 py-1.5 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+                    >
+                      <option value="">Toutes les zones</option>
+                      {bodyParts.map(bp => (
+                        <option key={bp} value={bp}>{translate(bp, BODY_PART_LABELS)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 block">Equipement</label>
+                    <select
+                      value={equipmentFilter}
+                      onChange={e => setEquipmentFilter(e.target.value)}
+                      className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-lg px-2.5 py-1.5 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+                    >
+                      <option value="">Tous les equipements</option>
+                      {equipments.map(eq => (
+                        <option key={eq} value={eq}>{translate(eq, EQUIPMENT_LABELS)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-1 block">Muscle cible</label>
+                    <select
+                      value={targetFilter}
+                      onChange={e => setTargetFilter(e.target.value)}
+                      className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-lg px-2.5 py-1.5 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/40 transition-colors"
+                    >
+                      <option value="">Tous les muscles</option>
+                      {targets.map(t => (
+                        <option key={t} value={t}>{translate(t, TARGET_LABELS)}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               )}
 
               <div className="flex items-center justify-between">
-                <p className="text-[var(--text-muted)] text-[10px]">{filtered.length} exercice{filtered.length !== 1 ? 's' : ''}</p>
+                <p className="text-[var(--text-muted)] text-[10px]">
+                  {filtered.length} exercice{filtered.length !== 1 ? 's' : ''}
+                  {activeFilterCount > 0 && ' (filtres)'}
+                </p>
                 <button onClick={() => { setIsCreatingExercise(!isCreatingExercise); setNewExName(searchQuery) }}
                   className="text-[10px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors">
                   {isCreatingExercise ? 'Annuler' : '+ Créer'}
