@@ -10,6 +10,7 @@ import {
   Calendar, Euro, Activity, Save, ChevronRight,
   BarChart3, PieChart as PieChartIcon, Heart, Zap
 } from 'lucide-react'
+import Ring from '../../components/ui/Ring'
 
 // ── Periodes de filtre ──
 const PERIODES = [
@@ -227,10 +228,10 @@ export default function CoachStatistiquesPage() {
   const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null
     return (
-      <div className="glass-card px-3 py-2 text-xs shadow-xl !rounded-lg">
-        <p className="text-[var(--text-secondary)] mb-1 relative z-10">{label}</p>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-lg px-3 py-2 text-xs shadow-xl">
+        <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-[0.14em] mb-1">{label}</p>
         {payload.map((p, i) => (
-          <p key={i} className="text-[var(--text-primary)] font-medium relative z-10">
+          <p key={i} className="text-[var(--text-primary)] font-semibold tabular-nums">
             {p.name} : {typeof p.value === 'number' && p.name?.includes('CA') ? `${p.value.toFixed(0)}€` : p.value}
           </p>
         ))}
@@ -243,40 +244,38 @@ export default function CoachStatistiquesPage() {
   // ══════════════════════════════════════
   if (loading) {
     return (
-      <div className="p-4 md:p-6 w-full max-w-[1200px] mx-auto">
+      <div className="p-4 md:p-6 w-full max-w-[1200px] mx-auto space-y-4 md:space-y-6">
         {/* Header skeleton */}
-        <div className="glass-card p-4 md:p-5 mb-4 md:mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl skel-block" />
-              <div>
-                <div className="h-5 w-32 skel-block mb-2" />
-                <div className="h-3 w-48 skel-block" />
-              </div>
+        <div className="hero-card p-4 md:p-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded skel-block" />
+            <div className="space-y-2">
+              <div className="h-5 w-32 skel-block" />
+              <div className="h-3 w-48 skel-block" />
             </div>
-            <div className="h-8 w-36 skel-block hidden md:block" />
           </div>
+          <div className="h-8 w-36 skel-block hidden md:block" />
         </div>
         {/* KPI skeletons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="glass-card p-4">
-              <div className="h-2 w-full skel-block rounded-full mb-4" />
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-3 w-16 skel-block" />
-                <div className="w-10 h-10 rounded-xl skel-block" />
+            <div key={i} className="metric-card p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-2 flex-1">
+                  <div className="h-2.5 w-20 skel-block" />
+                  <div className="h-7 w-16 skel-block" />
+                </div>
+                <div className="w-10 h-10 rounded-full skel-block" />
               </div>
-              <div className="h-7 w-20 skel-block" />
             </div>
           ))}
         </div>
         {/* Chart skeletons */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="glass-card p-4 md:p-5">
-              <div className="h-2 w-full skel-block rounded-full mb-4" />
+            <div key={i} className="hero-card p-4 md:p-5">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg skel-block" />
+                <div className="w-4 h-4 skel-block" />
                 <div className="h-4 w-36 skel-block" />
               </div>
               <div className="h-[200px] skel-block" />
@@ -293,86 +292,79 @@ export default function CoachStatistiquesPage() {
   return (
     <div className="p-4 md:p-6 w-full max-w-[1200px] mx-auto space-y-4 md:space-y-6">
 
-      {/* ── Header + Period Toggle ── */}
-      <div className="glass-card p-4 md:p-5">
-        {/* Accent bar */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E]" />
-
-        <div className="relative z-10 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center flex-shrink-0">
-              <BarChart3 size={18} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold text-[var(--text-primary)]">Statistiques</h1>
-              <p className="text-[var(--text-secondary)] text-xs mt-0.5">Vue d'ensemble de votre activite</p>
-            </div>
+      {/* ── Header + Period Toggle — Fitness OS ── */}
+      <div className="hero-card hero-card--accent p-4 md:p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <BarChart3 size={16} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+          <div>
+            <h1 className="text-lg md:text-xl font-bold tracking-tight text-[var(--text-primary)] leading-tight">Statistiques</h1>
+            <p className="text-[var(--text-muted)] text-xs mt-0.5">Vue d'ensemble de votre activité</p>
           </div>
+        </div>
 
-          {/* Period toggle pills */}
-          <div className="flex bg-[var(--bg-surface)] rounded-xl p-1 border border-[var(--border-subtle)] self-start md:self-auto">
-            {PERIODES.map(p => (
-              <button
-                key={p.id}
-                onClick={() => setPeriode(p.id)}
-                className={`px-3 py-2 md:py-1.5 rounded-lg text-xs font-medium transition-all min-w-[40px] ${
-                  periode === p.id
-                    ? 'bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white shadow-lg shadow-[#FF6B2B]/20'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
+        {/* Period toggle — segmented control neutre */}
+        <div className="flex bg-[var(--bg-surface)] rounded-xl p-1 border border-[var(--border-subtle)] self-start md:self-auto">
+          {PERIODES.map(p => (
+            <button
+              key={p.id}
+              onClick={() => setPeriode(p.id)}
+              className={`px-3 py-2 md:py-1.5 rounded-lg text-xs font-semibold transition-all min-w-[40px] ${
+                periode === p.id
+                  ? 'bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-base)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-transparent'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* ── KPI Cards ── */}
+      {/* ── KPI Cards — metric-card + mini-ring ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <KpiCard
           label="Clients actifs"
           value={kpis.clientsActifs}
           icon={Users}
-          color="#FF6B2B"
-          gradientTo="#FF8F5E"
+          ringValue={kpis.clientsActifs}
+          ringMax={Math.max(kpis.clientsActifs, objectifs.clients_cible || 20)}
         />
         <KpiCard
           label="Nouveaux"
           value={kpis.nouveaux}
           icon={TrendingUp}
-          color="#22c55e"
-          gradientTo="#4ade80"
           suffix={`/ ${joursFiltre}j`}
+          ringValue={kpis.nouveaux}
+          ringMax={Math.max(kpis.nouveaux, Math.round((objectifs.clients_cible || 20) / 4))}
         />
         <KpiCard
           label="Taux retention"
           value={`${kpis.tauxRetention}%`}
           icon={Activity}
-          color={kpis.tauxRetention >= 80 ? '#22c55e' : kpis.tauxRetention >= 60 ? '#eab308' : '#ef4444'}
-          gradientTo={kpis.tauxRetention >= 80 ? '#4ade80' : kpis.tauxRetention >= 60 ? '#facc15' : '#f87171'}
+          ringValue={kpis.tauxRetention}
+          ringMax={100}
         />
         <KpiCard
           label="CA periode"
           value={`${kpis.ca.toFixed(0)}€`}
           icon={Euro}
-          color="#FF6B2B"
-          gradientTo="#FF8F5E"
+          ringValue={kpis.ca}
+          ringMax={Math.max(kpis.ca, objectifs.ca_mensuel_cible || 2000)}
         />
       </div>
 
       {/* ── Secondary KPIs Row ── */}
       <div className="grid grid-cols-3 gap-3 md:gap-4">
-        <SecondaryKpi label="Churn" value={kpis.churn} dotColor="#ef4444" />
-        <SecondaryKpi label="Rev. moyen / client" value={`${kpis.revenuMoyen}€`} dotColor="#FF6B2B" />
-        <SecondaryKpi label="MRR projete" value={`${kpis.mrr.toFixed(0)}€`} dotColor="#22c55e" />
+        <SecondaryKpi label="Churn" value={kpis.churn} />
+        <SecondaryKpi label="Rev. moyen / client" value={`${kpis.revenuMoyen}€`} accent />
+        <SecondaryKpi label="MRR projete" value={`${kpis.mrr.toFixed(0)}€`} accent />
       </div>
 
       {/* ── Charts Grid ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
 
         {/* LineChart -- Evolution CA */}
-        <ChartCard icon={TrendingUp} title="Evolution CA (12 mois)" accentColor="#FF6B2B">
+        <ChartCard icon={TrendingUp} title="Evolution CA (12 mois)">
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={caParMois}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-base)" />
@@ -385,7 +377,7 @@ export default function CoachStatistiquesPage() {
         </ChartCard>
 
         {/* BarChart -- Nouveaux clients par mois */}
-        <ChartCard icon={Users} title="Nouveaux clients par mois" accentColor="#FF8F5E">
+        <ChartCard icon={Users} title="Nouveaux clients par mois">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={clientsParMois}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-base)" />
@@ -398,7 +390,7 @@ export default function CoachStatistiquesPage() {
         </ChartCard>
 
         {/* PieChart -- Repartition CA */}
-        <ChartCard icon={PieChartIcon} title="Repartition CA par offre" accentColor="#FF9A6C">
+        <ChartCard icon={PieChartIcon} title="Repartition CA par offre">
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie
@@ -423,7 +415,7 @@ export default function CoachStatistiquesPage() {
         </ChartCard>
 
         {/* LineChart -- Score bien-etre moyen clients (30j) */}
-        <ChartCard icon={Heart} title="Humeur moyenne clients (30j)" accentColor="#FF9A6C">
+        <ChartCard icon={Heart} title="Humeur moyenne clients (30j)">
           {bienEtreData.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-[220px] gap-3 animate-breathe">
               <div className="w-12 h-12 rounded-2xl bg-[var(--bg-surface)] flex items-center justify-center">
@@ -446,40 +438,34 @@ export default function CoachStatistiquesPage() {
       </div>
 
       {/* ── Section Objectifs Coach ── */}
-      <div className="glass-card p-4 md:p-5">
-        {/* Accent bar */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E]" />
-
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-5 md:mb-6">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF6B2B]/15 to-[#FF8F5E]/10 flex items-center justify-center">
-                <Target size={16} className="text-[#FF6B2B]" />
-              </div>
-              <h3 className="text-[var(--text-primary)] font-semibold text-sm md:text-base">
-                Mes objectifs business
-              </h3>
-            </div>
-            {!editObjectifs ? (
-              <button
-                onClick={() => setEditObjectifs(true)}
-                className="text-xs text-[var(--text-muted)] hover:text-[#FF6B2B] transition-colors p-2 -m-2"
-              >
-                Modifier
-              </button>
-            ) : (
-              <button
-                onClick={sauvegarderObjectifs}
-                disabled={savingObj}
-                className="flex items-center gap-1.5 text-xs bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white px-3 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-[#FF6B2B]/20 transition-all active:scale-95"
-              >
-                <Save size={12} />
-                {savingObj ? 'Enregistrement...' : 'Enregistrer'}
-              </button>
-            )}
+      <div className="hero-card p-4 md:p-5">
+        <div className="flex items-center justify-between mb-5 md:mb-6">
+          <div className="flex items-center gap-2.5">
+            <Target size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+            <h3 className="text-[var(--text-primary)] font-semibold tracking-tight text-sm md:text-base">
+              Mes objectifs business
+            </h3>
           </div>
+          {!editObjectifs ? (
+            <button
+              onClick={() => setEditObjectifs(true)}
+              className="text-xs text-[var(--text-muted)] hover:text-[#FF6B2B] transition-colors p-2 -m-2"
+            >
+              Modifier
+            </button>
+          ) : (
+            <button
+              onClick={sauvegarderObjectifs}
+              disabled={savingObj}
+              className="flex items-center gap-1.5 text-xs bg-[#FF6B2B] hover:bg-[#FF6B2B]/90 text-white px-3 py-2 rounded-lg font-semibold transition-all active:scale-95 disabled:opacity-50"
+            >
+              <Save size={12} />
+              {savingObj ? 'Enregistrement...' : 'Enregistrer'}
+            </button>
+          )}
+        </div>
 
-          <div className="space-y-5">
+        <div className="space-y-5">
             {/* Objectif clients */}
             <ObjectifBar
               label="Clients actifs"
@@ -510,53 +496,42 @@ export default function CoachStatistiquesPage() {
             />
           </div>
 
-          {/* Projection */}
-          <div className="mt-5 md:mt-6 glass-card !rounded-xl border-l-2 !border-l-[#FF6B2B] p-3.5 md:p-4 flex items-center gap-3">
-            <div className="relative z-10 flex items-center gap-3 w-full">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF6B2B]/15 to-[#FF8F5E]/10 flex items-center justify-center flex-shrink-0">
-                <Zap size={14} className="text-[#FF6B2B]" />
-              </div>
-              <p className="text-[var(--text-secondary)] text-xs md:text-sm">
-                <span className="text-[var(--text-primary)] font-medium">Projection : </span>
-                {projectionClients()}
-              </p>
-            </div>
-          </div>
+        {/* Projection */}
+        <div className="mt-5 md:mt-6 relative bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl p-3.5 md:p-4 flex items-center gap-3">
+          <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-[#FF6B2B]" />
+          <Zap size={14} className="text-[#FF6B2B] flex-shrink-0 ml-1" strokeWidth={1.75} />
+          <p className="text-[var(--text-secondary)] text-xs md:text-sm">
+            <span className="text-[var(--text-primary)] font-semibold">Projection : </span>
+            {projectionClients()}
+          </p>
         </div>
       </div>
 
       {/* ── Tableau Performances ── */}
-      <div className="glass-card p-4 md:p-5">
-        {/* Accent bar */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E]" />
+      <div className="hero-card p-4 md:p-5">
+        <div className="flex items-center gap-2.5 mb-4">
+          <Award size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+          <h3 className="text-[var(--text-primary)] font-semibold tracking-tight text-sm md:text-base">
+            Performances
+          </h3>
+        </div>
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF6B2B]/15 to-[#FF8F5E]/10 flex items-center justify-center">
-              <Award size={16} className="text-[#FF6B2B]" />
-            </div>
-            <h3 className="text-[var(--text-primary)] font-semibold text-sm md:text-base">
-              Performances
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <PerfCell
-              label="Client le plus engage"
-              value={clients.filter(c => c.actif)[0]?.profiles?.nom || '--'}
-            />
-            <PerfCell
-              label="Meilleur mois (nouveaux clients)"
-              value={(() => {
-                const best = clientsParMois.reduce((max, m) => m.count > max.count ? m : max, { mois: '--', count: 0 })
-                return best.count > 0 ? `${best.mois} (${best.count})` : '--'
-              })()}
-            />
-            <PerfCell
-              label="Total clients historique"
-              value={clients.length}
-            />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <PerfCell
+            label="Client le plus engage"
+            value={clients.filter(c => c.actif)[0]?.profiles?.nom || '--'}
+          />
+          <PerfCell
+            label="Meilleur mois (nouveaux clients)"
+            value={(() => {
+              const best = clientsParMois.reduce((max, m) => m.count > max.count ? m : max, { mois: '--', count: 0 })
+              return best.count > 0 ? `${best.mois} (${best.count})` : '--'
+            })()}
+          />
+          <PerfCell
+            label="Total clients historique"
+            value={clients.length}
+          />
         </div>
       </div>
     </div>
@@ -567,80 +542,69 @@ export default function CoachStatistiquesPage() {
 // Composants utilitaires
 // ══════════════════════════════════════
 
-function KpiCard({ label, value, icon: Icon, color, gradientTo, suffix }) {
+function KpiCard({ label, value, icon: Icon, suffix, ringValue, ringMax = 100 }) {
   return (
-    <div className="glass-card p-4">
-      {/* Gradient accent bar at top */}
-      <div
-        className="absolute top-0 left-0 right-0 h-[2px]"
-        style={{ background: `linear-gradient(to right, ${color}, ${gradientTo || color})` }}
-      />
-
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[var(--text-muted)] text-[11px] md:text-xs leading-tight">{label}</span>
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: `linear-gradient(135deg, ${color}18, ${color}08)` }}
-          >
-            <Icon size={18} style={{ color }} />
+    <div className="metric-card p-4 min-h-[110px]">
+      <div className="relative z-[1] flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Icon size={11} className="text-[var(--text-muted)]" />
+            <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-[0.14em] truncate">{label}</p>
           </div>
+          <p className="text-[var(--text-primary)] text-[24px] md:text-[26px] font-black tabular-nums tracking-tight leading-none">
+            {value}
+            {suffix && <span className="text-[var(--text-muted)] text-xs font-semibold tabular-nums ml-1">{suffix}</span>}
+          </p>
         </div>
-        <p className="text-[var(--text-primary)] text-xl md:text-2xl font-bold tracking-tight">
-          {value}
-          {suffix && <span className="text-[var(--text-muted)] text-[10px] md:text-xs font-normal ml-1">{suffix}</span>}
-        </p>
+        {typeof ringValue === 'number' && (
+          <Ring
+            value={ringValue}
+            max={ringMax}
+            size={42}
+            thickness={4}
+            color="#FF6B2B"
+            trackColor="var(--ring-track)"
+            className="shrink-0"
+          >
+            <span className="text-[9px] font-black tabular-nums text-[var(--text-primary)]">{Math.min(100, Math.round((ringValue / ringMax) * 100))}%</span>
+          </Ring>
+        )}
       </div>
     </div>
   )
 }
 
-function SecondaryKpi({ label, value, dotColor }) {
+function SecondaryKpi({ label, value, accent }) {
   return (
-    <div className="glass-card p-3 md:p-4">
-      <div className="relative z-10">
+    <div className="metric-card p-3 md:p-4">
+      <div className="relative z-[1]">
         <div className="flex items-center gap-1.5 mb-1.5">
-          <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: dotColor }} />
-          <p className="text-[var(--text-muted)] text-[10px] md:text-xs truncate">{label}</p>
+          {accent && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-[#FF6B2B]" />}
+          <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-[0.14em] truncate">{label}</p>
         </div>
-        <p className="text-[var(--text-primary)] text-lg md:text-xl font-bold">{value}</p>
+        <p className="text-[var(--text-primary)] text-lg md:text-xl font-black tabular-nums tracking-tight">{value}</p>
       </div>
     </div>
   )
 }
 
-function ChartCard({ icon: Icon, title, accentColor, children }) {
+function ChartCard({ icon: Icon, title, children }) {
   return (
-    <div className="glass-card p-4 md:p-5">
-      {/* Accent bar */}
-      <div
-        className="absolute top-0 left-0 right-0 h-[2px]"
-        style={{ background: `linear-gradient(to right, ${accentColor}, ${accentColor}88)` }}
-      />
-
-      <div className="relative z-10">
-        <h3 className="text-[var(--text-primary)] font-semibold text-xs md:text-sm mb-4 flex items-center gap-2">
-          <div
-            className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: `linear-gradient(135deg, ${accentColor}18, ${accentColor}08)` }}
-          >
-            <Icon size={14} style={{ color: accentColor }} />
-          </div>
-          {title}
-        </h3>
-        {children}
-      </div>
+    <div className="hero-card p-4 md:p-5">
+      <h3 className="text-[var(--text-primary)] font-semibold tracking-tight text-xs md:text-sm mb-4 flex items-center gap-2">
+        <Icon size={13} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+        {title}
+      </h3>
+      {children}
     </div>
   )
 }
 
 function PerfCell({ label, value }) {
   return (
-    <div className="glass-card !rounded-xl p-3.5 md:p-4">
-      <div className="relative z-10">
-        <p className="text-[var(--text-muted)] text-[10px] md:text-xs mb-1.5">{label}</p>
-        <p className="text-[var(--text-primary)] font-medium text-sm">{value}</p>
-      </div>
+    <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl p-3.5 md:p-4">
+      <p className="text-[var(--text-muted)] text-[10px] font-semibold uppercase tracking-[0.14em] mb-1.5 truncate">{label}</p>
+      <p className="text-[var(--text-primary)] font-semibold text-sm truncate">{value}</p>
     </div>
   )
 }
