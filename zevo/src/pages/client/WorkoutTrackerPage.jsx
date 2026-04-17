@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import {
-  X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Check, Play, Pause,
+  X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Check, CheckCircle2, Play, Pause,
   Dumbbell, Timer, Trophy, Loader2, AlertCircle, RotateCcw, StickyNote, Info
 } from 'lucide-react'
 
