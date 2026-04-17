@@ -5298,6 +5298,8 @@ function NutritionTab({ coachId, clientId, clientName }) {
   const [assignedPlan, setAssignedPlan] = useState(null)
   const [assignedRepas, setAssignedRepas] = useState([])
   const [loadingAssigned, setLoadingAssigned] = useState(true)
+  // Programme Pro assigné (nutrition_programmes)
+  const [nutritionProAssigne, setNutritionProAssigne] = useState(null)
   const [historyPlans, setHistoryPlans] = useState([])
   const [planDocuments, setPlanDocuments] = useState([])
   const [activating, setActivating] = useState(null)
@@ -5441,6 +5443,27 @@ function NutritionTab({ coachId, clientId, clientName }) {
     setAssigning(false)
   }
 
+  // ── Load programme Pro nutrition assigné (nutrition_programmes) ──
+  useEffect(() => {
+    if (!coachId || !clientId) return
+    ;(async () => {
+      try {
+        const { data } = await supabase
+          .from('nutrition_programmes')
+          .select('id, nom, description, duree_semaines, objectif, is_active, date_debut')
+          .eq('client_id', clientId)
+          .eq('coach_id', coachId)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (data) setNutritionProAssigne(data)
+      } catch (e) {
+        console.warn('[NutritionTab] nutrition_programmes indisponible:', e)
+      }
+    })()
+  }, [coachId, clientId])
+
   // ── Load assigned plan (from NutritionBuilder) ──
   useEffect(() => {
     if (!coachId || !clientId) return
@@ -5560,6 +5583,34 @@ function NutritionTab({ coachId, clientId, clientName }) {
           Gérer les plans →
         </a>
       </div>
+
+      {/* ── Programme Pro nutrition assigné (nutrition_programmes) ── */}
+      {nutritionProAssigne && (
+        <button onClick={() => window.location.href = `/coach/nutrition/programme/${nutritionProAssigne.id}`}
+          className="w-full text-left glass-card rounded-2xl p-4 relative overflow-hidden hover:bg-[var(--bg-surface)]/30 transition-colors">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                <Layers size={18} className="text-[#FF6B2B]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-[var(--text-primary)] text-sm font-bold truncate">{nutritionProAssigne.nom}</h4>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                </div>
+                <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
+                  Programme {nutritionProAssigne.duree_semaines} sem.{nutritionProAssigne.objectif ? ` · ${nutritionProAssigne.objectif}` : ''}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">Actif</span>
+              <ChevronRight size={14} className="text-[var(--text-muted)]" />
+            </div>
+          </div>
+        </button>
+      )}
 
       {/* ═══ Plan assigné au client ═══ */}
       {loadingAssigned ? (
