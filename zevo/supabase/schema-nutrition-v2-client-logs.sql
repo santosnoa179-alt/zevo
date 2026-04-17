@@ -62,14 +62,15 @@ IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'nutri_logs_client_d
     USING (client_id = auth.uid());
 END IF;
 
--- Coach : SELECT les logs de ses propres clients (via profiles.coach_id ou nutrition_programmes.coach_id)
+-- Coach : SELECT les logs de ses propres clients
+-- La relation coach↔client vit dans la table `clients(id, coach_id)`.
 IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'nutri_logs_coach_select') THEN
   CREATE POLICY nutri_logs_coach_select ON nutrition_client_logs FOR SELECT TO authenticated
     USING (
       EXISTS (
-        SELECT 1 FROM profiles p
-        WHERE p.id = nutrition_client_logs.client_id
-          AND p.coach_id = auth.uid()
+        SELECT 1 FROM clients c
+        WHERE c.id = nutrition_client_logs.client_id
+          AND c.coach_id = auth.uid()
       )
       OR EXISTS (
         SELECT 1 FROM nutrition_programmes np
