@@ -11,14 +11,17 @@ import {
 } from 'lucide-react'
 
 // ── Types & Config ──
+// ── Langage Fitness OS : palette atténuée slate + orange pour différencier ──
+// L'orange est réservé aux éléments actifs/CTA. Les types restent distinguables
+// via l'icône uniquement (plus besoin de couleur saturée).
 const TYPE_CONFIG = {
-  pdf:      { icon: FileText,  color: '#EF4444', label: 'PDF' },
-  video:    { icon: Video,     color: '#8B5CF6', label: 'Vidéo' },
-  lien:     { icon: Link2,     color: '#3B82F6', label: 'Lien' },
-  image:    { icon: Image,     color: '#10B981', label: 'Image' },
-  guide:    { icon: BookOpen,  color: '#F59E0B', label: 'Guide' },
-  document: { icon: FileText,  color: '#6366F1', label: 'Document' },
-  autre:    { icon: FileText,  color: '#64748b', label: 'Autre' },
+  pdf:      { icon: FileText,  color: '#FF6B2B', label: 'PDF' },        // orange = contenu principal
+  video:    { icon: Video,     color: '#64748b', label: 'Vidéo' },      // slate
+  lien:     { icon: Link2,     color: '#9ca3af', label: 'Lien' },       // gris
+  image:    { icon: Image,     color: '#64748b', label: 'Image' },      // slate
+  guide:    { icon: BookOpen,  color: '#FF9A6C', label: 'Guide' },      // orange clair
+  document: { icon: FileText,  color: '#64748b', label: 'Document' },   // slate
+  autre:    { icon: FileText,  color: '#9ca3af', label: 'Autre' },      // gris
 }
 const TYPES = Object.keys(TYPE_CONFIG)
 const CATEGORIES = ['Nutrition', 'Sport', 'Mindset', 'Santé', 'Admin', 'Autre']
@@ -346,22 +349,22 @@ export default function CoachBibliothequePage() {
     <div className="p-4 md:p-6 w-full" onClick={() => setContextMenu(null)}>
 
       {/* ═══════ HEADER ═══════ */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight flex items-center gap-3">
-            <BookOpen size={22} className="text-[#FF6B2B]" />
-            Bibliothèque
-          </h1>
-          <p className="text-[var(--text-muted)] text-sm mt-0.5">Tous vos fichiers et ressources en un seul endroit</p>
+      <div className="hero-card hero-card--accent p-4 md:p-5 mb-5 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <BookOpen size={18} className="text-[var(--text-muted)] shrink-0" strokeWidth={1.75} />
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight leading-tight">Bibliothèque</h1>
+            <p className="text-[var(--text-muted)] text-xs md:text-sm mt-0.5">Tous vos fichiers et ressources en un seul endroit</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setModalNewFolder(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--border-base)] text-[var(--text-secondary)] text-xs font-medium hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
-            <FolderPlus size={14} /> Dossier
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--border-base)] text-[var(--text-secondary)] text-xs font-semibold hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
+            <FolderPlus size={13} /> Dossier
           </button>
           <button onClick={() => setModalAdd(true)}
-            className="flex items-center gap-2 bg-[#FF6B2B] text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-all hover:shadow-lg hover:shadow-[#FF6B2B]/20">
-            <Plus size={16} /> Ajouter
+            className="flex items-center gap-2 bg-[#FF6B2B] hover:bg-[#FF6B2B]/90 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95">
+            <Plus size={15} /> Ajouter
           </button>
         </div>
       </div>
@@ -369,22 +372,23 @@ export default function CoachBibliothequePage() {
       {/* ═══════ TOOLBAR : Sections + Breadcrumbs + Search + View ═══════ */}
       <div className="space-y-3 mb-5">
 
-        {/* Smart sections */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+        {/* Smart sections — segmented control neutre */}
+        <div className="flex items-center bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl p-1 w-fit">
           {SECTIONS.map(s => {
             const Ic = s.icon
             const count = s.id === 'all' ? totalCount : s.id === 'shared' ? sharedCount : s.id === 'private' ? privateCount : ressources.filter(r => r.favori).length
+            const active = activeSection === s.id && !currentDossier
             return (
               <button key={s.id}
                 onClick={() => { setActiveSection(s.id); setCurrentDossier(null); setBreadcrumbs([]) }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  activeSection === s.id && !currentDossier
-                    ? 'bg-[#FF6B2B] text-white shadow-sm'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  active
+                    ? 'bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-base)]'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-transparent'
                 }`}>
-                <Ic size={13} />
+                <Ic size={12} strokeWidth={1.75} />
                 {s.label}
-                <span className={`text-[10px] tabular-nums ${activeSection === s.id && !currentDossier ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}`}>{count}</span>
+                <span className={`text-[10px] tabular-nums font-bold ${active ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>{count}</span>
               </button>
             )
           })}
@@ -467,20 +471,18 @@ export default function CoachBibliothequePage() {
         </div>
       ) : filteredDossiers.length === 0 && filtered.length === 0 ? (
         /* Empty state */
-        <div className="bg-[var(--bg-surface)] rounded-2xl border border-dashed border-[var(--border-base)] p-14 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/[0.06] flex items-center justify-center mx-auto mb-5">
-            <BookOpen size={28} className="text-[#FF6B2B]/40" />
-          </div>
-          <p className="text-[var(--text-muted)] text-sm font-medium">
+        <div className="hero-card border-dashed p-14 text-center">
+          <BookOpen size={28} className="text-[var(--text-muted)] mx-auto mb-4 animate-breathe" strokeWidth={1.5} />
+          <p className="text-[var(--text-primary)] text-sm font-bold tracking-tight mb-1">
             {ressources.length === 0 ? 'Votre bibliothèque est vide' : 'Aucun résultat'}
           </p>
-          <p className="text-[var(--text-muted)] text-xs mt-1.5 mb-5">
+          <p className="text-[var(--text-muted)] text-xs mb-5">
             {ressources.length === 0 ? 'Ajoutez des PDF, vidéos, liens ou guides pour vos clients' : 'Modifiez vos filtres'}
           </p>
           {ressources.length === 0 && (
             <button onClick={() => setModalAdd(true)}
-              className="inline-flex items-center gap-2 bg-[#FF6B2B] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-colors">
-              <Plus size={16} /> Ajouter une ressource
+              className="inline-flex items-center gap-2 bg-[#FF6B2B] hover:bg-[#FF6B2B]/90 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95">
+              <Plus size={15} /> Ajouter une ressource
             </button>
           )}
         </div>
@@ -495,11 +497,9 @@ export default function CoachBibliothequePage() {
                 {filteredDossiers.map(folder => (
                   <button key={folder.id} onClick={() => naviguerDossier(folder)}
                     onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'folder', item: folder, x: e.clientX, y: e.clientY }) }}
-                    className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl p-4 hover:border-[#FF6B2B]/30 hover:-translate-y-0.5 transition-all text-left group">
-                    <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center mb-3">
-                      <FolderOpen size={18} className="text-[#FF6B2B]" />
-                    </div>
-                    <p className="text-[var(--text-primary)] text-sm font-medium truncate">{folder.name}</p>
+                    className="hero-card p-4 hover:border-[#FF6B2B]/30 transition-colors text-left group">
+                    <FolderOpen size={18} className="text-[#FF6B2B] mb-3" strokeWidth={1.75} />
+                    <p className="text-[var(--text-primary)] text-sm font-bold truncate tracking-tight">{folder.name}</p>
                   </button>
                 ))}
               </div>
@@ -519,7 +519,10 @@ export default function CoachBibliothequePage() {
                   return (
                     <div key={res.id}
                       onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'resource', item: res, x: e.clientX, y: e.clientY }) }}
-                      className="bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-base)] hover:border-[var(--border-base)] transition-all group relative">
+                      className="relative group hero-card hover:border-[#FF6B2B]/30 transition-colors">
+
+                      {/* Barre latérale 3px (langage unifié) */}
+                      <span className="absolute left-0 top-4 bottom-4 w-[3px] rounded-r-full" style={{ backgroundColor: config.color }} />
 
                       {/* Favori star */}
                       {res.favori && (
@@ -534,10 +537,7 @@ export default function CoachBibliothequePage() {
                         disabled={!res.url}
                         className="w-full text-left p-5 pb-0 cursor-pointer">
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                            style={{ backgroundColor: `${config.color}15` }}>
-                            <Icon size={18} style={{ color: config.color }} />
-                          </div>
+                          <Icon size={16} strokeWidth={1.75} style={{ color: config.color }} className="shrink-0 mt-0.5" />
                           <div className="flex-1 min-w-0">
                             <h3 className="text-[var(--text-primary)] font-medium text-sm truncate group-hover:text-white transition-colors">
                               {res.titre}
@@ -592,19 +592,17 @@ export default function CoachBibliothequePage() {
         </div>
       ) : (
         /* ── VUE LISTE ── */
-        <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-2xl overflow-hidden">
+        <div className="hero-card overflow-hidden">
           {/* Folders in list */}
           {filteredDossiers.map(folder => (
             <div key={folder.id}
               onClick={() => naviguerDossier(folder)}
               onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'folder', item: folder, x: e.clientX, y: e.clientY }) }}
-              className="flex items-center gap-4 px-5 py-3 border-b border-[var(--border-base)] hover:bg-[var(--bg-surface)] transition-colors cursor-pointer group">
-              <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                <Folder size={16} className="text-[#FF6B2B]" />
-              </div>
-              <p className="text-[var(--text-primary)] text-sm font-medium flex-1 truncate">{folder.name}</p>
-              <span className="text-[var(--text-muted)] text-xs">Dossier</span>
-              <ChevronRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--text-muted)]" />
+              className="flex items-center gap-3 pl-5 pr-4 py-3 border-b border-[var(--border-base)] hover:bg-[var(--bg-surface)] transition-colors cursor-pointer group">
+              <Folder size={15} className="text-[#FF6B2B] flex-shrink-0" strokeWidth={1.75} />
+              <p className="text-[var(--text-primary)] text-sm font-semibold flex-1 truncate">{folder.name}</p>
+              <span className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold">Dossier</span>
+              <ChevronRight size={13} className="text-[var(--text-muted)]" />
             </div>
           ))}
 
@@ -617,10 +615,9 @@ export default function CoachBibliothequePage() {
             return (
               <div key={res.id}
                 onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ type: 'resource', item: res, x: e.clientX, y: e.clientY }) }}
-                className="group flex items-center gap-4 px-5 py-3 border-b border-[var(--border-base)] last:border-b-0 hover:bg-[var(--bg-surface)] transition-colors">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${config.color}15` }}>
-                  <Icon size={16} style={{ color: config.color }} />
-                </div>
+                className="group relative flex items-center gap-3 pl-5 pr-4 py-3 border-b border-[var(--border-base)] last:border-b-0 hover:bg-[var(--bg-surface)] transition-colors">
+                <span className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full" style={{ backgroundColor: config.color }} />
+                <Icon size={15} strokeWidth={1.75} style={{ color: config.color }} className="flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <a href={res.url} target="_blank" rel="noopener noreferrer"
                     className="text-[var(--text-primary)] text-sm font-medium truncate block hover:text-[#FF6B2B] transition-colors">{res.titre}</a>

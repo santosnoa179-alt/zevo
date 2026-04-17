@@ -189,15 +189,13 @@ export default function CoachParametresPage() {
   }
 
   return (
-    <div className="p-6 w-full max-w-2xl space-y-8">
+    <div className="p-4 md:p-6 w-full max-w-3xl mx-auto space-y-5">
       {/* Banner succès Stripe Checkout */}
       {checkoutSuccess && (
-        <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-5 flex items-start gap-4 animate-in fade-in">
-          <div className="p-2 rounded-xl bg-green-500/20 flex-shrink-0">
-            <PartyPopper size={22} className="text-green-400" />
-          </div>
+        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 flex items-start gap-4 animate-in fade-in">
+          <PartyPopper size={20} className="text-emerald-400 flex-shrink-0 mt-0.5" strokeWidth={1.75} />
           <div>
-            <p className="text-green-400 font-semibold text-sm">
+            <p className="text-emerald-400 font-bold text-sm tracking-tight">
               Paiement confirmé — Bienvenue sur le plan {checkoutPlan ? checkoutPlan.charAt(0).toUpperCase() + checkoutPlan.slice(1) : ''} !
             </p>
             <p className="text-[var(--text-muted)] text-xs mt-1">
@@ -208,18 +206,19 @@ export default function CoachParametresPage() {
       )}
 
       {/* Titre */}
-      <div>
-        <h1 className="text-[var(--text-primary)] text-2xl font-bold mb-1">Paramètres</h1>
-        <p className="text-[var(--text-muted)] text-sm">Gérez votre compte, modules et abonnement</p>
+      <div className="hero-card hero-card--accent p-4 md:p-5 flex items-center gap-3">
+        <User size={18} className="text-[var(--text-muted)] shrink-0" strokeWidth={1.75} />
+        <div>
+          <h1 className="text-[var(--text-primary)] text-xl md:text-2xl font-bold tracking-tight leading-tight">Paramètres</h1>
+          <p className="text-[var(--text-muted)] text-xs md:text-sm mt-0.5">Gérez votre compte, modules et abonnement</p>
+        </div>
       </div>
 
       {/* ── Section Profil Coach ── */}
-      <section className="bg-[var(--bg-card)] rounded-2xl p-6 space-y-5">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="p-2 rounded-lg bg-[#FF6B2B]/10">
-            <User size={18} className="text-[#FF6B2B]" />
-          </div>
-          <h2 className="text-[var(--text-primary)] font-semibold text-lg">Profil</h2>
+      <section className="hero-card p-5 md:p-6 space-y-5">
+        <div className="flex items-center gap-2.5 mb-1">
+          <User size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+          <h2 className="text-[var(--text-primary)] font-bold text-base tracking-tight">Profil</h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -260,13 +259,11 @@ export default function CoachParametresPage() {
       </section>
 
       {/* ── Section Message de bienvenue ── */}
-      <section className="bg-[var(--bg-card)] rounded-2xl p-6 space-y-4">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="p-2 rounded-lg bg-blue-500/10">
-            <Bell size={18} className="text-blue-400" />
-          </div>
+      <section className="hero-card p-5 md:p-6 space-y-4">
+        <div className="flex items-center gap-2.5 mb-1">
+          <Bell size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
           <div>
-            <h2 className="text-[var(--text-primary)] font-semibold text-lg">Message de bienvenue</h2>
+            <h2 className="text-[var(--text-primary)] font-bold text-base tracking-tight">Message de bienvenue</h2>
             <p className="text-[var(--text-muted)] text-xs">Affiché au 1er login de chaque nouveau client</p>
           </div>
         </div>
@@ -280,13 +277,11 @@ export default function CoachParametresPage() {
       </section>
 
       {/* ── Section Modules ── */}
-      <section className="bg-[var(--bg-card)] rounded-2xl p-6 space-y-4">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="p-2 rounded-lg bg-purple-500/10">
-            <Shield size={18} className="text-purple-400" />
-          </div>
+      <section className="hero-card p-5 md:p-6 space-y-4">
+        <div className="flex items-center gap-2.5 mb-1">
+          <Shield size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
           <div>
-            <h2 className="text-[var(--text-primary)] font-semibold text-lg">Modules activés</h2>
+            <h2 className="text-[var(--text-primary)] font-bold text-base tracking-tight">Modules activés</h2>
             <p className="text-[var(--text-muted)] text-xs">Active ou désactive les modules visibles par tes clients</p>
           </div>
         </div>
@@ -321,13 +316,11 @@ export default function CoachParametresPage() {
       </section>
 
       {/* ── Section Paiements en ligne (Stripe Connect) ── */}
-      <section className="bg-[var(--bg-card)] rounded-2xl p-6 space-y-4">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="p-2 rounded-lg bg-[#635BFF]/10">
-            <CreditCard size={18} className="text-[#635BFF]" />
-          </div>
+      <section className="hero-card p-5 md:p-6 space-y-4">
+        <div className="flex items-center gap-2.5 mb-1">
+          <CreditCard size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
           <div>
-            <h2 className="text-[var(--text-primary)] font-semibold text-lg">Paiements en ligne</h2>
+            <h2 className="text-[var(--text-primary)] font-bold text-base tracking-tight">Paiements en ligne</h2>
             <p className="text-[var(--text-muted)] text-xs">Connectez votre compte Stripe pour recevoir les paiements</p>
           </div>
         </div>
@@ -357,12 +350,10 @@ export default function CoachParametresPage() {
       </section>
 
       {/* ── Section Abonnement ── */}
-      <section className="bg-[var(--bg-card)] rounded-2xl p-6 space-y-4">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="p-2 rounded-lg bg-amber-500/10">
-            <CreditCard size={18} className="text-amber-400" />
-          </div>
-          <h2 className="text-[var(--text-primary)] font-semibold text-lg">Abonnement</h2>
+      <section className="hero-card p-5 md:p-6 space-y-4">
+        <div className="flex items-center gap-2.5 mb-1">
+          <CreditCard size={14} className="text-[var(--text-muted)]" strokeWidth={1.75} />
+          <h2 className="text-[var(--text-primary)] font-bold text-base tracking-tight">Abonnement</h2>
         </div>
 
         <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-surface)]/50">

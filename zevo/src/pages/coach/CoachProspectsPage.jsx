@@ -32,7 +32,7 @@ function ProspectCard({ prospect, onDragStart, onDelete, columnColor }) {
         e.dataTransfer.effectAllowed = 'move'
         onDragStart(prospect.id)
       }}
-      className="glass-card group cursor-grab active:cursor-grabbing transition-all hover:border-[var(--border-subtle)]"
+      className="hero-card group cursor-grab active:cursor-grabbing transition-all hover:border-[var(--border-subtle)]"
       style={{ borderLeft: `3px solid ${columnColor}` }}
     >
       <div className="p-3 flex items-start gap-2.5">
@@ -44,7 +44,7 @@ function ProspectCard({ prospect, onDragStart, onDelete, columnColor }) {
         {/* Avatar */}
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}
+          style={{ background: '#FF6B2B' }}
         >
           <span className="text-white text-[10px] font-bold tracking-wide">{initials}</span>
         </div>
@@ -113,7 +113,7 @@ function KanbanColumn({ column, prospects, onDrop, onNewClick, onDragStart, onDe
       }}
     >
       {/* En-tête colonne */}
-      <div className="glass-card mb-3">
+      <div className="hero-card mb-3">
         <div className="h-[3px] rounded-t-xl" style={{ background: column.color }} />
         <div className="flex items-center justify-between px-3 py-2.5">
           <div className="flex items-center gap-2">
@@ -154,7 +154,7 @@ function KanbanColumn({ column, prospects, onDrop, onNewClick, onDragStart, onDe
 
         {/* Placeholder quand colonne vide */}
         {prospects.length === 0 && !dragOver && (
-          <div className="py-10 text-center glass-card">
+          <div className="py-10 text-center hero-card">
             <User size={24} className="text-[var(--text-muted)] mx-auto mb-2 animate-breathe" />
             <p className="text-[var(--text-muted)] text-xs">Aucun prospect</p>
           </div>
@@ -308,12 +308,12 @@ export default function CoachProspectsPage() {
   if (loading) {
     return (
       <div className="p-4 md:p-6 space-y-4">
-        <div className="glass-card p-4">
+        <div className="hero-card p-4">
           <div className="h-[3px] rounded-t-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] -mx-4 -mt-4 mb-4 rounded-t-xl" />
           <div className="skel-block h-7 w-44 rounded-lg mb-2" />
           <div className="skel-block h-4 w-64 rounded" />
         </div>
-        <div className="glass-card p-3">
+        <div className="hero-card p-3">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="skel-block h-10 w-36 rounded-lg" />
             <div className="skel-block h-10 flex-1 rounded-lg" />
@@ -322,10 +322,10 @@ export default function CoachProspectsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="space-y-2">
-              <div className="glass-card p-3">
+              <div className="hero-card p-3">
                 <div className="skel-block h-4 w-28 rounded mb-1" />
               </div>
-              <div className="glass-card p-3 space-y-2">
+              <div className="hero-card p-3 space-y-2">
                 <div className="skel-block h-16 rounded-lg" />
                 <div className="skel-block h-16 rounded-lg" />
               </div>
@@ -340,67 +340,38 @@ export default function CoachProspectsPage() {
     <div className="p-4 md:p-6 w-full">
 
       {/* ── En-tête ── */}
-      <div className="glass-card mb-4 md:mb-6">
-        {/* Gradient accent bar */}
-        <div
-          className="h-[3px] rounded-t-xl"
-          style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }}
-        />
-        <div className="p-4 md:p-5">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            <div className="flex items-start gap-3">
-              {/* Icon container */}
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}
-              >
-                <Users size={18} className="text-white" />
-              </div>
-              <div>
-                <h1 className="text-[var(--text-primary)] text-xl md:text-2xl font-bold">Vos prospects</h1>
-                <p className="text-[var(--text-muted)] text-sm mt-0.5">
-                  Gérez votre pipeline de vente et convertissez vos leads en clients.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Stats badge */}
-              <div className="glass-card hidden md:flex items-center gap-2.5 px-3.5 py-2 rounded-xl">
-                <div
-                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ background: '#FF6B2B' }}
-                />
-                <span className="text-[var(--text-muted)] text-xs">{prospects.length} prospect{prospects.length !== 1 ? 's' : ''}</span>
-                <span className="text-[var(--border-subtle)]">|</span>
-                <span className="text-[#FF6B2B] text-xs font-semibold">{totalPipeline} €</span>
-              </div>
-              {/* Bouton ajouter */}
-              <button
-                onClick={() => openNewModal()}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-[#FF6B2B]/20 active:scale-[0.97]"
-                style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 2px 12px rgba(255,107,43,0.25)' }}
-              >
-                <Plus size={15} />
-                Ajouter
-              </button>
+      <div className="hero-card hero-card--accent p-4 md:p-5 mb-4 md:mb-5">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Users size={18} className="text-[var(--text-muted)] flex-shrink-0" strokeWidth={1.75} />
+            <div>
+              <h1 className="text-[var(--text-primary)] text-xl md:text-2xl font-bold tracking-tight leading-tight">Vos prospects</h1>
+              <p className="text-[var(--text-muted)] text-xs md:text-sm mt-0.5">
+                Gérez votre pipeline et convertissez vos leads en clients.
+              </p>
             </div>
           </div>
-
-          {/* Mobile stats */}
-          <div className="flex md:hidden items-center gap-2.5 mt-3 glass-card px-3 py-2 rounded-xl">
-            <div
-              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-              style={{ background: '#FF6B2B' }}
-            />
-            <span className="text-[var(--text-muted)] text-xs">{prospects.length} prospect{prospects.length !== 1 ? 's' : ''}</span>
-            <span className="text-[var(--border-subtle)]">|</span>
-            <span className="text-[#FF6B2B] text-xs font-semibold">{totalPipeline} €</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--bg-base)] border border-[var(--border-subtle)]">
+              <span className="text-[var(--text-muted)] text-[11px] font-semibold">
+                <span className="text-[var(--text-primary)] tabular-nums">{prospects.length}</span> prospect{prospects.length !== 1 ? 's' : ''}
+              </span>
+              <span className="text-[var(--text-muted)]">·</span>
+              <span className="text-[#FF6B2B] text-[11px] font-bold tabular-nums">{totalPipeline} €</span>
+            </div>
+            <button
+              onClick={() => openNewModal()}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FF6B2B] hover:bg-[#FF6B2B]/90 text-white text-sm font-semibold transition-all active:scale-95"
+            >
+              <Plus size={15} />
+              Ajouter
+            </button>
           </div>
         </div>
       </div>
 
       {/* ── Barre outils ── */}
-      <div className="glass-card p-3 mb-4 md:mb-6">
+      <div className="hero-card p-3 mb-4 md:mb-6">
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Toggle Vue */}
           <div className="flex bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl overflow-hidden flex-shrink-0">
@@ -455,11 +426,11 @@ export default function CoachProspectsPage() {
         </div>
       ) : (
         /* ── Vue Liste ── */
-        <div className="glass-card overflow-hidden">
+        <div className="hero-card overflow-hidden">
           {/* Accent bar */}
           <div
             className="h-[3px]"
-            style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }}
+            style={{ background: 'var(--metric-highlight)' }}
           />
 
           {/* Header - hidden on mobile */}
@@ -487,7 +458,7 @@ export default function CoachProspectsPage() {
                       <div className="col-span-4 flex items-center gap-2.5 min-w-0">
                         <div
                           className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}
+                          style={{ background: '#FF6B2B' }}
                         >
                           <span className="text-white text-[9px] font-bold">
                             {[p.prenom?.[0], p.nom?.[0]].filter(Boolean).join('').toUpperCase()}
@@ -524,7 +495,7 @@ export default function CoachProspectsPage() {
                     <div className="flex md:hidden items-center gap-3 px-3 py-3">
                       <div
                         className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}
+                        style={{ background: '#FF6B2B' }}
                       >
                         <span className="text-white text-[10px] font-bold">
                           {[p.prenom?.[0], p.nom?.[0]].filter(Boolean).join('').toUpperCase()}
@@ -570,7 +541,7 @@ export default function CoachProspectsPage() {
           {/* Gradient accent bar */}
           <div
             className="h-[3px] rounded-full -mt-2 mb-4"
-            style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF8F5E)' }}
+            style={{ background: 'var(--metric-highlight)' }}
           />
 
           {/* Prénom */}
@@ -677,8 +648,8 @@ export default function CoachProspectsPage() {
             <button
               type="submit"
               disabled={saving || !formPrenom.trim()}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold transition-all disabled:opacity-40 hover:shadow-lg hover:shadow-[#FF6B2B]/20 active:scale-[0.97]"
-              style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', boxShadow: '0 2px 12px rgba(255,107,43,0.25)' }}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-semibold transition-all disabled:opacity-40  active:scale-[0.97]"
+              style={{ background: '#FF6B2B', boxShadow: '0 2px 12px rgba(255,107,43,0.25)' }}
             >
               {saving ? (
                 <Loader2 size={15} className="animate-spin" />

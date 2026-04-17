@@ -603,7 +603,7 @@ export default function ExerciseLibraryPage() {
         </div>
 
         {syncing && (
-          <div className="glass-card p-8 text-center">
+          <div className="hero-card p-8 text-center">
             <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
               <Loader2 size={28} className="text-[#FF6B2B] animate-spin" />
             </div>
@@ -644,15 +644,12 @@ export default function ExerciseLibraryPage() {
     <div className="p-4 md:p-6 max-w-[1300px] animate-page-enter">
 
       {/* ── Header ── */}
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center relative shrink-0">
-            <Dumbbell size={22} className="text-[#FF6B2B]" />
-            <div className="absolute inset-0 rounded-2xl blur-xl opacity-30 bg-[#FF6B2B]/20" />
-          </div>
+      <div className="hero-card hero-card--accent p-4 md:p-5 mb-5 flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Dumbbell size={18} className="text-[var(--text-muted)] shrink-0" strokeWidth={1.75} />
           <div>
-            <h1 className="text-2xl font-extrabold text-[var(--text-primary)] tracking-tight">Exercices</h1>
-            <p className="text-[var(--text-muted)] text-[13px] mt-0.5">
+            <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight leading-tight">Exercices</h1>
+            <p className="text-[var(--text-muted)] text-xs md:text-sm mt-0.5 tabular-nums">
               {exercises.length.toLocaleString()} exercices disponibles
             </p>
           </div>
@@ -877,7 +874,7 @@ export default function ExerciseLibraryPage() {
 
       {/* ── Exercise grid ── */}
       {paginated.length === 0 ? (
-        <div className="glass-card p-12 text-center">
+        <div className="hero-card p-12 text-center">
           <Search size={24} className="text-[var(--text-muted)] mx-auto mb-3" />
           <p className="text-[var(--text-secondary)] font-semibold mb-1">Aucun exercice trouve</p>
           <p className="text-[var(--text-muted)] text-xs">Essayez de modifier vos filtres ou votre recherche</p>
@@ -972,7 +969,7 @@ export default function ExerciseLibraryPage() {
                   onClick={() => setPage(i)}
                   className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
                     i === page
-                      ? 'bg-[#FF6B2B] text-white shadow-lg shadow-[#FF6B2B]/20'
+                      ? 'bg-[#FF6B2B] text-white '
                       : 'border border-[var(--border-base)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]'
                   }`}
                 >
