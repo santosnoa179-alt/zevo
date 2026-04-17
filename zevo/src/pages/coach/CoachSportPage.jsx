@@ -47,6 +47,10 @@ export default function CoachSportPage() {
 
   // ── Assign model modal ──
   const [showAssignModal, setShowAssignModal] = useState(false)
+  // ── Assignation programme Pro ──
+  const [proAssignId, setProAssignId] = useState(null)      // null = fermé
+  const [proAssignClientId, setProAssignClientId] = useState('')
+  const [assigningPro, setAssigningPro] = useState(false)
   const [assignModelId, setAssignModelId] = useState('')
   const [assignClientId, setAssignClientId] = useState('')
   const [assigning, setAssigning] = useState(false)
@@ -264,6 +268,116 @@ export default function CoachSportPage() {
     if (activeTab === 'templates') return matchSearch && !p.client_id
     return matchSearch
   })
+
+  // Assigner un programme Pro à un client = clone complet du programme + toutes ses phases/seances/exos
+  const handleAssignPro = async () => {
+    if (!proAssignId || !proAssignClientId) return
+    setAssigningPro(true)
+    try {
+      // 1. Fetch source programme + tout l'arbre
+      const [srcProgRes, srcPhasesRes, srcSeanceTypesRes, srcPhaseJoursRes, srcExosRes] = await Promise.all([
+        supabase.from('sport_programmes').select('*').eq('id', proAssignId).single(),
+        supabase.from('sport_phases').select('*').eq('programme_id', proAssignId).order('ordre'),
+        supabase.from('sport_seance_types').select('*').order('ordre'),
+        supabase.from('sport_phase_jours').select('*'),
+        supabase.from('sport_seance_exercices').select('*').order('ordre'),
+      ])
+      const srcProg = srcProgRes.data
+      if (!srcProg) throw new Error('Programme introuvable')
+
+      const phaseIds = (srcPhasesRes.data || []).map(p => p.id)
+      const seanceTypes = (srcSeanceTypesRes.data || []).filter(st => phaseIds.includes(st.phase_id))
+      const phaseJours = (srcPhaseJoursRes.data || []).filter(pj => phaseIds.includes(pj.phase_id))
+      const stIds = seanceTypes.map(st => st.id)
+      const exos = (srcExosRes.data || []).filter(e => stIds.includes(e.seance_type_id))
+
+      // 2. Créer nouveau programme assigné au client
+      const { data: newProg, error: newProgErr } = await supabase.from('sport_programmes').insert({
+        coach_id: user.id,
+        client_id: proAssignClientId,
+        nom: srcProg.nom,
+        description: srcProg.description,
+        objectif: srcProg.objectif,
+        duree_semaines: srcProg.duree_semaines,
+        frequence_hebdo: srcProg.frequence_hebdo,
+        niveau: srcProg.niveau,
+        is_template: false,
+        is_active: true,
+        date_debut: new Date().toISOString().slice(0, 10),
+      }).select().single()
+      if (newProgErr) throw newProgErr
+
+      // 3. Dupliquer phases + mapper IDs
+      const phaseIdMap = {} // old → new
+      for (const ph of srcPhasesRes.data || []) {
+        const { data: newPh, error } = await supabase.from('sport_phases').insert({
+          programme_id: newProg.id,
+          nom: ph.nom,
+          ordre: ph.ordre,
+          semaine_debut: ph.semaine_debut,
+          duree_semaines: ph.duree_semaines,
+          objectif_focus: ph.objectif_focus,
+          volume_cible_hebdo_sets: ph.volume_cible_hebdo_sets,
+          notes: ph.notes,
+        }).select().single()
+        if (error) throw error
+        phaseIdMap[ph.id] = newPh.id
+      }
+
+      // 4. Dupliquer seance_types + mapper IDs
+      const stIdMap = {}
+      for (const st of seanceTypes) {
+        const { data: newSt, error } = await supabase.from('sport_seance_types').insert({
+          phase_id: phaseIdMap[st.phase_id],
+          nom: st.nom, focus: st.focus, icon: st.icon, ordre: st.ordre,
+          duree_estimee_min: st.duree_estimee_min, notes: st.notes,
+        }).select().single()
+        if (error) throw error
+        stIdMap[st.id] = newSt.id
+      }
+
+      // 5. Dupliquer exercices (avec tous les params : RPE, tempo, progression, supersets...)
+      if (exos.length) {
+        const exoRows = exos.map(e => ({
+          seance_type_id: stIdMap[e.seance_type_id],
+          exercice_id: e.exercice_id,
+          exercice_nom_custom: e.exercice_nom_custom,
+          ordre: e.ordre,
+          series: e.series, reps_cible: e.reps_cible,
+          charge_kg: e.charge_kg, charge_unite: e.charge_unite,
+          progression_type: e.progression_type, progression_value: e.progression_value, progression_freq: e.progression_freq,
+          rpe_cible: e.rpe_cible, rir_cible: e.rir_cible,
+          tempo: e.tempo, rest_sec: e.rest_sec,
+          superset_group: e.superset_group, technique: e.technique,
+          notes_coach: e.notes_coach,
+        }))
+        const { error: exoErr } = await supabase.from('sport_seance_exercices').insert(exoRows)
+        if (exoErr) throw exoErr
+      }
+
+      // 6. Dupliquer phase_jours (assignation jour → seance_type)
+      if (phaseJours.length) {
+        const pjRows = phaseJours.map(pj => ({
+          phase_id: phaseIdMap[pj.phase_id],
+          jour_semaine: pj.jour_semaine,
+          seance_type_id: pj.seance_type_id ? stIdMap[pj.seance_type_id] : null,
+        })).filter(pj => pj.phase_id)
+        if (pjRows.length) {
+          const { error: pjErr } = await supabase.from('sport_phase_jours').insert(pjRows)
+          if (pjErr) throw pjErr
+        }
+      }
+
+      toast.success('Programme assigné au client !')
+      setProAssignId(null)
+      setProAssignClientId('')
+      fetchProgrammes()
+    } catch (err) {
+      console.error('[handleAssignPro]', err)
+      toast.error('Erreur : ' + (err.message || err))
+    }
+    setAssigningPro(false)
+  }
 
   const openCreate = () => {
     setCreateMode('programme')
@@ -632,9 +746,9 @@ export default function CoachSportPage() {
               {/* ── Programmes Pro modèles (sport_programmes) ── */}
               {filteredProgrammesPro.map(pro => (
                 <div key={`pro-${pro.id}`}
-                  onClick={() => window.location.href = `/coach/sport/programme/${pro.id}`}
-                  className="hero-card p-4 hover:border-[#FF6B2B]/30 transition-all group cursor-pointer">
-                  <div className="flex items-start gap-3 mb-4">
+                  className="hero-card p-4 hover:border-[#FF6B2B]/30 transition-all group">
+                  <div className="flex items-start gap-3 mb-3 cursor-pointer"
+                    onClick={() => window.location.href = `/coach/sport/programme/${pro.id}`}>
                     <Layers size={16} className="text-[var(--text-muted)] shrink-0 mt-0.5" strokeWidth={1.75} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -646,7 +760,7 @@ export default function CoachSportPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap mb-3">
                     <span className="inline-flex items-center gap-1 bg-[var(--bg-base)] px-2 py-1 rounded-md text-[10px] text-[var(--text-muted)] font-semibold border border-[var(--border-subtle)] tabular-nums">
                       <Calendar size={11} /> {pro.duree_semaines} sem.
                     </span>
@@ -660,6 +774,16 @@ export default function CoachSportPage() {
                         {pro.niveau}
                       </span>
                     )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => window.location.href = `/coach/sport/programme/${pro.id}`}
+                      className="py-2 rounded-lg bg-[var(--bg-surface)] text-[var(--text-secondary)] text-xs font-semibold hover:text-[var(--text-primary)] transition-colors flex items-center justify-center gap-1.5 border border-[var(--border-subtle)]">
+                      <Eye size={12} /> Modifier
+                    </button>
+                    <button onClick={() => { setProAssignId(pro.id); setProAssignClientId('') }}
+                      className="py-2 rounded-lg bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#FF6B2B]/90 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                      <Users size={12} /> Assigner
+                    </button>
                   </div>
                 </div>
               ))}
@@ -842,6 +966,70 @@ export default function CoachSportPage() {
       {/* ═══════════════════════════════════════ */}
       {/* MODALE — Assigner un modèle            */}
       {/* ═══════════════════════════════════════ */}
+      {/* ══ Modal Assigner programme Pro à un client ══ */}
+      {proAssignId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setProAssignId(null)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-md hero-card shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}>
+            <div className="px-6 pt-5 pb-4 border-b border-[var(--border-base)] flex items-center justify-between">
+              <div>
+                <h2 className="text-[var(--text-primary)] text-lg font-bold tracking-tight">Assigner le programme</h2>
+                <p className="text-[var(--text-muted)] text-sm mt-0.5">Le programme sera cloné pour le client sélectionné</p>
+              </div>
+              <button onClick={() => setProAssignId(null)}
+                className="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs text-[var(--text-muted)] mb-2 font-semibold uppercase tracking-wider">
+                  Client <span className="text-[var(--text-muted)] normal-case tracking-normal">({clients.length} trouvé{clients.length > 1 ? 's' : ''})</span>
+                </label>
+                <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                  {clients.length === 0 ? (
+                    <p className="text-[var(--text-muted)] text-xs text-center py-4">Aucun client actif</p>
+                  ) : clients.map(c => {
+                    const prenom = c.profiles?.prenom || ''
+                    const nom = c.profiles?.nom || ''
+                    const email = c.profiles?.email || ''
+                    const displayName = (prenom && nom) ? `${prenom} ${nom}` : (prenom || nom || email || 'Client')
+                    const isSelected = proAssignClientId === (c.profiles?.id || c.id)
+                    const cid = c.profiles?.id || c.id
+                    const initials = `${prenom ? prenom[0] : (email ? email[0] : '?')}${nom ? nom[0] : ''}`.toUpperCase()
+                    return (
+                      <button key={c.id} onClick={() => setProAssignClientId(cid)}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                          isSelected ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30' : 'hover:bg-[var(--bg-surface)] border border-transparent'
+                        }`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                          isSelected ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'
+                        }`}>{initials}</div>
+                        <span className={`text-sm font-medium flex-1 truncate ${isSelected ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{displayName}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 pb-6 flex gap-3">
+              <button onClick={() => setProAssignId(null)}
+                className="flex-1 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all border border-[var(--border-subtle)]">
+                Annuler
+              </button>
+              <button onClick={handleAssignPro} disabled={!proAssignClientId || assigningPro}
+                className="flex-1 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2 active:scale-95">
+                {assigningPro ? <Loader2 size={14} className="animate-spin" /> : <Users size={14} />}
+                {assigningPro ? 'Assignation...' : 'Assigner'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showAssignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowAssignModal(false)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
