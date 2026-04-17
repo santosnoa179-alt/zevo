@@ -431,7 +431,9 @@ export default function CoachSportPage() {
             }
             exosToInsert.push({
               seance_id: seanceRow.id,
-              exercice_id: exo.exercice_id,
+              // exercice_id (uuid, legacy exercices) laissé null : exo.exercice_id est un text
+              // qui pointe vers exercises (ExerciseDB). On retrouve l'exo via sport_seance_exercice_id.
+              exercice_id: null,
               ordre: exo.ordre,
               series: exo.series,
               reps_cible: exo.reps_cible,

@@ -638,7 +638,9 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
           }
           exosToInsert.push({
             seance_id: seance.id,
-            exercice_id: exo.exercice_id,
+            // exercice_id (uuid, legacy exercices) laissé null : exo.exercice_id est un text
+            // qui pointe vers exercises (ExerciseDB). On retrouve l'exo via sport_seance_exercice_id.
+            exercice_id: null,
             ordre: exo.ordre,
             series: exo.series,
             reps_cible: exo.reps_cible,

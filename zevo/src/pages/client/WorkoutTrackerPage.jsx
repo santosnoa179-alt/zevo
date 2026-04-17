@@ -129,13 +129,16 @@ export default function WorkoutTrackerPage() {
       }
 
       // Charger les exercices (+ params Pro V3 : RPE, tempo, rest, supersets, progression…)
+      // Le join `sport_seance_exercices → exercises` permet de récupérer le GIF/nom ExerciseDB
+      // pour les séances déployées depuis un programme Pro (exercice_id uuid legacy est NULL).
       const { data: exosData, error: exosErr } = await supabase
         .from('seance_exercices')
         .select(`id, series, reps, poids, repos, ordre, media_url, note_coach,
                  charge_kg, charge_unite, rpe_cible, rir_cible, tempo, rest_sec,
                  superset_group, technique, notes_coach, sport_seance_exercice_id,
                  seance_exercice_logs(id, set_number, charge_kg_reel, reps_reel, rpe_percu, notes_client),
-                 exercices(nom, muscle_group, equipment, image_url, video_url, gif_url, description, library_id)`)
+                 exercices(nom, muscle_group, equipment, image_url, video_url, gif_url, description, library_id),
+                 sport_seance_exercices(exercice_id, exercice_nom_custom)`)
         .eq('seance_id', seanceId)
         .order('ordre')
 
@@ -151,34 +154,59 @@ export default function WorkoutTrackerPage() {
         return
       }
 
-      // Enrichir avec les instructions ExerciseDB (pour exos bridgés depuis la library)
-      // Prefere instructions_fr (traduction OpenAI via /api/sync-exercises?action=translate)
-      const libraryIds = exosData
-        .map(ex => ex.exercices?.library_id)
-        .filter(Boolean)
+      // Collecte les IDs ExerciseDB (depuis 2 sources) :
+      // A) legacy bridge : exercices.library_id (text)
+      // B) Pro V3 direct : sport_seance_exercices.exercice_id (text)
+      const libraryIdsSet = new Set()
+      exosData.forEach(ex => {
+        if (ex.exercices?.library_id) libraryIdsSet.add(ex.exercices.library_id)
+        if (ex.sport_seance_exercices?.exercice_id) libraryIdsSet.add(ex.sport_seance_exercices.exercice_id)
+      })
+      const libraryIds = [...libraryIdsSet]
 
       let enriched = exosData
       if (libraryIds.length > 0) {
         const { data: libData, error: libErr } = await supabase
           .from('exercises')
-          .select('id, instructions, instructions_fr')
+          .select('id, name, name_fr, target_muscle, body_part, equipment, gif_url, instructions, instructions_fr')
           .in('id', libraryIds)
         if (libErr) {
-          console.error('[Workout] Erreur fetch library instructions:', libErr.message)
+          console.error('[Workout] Erreur fetch library exercises:', libErr.message)
         }
-        const instructionsMap = Object.fromEntries(
+        const libMap = Object.fromEntries(
           (libData || []).map(ex => {
-            // Prefere la version FR si elle existe ET a la meme longueur que l'EN (sinon fallback EN)
             const en = Array.isArray(ex.instructions) ? ex.instructions : []
             const fr = Array.isArray(ex.instructions_fr) ? ex.instructions_fr : []
-            const chosen = fr.length === en.length && fr.length > 0 ? fr : en
-            return [ex.id, chosen]
+            const chosenInstr = fr.length === en.length && fr.length > 0 ? fr : en
+            return [ex.id, {
+              name: ex.name_fr || ex.name,
+              target_muscle: ex.target_muscle,
+              body_part: ex.body_part,
+              equipment: ex.equipment,
+              gif_url: ex.gif_url,
+              instructions: chosenInstr,
+            }]
           })
         )
         enriched = exosData.map(ex => {
-          if (!ex.exercices) return ex
-          const libInstr = ex.exercices.library_id ? instructionsMap[ex.exercices.library_id] : null
-          return { ...ex, exercices: { ...ex.exercices, instructions: libInstr || null } }
+          // Priorité : legacy.library_id > Pro V3 sport_seance_exercices.exercice_id
+          const libId = ex.exercices?.library_id || ex.sport_seance_exercices?.exercice_id
+          const libInfo = libId ? libMap[libId] : null
+          if (!libInfo && !ex.exercices) return ex
+          const customName = ex.sport_seance_exercices?.exercice_nom_custom
+          // Merge : garde les champs legacy si dispo, sinon fallback sur ExerciseDB
+          const merged = {
+            nom: ex.exercices?.nom || customName || libInfo?.name || 'Exercice',
+            muscle_group: ex.exercices?.muscle_group || libInfo?.target_muscle,
+            equipment: ex.exercices?.equipment || libInfo?.equipment,
+            image_url: ex.exercices?.image_url,
+            video_url: ex.exercices?.video_url,
+            gif_url: ex.exercices?.gif_url || libInfo?.gif_url,
+            description: ex.exercices?.description,
+            library_id: libId,
+            instructions: libInfo?.instructions,
+          }
+          return { ...ex, exercices: merged }
         })
       }
 
