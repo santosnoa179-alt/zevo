@@ -45,6 +45,73 @@ const PROGRESSION_TYPES = [
   { id: 'pourcentage', label: '% du 1RM',     desc: 'Varie en % par semaine' },
 ]
 
+// ── Traduction FR des catégories ExerciseDB (en anglais brut en DB) ──
+const BODY_PART_FR = {
+  'back':         'Dos',
+  'cardio':       'Cardio',
+  'chest':        'Pectoraux',
+  'lower arms':   'Avant-bras',
+  'lower legs':   'Mollets',
+  'neck':         'Nuque',
+  'shoulders':    'Épaules',
+  'upper arms':   'Bras',
+  'upper legs':   'Cuisses',
+  'waist':        'Abdos',
+}
+const TARGET_MUSCLE_FR = {
+  'abductors':      'Abducteurs',
+  'abs':            'Abdos',
+  'adductors':      'Adducteurs',
+  'biceps':         'Biceps',
+  'calves':         'Mollets',
+  'cardiovascular system': 'Cardio',
+  'delts':          'Deltoïdes',
+  'forearms':       'Avant-bras',
+  'glutes':         'Fessiers',
+  'hamstrings':     'Ischios',
+  'lats':           'Grand dorsal',
+  'levator scapulae': 'Trapèze sup.',
+  'pectorals':      'Pectoraux',
+  'quads':          'Quadriceps',
+  'serratus anterior': 'Dentelé',
+  'spine':          'Lombaires',
+  'traps':          'Trapèzes',
+  'triceps':        'Triceps',
+  'upper back':     'Haut du dos',
+}
+const EQUIPMENT_FR = {
+  'body weight':      'Poids du corps',
+  'barbell':          'Barre',
+  'dumbbell':         'Haltères',
+  'cable':            'Poulie',
+  'leverage machine': 'Machine',
+  'smith machine':    'Smith',
+  'sled machine':     'Presse',
+  'kettlebell':       'Kettlebell',
+  'medicine ball':    'Med ball',
+  'stability ball':   'Swiss ball',
+  'resistance band':  'Élastique',
+  'band':             'Élastique',
+  'bosu ball':        'Bosu',
+  'ez barbell':       'Barre EZ',
+  'weighted':         'Lesté',
+  'rope':             'Corde',
+  'roller':           'Rouleau',
+  'wheel roller':     'Roue',
+  'stationary bike':  'Vélo',
+  'elliptical machine': 'Elliptique',
+  'stepmill machine': 'Stepmill',
+  'skierg machine':   'Skierg',
+  'upper body ergometer': 'Ergo bras',
+  'trap bar':         'Trap bar',
+  'hammer':           'Marteau',
+  'assisted':         'Assisté',
+  'olympic barbell':  'Barre olympique',
+}
+function frBodyPart(s) { return BODY_PART_FR[s?.toLowerCase()] || s || '—' }
+function frTarget(s)   { return TARGET_MUSCLE_FR[s?.toLowerCase()] || s || '—' }
+function frEquip(s)    { return EQUIPMENT_FR[s?.toLowerCase()] || s || '' }
+
 // Calcul charge à une semaine donnée (Piste B)
 function chargeAtWeek(baseCharge, progressionType, progressionValue, weekIdx) {
   if (!baseCharge || !progressionType || progressionType === 'fixe' || !progressionValue) return baseCharge || 0
@@ -1067,7 +1134,7 @@ export default function SportProgrammeBuilder() {
                                   <span className="text-[var(--text-primary)] text-sm font-bold flex-1 truncate">{exerciceNom}</span>
                                   {(exo.exercice?.target_muscle || exo.exercice?.body_part) && (
                                     <span className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider bg-[var(--bg-surface)] px-2 py-0.5 rounded-md hidden md:inline-block">
-                                      {exo.exercice?.target_muscle || exo.exercice?.body_part}
+                                      {frTarget(exo.exercice?.target_muscle) || frBodyPart(exo.exercice?.body_part)}
                                     </span>
                                   )}
                                   <button onClick={() => removeExo(exoIdx)}
@@ -1275,7 +1342,7 @@ export default function SportProgrammeBuilder() {
                       className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
                         exoMuscleFilter === m ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)]'
                       }`}>
-                      {m}
+                      {frBodyPart(m)}
                     </button>
                   ))}
                 </div>
@@ -1312,16 +1379,13 @@ export default function SportProgrammeBuilder() {
                         <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                           {e.target_muscle && (
                             <span className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider bg-[var(--bg-base)] px-1.5 py-0.5 rounded">
-                              {e.target_muscle}
+                              {frTarget(e.target_muscle)}
                             </span>
                           )}
-                          {e.equipment && e.equipment !== 'body weight' && (
-                            <span className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">
-                              · {e.equipment}
+                          {e.equipment && (
+                            <span className="text-[9px] text-[var(--text-muted)] font-semibold">
+                              · {frEquip(e.equipment)}
                             </span>
-                          )}
-                          {e.equipment === 'body weight' && (
-                            <span className="text-[9px] text-[var(--text-muted)] font-semibold">· Poids du corps</span>
                           )}
                         </div>
                       </div>
@@ -1431,7 +1495,7 @@ export default function SportProgrammeBuilder() {
                     {materielList.map((m, i) => (
                       <div key={i} className="flex items-center gap-3 py-2 px-3 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)]">
                         <Package size={12} className="text-[var(--text-muted)] shrink-0" strokeWidth={1.75} />
-                        <p className="text-[var(--text-primary)] text-sm font-semibold truncate flex-1 capitalize">{m}</p>
+                        <p className="text-[var(--text-primary)] text-sm font-semibold truncate flex-1">{frEquip(m)}</p>
                       </div>
                     ))}
                   </div>
