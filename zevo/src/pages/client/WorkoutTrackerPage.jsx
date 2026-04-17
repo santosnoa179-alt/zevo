@@ -394,6 +394,124 @@ export default function WorkoutTrackerPage() {
     )
   }
 
+  // ══════════════════════════════════════
+  // ÉCRAN RÉSUMÉ — séance déjà complétée
+  // ══════════════════════════════════════
+  if (seance?.is_completed && !finished) {
+    // On n'a pas le globalTime d'origine — on affiche juste les stats statiques
+    const totalExosDone = exercices.length
+    let totalLogs = 0
+    let totalKgTotal = 0
+    exercices.forEach(ex => {
+      const logs = ex.seance_exercice_logs || []
+      totalLogs += logs.length
+      logs.forEach(l => { if (l.charge_kg_reel && l.reps_reel) totalKgTotal += l.charge_kg_reel * l.reps_reel })
+    })
+    return (
+      <div className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] overflow-y-auto">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-[var(--bg-elevated)]/90 backdrop-blur border-b border-[var(--border-base)]">
+          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+            <button onClick={() => navigate(-1)}
+              className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
+              <ChevronLeft size={18} />
+            </button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={14} className="text-[#FF6B2B]" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF6B2B]">Séance terminée</span>
+              </div>
+              <h1 className="text-[var(--text-primary)] text-base font-bold truncate">{seance?.titre || 'Séance'}</h1>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+
+          {/* Stats globales */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+              <Dumbbell className="w-5 h-5 text-[#FF6B2B] mx-auto mb-2" />
+              <p className="text-[var(--text-primary)] text-lg font-black tabular-nums">{totalExosDone}</p>
+              <p className="text-[var(--text-muted)] text-[10px] mt-1 uppercase tracking-widest">Exercices</p>
+            </div>
+            <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+              <Check className="w-5 h-5 text-[#FF6B2B] mx-auto mb-2" />
+              <p className="text-[var(--text-primary)] text-lg font-black tabular-nums">{totalLogs}</p>
+              <p className="text-[var(--text-muted)] text-[10px] mt-1 uppercase tracking-widest">Séries logguées</p>
+            </div>
+            <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4 text-center">
+              <Trophy className="w-5 h-5 text-[#FF6B2B] mx-auto mb-2" />
+              <p className="text-[var(--text-primary)] text-lg font-black tabular-nums">{Math.round(totalKgTotal)}</p>
+              <p className="text-[var(--text-muted)] text-[10px] mt-1 uppercase tracking-widest">kg·reps</p>
+            </div>
+          </div>
+
+          {/* Liste des exercices avec logs */}
+          <div className="space-y-3">
+            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Détail des exercices</p>
+            {exercices.map((ex, idx) => {
+              const logs = (ex.seance_exercice_logs || []).sort((a, b) => (a.set_number || 0) - (b.set_number || 0))
+              const chargeCible = ex.charge_kg ?? ex.poids
+              return (
+                <div key={ex.id || idx} className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl overflow-hidden">
+                  <div className="px-4 py-3 flex items-center gap-3 border-b border-[var(--border-base)]">
+                    <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 flex items-center justify-center shrink-0">
+                      <span className="text-[#FF6B2B] text-xs font-black tabular-nums">{idx + 1}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[var(--text-primary)] text-sm font-bold truncate">{ex.exercices?.nom || 'Exercice'}</p>
+                      <p className="text-[var(--text-muted)] text-[10px] tabular-nums">
+                        {ex.series || 0} séries × {ex.reps || '?'} reps
+                        {chargeCible != null ? ` · ${chargeCible} ${ex.charge_unite || 'kg'} (prévu)` : ''}
+                      </p>
+                    </div>
+                  </div>
+
+                  {logs.length === 0 ? (
+                    <div className="px-4 py-3 text-[var(--text-muted)] text-[11px] italic">Pas de perf enregistrée</div>
+                  ) : (
+                    <div className="divide-y divide-[var(--border-base)]/50">
+                      {logs.map(log => (
+                        <div key={log.id} className="px-4 py-2.5 flex items-center gap-3">
+                          <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-wider w-10 shrink-0">Set {log.set_number}</span>
+                          <div className="flex-1 grid grid-cols-3 gap-2">
+                            <div>
+                              <p className="text-[var(--text-muted)] text-[8px] uppercase tracking-wider">Charge</p>
+                              <p className="text-[var(--text-primary)] text-sm font-black tabular-nums">{log.charge_kg_reel ?? '—'}<span className="text-[var(--text-muted)] text-[10px] font-medium"> {ex.charge_unite || 'kg'}</span></p>
+                            </div>
+                            <div>
+                              <p className="text-[var(--text-muted)] text-[8px] uppercase tracking-wider">Reps</p>
+                              <p className="text-[var(--text-primary)] text-sm font-black tabular-nums">{log.reps_reel ?? '—'}</p>
+                            </div>
+                            <div>
+                              <p className="text-[var(--text-muted)] text-[8px] uppercase tracking-wider">RPE</p>
+                              <p className="text-[var(--text-primary)] text-sm font-black tabular-nums">{log.rpe_percu ?? '—'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex-1 py-3 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-semibold hover:text-[var(--text-primary)] transition-colors border border-[var(--border-base)]"
+            >
+              Retour
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Erreur
   if (error) {
     return (

@@ -578,7 +578,15 @@ export default function ClientCalendarPage() {
             </div>
 
             {/* CTA */}
-            {!isDone && (
+            {isDone ? (
+              <button
+                onClick={() => navigate(`/app/workout/${selectedSeance.id}`)}
+                className="w-full py-3.5 rounded-xl text-[#FF6B2B] text-[13px] font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-2 bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 hover:bg-[#FF6B2B]/15"
+              >
+                <CheckCircle2 size={15} />
+                Voir le résumé
+              </button>
+            ) : (
               <button
                 onClick={() => navigate(`/app/workout/${selectedSeance.id}`)}
                 className="w-full py-3.5 rounded-xl text-white text-[13px] font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-2"
