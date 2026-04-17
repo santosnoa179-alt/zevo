@@ -90,6 +90,8 @@ export default function NutritionProgrammeBuilder() {
   const [allAliments, setAllAliments] = useState([])
   const [alimentDrawer, setAlimentDrawer] = useState(null) // { phaseIdx, jtIdx, repasIdx }
   const [alimentSearch, setAlimentSearch] = useState('')
+  const [alimentCategoryFilter, setAlimentCategoryFilter] = useState('') // '' = toutes
+  const [alimentSortBy, setAlimentSortBy] = useState('nom') // 'nom' | 'kcal' | 'proteines'
 
   // ── Bibliothèque de repas ──
   const [biblioRepas, setBiblioRepas] = useState([])
@@ -1229,48 +1231,130 @@ export default function NutritionProgrammeBuilder() {
       {/* ══════════════════════════════════════ */}
       {/* DRAWER ALIMENTS                        */}
       {/* ══════════════════════════════════════ */}
-      {alimentDrawer && (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setAlimentDrawer(null)} />
-          <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-[var(--bg-card)] border-l border-[var(--border-base)] shadow-2xl overflow-hidden flex flex-col">
-            <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
-              <div>
-                <h3 className="text-[var(--text-primary)] text-base font-bold tracking-tight">Ajouter un aliment</h3>
-                <p className="text-[var(--text-muted)] text-xs mt-0.5">{allAliments.length} aliments disponibles</p>
-              </div>
-              <button onClick={() => setAlimentDrawer(null)} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all">
-                <X size={16} />
-              </button>
-            </div>
-            <div className="px-5 py-3 border-b border-[var(--border-base)]">
-              <div className="relative">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-                <input type="text" value={alimentSearch} onChange={e => setAlimentSearch(e.target.value)}
-                  placeholder="Rechercher un aliment..."
-                  autoFocus
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl pl-9 pr-3 py-2 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40" />
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-3 space-y-1">
-              {allAliments.filter(a => !alimentSearch.trim() || a.nom.toLowerCase().includes(alimentSearch.toLowerCase())).slice(0, 100).map(a => (
-                <button key={a.id}
-                  onClick={() => { addAlimentToRepas(alimentDrawer.repasIdx, a); setAlimentDrawer(null) }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-surface)] transition-colors text-left">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{a.nom}</p>
-                    <p className="text-[var(--text-muted)] text-[10px] tabular-nums">{a.kcal_100g || 0} kcal/100g · {a.proteines || 0}P / {a.glucides || 0}G / {a.lipides || 0}L</p>
-                  </div>
-                  {a.categorie && (
-                    <span className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider bg-[var(--bg-base)] px-2 py-0.5 rounded-md shrink-0">
-                      {a.categorie}
-                    </span>
-                  )}
+      {alimentDrawer && (() => {
+        // Liste unique des catégories disponibles (avec compteur)
+        const categoryCounts = allAliments.reduce((acc, a) => {
+          const c = a.categorie || 'Autre'
+          acc[c] = (acc[c] || 0) + 1
+          return acc
+        }, {})
+        const categories = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])
+
+        // Filtrage + tri
+        const filtered = allAliments
+          .filter(a => {
+            if (alimentCategoryFilter && a.categorie !== alimentCategoryFilter) return false
+            if (alimentSearch.trim() && !a.nom.toLowerCase().includes(alimentSearch.toLowerCase())) return false
+            return true
+          })
+          .sort((a, b) => {
+            if (alimentSortBy === 'kcal') return (b.kcal_100g || 0) - (a.kcal_100g || 0)
+            if (alimentSortBy === 'proteines') return (b.proteines || 0) - (a.proteines || 0)
+            return (a.nom || '').localeCompare(b.nom || '', 'fr')
+          })
+
+        return (
+          <>
+            <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setAlimentDrawer(null)} />
+            <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-[var(--bg-card)] border-l border-[var(--border-base)] shadow-2xl overflow-hidden flex flex-col">
+              <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
+                <div>
+                  <h3 className="text-[var(--text-primary)] text-base font-bold tracking-tight">Ajouter un aliment</h3>
+                  <p className="text-[var(--text-muted)] text-xs mt-0.5">
+                    <span className="text-[var(--text-primary)] font-semibold tabular-nums">{filtered.length}</span>
+                    {' / '}
+                    <span className="tabular-nums">{allAliments.length}</span>
+                    {' aliments'}
+                    {(alimentSearch.trim() || alimentCategoryFilter) && (
+                      <button onClick={() => { setAlimentSearch(''); setAlimentCategoryFilter('') }}
+                        className="ml-2 text-[#FF6B2B] font-semibold hover:underline">
+                        · Réinitialiser
+                      </button>
+                    )}
+                  </p>
+                </div>
+                <button onClick={() => setAlimentDrawer(null)} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all">
+                  <X size={16} />
                 </button>
-              ))}
+              </div>
+
+              {/* Search + Sort */}
+              <div className="px-5 py-3 border-b border-[var(--border-base)] space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                    <input type="text" value={alimentSearch} onChange={e => setAlimentSearch(e.target.value)}
+                      placeholder="Rechercher..."
+                      autoFocus
+                      className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl pl-9 pr-3 py-2 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40" />
+                  </div>
+                  <select value={alimentSortBy} onChange={e => setAlimentSortBy(e.target.value)}
+                    className="appearance-none bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] cursor-pointer focus:outline-none focus:border-[#FF6B2B]/40"
+                    title="Trier">
+                    <option value="nom">A→Z</option>
+                    <option value="kcal">Kcal ↓</option>
+                    <option value="proteines">Protéines ↓</option>
+                  </select>
+                </div>
+
+                {/* Category chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+                  <button onClick={() => setAlimentCategoryFilter('')}
+                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                      alimentCategoryFilter === ''
+                        ? 'bg-[#FF6B2B] text-white'
+                        : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    }`}>
+                    Tous <span className="opacity-70 tabular-nums">· {allAliments.length}</span>
+                  </button>
+                  {categories.map(([cat, n]) => (
+                    <button key={cat} onClick={() => setAlimentCategoryFilter(cat === alimentCategoryFilter ? '' : cat)}
+                      className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                        alimentCategoryFilter === cat
+                          ? 'bg-[#FF6B2B] text-white'
+                          : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}>
+                      {cat} <span className="opacity-70 tabular-nums">· {n}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* List */}
+              <div className="flex-1 overflow-y-auto p-3 space-y-1">
+                {filtered.length === 0 ? (
+                  <div className="text-center py-12 animate-breathe">
+                    <Search size={22} className="text-[var(--text-muted)] mx-auto mb-3" strokeWidth={1.5} />
+                    <p className="text-[var(--text-muted)] text-sm font-semibold">Aucun aliment trouvé</p>
+                    <p className="text-[var(--text-muted)] text-[11px] mt-1">Essaie une autre recherche ou catégorie</p>
+                  </div>
+                ) : (
+                  filtered.slice(0, 150).map(a => (
+                    <button key={a.id}
+                      onClick={() => { addAlimentToRepas(alimentDrawer.repasIdx, a); setAlimentDrawer(null) }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-surface)] transition-colors text-left">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{a.nom}</p>
+                        <p className="text-[var(--text-muted)] text-[10px] tabular-nums">{a.kcal_100g || 0} kcal/100g · {a.proteines || 0}P / {a.glucides || 0}G / {a.lipides || 0}L</p>
+                      </div>
+                      {a.categorie && (
+                        <span className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider bg-[var(--bg-base)] px-2 py-0.5 rounded-md shrink-0">
+                          {a.categorie}
+                        </span>
+                      )}
+                    </button>
+                  ))
+                )}
+                {filtered.length > 150 && (
+                  <p className="text-center text-[var(--text-muted)] text-[10px] pt-3">
+                    {filtered.length - 150} autres résultats — affine ta recherche pour voir plus
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )
+      })()}
 
       {/* ══════════════════════════════════════ */}
       {/* DRAWER BIBLIOTHÈQUE REPAS              */}
