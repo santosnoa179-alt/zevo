@@ -379,6 +379,8 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
   const [dernieresCompletions, setDernieresCompletions] = useState([])
   const [stats30j, setStats30j] = useState({ planifiees: 0, completees: 0, exercices: 0, series: 0 })
   const [progressionData, setProgressionData] = useState([])  // V3b : charges prévues vs faites
+  const [proSeancesCount, setProSeancesCount] = useState(0)   // Nb séances déployées du programme Pro
+  const [redeploying, setRedeploying] = useState(false)
 
   // ── Charger les donnees ──
   useEffect(() => {
@@ -407,7 +409,19 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle()
-        if (proAssigned) setProgrammeProAssigne(proAssigned)
+        if (proAssigned) {
+          setProgrammeProAssigne(proAssigned)
+          // Compte les séances déployées (si schema V3 appliqué)
+          try {
+            const { count } = await supabase
+              .from('seances')
+              .select('id', { count: 'exact', head: true })
+              .eq('sport_programme_id', proAssigned.id)
+            setProSeancesCount(count || 0)
+          } catch {
+            setProSeancesCount(0)
+          }
+        }
       } catch (e) {
         console.warn('[SportTab] sport_programmes indisponible:', e)
       }
@@ -532,6 +546,134 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const completionPct = stats30j.planifiees > 0 ? Math.round((stats30j.completees / stats30j.planifiees) * 100) : 0
 
+  // ── Re-déployer les séances d'un programme Pro déjà assigné (V3a) ──
+  // Utile si le programme a été assigné AVANT V3a (pas de séances créées)
+  // ou si on veut reset les séances (après modif du programme).
+  const redeployProgramme = async () => {
+    if (!programmeProAssigne || redeploying) return
+    const confirm = window.confirm(
+      `Re-déployer les séances du programme "${programmeProAssigne.nom}" dans le calendrier ?\n\nLes séances existantes de ce programme seront remplacées.`
+    )
+    if (!confirm) return
+    setRedeploying(true)
+    try {
+      const progId = programmeProAssigne.id
+      // 1. Supprimer les séances existantes pour ce programme
+      await supabase.from('seances').delete().eq('sport_programme_id', progId)
+
+      // 2. Fetch l'arbre du programme
+      const [phRes, stRes, pjRes, exRes] = await Promise.all([
+        supabase.from('sport_phases').select('*').eq('programme_id', progId).order('ordre'),
+        supabase.from('sport_seance_types').select('*').order('ordre'),
+        supabase.from('sport_phase_jours').select('*'),
+        supabase.from('sport_seance_exercices').select('*').order('ordre'),
+      ])
+      const phases = phRes.data || []
+      const phaseIds = phases.map(p => p.id)
+      const seanceTypes = (stRes.data || []).filter(st => phaseIds.includes(st.phase_id))
+      const phaseJours = (pjRes.data || []).filter(pj => phaseIds.includes(pj.phase_id))
+      const stIds = seanceTypes.map(st => st.id)
+      const exos = (exRes.data || []).filter(e => stIds.includes(e.seance_type_id))
+
+      // 3. Générer les séances
+      const dateDebut = new Date()
+      dateDebut.setHours(0, 0, 0, 0)
+      const exosByStId = {}
+      exos.forEach(e => {
+        if (!exosByStId[e.seance_type_id]) exosByStId[e.seance_type_id] = []
+        exosByStId[e.seance_type_id].push(e)
+      })
+      const allSeances = []
+      for (const ph of phases) {
+        const pjForPh = phaseJours.filter(pj => pj.phase_id === ph.id)
+        for (let weekOffset = 0; weekOffset < ph.duree_semaines; weekOffset++) {
+          const weekNumber = ph.semaine_debut + weekOffset
+          for (const pj of pjForPh) {
+            if (!pj.seance_type_id) continue
+            const st = seanceTypes.find(s => s.id === pj.seance_type_id)
+            if (!st) continue
+            const date = new Date(dateDebut)
+            date.setDate(dateDebut.getDate() + (weekNumber - 1) * 7 + pj.jour_semaine)
+            allSeances.push({
+              __stId: st.id,
+              __weekOffset: weekOffset,
+              coach_id: coachId,
+              client_id: clientId,
+              titre: st.nom || 'Séance',
+              date_prevue: date.toISOString().slice(0, 10),
+              is_template: false,
+              is_completed: false,
+              sport_programme_id: progId,
+              sport_phase_id: ph.id,
+              sport_seance_type_id: st.id,
+              week_number: weekNumber,
+              duree_estimee_min: st.duree_estimee_min || null,
+              notes: `programme_pro:${progId}`,
+            })
+          }
+        }
+      }
+      if (allSeances.length === 0) {
+        alert('Ce programme n\'a aucune séance à déployer (phases/jours vides).')
+        setRedeploying(false)
+        return
+      }
+
+      // 4. Insert seances
+      const seancesPayload = allSeances.map(({ __stId, __weekOffset, ...row }) => row)
+      const { data: insertedSeances, error: sErr } = await supabase.from('seances').insert(seancesPayload).select()
+      if (sErr) throw sErr
+
+      // 5. Insert exos avec charge calculée par semaine
+      const exosToInsert = []
+      insertedSeances.forEach((seance, idx) => {
+        const meta = allSeances[idx]
+        const sources = exosByStId[meta.__stId] || []
+        sources.forEach(exo => {
+          const baseCharge = +exo.charge_kg || 0
+          let chargeAtWeek = baseCharge
+          if (baseCharge > 0 && exo.progression_type && exo.progression_value) {
+            if (exo.progression_type === 'lineaire') chargeAtWeek = baseCharge + (+exo.progression_value * meta.__weekOffset)
+            else if (exo.progression_type === 'pourcentage') chargeAtWeek = baseCharge * Math.pow(1 + (+exo.progression_value / 100), meta.__weekOffset)
+          }
+          exosToInsert.push({
+            seance_id: seance.id,
+            exercice_id: exo.exercice_id,
+            ordre: exo.ordre,
+            series: exo.series,
+            reps_cible: exo.reps_cible,
+            charge_kg: Math.round(chargeAtWeek * 10) / 10 || null,
+            charge_unite: exo.charge_unite || 'kg',
+            rpe_cible: exo.rpe_cible,
+            rir_cible: exo.rir_cible,
+            tempo: exo.tempo,
+            rest_sec: exo.rest_sec,
+            superset_group: exo.superset_group,
+            technique: exo.technique,
+            notes_coach: exo.notes_coach,
+            progression_type: exo.progression_type,
+            progression_value: exo.progression_value,
+            progression_freq: exo.progression_freq,
+            sport_seance_exercice_id: exo.id,
+          })
+        })
+      })
+      if (exosToInsert.length) {
+        const { error: eErr } = await supabase.from('seance_exercices').insert(exosToInsert)
+        if (eErr) throw eErr
+      }
+
+      alert(`✅ ${allSeances.length} séances déployées dans le calendrier !`)
+      setProSeancesCount(allSeances.length)
+      // Reload la semaine + stats
+      window.location.reload()
+    } catch (err) {
+      console.error('[redeployProgramme]', err)
+      alert('Erreur : ' + (err.message || err))
+    }
+    setRedeploying(false)
+  }
+
   return (
     <div className="space-y-5 max-w-3xl mx-auto">
 
@@ -562,30 +704,65 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
             <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Programme actuel</p>
             {/* Programme Pro en priorité s'il existe */}
             {programmeProAssigne ? (
-              <button onClick={() => window.location.href = `/coach/sport/programme/${programmeProAssigne.id}`}
-                className="w-full text-left glass-card rounded-2xl p-4 relative overflow-hidden hover:bg-[var(--bg-surface)]/30 transition-colors">
+              <div className="glass-card rounded-2xl p-4 relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                      <Layers size={18} className="text-[#FF6B2B]" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-[var(--text-primary)] text-sm font-bold truncate">{programmeProAssigne.nom}</h4>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                <button onClick={() => window.location.href = `/coach/sport/programme/${programmeProAssigne.id}`}
+                  className="w-full text-left hover:bg-[var(--bg-surface)]/30 -m-4 p-4 rounded-2xl transition-colors block">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                        <Layers size={18} className="text-[#FF6B2B]" />
                       </div>
-                      <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
-                        {programmeProAssigne.duree_semaines} semaines{programmeProAssigne.objectif ? ` · ${programmeProAssigne.objectif}` : ''}{programmeProAssigne.frequence_hebdo ? ` · ${programmeProAssigne.frequence_hebdo}/sem` : ''}
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-[var(--text-primary)] text-sm font-bold truncate">{programmeProAssigne.nom}</h4>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                        </div>
+                        <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
+                          {programmeProAssigne.duree_semaines} semaines{programmeProAssigne.objectif ? ` · ${programmeProAssigne.objectif}` : ''}{programmeProAssigne.frequence_hebdo ? ` · ${programmeProAssigne.frequence_hebdo}/sem` : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">Actif</span>
+                      <ChevronRight size={14} className="text-[var(--text-muted)]" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">Actif</span>
-                    <ChevronRight size={14} className="text-[var(--text-muted)]" />
+                </button>
+
+                {/* Statut déploiement séances + bouton Re-déployer */}
+                <div className="mt-3 pt-3 border-t border-[var(--border-base)] flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 text-[10px]">
+                    {proSeancesCount > 0 ? (
+                      <>
+                        <CheckCircle2 size={11} className="text-emerald-400" />
+                        <span className="text-[var(--text-muted)]">
+                          <span className="text-[var(--text-primary)] font-bold tabular-nums">{proSeancesCount}</span> séances déployées
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-red-400 font-bold">⚠</span>
+                        <span className="text-[var(--text-muted)]">Aucune séance déployée dans le calendrier</span>
+                      </>
+                    )}
                   </div>
+                  <button onClick={(e) => { e.stopPropagation(); redeployProgramme() }}
+                    disabled={redeploying}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors disabled:opacity-50"
+                    title="Re-déployer les séances du programme dans le calendrier (date de départ = aujourd'hui)">
+                    {redeploying ? (
+                      <>
+                        <Loader2 size={10} className="animate-spin" /> Déploiement...
+                      </>
+                    ) : (
+                      <>
+                        <Calendar size={10} /> {proSeancesCount > 0 ? 'Re-déployer' : 'Déployer au calendrier'}
+                      </>
+                    )}
+                  </button>
                 </div>
-              </button>
+              </div>
             ) : programme ? (
               <button onClick={() => onOpenProgramme?.(programme)}
                 className="w-full text-left glass-card rounded-2xl p-4 relative overflow-hidden hover:bg-[var(--bg-surface)]/30 transition-colors">
