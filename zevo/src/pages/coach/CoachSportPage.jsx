@@ -27,6 +27,7 @@ export default function CoachSportPage() {
 
   // Real data
   const [programmes, setProgrammes] = useState([])
+  const [programmesPro, setProgrammesPro] = useState([])
   const [assignations, setAssignations] = useState({}) // { programme_id: { client_nom, client_initials, statut, client_id } }
   const [suiviData, setSuiviData] = useState({}) // { programme_id_client_id: [{ numero_semaine }] }
   const [isLoading, setIsLoading] = useState(true)
@@ -81,6 +82,19 @@ export default function CoachSportPage() {
         console.error('[CoachSportPage] Erreur fetch programmes:', error)
       }
       setProgrammes(progs || [])
+
+      // Fetch programmes Pro (nouveau builder multi-phases)
+      try {
+        const { data: pro } = await supabase
+          .from('sport_programmes')
+          .select('*, profiles:client_id(id, nom, prenom)')
+          .eq('coach_id', user.id)
+          .order('created_at', { ascending: false })
+        setProgrammesPro(pro || [])
+      } catch (e) {
+        console.warn('[CoachSportPage] sport_programmes indisponible (schema non appliqué ?):', e)
+        setProgrammesPro([])
+      }
 
       // Fetch assignations with client names (separate query, won't break if it fails)
       try {
@@ -227,14 +241,27 @@ export default function CoachSportPage() {
   }
 
   // Filter programmes by search + tab + status
-  const assignedCount = programmes.filter(p => assignations[p.id]).length
-  const templatesCount = programmes.filter(p => !assignations[p.id]).length
+  // Legacy programmes (table `programmes`) + Pro programmes (table `sport_programmes`)
+  const assignedCount =
+    programmes.filter(p => assignations[p.id]).length +
+    programmesPro.filter(p => p.client_id).length
+  const templatesCount =
+    programmes.filter(p => !assignations[p.id]).length +
+    programmesPro.filter(p => !p.client_id).length
 
   const filteredProgrammes = programmes.filter(p => {
     const matchSearch = !search || p.titre?.toLowerCase().includes(search.toLowerCase())
     const matchStatus = filterStatus === 'tous' || (filterStatus === 'actif' && p.actif) || (filterStatus === 'brouillon' && !p.actif)
     if (activeTab === 'assigned') return matchSearch && matchStatus && assignations[p.id]
     if (activeTab === 'templates') return matchSearch && matchStatus && !assignations[p.id]
+    return matchSearch
+  })
+
+  // Programmes Pro filtrés (pour ajout dans les mêmes onglets)
+  const filteredProgrammesPro = programmesPro.filter(p => {
+    const matchSearch = !search || p.nom?.toLowerCase().includes(search.toLowerCase())
+    if (activeTab === 'assigned') return matchSearch && p.client_id
+    if (activeTab === 'templates') return matchSearch && !p.client_id
     return matchSearch
   })
 
@@ -316,18 +343,12 @@ export default function CoachSportPage() {
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-[var(--text-primary)] text-2xl md:text-3xl font-bold tracking-tight">Sport</h1>
-          <p className="text-[var(--text-muted)] text-sm mt-1.5">Programmes simples, programmes pro multi-phases et bibliothèque</p>
+          <p className="text-[var(--text-muted)] text-sm mt-1.5">Programmes multi-phases avec phases, séances types et exercices</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button onClick={openCreate}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[var(--text-secondary)] border border-[var(--border-base)] text-sm font-semibold hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all active:scale-95">
-            <Plus size={15} /> Programme simple
-          </button>
-          <button onClick={() => window.location.href = '/coach/sport/programme/new'}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95">
-            <Plus size={15} /> Programme Pro
-          </button>
-        </div>
+        <button onClick={() => window.location.href = '/coach/sport/programme/new'}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95 shrink-0">
+          <Plus size={15} /> Créer un programme
+        </button>
       </div>
 
       {/* ═══ Stats overview — metric-card ═══ */}
@@ -399,10 +420,10 @@ export default function CoachSportPage() {
         </div>
       )}
 
-      {/* ═══════ ONGLET : PROGRAMMES ASSIGNÉS ═══════ */}
+      {/* ═══════ ONGLET : PROGRAMMES ASSIGNÉS (legacy + Pro) ═══════ */}
       {!isLoading && activeTab === 'assigned' && (
         <>
-          {filteredProgrammes.length === 0 ? (
+          {filteredProgrammes.length === 0 && filteredProgrammesPro.length === 0 ? (
             <div className="hero-card p-12 text-center">
               <Dumbbell size={28} className="text-[var(--text-muted)] mx-auto mb-4 animate-breathe" strokeWidth={1.5} />
               <h3 className="text-[var(--text-primary)] font-bold text-base mb-2 tracking-tight">
@@ -491,15 +512,56 @@ export default function CoachSportPage() {
                   </div>
                 )
               })}
+
+              {/* ── Programmes Pro assignés (sport_programmes) ── */}
+              {filteredProgrammesPro.map((pro, idx) => {
+                const avatarColor = AVATAR_COLORS[(filteredProgrammes.length + idx) % AVATAR_COLORS.length]
+                const clientName = pro.profiles ? [pro.profiles.prenom, pro.profiles.nom].filter(Boolean).join(' ') : 'Client'
+                const initials = clientName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                return (
+                  <div key={`pro-${pro.id}`}
+                    onClick={() => window.location.href = `/coach/sport/programme/${pro.id}`}
+                    className="group hero-card p-4 hover:border-[#FF6B2B]/30 transition-all cursor-pointer">
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0 uppercase"
+                        style={{ backgroundColor: avatarColor }}>
+                        {initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-[var(--text-primary)] font-bold text-sm leading-tight truncate">{clientName}</h3>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                        </div>
+                        <p className="text-[var(--text-muted)] text-xs truncate mt-0.5">{pro.nom}</p>
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${pro.is_active ? 'text-emerald-400' : 'text-[var(--text-muted)]'}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${pro.is_active ? 'bg-emerald-400' : 'bg-[var(--text-muted)]'}`} />
+                            {pro.is_active ? 'Actif' : 'Inactif'}
+                          </span>
+                          <span className="text-[var(--text-muted)] text-[10px]">·</span>
+                          <span className="text-[var(--text-muted)] text-[10px] tabular-nums">{pro.duree_semaines} sem.</span>
+                          {pro.objectif && (
+                            <>
+                              <span className="text-[var(--text-muted)] text-[10px]">·</span>
+                              <span className="text-[var(--text-muted)] text-[10px] capitalize">{pro.objectif}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </>
       )}
 
-      {/* ═══════ ONGLET : MODÈLES ═══════ */}
+      {/* ═══════ ONGLET : MODÈLES (legacy + Pro) ═══════ */}
       {!isLoading && activeTab === 'templates' && (
         <>
-          {filteredProgrammes.length === 0 ? (
+          {filteredProgrammes.length === 0 && filteredProgrammesPro.length === 0 ? (
             <div className="hero-card p-16 text-center">
               <Dumbbell size={32} className="text-[var(--text-muted)] mx-auto mb-4 animate-breathe" strokeWidth={1.5} />
               <h3 className="text-[var(--text-primary)] font-bold text-lg mb-2 tracking-tight">
@@ -509,7 +571,7 @@ export default function CoachSportPage() {
                 {search ? `Aucun modèle pour "${search}"` : 'Crée ton premier programme de coaching structuré.'}
               </p>
               {!search && (
-                <button onClick={openCreate}
+                <button onClick={() => window.location.href = '/coach/sport/programme/new'}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95">
                   <Plus size={15} /> Créer un programme
                 </button>
@@ -563,6 +625,41 @@ export default function CoachSportPage() {
                       className="py-2 rounded-lg bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#FF6B2B]/90 transition-all flex items-center justify-center gap-1.5 active:scale-95">
                       <Users size={12} /> Assigner
                     </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* ── Programmes Pro modèles (sport_programmes) ── */}
+              {filteredProgrammesPro.map(pro => (
+                <div key={`pro-${pro.id}`}
+                  onClick={() => window.location.href = `/coach/sport/programme/${pro.id}`}
+                  className="hero-card p-4 hover:border-[#FF6B2B]/30 transition-all group cursor-pointer">
+                  <div className="flex items-start gap-3 mb-4">
+                    <Layers size={16} className="text-[var(--text-muted)] shrink-0 mt-0.5" strokeWidth={1.75} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-[var(--text-primary)] font-bold text-sm leading-tight truncate">{pro.nom}</h3>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                      </div>
+                      {pro.description && (
+                        <p className="text-[var(--text-muted)] text-[11px] mt-0.5 line-clamp-2">{pro.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1 bg-[var(--bg-base)] px-2 py-1 rounded-md text-[10px] text-[var(--text-muted)] font-semibold border border-[var(--border-subtle)] tabular-nums">
+                      <Calendar size={11} /> {pro.duree_semaines} sem.
+                    </span>
+                    {pro.objectif && (
+                      <span className="px-2 py-1 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold capitalize">
+                        {pro.objectif}
+                      </span>
+                    )}
+                    {pro.niveau && (
+                      <span className="px-2 py-1 rounded-md bg-[var(--bg-surface)] text-[var(--text-muted)] text-[10px] font-semibold capitalize">
+                        {pro.niveau}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
