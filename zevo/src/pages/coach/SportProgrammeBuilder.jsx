@@ -174,7 +174,9 @@ export default function SportProgrammeBuilder() {
   // ── Drawers ──
   const [exoDrawer, setExoDrawer] = useState(null)        // { seanceTypeIdx } pour ajouter un exo
   const [exoSearch, setExoSearch] = useState('')
-  const [exoMuscleFilter, setExoMuscleFilter] = useState('')
+  const [exoMuscleFilter, setExoMuscleFilter] = useState('')        // body_part (Dos, Pectoraux...)
+  const [exoTargetFilter, setExoTargetFilter] = useState('')        // target_muscle (Grand dorsal, Biceps...)
+  const [exoEquipFilter, setExoEquipFilter] = useState('')          // equipment (Barre, Haltères, Poids du corps...)
   const [biblioRepas, setBiblioRepas] = useState([])      // Séances dans la biblio
   const [biblioDrawer, setBiblioDrawer] = useState(false)
   const [biblioSearch, setBiblioSearch] = useState('')
@@ -784,11 +786,32 @@ export default function SportProgrammeBuilder() {
     return [...eqSet].sort()
   }, [phases])
 
-  // Muscle filters (from ExerciseDB : target_muscle est précis, body_part est plus large)
+  // Filtres dérivés de la biblio d'exercices
   const muscleList = useMemo(() => {
     const mset = new Set()
     exercises.forEach(e => { if (e.body_part) mset.add(e.body_part) })
     return [...mset].sort()
+  }, [exercises])
+
+  // Target muscles dispo — contextuels au body_part sélectionné
+  const targetList = useMemo(() => {
+    const tset = new Set()
+    exercises.forEach(e => {
+      if (exoMuscleFilter && e.body_part !== exoMuscleFilter) return
+      if (e.target_muscle) tset.add(e.target_muscle)
+    })
+    return [...tset].sort()
+  }, [exercises, exoMuscleFilter])
+
+  // Equipment top 12 par fréquence (les + utilisés)
+  const equipList = useMemo(() => {
+    const counts = {}
+    exercises.forEach(e => {
+      const eq = e.equipment
+      if (!eq) return
+      counts[eq] = (counts[eq] || 0) + 1
+    })
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([eq]) => eq)
   }, [exercises])
 
   // ══════════════════════════════════════════════════════
@@ -1288,8 +1311,14 @@ export default function SportProgrammeBuilder() {
 
       {/* ══ DRAWER EXERCICES (ExerciseDB avec GIFs animés) ══ */}
       {exoDrawer && (() => {
+        const hasFilter = !!(exoSearch.trim() || exoMuscleFilter || exoTargetFilter || exoEquipFilter)
+        const resetFilters = () => {
+          setExoSearch(''); setExoMuscleFilter(''); setExoTargetFilter(''); setExoEquipFilter('')
+        }
         const filtered = exercises.filter(e => {
           if (exoMuscleFilter && e.body_part !== exoMuscleFilter) return false
+          if (exoTargetFilter && e.target_muscle !== exoTargetFilter) return false
+          if (exoEquipFilter && e.equipment !== exoEquipFilter) return false
           if (exoSearch.trim()) {
             const term = exoSearch.toLowerCase()
             const nom = ((e.name_fr || '') + ' ' + (e.name || '')).toLowerCase()
@@ -1309,8 +1338,8 @@ export default function SportProgrammeBuilder() {
                     {' / '}
                     <span className="tabular-nums">{exercises.length}</span>
                     {' exercices'}
-                    {(exoSearch.trim() || exoMuscleFilter) && (
-                      <button onClick={() => { setExoSearch(''); setExoMuscleFilter('') }}
+                    {hasFilter && (
+                      <button onClick={resetFilters}
                         className="ml-2 text-[#FF6B2B] font-semibold hover:underline">
                         · Réinitialiser
                       </button>
@@ -1323,6 +1352,7 @@ export default function SportProgrammeBuilder() {
               </div>
 
               <div className="px-5 py-3 border-b border-[var(--border-base)] space-y-2.5">
+                {/* Search */}
                 <div className="relative">
                   <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                   <input type="text" value={exoSearch} onChange={e => setExoSearch(e.target.value)}
@@ -1330,21 +1360,77 @@ export default function SportProgrammeBuilder() {
                     autoFocus
                     className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl pl-9 pr-3 py-2 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40" />
                 </div>
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
-                  <button onClick={() => setExoMuscleFilter('')}
-                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
-                      exoMuscleFilter === '' ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)]'
-                    }`}>
-                    Tous
-                  </button>
-                  {muscleList.map(m => (
-                    <button key={m} onClick={() => setExoMuscleFilter(m === exoMuscleFilter ? '' : m)}
+
+                {/* Row 1 — Body part */}
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mb-1.5">Zone</p>
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+                    <button onClick={() => { setExoMuscleFilter(''); setExoTargetFilter('') }}
                       className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
-                        exoMuscleFilter === m ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)]'
+                        exoMuscleFilter === '' ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)]'
                       }`}>
-                      {frBodyPart(m)}
+                      Toutes
                     </button>
-                  ))}
+                    {muscleList.map(m => (
+                      <button key={m} onClick={() => { setExoMuscleFilter(m === exoMuscleFilter ? '' : m); setExoTargetFilter('') }}
+                        className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                          exoMuscleFilter === m ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)]'
+                        }`}>
+                        {frBodyPart(m)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Row 2 — Target muscle (contextuel si zone sélectionnée) */}
+                {exoMuscleFilter && targetList.length > 1 && (
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mb-1.5">Muscle précis</p>
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+                      <button onClick={() => setExoTargetFilter('')}
+                        className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                          exoTargetFilter === '' ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/30' : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)]'
+                        }`}>
+                        Tous
+                      </button>
+                      {targetList.map(t => (
+                        <button key={t} onClick={() => setExoTargetFilter(t === exoTargetFilter ? '' : t)}
+                          className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                            exoTargetFilter === t ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/30' : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)]'
+                          }`}>
+                          {frTarget(t)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Row 3 — Equipment */}
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] mb-1.5">Matériel</p>
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+                    <button onClick={() => setExoEquipFilter('')}
+                      className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                        exoEquipFilter === '' ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)]'
+                      }`}>
+                      Tous
+                    </button>
+                    {/* Bouton rapide "Poids du corps" toujours en premier */}
+                    <button onClick={() => setExoEquipFilter('body weight' === exoEquipFilter ? '' : 'body weight')}
+                      className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                        exoEquipFilter === 'body weight' ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)]'
+                      }`}>
+                      Poids du corps
+                    </button>
+                    {equipList.filter(eq => eq !== 'body weight').map(eq => (
+                      <button key={eq} onClick={() => setExoEquipFilter(eq === exoEquipFilter ? '' : eq)}
+                        className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                          exoEquipFilter === eq ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)]'
+                        }`}>
+                        {frEquip(eq)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
