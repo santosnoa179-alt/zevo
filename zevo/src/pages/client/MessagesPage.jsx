@@ -529,13 +529,13 @@ export default function MessagesClientPage() {
                 {coachInitials}
               </div>
               {/* Online dot */}
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[var(--bg-base)]" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#FF6B2B] border-2 border-[var(--bg-base)]" />
             </div>
 
             {/* Coach name */}
             <div className="flex-1 min-w-0">
               <h1 className="text-[var(--text-primary)] font-semibold text-[15px] truncate leading-tight">{coachName}</h1>
-              <p className="text-emerald-400/70 text-[11px] font-medium mt-0.5">En ligne</p>
+              <p className="text-[#FF6B2B]/70 text-[11px] font-medium mt-0.5">En ligne</p>
             </div>
 
             {/* Call button */}
@@ -543,7 +543,7 @@ export default function MessagesClientPage() {
               <a
                 href={`tel:${coachInfo.telephone}`}
                 title={`Appeler ${coachInfo.telephone}`}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all active:scale-90 flex-shrink-0"
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-[#FF6B2B] bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/20 transition-all active:scale-90 flex-shrink-0"
               >
                 <Phone size={17} />
               </a>

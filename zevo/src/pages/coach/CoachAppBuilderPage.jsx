@@ -231,7 +231,7 @@ export default function CoachAppBuilderPage() {
                 {['Starter', 'Pro', 'Unlimited'].map(p => (
                   <div key={p} className={`font-bold py-2.5 rounded-t-xl ${
                     p === 'Unlimited' ? 'text-[#FF6B2B] bg-[#FF6B2B]/5' :
-                    p === 'Pro' ? 'text-blue-400 bg-blue-500/5' :
+                    p === 'Pro' ? 'text-[var(--text-muted)] bg-[var(--bg-surface)]' :
                     'text-[var(--text-muted)]'
                   }`}>{p}</div>
                 ))}
@@ -244,7 +244,7 @@ export default function CoachAppBuilderPage() {
                       <span key={j} className="text-center">
                         {typeof val === 'boolean'
                           ? val
-                            ? <CheckCircle size={15} className="text-emerald-400 mx-auto" />
+                            ? <CheckCircle size={15} className="text-[#FF6B2B] mx-auto" />
                             : <X size={15} className="text-[var(--text-muted)]/30 mx-auto" />
                           : <span className="text-[var(--text-secondary)]">{val}</span>
                         }
@@ -406,7 +406,7 @@ export default function CoachAppBuilderPage() {
                   />
                   {nomApp && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Check size={14} className="text-emerald-400" />
+                      <Check size={14} className="text-[#FF6B2B]" />
                     </div>
                   )}
                 </div>
@@ -509,12 +509,12 @@ export default function CoachAppBuilderPage() {
 
           {/* ── Section 02 · Modules ── */}
           <div className="rounded-2xl border border-[var(--border-base)] bg-[var(--bg-card)] overflow-hidden">
-            <div className="h-[3px] bg-gradient-to-r from-violet-500/60 via-violet-400/20 to-transparent" />
+            <div className="h-[3px] bg-gradient-to-r from-[#FF6B2B]/60 via-[#FF9A6C]/20 to-transparent" />
             <div className="p-6 space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
-                    <Layers size={18} className="text-violet-400" />
+                  <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center">
+                    <Layers size={18} className="text-[var(--text-muted)]" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2.5">
@@ -525,7 +525,7 @@ export default function CoachAppBuilderPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <div className="w-2 h-2 rounded-full bg-[#FF6B2B] animate-pulse" />
                   <span className="text-[var(--text-muted)] text-[11px] font-bold tabular-nums">
                     {activeModuleCount}/{MODULES_CONFIG.length}
                   </span>
@@ -578,11 +578,11 @@ export default function CoachAppBuilderPage() {
 
           {/* ── Section 03 · Message de bienvenue ── */}
           <div className="rounded-2xl border border-[var(--border-base)] bg-[var(--bg-card)] overflow-hidden">
-            <div className="h-[3px] bg-gradient-to-r from-sky-500/60 via-sky-400/20 to-transparent" />
+            <div className="h-[3px] bg-gradient-to-r from-[#FF6B2B]/60 via-[#FF9A6C]/20 to-transparent" />
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center">
-                  <Quote size={18} className="text-sky-400" />
+                <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center">
+                  <Quote size={18} className="text-[var(--text-muted)]" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2.5">
@@ -599,8 +599,8 @@ export default function CoachAppBuilderPage() {
                 rows={3}
                 className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3.5 text-[var(--text-primary)] text-sm leading-relaxed placeholder:text-[var(--text-muted)] focus:outline-none transition-all duration-300 resize-none"
                 onFocus={(e) => {
-                  e.target.style.borderColor = '#3b82f650'
-                  e.target.style.boxShadow = '0 0 0 3px #3b82f610'
+                  e.target.style.borderColor = '#FF6B2B50'
+                  e.target.style.boxShadow = '0 0 0 3px #FF6B2B10'
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = ''
@@ -609,7 +609,7 @@ export default function CoachAppBuilderPage() {
               />
               {messageBienvenue && (
                 <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)] pl-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" />
                   {messageBienvenue.length} caracteres
                 </div>
               )}
@@ -638,7 +638,7 @@ export default function CoachAppBuilderPage() {
         {/* ══════════════════════════════════════ */}
         <div className="lg:sticky lg:top-6 self-start">
           <p className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-[0.2em] mb-4 text-center flex items-center justify-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] animate-pulse" />
             Apercu en temps reel
           </p>
 
@@ -832,10 +832,10 @@ export default function CoachAppBuilderPage() {
           {/* Message de bienvenue preview */}
           {messageBienvenue && (
             <div className="mt-5 rounded-2xl border border-[var(--border-base)] bg-[var(--bg-card)] overflow-hidden">
-              <div className="h-[2px] bg-gradient-to-r from-sky-500/40 via-sky-400/15 to-transparent" />
+              <div className="h-[2px] bg-gradient-to-r from-[#FF6B2B]/40 via-[#FF9A6C]/15 to-transparent" />
               <div className="p-4">
                 <p className="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-[0.15em] mb-2.5 flex items-center gap-1.5">
-                  <Quote size={10} className="text-sky-400" />
+                  <Quote size={10} className="text-[var(--text-muted)]" />
                   Message de bienvenue
                 </p>
                 <p className="text-[var(--text-primary)] text-xs leading-relaxed">{messageBienvenue}</p>
@@ -851,7 +851,7 @@ export default function CoachAppBuilderPage() {
             </div>
             <div className="w-px h-3 bg-[var(--border-subtle)]" />
             <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-[#FF6B2B] animate-pulse" />
               <span className="font-semibold">Preview live</span>
             </div>
           </div>

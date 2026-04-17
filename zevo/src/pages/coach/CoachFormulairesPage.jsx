@@ -111,8 +111,8 @@ function computeScore(reponses, champs) {
 }
 
 function scoreColor(score) {
-  if (score >= 7) return { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20' }
-  if (score >= 4) return { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/20' }
+  if (score >= 7) return { bg: 'bg-[#FF6B2B]/10', text: 'text-[#FF6B2B]', border: 'border-[#FF6B2B]/20' }
+  if (score >= 4) return { bg: 'bg-[var(--surface)]', text: 'text-[var(--text-muted)]', border: 'border-[var(--border-base)]' }
   return { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20' }
 }
 
@@ -647,7 +647,7 @@ export default function CoachFormulairesPage() {
                       className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors"><Edit3 size={18} /></button>
                     <button onClick={() => toggleStatut(f)} title={isActif ? 'Mettre en brouillon' : 'Activer'}
                       className="hidden md:flex p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
-                      {isActif ? <ToggleRight size={18} className="text-green-400" /> : <ToggleLeft size={18} />}
+                      {isActif ? <ToggleRight size={18} className="text-[#FF6B2B]" /> : <ToggleLeft size={18} />}
                     </button>
                     <button onClick={() => supprimerFormulaire(f.id)} title="Supprimer"
                       className="hidden md:flex p-2 rounded-lg text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={18} /></button>
@@ -728,12 +728,12 @@ export default function CoachFormulairesPage() {
                               <p className="text-[var(--text-muted)] text-[11px]">{c.profiles?.email}</p>
                             </div>
                             {c.repStatus === 'complete' ? (
-                              <span className="text-[11px] text-green-400 font-medium flex items-center gap-1">
+                              <span className="text-[11px] text-[#FF6B2B] font-medium flex items-center gap-1">
                                 <CheckCircle2 size={12} /> Complété
                               </span>
                             ) : c.repStatus === 'pending' ? (
                               <div className="flex items-center gap-2">
-                                <span className="text-[11px] text-yellow-400/70 hidden md:inline">En attente</span>
+                                <span className="text-[11px] text-[var(--text-muted)] hidden md:inline">En attente</span>
                                 <button onClick={() => relancerClient(c.id)}
                                   className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--bg-surface)] text-[var(--text-secondary)] text-[10px] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors">
                                   <RefreshCw size={10} /> Relancer
@@ -797,17 +797,17 @@ export default function CoachFormulairesPage() {
         {repStats && reponses.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-6 md:mb-8">
             <div className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
-              <div className="h-[2px] w-full bg-green-400/50" />
+              <div className="h-[2px] w-full bg-[#FF6B2B]/50" />
               <div className="p-3 md:p-4">
                 <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Complétées</p>
-                <p className="text-lg md:text-xl font-bold text-green-400 mt-1">{repStats.completed}</p>
+                <p className="text-lg md:text-xl font-bold text-[#FF6B2B] mt-1">{repStats.completed}</p>
               </div>
             </div>
             <div className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
-              <div className="h-[2px] w-full bg-yellow-400/50" />
+              <div className="h-[2px] w-full bg-[var(--text-muted)]/30" />
               <div className="p-3 md:p-4">
                 <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">En attente</p>
-                <p className="text-lg md:text-xl font-bold text-yellow-400 mt-1">{repStats.pending}</p>
+                <p className="text-lg md:text-xl font-bold text-[var(--text-muted)] mt-1">{repStats.pending}</p>
               </div>
             </div>
             {repStats.avgScore !== null && (() => {
@@ -851,7 +851,7 @@ export default function CoachFormulairesPage() {
                       <div className="flex items-center gap-3">
                         <div className="flex-1 h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                           <div className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${cs.moyenne * 10}%`, backgroundColor: cs.moyenne >= 7 ? '#22c55e' : cs.moyenne >= 4 ? '#eab308' : '#ef4444' }} />
+                            style={{ width: `${cs.moyenne * 10}%`, backgroundColor: cs.moyenne >= 7 ? '#FF6B2B' : cs.moyenne >= 4 ? '#FF9A6C' : '#ef4444' }} />
                         </div>
                         <span className="text-sm font-bold text-[var(--text-primary)] tabular-nums w-12 text-right">{cs.moyenne}/10</span>
                       </div>
@@ -859,7 +859,7 @@ export default function CoachFormulairesPage() {
 
                     {cs.type_champ === 'oui_non' && (
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">
+                        <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium">
                           Oui {cs.oui}
                         </span>
                         <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 font-medium">
@@ -867,7 +867,7 @@ export default function CoachFormulairesPage() {
                         </span>
                         {cs.count > 0 && (
                           <div className="flex-1 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden ml-2">
-                            <div className="h-full rounded-full bg-green-400" style={{ width: `${(cs.oui / cs.count) * 100}%` }} />
+                            <div className="h-full rounded-full bg-[#FF6B2B]" style={{ width: `${(cs.oui / cs.count) * 100}%` }} />
                           </div>
                         )}
                       </div>
@@ -930,7 +930,7 @@ export default function CoachFormulairesPage() {
                       )
                     })()}
                     <span className={`text-[11px] px-2.5 py-1 rounded-full font-medium ${
-                      r.complete ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                      r.complete ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20' : 'bg-[var(--surface)] text-[var(--text-muted)] border border-[var(--border-base)]'
                     }`}>
                       {r.complete ? 'Complété' : 'En attente'}
                     </span>
@@ -954,7 +954,7 @@ export default function CoachFormulairesPage() {
                                 <div className="flex-1 h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden max-w-[200px]">
                                   <div className="h-full rounded-full transition-all" style={{
                                     width: `${Number(val) * 10}%`,
-                                    backgroundColor: Number(val) >= 7 ? '#22c55e' : Number(val) >= 4 ? '#eab308' : '#ef4444',
+                                    backgroundColor: Number(val) >= 7 ? '#FF6B2B' : Number(val) >= 4 ? '#FF9A6C' : '#ef4444',
                                   }} />
                                 </div>
                                 <span className="text-sm font-bold text-[var(--text-primary)] tabular-nums">{val}/10</span>
@@ -962,8 +962,8 @@ export default function CoachFormulairesPage() {
                             ) : ch.type_champ === 'oui_non' ? (
                               <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium w-fit ${
                                 (val === true || val === 'true' || val === 'Oui')
-                                  ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                  ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20'
+                                  : 'bg-[var(--surface)] text-[var(--text-muted)] border border-[var(--border-base)]'
                               }`}>
                                 {(val === true || val === 'true' || val === 'Oui') ? 'Oui' : 'Non'}
                               </span>
@@ -1024,7 +1024,7 @@ export default function CoachFormulairesPage() {
           <button onClick={() => setFormStatut(s => s === 'actif' ? 'brouillon' : 'actif')}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
               formStatut === 'actif'
-                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20'
                 : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-base)]'
             }`}>
             {formStatut === 'actif' ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
@@ -1193,7 +1193,7 @@ export default function CoachFormulairesPage() {
                     {/* Scoring weight for note_1_10 */}
                     {champ.type_champ === 'note_1_10' && (
                       <div className="flex items-center gap-2">
-                        <Zap size={12} className="text-yellow-400/60" />
+                        <Zap size={12} className="text-[#FF6B2B]/60" />
                         <label className="text-[var(--text-muted)] text-[11px]">Poids dans le score :</label>
                         <input type="number" min="1" max="10" value={champ.poids_score || 1}
                           onChange={(e) => modifierChamp(idx, 'poids_score', Number(e.target.value))}
@@ -1204,7 +1204,7 @@ export default function CoachFormulairesPage() {
                     {/* Condition d'affichage */}
                     {idx > 0 && (
                       <div className="flex items-center gap-2 flex-wrap">
-                        <GitBranch size={12} className="text-purple-400/60 flex-shrink-0" />
+                        <GitBranch size={12} className="text-[var(--text-muted)] flex-shrink-0" />
                         <label className="text-[var(--text-muted)] text-[11px] flex-shrink-0">Afficher si :</label>
                         <select
                           value={champ.condition_affichage?.champ_id || ''}
@@ -1320,7 +1320,7 @@ export default function CoachFormulairesPage() {
                   return (
                     <div key={champ.id} className="space-y-2">
                       {hasCondition && (
-                        <div className="flex items-center gap-1 text-purple-500 text-[10px]">
+                        <div className="flex items-center gap-1 text-[var(--text-muted)] text-[10px]">
                           <GitBranch size={10} /> Conditionnel
                         </div>
                       )}

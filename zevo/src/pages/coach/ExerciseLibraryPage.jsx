@@ -127,22 +127,22 @@ function translate(key, map) {
 
 // Icône + couleur par zone du corps
 const BODY_PART_ICONS = {
-  back: { icon: ArrowUpDown, color: '#8B5CF6' },
-  cardio: { icon: Activity, color: '#EF4444' },
-  chest: { icon: Shield, color: '#3B82F6' },
-  'lower arms': { icon: Hand, color: '#F59E0B' },
-  'lower legs': { icon: Footprints, color: '#10B981' },
-  neck: { icon: CircleDot, color: '#EC4899' },
-  shoulders: { icon: Crown, color: '#6366F1' },
+  back: { icon: ArrowUpDown, color: '#FF6B2B' },
+  cardio: { icon: Activity, color: '#E85A1F' },
+  chest: { icon: Shield, color: '#FF6B2B' },
+  'lower arms': { icon: Hand, color: '#FF9A6C' },
+  'lower legs': { icon: Footprints, color: '#FF6B2B' },
+  neck: { icon: CircleDot, color: '#FF9A6C' },
+  shoulders: { icon: Crown, color: '#FF6B2B' },
   'upper arms': { icon: Zap, color: '#FF6B2B' },
-  'upper legs': { icon: Dumbbell, color: '#14B8A6' },
-  waist: { icon: Heart, color: '#F43F5E' },
+  'upper legs': { icon: Dumbbell, color: '#E85A1F' },
+  waist: { icon: Heart, color: '#FF9A6C' },
 }
 
 const DIFFICULTY_LABELS = {
-  beginner: { label: 'Debutant', color: '#10B981' },
-  intermediate: { label: 'Intermediaire', color: '#F59E0B' },
-  expert: { label: 'Expert', color: '#EF4444' },
+  beginner: { label: 'Debutant', color: '#FF6B2B' },
+  intermediate: { label: 'Intermediaire', color: '#FF9A6C' },
+  expert: { label: 'Expert', color: '#E85A1F' },
 }
 
 // ── Card image avec lazy loading GIF via IntersectionObserver ──
@@ -1086,11 +1086,11 @@ export default function ExerciseLibraryPage() {
                   <Target size={10} />
                   {translate(selectedExercise.target_muscle, TARGET_LABELS)}
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg bg-violet-500/10 text-violet-400">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] text-[var(--text-muted)]">
                   <Layers size={10} />
                   {translate(selectedExercise.body_part, BODY_PART_LABELS)}
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg bg-sky-500/10 text-sky-400">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] text-[var(--text-muted)]">
                   <Dumbbell size={10} />
                   {translate(selectedExercise.equipment, EQUIPMENT_LABELS)}
                 </span>

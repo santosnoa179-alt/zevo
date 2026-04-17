@@ -199,12 +199,12 @@ export default function SeancesPage() {
           </div>
           <div className="flex items-center gap-1">
             {done === total && total > 0 ? (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/15">
-                <Trophy size={13} className="text-emerald-400" />
-                <span className="text-emerald-400 text-xs font-bold">Semaine complète !</span>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FF6B2B]/15">
+                <Trophy size={13} className="text-[#FF6B2B]" />
+                <span className="text-[#FF6B2B] text-xs font-bold">Semaine complète !</span>
               </div>
             ) : (
-              <span className="text-2xl font-black" style={{ color: pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#FF6B2B' }}>
+              <span className="text-2xl font-black" style={{ color: '#FF6B2B' }}>
                 {pct}%
               </span>
             )}
@@ -215,11 +215,7 @@ export default function SeancesPage() {
             className="h-full rounded-full transition-all duration-700 relative"
             style={{
               width: `${total > 0 ? pct : 0}%`,
-              background: pct >= 80
-                ? 'linear-gradient(90deg, #22c55e, #4ade80)'
-                : pct >= 50
-                  ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
-                  : 'linear-gradient(90deg, #FF6B2B, #FF9A6C)',
+              background: 'linear-gradient(90deg, #FF6B2B, #FF9A6C)',
             }}
           >
             <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2) 50%, transparent)' }} />
@@ -230,7 +226,7 @@ export default function SeancesPage() {
           {seances.map(s => (
             <div key={s.id} className={`w-3 h-3 rounded-full transition-all ${
               s.is_completed
-                ? 'bg-emerald-400 shadow-[0_0_6px_rgba(34,197,94,0.4)]'
+                ? 'bg-[#FF6B2B] shadow-[0_0_6px_rgba(255,107,43,0.4)]'
                 : 'bg-white/10'
             }`} />
           ))}
@@ -311,18 +307,18 @@ export default function SeancesPage() {
                       key={seance.id}
                       className={`relative bg-[var(--bg-base)] border rounded-2xl overflow-hidden transition-all mb-2 ${
                         seance.is_completed
-                          ? 'border-emerald-500/20'
+                          ? 'border-[#FF6B2B]/20'
                           : isToday
                             ? 'border-[#FF6B2B]/20'
                             : 'border-[var(--border-base)]'
-                      } ${isCelebrating ? 'animate-pulse ring-2 ring-emerald-400/30' : ''} ${si.className || ''}`}
+                      } ${isCelebrating ? 'animate-pulse ring-2 ring-[#FF6B2B]/30' : ''} ${si.className || ''}`}
                       style={si.style}
                     >
                       {/* Bandeau complété */}
                       {seance.is_completed && (
-                        <div className="bg-emerald-500/10 px-4 py-1.5 flex items-center gap-1.5">
-                          <CheckCircle2 size={11} className="text-emerald-400" />
-                          <span className="text-emerald-400 text-[10px] font-bold">Terminée</span>
+                        <div className="bg-[#FF6B2B]/10 px-4 py-1.5 flex items-center gap-1.5">
+                          <CheckCircle2 size={11} className="text-[#FF6B2B]" />
+                          <span className="text-[#FF6B2B] text-[10px] font-bold">Terminée</span>
                         </div>
                       )}
 
@@ -332,11 +328,11 @@ export default function SeancesPage() {
                           {/* Icône */}
                           <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all ${
                             seance.is_completed
-                              ? 'bg-emerald-500/15'
+                              ? 'bg-[#FF6B2B]/15'
                               : 'bg-[#FF6B2B]/10'
                           }`}>
                             {seance.is_completed
-                              ? <CheckCircle2 size={22} className="text-emerald-400" />
+                              ? <CheckCircle2 size={22} className="text-[#FF6B2B]" />
                               : <Dumbbell size={22} className="text-[#FF6B2B]" />
                             }
                           </div>
@@ -354,7 +350,7 @@ export default function SeancesPage() {
                             }}
                           >
                             <p className={`text-sm font-semibold truncate ${
-                              seance.is_completed ? 'text-emerald-300/80 line-through' : 'text-[var(--text-primary)]'
+                              seance.is_completed ? 'text-[#FF9A6C]/80 line-through' : 'text-[var(--text-primary)]'
                             }`}>
                               {seance.titre}
                             </p>
@@ -375,7 +371,7 @@ export default function SeancesPage() {
                             disabled={toggling === seance.id}
                             className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5 ${
                               seance.is_completed
-                                ? 'bg-emerald-500/10 text-emerald-400 hover:bg-red-500/10 hover:text-red-400'
+                                ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-red-500/10 hover:text-red-400'
                                 : 'bg-[#FF6B2B] text-white hover:bg-[#e55a1b] shadow-lg shadow-[#FF6B2B]/20'
                             }`}
                           >
@@ -450,9 +446,9 @@ export default function SeancesPage() {
                       {isCelebrating && (
                         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                           <div className="flex gap-1 animate-bounce">
-                            <Sparkles size={20} className="text-amber-400 animate-pulse" />
-                            <Trophy size={22} className="text-emerald-400" />
-                            <Sparkles size={20} className="text-amber-400 animate-pulse" />
+                            <Sparkles size={20} className="text-[#FF9A6C] animate-pulse" />
+                            <Trophy size={22} className="text-[#FF6B2B]" />
+                            <Sparkles size={20} className="text-[#FF9A6C] animate-pulse" />
                           </div>
                         </div>
                       )}

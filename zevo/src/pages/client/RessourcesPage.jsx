@@ -11,10 +11,10 @@ import {
 // Icônes et couleurs par type
 const TYPE_CONFIG = {
   pdf:   { icon: FileText, color: '#EF4444', label: 'PDF' },
-  video: { icon: Video,    color: '#8B5CF6', label: 'Vidéo' },
-  lien:  { icon: Link2,    color: '#3B82F6', label: 'Lien' },
-  image: { icon: Image,    color: '#10B981', label: 'Image' },
-  guide: { icon: BookOpen, color: '#F59E0B', label: 'Guide' },
+  video: { icon: Video,    color: '#7A7A78', label: 'Vidéo' },
+  lien:  { icon: Link2,    color: '#FF6B2B', label: 'Lien' },
+  image: { icon: Image,    color: '#FF9A6C', label: 'Image' },
+  guide: { icon: BookOpen, color: '#FFB894', label: 'Guide' },
 }
 
 export default function RessourcesPage() {

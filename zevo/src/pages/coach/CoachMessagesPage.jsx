@@ -100,7 +100,7 @@ function Bulle({ message, estMoi, showTail, clientInitials, clientColor }) {
         <div className={`flex-shrink-0 ${showTail ? 'opacity-100' : 'opacity-0'}`}>
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-            style={{ backgroundColor: clientColor || '#3b82f6' }}
+            style={{ backgroundColor: clientColor || '#FF6B2B' }}
           >
             {clientInitials || 'C'}
           </div>
@@ -784,13 +784,13 @@ export default function CoachMessagesPage() {
                   >
                     {clientInitials}
                   </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[var(--bg-base)]" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#FF6B2B] border-2 border-[var(--bg-base)]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h1 className="text-[var(--text-primary)] font-semibold text-[15px] truncate leading-tight">
                     {clientSelectionne.profiles?.nom ?? clientSelectionne.profiles?.email}
                   </h1>
-                  <p className="text-emerald-400/70 text-[11px] font-medium mt-0.5">En ligne</p>
+                  <p className="text-[#FF6B2B]/70 text-[11px] font-medium mt-0.5">En ligne</p>
                 </div>
 
                 {/* Call button */}
@@ -798,7 +798,7 @@ export default function CoachMessagesPage() {
                   <a
                     href={`tel:${clientSelectionne.profiles.telephone}`}
                     title={`Appeler ${clientSelectionne.profiles.telephone}`}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all active:scale-90 flex-shrink-0"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-[#FF6B2B] bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/20 transition-all active:scale-90 flex-shrink-0"
                   >
                     <Phone size={17} />
                   </a>

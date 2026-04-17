@@ -481,7 +481,7 @@ export default function ProgramBuilder({ programme, onBack }) {
                 uploadingGlobal
                   ? 'bg-[var(--bg-surface)] text-[var(--text-muted)] cursor-wait'
                   : globalDoc || pendingFile
-                    ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20'
+                    ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 border border-[#FF6B2B]/20'
                     : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20'
               }`}
               title="Joindre un PDF/fichier global au programme">
@@ -511,9 +511,9 @@ export default function ProgramBuilder({ programme, onBack }) {
         <div className="px-4 md:px-6 py-2.5 border-b border-[var(--border-base)] bg-[var(--bg-card)]/50">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-              pendingFile ? 'bg-[#FF6B2B]/10' : 'bg-emerald-500/10'
+              pendingFile ? 'bg-[#FF6B2B]/10' : 'bg-[#FF6B2B]/10'
             }`}>
-              <FileText size={16} className={pendingFile ? 'text-[#FF6B2B]' : 'text-emerald-400'} />
+              <FileText size={16} className={pendingFile ? 'text-[#FF6B2B]' : 'text-[#FF6B2B]'} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[var(--text-primary)] text-xs font-semibold truncate">

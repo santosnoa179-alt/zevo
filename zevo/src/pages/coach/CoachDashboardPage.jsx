@@ -504,7 +504,7 @@ export default function CoachDashboardPage() {
                 </div>
                 {s.evolution ? (
                   <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold mt-1.5 ${
-                    s.evolution.positive ? 'text-emerald-400' : 'text-red-400'
+                    s.evolution.positive ? 'text-[#FF6B2B]' : 'text-red-400'
                   }`}>
                     {s.evolution.positive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
                     {s.evolution.positive ? '+' : ''}{s.evolution.pct}%
@@ -592,7 +592,7 @@ export default function CoachDashboardPage() {
               <div className="flex items-center gap-2">
                 {revenueEvolution && (
                   <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${
-                    revenueEvolution.positive ? 'text-emerald-400' : 'text-red-400'
+                    revenueEvolution.positive ? 'text-[#FF6B2B]' : 'text-red-400'
                   }`}>
                     {revenueEvolution.positive ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
                     {revenueEvolution.positive ? '+' : ''}{revenueEvolution.pct}%
@@ -733,8 +733,8 @@ export default function CoachDashboardPage() {
                       className="w-full flex items-center gap-2.5 pl-3 pr-2 py-2.5 rounded-lg hover:bg-[var(--bg-surface)]/60 transition-colors text-left group relative"
                     >
                       {/* Barre latérale 3px — même langage que le Calendar */}
-                      <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full" style={{ backgroundColor: item.isCompleted ? '#22c55e' : meta.color }} />
-                      <IconComp size={14} strokeWidth={1.75} style={{ color: item.isCompleted ? '#22c55e' : meta.color }} className="flex-shrink-0" />
+                      <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full" style={{ backgroundColor: item.isCompleted ? '#FF6B2B' : meta.color }} />
+                      <IconComp size={14} strokeWidth={1.75} style={{ color: item.isCompleted ? '#FF6B2B' : meta.color }} className="flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-medium truncate ${item.isCompleted ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
                           {item.clientName ?? item.label}
@@ -744,7 +744,7 @@ export default function CoachDashboardPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5 flex-shrink-0">
-                        {item.isCompleted && <CheckCircle size={13} className="text-emerald-400" />}
+                        {item.isCompleted && <CheckCircle size={13} className="text-[#FF6B2B]" />}
                         <span className={`text-[10px] font-semibold tabular-nums px-1.5 py-0.5 rounded-md ${
                           item.time ? 'bg-[var(--bg-surface)] text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'
                         }`}>

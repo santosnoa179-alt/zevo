@@ -12,9 +12,9 @@ import {
 // ── Colonnes Kanban ──
 const COLUMNS = [
   { id: 'contact', label: 'Premier contact', color: '#71717a', dotClass: 'bg-zinc-500' },
-  { id: 'appel', label: 'Appel découverte', color: '#3b82f6', dotClass: 'bg-blue-500' },
-  { id: 'proposition', label: 'Proposition', color: '#FF6B2B', dotClass: 'bg-[#FF6B2B]' },
-  { id: 'closing', label: 'Closing', color: '#22c55e', dotClass: 'bg-green-500' },
+  { id: 'appel', label: 'Appel découverte', color: '#a1a1aa', dotClass: 'bg-zinc-400' },
+  { id: 'proposition', label: 'Proposition', color: '#FF9A6C', dotClass: 'bg-[#FF9A6C]' },
+  { id: 'closing', label: 'Closing', color: '#FF6B2B', dotClass: 'bg-[#FF6B2B]' },
 ]
 
 // ══════════════════════════════════════

@@ -1054,7 +1054,7 @@ export default function NutritionProgrammeBuilder() {
                           </span>
                           {activePhase.kcal_cible > 0 && (
                             <Ring value={jourTypeTotals.kcal} max={activePhase.kcal_cible} size={30} thickness={3}
-                              color={kcalPct > 110 ? '#ef4444' : kcalPct >= 90 ? '#22c55e' : '#FF6B2B'}
+                              color={kcalPct > 110 ? '#ef4444' : kcalPct >= 90 ? '#FF6B2B' : '#FF6B2B'}
                               trackColor="var(--ring-track)">
                               <span className="text-[8px] font-black tabular-nums text-[var(--text-primary)]">{kcalPct}%</span>
                             </Ring>

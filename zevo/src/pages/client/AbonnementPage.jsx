@@ -126,8 +126,8 @@ export default function AbonnementPage() {
   }
 
   const STATUT_LABELS = {
-    payee: { label: 'Payée', color: 'text-green-400', bg: 'bg-green-500/10' },
-    en_attente: { label: 'En attente', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+    payee: { label: 'Payée', color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10' },
+    en_attente: { label: 'En attente', color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]' },
     annulee: { label: 'Annulée', color: 'text-red-400', bg: 'bg-red-500/10' },
   }
 
@@ -278,9 +278,9 @@ export default function AbonnementPage() {
 
       {/* Message de succès */}
       {paiementSuccess && (
-        <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 mb-6 flex items-center gap-3">
-          <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-          <p className="text-green-400 text-sm">Paiement effectué avec succès ! Merci.</p>
+        <div className="bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 rounded-xl p-4 mb-6 flex items-center gap-3">
+          <CheckCircle size={20} className="text-[#FF6B2B] flex-shrink-0" />
+          <p className="text-[#FF6B2B] text-sm">Paiement effectué avec succès ! Merci.</p>
         </div>
       )}
 
@@ -372,10 +372,10 @@ export default function AbonnementPage() {
               <div className="flex items-center gap-3">
                 <p className="text-[var(--text-primary)] font-bold">{(p.montant / 100).toFixed(2)} €</p>
                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                  p.statut === 'paye' ? 'bg-green-500/10 text-green-400'
-                    : p.statut === 'en_attente' ? 'bg-yellow-500/10 text-yellow-400'
+                  p.statut === 'paye' ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
+                    : p.statut === 'en_attente' ? 'bg-[var(--bg-surface)] text-[var(--text-muted)]'
                     : p.statut === 'echoue' ? 'bg-red-500/10 text-red-400'
-                    : 'bg-blue-500/10 text-blue-400'
+                    : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'
                 }`}>
                   {p.statut === 'paye' ? 'Payé' : p.statut === 'en_attente' ? 'En attente' : p.statut === 'echoue' ? 'Échoué' : 'Remboursé'}
                 </span>

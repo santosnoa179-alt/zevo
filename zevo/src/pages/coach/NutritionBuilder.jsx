@@ -13,10 +13,10 @@ import {
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 
 const REPAS_OPTIONS = [
-  { type: 'petit_dej', label: 'Petit-déjeuner', icon: Coffee, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-  { type: 'dejeuner', label: 'Déjeuner', icon: UtensilsCrossed, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-  { type: 'collation', label: 'Collation', icon: Cookie, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-  { type: 'diner', label: 'Dîner', icon: Moon, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  { type: 'petit_dej', label: 'Petit-déjeuner', icon: Coffee, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]' },
+  { type: 'dejeuner', label: 'Déjeuner', icon: UtensilsCrossed, color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10' },
+  { type: 'collation', label: 'Collation', icon: Cookie, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]' },
+  { type: 'diner', label: 'Dîner', icon: Moon, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]' },
 ]
 
 function getRepasConfig(type) {
@@ -563,9 +563,9 @@ export default function NutritionBuilder() {
           {/* Active toggle */}
           <button onClick={() => setIsActive(!isActive)}
             className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-              isActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-[var(--bg-base)] text-[var(--text-muted)] border border-[var(--border-base)] hover:text-[var(--text-secondary)]'
+              isActive ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20' : 'bg-[var(--bg-base)] text-[var(--text-muted)] border border-[var(--border-base)] hover:text-[var(--text-secondary)]'
             }`}>
-            <div className={`w-8 h-4 rounded-full transition-all relative ${isActive ? 'bg-emerald-500' : 'bg-[var(--bg-surface)]'}`}>
+            <div className={`w-8 h-4 rounded-full transition-all relative ${isActive ? 'bg-[#FF6B2B]' : 'bg-[var(--bg-surface)]'}`}>
               <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${isActive ? 'left-4.5 right-0.5' : 'left-0.5'}`}
                 style={{ left: isActive ? '17px' : '2px' }} />
             </div>
@@ -576,7 +576,7 @@ export default function NutritionBuilder() {
           <button onClick={triggerGlobalPdfUpload} disabled={uploadingGlobal}
             className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
               uploadingGlobal ? 'bg-[var(--bg-surface)] text-[var(--text-muted)] cursor-wait'
-              : globalDoc || pendingGlobalFile ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20'
+              : globalDoc || pendingGlobalFile ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 border border-[#FF6B2B]/20'
               : 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20'
             }`}
             title="Joindre un PDF/fichier global au plan">
@@ -616,9 +616,9 @@ export default function NutritionBuilder() {
         <div className="px-4 md:px-6 py-2.5 border-b border-[var(--border-base)] bg-[var(--bg-card)]/50">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-              pendingGlobalFile ? 'bg-[#FF6B2B]/10' : 'bg-emerald-500/10'
+              pendingGlobalFile ? 'bg-[#FF6B2B]/10' : 'bg-[#FF6B2B]/10'
             }`}>
-              <FileText size={16} className={pendingGlobalFile ? 'text-[#FF6B2B]' : 'text-emerald-400'} />
+              <FileText size={16} className={pendingGlobalFile ? 'text-[#FF6B2B]' : 'text-[#FF6B2B]'} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[var(--text-primary)] text-xs font-semibold truncate">
@@ -896,9 +896,9 @@ export default function NutritionBuilder() {
                       <p className="text-[var(--text-primary)] text-xs font-medium truncate">{aliment.nom}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[10px] text-[#FF6B2B] font-bold">{aliment.kcal_100g}kcal</span>
-                        <span className="text-[10px] text-blue-400/60">P{aliment.proteines}</span>
-                        <span className="text-[10px] text-amber-400/60">G{aliment.glucides}</span>
-                        <span className="text-[10px] text-rose-400/60">L{aliment.lipides}</span>
+                        <span className="text-[10px] text-[var(--text-muted)]/60">P{aliment.proteines}</span>
+                        <span className="text-[10px] text-[var(--text-muted)]/60">G{aliment.glucides}</span>
+                        <span className="text-[10px] text-[var(--text-muted)]">L{aliment.lipides}</span>
                       </div>
                     </div>
                     <Plus size={14} className="text-[#FF6B2B] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />

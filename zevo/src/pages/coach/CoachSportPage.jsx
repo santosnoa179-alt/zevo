@@ -658,8 +658,8 @@ export default function CoachSportPage() {
                 const isComplete = progressPct >= 100
                 const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length]
                 const statusLabel = assign.statut === 'termine' ? 'Terminé' : assign.statut === 'pause' ? 'Pause' : 'En cours'
-                const statusColor = assign.statut === 'termine' ? 'text-[var(--text-muted)]' : assign.statut === 'pause' ? 'text-[#FF6B2B]' : 'text-emerald-400'
-                const statusDot = assign.statut === 'termine' ? 'bg-[var(--text-muted)]' : assign.statut === 'pause' ? 'bg-[#FF6B2B]' : 'bg-emerald-400'
+                const statusColor = assign.statut === 'termine' ? 'text-[var(--text-muted)]' : assign.statut === 'pause' ? 'text-[#FF6B2B]' : 'text-[#FF6B2B]'
+                const statusDot = assign.statut === 'termine' ? 'bg-[var(--text-muted)]' : assign.statut === 'pause' ? 'bg-[#FF6B2B]' : 'bg-[#FF6B2B]'
 
                 return (
                   <div key={prog.id}
@@ -701,11 +701,11 @@ export default function CoachSportPage() {
                         max={totalWeeks}
                         size={42}
                         thickness={3.5}
-                        color={isComplete ? '#22c55e' : '#FF6B2B'}
+                        color={isComplete ? '#FF6B2B' : '#FF6B2B'}
                         trackColor="var(--ring-track)"
                         className="shrink-0"
                       >
-                        <span className={`text-[9px] font-black tabular-nums ${isComplete ? 'text-emerald-400' : 'text-[var(--text-primary)]'}`}>{weeksDone}/{totalWeeks}</span>
+                        <span className={`text-[9px] font-black tabular-nums ${isComplete ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{weeksDone}/{totalWeeks}</span>
                       </Ring>
 
                       <button onClick={e => { e.stopPropagation(); handleDeleteProgramme(prog.id) }}
@@ -740,8 +740,8 @@ export default function CoachSportPage() {
                         </div>
                         <p className="text-[var(--text-muted)] text-xs truncate mt-0.5">{pro.nom}</p>
                         <div className="flex items-center gap-2 mt-2 flex-wrap">
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${pro.is_active ? 'text-emerald-400' : 'text-[var(--text-muted)]'}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${pro.is_active ? 'bg-emerald-400' : 'bg-[var(--text-muted)]'}`} />
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${pro.is_active ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${pro.is_active ? 'bg-[#FF6B2B]' : 'bg-[var(--text-muted)]'}`} />
                             {pro.is_active ? 'Actif' : 'Inactif'}
                           </span>
                           <span className="text-[var(--text-muted)] text-[10px]">·</span>
@@ -813,10 +813,10 @@ export default function CoachSportPage() {
                     )}
                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold ${
                       prog.actif
-                        ? 'text-emerald-400 bg-emerald-500/10'
+                        ? 'text-[#FF6B2B] bg-[#FF6B2B]/10'
                         : 'text-[var(--text-muted)] bg-[var(--bg-surface)]'
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${prog.actif ? 'bg-emerald-400' : 'bg-[var(--text-muted)]'}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${prog.actif ? 'bg-[#FF6B2B]' : 'bg-[var(--text-muted)]'}`} />
                       {prog.actif ? 'Publié' : 'Brouillon'}
                     </span>
                   </div>
@@ -1001,9 +1001,9 @@ export default function CoachSportPage() {
                   <label className="block text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-2">Date de début <span className="text-[#FF6B2B]">*</span></label>
                   <input type="date" value={createDate} onChange={e => setCreateDate(e.target.value)}
                     className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#FF6B2B]/40 transition-all" />
-                  <div className="flex items-start gap-2 mt-2 bg-blue-500/5 border border-blue-500/10 rounded-lg px-3 py-2">
-                    <Clock size={13} className="text-blue-400 mt-0.5 shrink-0" />
-                    <p className="text-blue-400/70 text-[11px]">La date de fin sera calculée automatiquement en fonction du nombre de séances.</p>
+                  <div className="flex items-start gap-2 mt-2 bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2">
+                    <Clock size={13} className="text-[var(--text-muted)] mt-0.5 shrink-0" />
+                    <p className="text-[var(--text-muted)] text-[11px]">La date de fin sera calculée automatiquement en fonction du nombre de séances.</p>
                   </div>
                 </div>
 
@@ -1029,9 +1029,9 @@ export default function CoachSportPage() {
                 )}
 
                 {!createDate && (
-                  <div className="flex items-start gap-2 bg-amber-500/5 border border-amber-500/10 rounded-lg px-3 py-2">
-                    <span className="text-amber-400 text-sm">⚠</span>
-                    <p className="text-amber-400/70 text-[11px]">Veuillez sélectionner une date de début</p>
+                  <div className="flex items-start gap-2 bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2">
+                    <span className="text-[var(--text-muted)] text-sm">⚠</span>
+                    <p className="text-[var(--text-muted)] text-[11px]">Veuillez sélectionner une date de début</p>
                   </div>
                 )}
               </div>

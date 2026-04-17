@@ -921,16 +921,16 @@ export default function CoachGlobalCalendarPage() {
                     </button>
                     <button
                       onClick={() => setModalType('event')}
-                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[var(--border-base)] hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/[0.03] transition-all text-left group"
+                      className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-[var(--border-base)] hover:border-[#FF6B2B]/30 hover:bg-[#FF6B2B]/[0.03] transition-all text-left group"
                     >
-                      <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                        <Calendar size={20} className="text-blue-400" />
+                      <div className="w-11 h-11 rounded-xl bg-[var(--surface)] flex items-center justify-center flex-shrink-0">
+                        <Calendar size={20} className="text-[var(--text-muted)]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[var(--text-primary)] text-sm font-semibold">Événement classique</p>
                         <p className="text-[var(--text-muted)] text-xs mt-0.5">Bilan, appel, réunion, note...</p>
                       </div>
-                      <ChevronRight size={16} className="text-[var(--text-muted)] group-hover:text-blue-400 transition-colors flex-shrink-0" />
+                      <ChevronRight size={16} className="text-[var(--text-muted)] group-hover:text-[#FF6B2B] transition-colors flex-shrink-0" />
                     </button>
                   </div>
                 ) : (
@@ -1036,7 +1036,7 @@ export default function CoachGlobalCalendarPage() {
                           <p className="text-sm font-medium text-[var(--text-primary)] truncate">{item.titre}</p>
                           <p className="text-[11px] text-[var(--text-muted)] mt-0.5">{item.profiles?.nom || 'Client'}</p>
                         </div>
-                        {item.is_completed && <CheckSquare size={14} className="text-green-400 flex-shrink-0" />}
+                        {item.is_completed && <CheckSquare size={14} className="text-[#FF6B2B] flex-shrink-0" />}
                         <ChevronRight size={14} className="text-[var(--text-muted)] md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0" />
                       </button>
                     )
@@ -1111,9 +1111,9 @@ export default function CoachGlobalCalendarPage() {
                   </span>
                 </div>
                 {detailSeance.is_completed && (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20">
-                    <CheckSquare size={12} className="text-green-400" />
-                    <span className="text-[11px] text-green-400 font-medium">Complétée</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FF6B2B]/10 border border-[#FF6B2B]/20">
+                    <CheckSquare size={12} className="text-[#FF6B2B]" />
+                    <span className="text-[11px] text-[#FF6B2B] font-medium">Complétée</span>
                   </div>
                 )}
               </div>

@@ -36,10 +36,10 @@ function fileTypeFromName(name) {
 
 function FileIcon({ type, size = 18 }) {
   switch (type) {
-    case 'image': return <FileImage size={size} className="text-blue-400" />
-    case 'video': return <FileVideo size={size} className="text-purple-400" />
-    case 'pdf': return <FileText size={size} className="text-red-400" />
-    case 'document': return <FileText size={size} className="text-green-400" />
+    case 'image': return <FileImage size={size} className="text-[var(--text-muted)]" />
+    case 'video': return <FileVideo size={size} className="text-[var(--text-muted)]" />
+    case 'pdf': return <FileText size={size} className="text-[#FF6B2B]" />
+    case 'document': return <FileText size={size} className="text-[var(--text-muted)]" />
     default: return <File size={size} className="text-[var(--text-muted)]" />
   }
 }
@@ -521,7 +521,7 @@ export default function CoachDrivePage() {
                 </div>
                 <div className="col-span-3">
                   {sharedWith ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs text-green-400">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-[#FF6B2B]">
                       <Users size={11} /> {sharedWith}
                     </span>
                   ) : (
@@ -581,7 +581,7 @@ export default function CoachDrivePage() {
               </a>
               <p className="text-[var(--text-muted)] text-[10px] mt-1">{formatSize(file.size)}</p>
               {file.profiles && (
-                <p className="text-green-400/60 text-[9px] mt-1 flex items-center gap-1">
+                <p className="text-[#FF6B2B]/60 text-[9px] mt-1 flex items-center gap-1">
                   <Users size={8} /> Partagé
                 </p>
               )}

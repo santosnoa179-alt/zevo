@@ -16,10 +16,10 @@ import {
 // ── Resource type config ──
 const RESSOURCE_ICONS = {
   pdf: { icon: FileText, color: 'text-red-400', bg: 'bg-red-500/10', action: Download },
-  video: { icon: Video, color: 'text-purple-400', bg: 'bg-purple-500/10', action: ExternalLink },
-  lien: { icon: LinkIcon, color: 'text-blue-400', bg: 'bg-blue-500/10', action: ExternalLink },
-  image: { icon: ImageIcon, color: 'text-green-400', bg: 'bg-green-500/10', action: Download },
-  guide: { icon: BookOpen, color: 'text-yellow-400', bg: 'bg-yellow-500/10', action: ExternalLink },
+  video: { icon: Video, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]', action: ExternalLink },
+  lien: { icon: LinkIcon, color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10', action: ExternalLink },
+  image: { icon: ImageIcon, color: 'text-[#FF9A6C]', bg: 'bg-[#FF9A6C]/10', action: Download },
+  guide: { icon: BookOpen, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]', action: ExternalLink },
 }
 
 // ── Meal labels & icons (no emojis) ──
@@ -30,10 +30,10 @@ const REPAS_LABELS = {
   diner: 'Diner',
 }
 const REPAS_ICON_MAP = {
-  petit_dej: { icon: Sun, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-  dejeuner: { icon: Coffee, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-  collation: { icon: Cookie, color: 'text-green-400', bg: 'bg-green-500/10' },
-  diner: { icon: Moon, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
+  petit_dej: { icon: Sun, color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10' },
+  dejeuner: { icon: Coffee, color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10' },
+  collation: { icon: Cookie, color: 'text-[#FF9A6C]', bg: 'bg-[#FF9A6C]/10' },
+  diner: { icon: Moon, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]' },
 }
 
 // ── Shared sub-components ──
@@ -93,7 +93,7 @@ function WeekTracker({ totalWeeks, completedWeeks, isWeekCompleted, validateWeek
                 disabled={done || !unlocked || isValidating}
                 className={`relative flex flex-col items-center justify-center py-3 rounded-xl border transition-all ${
                   done
-                    ? 'bg-emerald-500/10 border-emerald-500/20'
+                    ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/20'
                     : unlocked
                       ? 'border-[var(--border-base)] hover:border-[color:var(--accent)] active:scale-95 bg-[var(--bg-card)]'
                       : 'bg-[var(--bg-surface)]/50 border-transparent opacity-40'
@@ -101,7 +101,7 @@ function WeekTracker({ totalWeeks, completedWeeks, isWeekCompleted, validateWeek
                 style={{ '--accent': accentColor }}
               >
                 {done ? (
-                  <CheckCircle2 size={18} className="text-emerald-400 mb-0.5" />
+                  <CheckCircle2 size={18} className="text-[#FF6B2B] mb-0.5" />
                 ) : isValidating ? (
                   <Loader2 size={16} className="animate-spin mb-0.5" style={{ color: accentColor }} />
                 ) : unlocked ? (
@@ -109,7 +109,7 @@ function WeekTracker({ totalWeeks, completedWeeks, isWeekCompleted, validateWeek
                 ) : (
                   <Lock size={13} className="text-[var(--text-muted)] mb-0.5" />
                 )}
-                <span className={`text-[9px] font-medium ${done ? 'text-emerald-400' : 'text-[var(--text-muted)]'}`}>
+                <span className={`text-[9px] font-medium ${done ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
                   Sem. {weekNum}
                 </span>
               </button>
@@ -390,7 +390,7 @@ export default function ProgrammePage() {
       <div className="glass-card p-1.5 flex gap-1.5">
         {[
           { key: 'sport', label: 'Sport', icon: Dumbbell, color: '#FF6B2B' },
-          { key: 'nutrition', label: 'Nutrition', icon: UtensilsCrossed, color: '#22c55e' },
+          { key: 'nutrition', label: 'Nutrition', icon: UtensilsCrossed, color: '#FF9A6C' },
         ].map(t => (
           <button
             key={t.key}
@@ -570,10 +570,10 @@ export default function ProgrammePage() {
                       <button onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
                         className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-[var(--bg-surface)]/50 transition-colors">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
-                          isDone ? 'bg-emerald-500/15' : isCurrent ? 'bg-[#FF6B2B]/15' : 'bg-[var(--bg-surface)]'
+                          isDone ? 'bg-[#FF6B2B]/15' : isCurrent ? 'bg-[#FF6B2B]/15' : 'bg-[var(--bg-surface)]'
                         }`}>
                           {isDone ? (
-                            <CheckCircle2 size={16} className="text-emerald-400" />
+                            <CheckCircle2 size={16} className="text-[#FF6B2B]" />
                           ) : (
                             <span className={`text-xs font-bold ${isCurrent ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
                               {index + 1}
@@ -637,7 +637,7 @@ export default function ProgrammePage() {
                           {/* Nutrition dans la phase */}
                           {(phase.calories_objectif || phase.proteines_g || phase.consignes_nutrition) && (
                             <div>
-                              <SectionLabel icon={Apple} iconColor="text-green-400">Nutrition</SectionLabel>
+                              <SectionLabel icon={Apple} iconColor="text-[#FF9A6C]">Nutrition</SectionLabel>
                               {(phase.calories_objectif || phase.proteines_g) && (
                                 <div className="grid grid-cols-4 gap-2 mb-3">
                                   {phase.calories_objectif && (
@@ -648,19 +648,19 @@ export default function ProgrammePage() {
                                   )}
                                   {phase.proteines_g && (
                                     <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
-                                      <p className="text-blue-400 text-lg font-bold">{phase.proteines_g}g</p>
+                                      <p className="text-[#FF6B2B] text-lg font-bold">{phase.proteines_g}g</p>
                                       <p className="text-[var(--text-muted)] text-[9px] uppercase">Prot.</p>
                                     </div>
                                   )}
                                   {phase.glucides_g && (
                                     <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
-                                      <p className="text-amber-400 text-lg font-bold">{phase.glucides_g}g</p>
+                                      <p className="text-[#FF9A6C] text-lg font-bold">{phase.glucides_g}g</p>
                                       <p className="text-[var(--text-muted)] text-[9px] uppercase">Gluc.</p>
                                     </div>
                                   )}
                                   {phase.lipides_g && (
                                     <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
-                                      <p className="text-purple-400 text-lg font-bold">{phase.lipides_g}g</p>
+                                      <p className="text-[var(--text-muted)] text-lg font-bold">{phase.lipides_g}g</p>
                                       <p className="text-[var(--text-muted)] text-[9px] uppercase">Lip.</p>
                                     </div>
                                   )}
@@ -677,7 +677,7 @@ export default function ProgrammePage() {
                           {/* Habitudes */}
                           {(phase.habitudes?.length || 0) > 0 && (
                             <div>
-                              <SectionLabel icon={Sparkles} iconColor="text-amber-400">Habitudes</SectionLabel>
+                              <SectionLabel icon={Sparkles} iconColor="text-[#FF9A6C]">Habitudes</SectionLabel>
                               <div className="flex flex-wrap gap-2">
                                 {phase.habitudes.map((h, hi) => (
                                   <span key={hi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)]">
@@ -692,11 +692,11 @@ export default function ProgrammePage() {
                           {/* Objectifs */}
                           {(phase.objectifs?.length || 0) > 0 && (
                             <div>
-                              <SectionLabel icon={Target} iconColor="text-blue-400">Objectifs</SectionLabel>
+                              <SectionLabel icon={Target} iconColor="text-[#FF6B2B]">Objectifs</SectionLabel>
                               <div className="flex flex-wrap gap-2">
                                 {phase.objectifs.map((o, oi) => (
                                   <span key={oi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)]">
-                                    <Target size={11} className="text-blue-400" />
+                                    <Target size={11} className="text-[#FF6B2B]" />
                                     {o.titre}
                                   </span>
                                 ))}
@@ -707,7 +707,7 @@ export default function ProgrammePage() {
                           {/* Ressources */}
                           {(phase.ressources_attachees?.length || 0) > 0 && (
                             <div>
-                              <SectionLabel icon={BookOpen} iconColor="text-blue-400">
+                              <SectionLabel icon={BookOpen} iconColor="text-[#FF6B2B]">
                                 Ressources ({phase.ressources_attachees.length})
                               </SectionLabel>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -722,7 +722,7 @@ export default function ProgrammePage() {
                                         <Icon size={16} className={typeInfo.color} />
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                        <p className="text-[var(--text-primary)] text-sm font-medium truncate group-hover:text-blue-400 transition-colors">{res.titre}</p>
+                                        <p className="text-[var(--text-primary)] text-sm font-medium truncate group-hover:text-[#FF6B2B] transition-colors">{res.titre}</p>
                                         <p className="text-[var(--text-muted)] text-[10px] capitalize mt-0.5">{res.type}{res.categorie ? ` · ${res.categorie}` : ''}</p>
                                       </div>
                                       <ActionIcon size={14} className="text-[var(--text-muted)] flex-shrink-0" />
@@ -771,9 +771,9 @@ export default function ProgrammePage() {
             /* ── Empty state ── */
             <div className="glass-card p-12 text-center">
               <div className="relative inline-flex items-center justify-center mb-5">
-                <div className="absolute w-20 h-20 rounded-full bg-[#22c55e]/5 animate-breathe" />
-                <div className="relative w-14 h-14 rounded-2xl bg-[#22c55e]/10 flex items-center justify-center">
-                  <UtensilsCrossed size={24} className="text-[#22c55e]" />
+                <div className="absolute w-20 h-20 rounded-full bg-[#FF9A6C]/5 animate-breathe" />
+                <div className="relative w-14 h-14 rounded-2xl bg-[#FF9A6C]/10 flex items-center justify-center">
+                  <UtensilsCrossed size={24} className="text-[#FF9A6C]" />
                 </div>
               </div>
               <h2 className="text-[var(--text-primary)] font-semibold text-lg mb-2">Aucun plan nutritionnel</h2>
@@ -791,9 +791,9 @@ export default function ProgrammePage() {
               {/* PDF card */}
               {nutritionPlan.document_url && (
                 <a href={nutritionPlan.document_url} target="_blank" rel="noopener noreferrer"
-                  className="glass-card flex items-center gap-4 p-4 hover:border-[#22c55e]/30 transition-all group">
-                  <div className="w-12 h-12 rounded-xl bg-[#22c55e]/10 flex items-center justify-center shrink-0 group-hover:bg-[#22c55e]/20 transition-all">
-                    <FileText size={22} className="text-[#22c55e]" />
+                  className="glass-card flex items-center gap-4 p-4 hover:border-[#FF9A6C]/30 transition-all group">
+                  <div className="w-12 h-12 rounded-xl bg-[#FF9A6C]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF9A6C]/20 transition-all">
+                    <FileText size={22} className="text-[#FF9A6C]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[var(--text-primary)] text-sm font-semibold truncate">
@@ -801,8 +801,8 @@ export default function ProgrammePage() {
                     </p>
                     <p className="text-[var(--text-muted)] text-xs mt-0.5">Fichier joint par ton coach</p>
                   </div>
-                  <div className="w-9 h-9 rounded-lg bg-[#22c55e]/10 flex items-center justify-center shrink-0 group-hover:bg-[#22c55e] transition-all">
-                    <Download size={16} className="text-[#22c55e] group-hover:text-white transition-all" />
+                  <div className="w-9 h-9 rounded-lg bg-[#FF9A6C]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF9A6C] transition-all">
+                    <Download size={16} className="text-[#FF9A6C] group-hover:text-white transition-all" />
                   </div>
                 </a>
               )}
@@ -810,7 +810,7 @@ export default function ProgrammePage() {
               {/* Macros card */}
               {(nutritionPlan.calories_cible || nutritionPlan.proteines_cible) && (
                 <div className="glass-card overflow-hidden">
-                  <div className="h-1 bg-gradient-to-r from-[#22c55e] to-[#4ade80]" />
+                  <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
                   <div className="p-5">
                     <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-medium mb-4">Objectifs journaliers</p>
                     <div className="grid grid-cols-4 gap-2">
@@ -823,22 +823,22 @@ export default function ProgrammePage() {
                       )}
                       {nutritionPlan.proteines_cible && (
                         <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
-                          <Droplets size={14} className="text-blue-400 mx-auto mb-1.5" />
-                          <p className="text-blue-400 text-base font-bold">{nutritionPlan.proteines_cible}g</p>
+                          <Droplets size={14} className="text-[#FF6B2B] mx-auto mb-1.5" />
+                          <p className="text-[#FF6B2B] text-base font-bold">{nutritionPlan.proteines_cible}g</p>
                           <p className="text-[var(--text-muted)] text-[9px] uppercase">Prot.</p>
                         </div>
                       )}
                       {nutritionPlan.glucides_cible && (
                         <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
-                          <Wheat size={14} className="text-amber-400 mx-auto mb-1.5" />
-                          <p className="text-amber-400 text-base font-bold">{nutritionPlan.glucides_cible}g</p>
+                          <Wheat size={14} className="text-[#FF9A6C] mx-auto mb-1.5" />
+                          <p className="text-[#FF9A6C] text-base font-bold">{nutritionPlan.glucides_cible}g</p>
                           <p className="text-[var(--text-muted)] text-[9px] uppercase">Gluc.</p>
                         </div>
                       )}
                       {nutritionPlan.lipides_cible && (
                         <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
-                          <Droplets size={14} className="text-purple-400 mx-auto mb-1.5" />
-                          <p className="text-purple-400 text-base font-bold">{nutritionPlan.lipides_cible}g</p>
+                          <Droplets size={14} className="text-[var(--text-muted)] mx-auto mb-1.5" />
+                          <p className="text-[var(--text-muted)] text-base font-bold">{nutritionPlan.lipides_cible}g</p>
                           <p className="text-[var(--text-muted)] text-[9px] uppercase">Lip.</p>
                         </div>
                       )}
@@ -928,9 +928,9 @@ export default function ProgrammePage() {
               {/* Coach notes */}
               {nutritionPlan.notes && Object.keys(repasParJour).length > 0 && (
                 <div className="glass-card overflow-hidden">
-                  <div className="h-0.5 bg-gradient-to-r from-[#22c55e]/50 to-transparent" />
+                  <div className="h-0.5 bg-gradient-to-r from-[#FF9A6C]/50 to-transparent" />
                   <div className="p-5">
-                    <SectionLabel icon={BookOpen} iconColor="text-[#22c55e]">Notes du coach</SectionLabel>
+                    <SectionLabel icon={BookOpen} iconColor="text-[#FF9A6C]">Notes du coach</SectionLabel>
                     <p className="text-[var(--text-secondary)] text-sm whitespace-pre-wrap leading-relaxed">{nutritionPlan.notes}</p>
                   </div>
                 </div>
@@ -945,7 +945,7 @@ export default function ProgrammePage() {
                   validateWeek={validateNutriWeek}
                   validatingWeek={validatingNutriWeek}
                   progress={nutriWeekProgress}
-                  accentColor="#22c55e"
+                  accentColor="#FF9A6C"
                   label="Suivi hebdomadaire"
                 />
               )}

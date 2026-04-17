@@ -192,10 +192,10 @@ export default function CoachParametresPage() {
     <div className="p-4 md:p-6 w-full max-w-3xl mx-auto space-y-5">
       {/* Banner succès Stripe Checkout */}
       {checkoutSuccess && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 flex items-start gap-4 animate-in fade-in">
-          <PartyPopper size={20} className="text-emerald-400 flex-shrink-0 mt-0.5" strokeWidth={1.75} />
+        <div className="bg-[#FF6B2B]/10 border border-[#FF6B2B]/30 rounded-2xl p-5 flex items-start gap-4 animate-in fade-in">
+          <PartyPopper size={20} className="text-[#FF6B2B] flex-shrink-0 mt-0.5" strokeWidth={1.75} />
           <div>
-            <p className="text-emerald-400 font-bold text-sm tracking-tight">
+            <p className="text-[#FF6B2B] font-bold text-sm tracking-tight">
               Paiement confirmé — Bienvenue sur le plan {checkoutPlan ? checkoutPlan.charAt(0).toUpperCase() + checkoutPlan.slice(1) : ''} !
             </p>
             <p className="text-[var(--text-muted)] text-xs mt-1">
@@ -326,11 +326,11 @@ export default function CoachParametresPage() {
         </div>
 
         {stripeOnboardingComplete ? (
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/20">
-            <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-[#FF6B2B]/10 border border-[#FF6B2B]/20">
+            <CheckCircle size={20} className="text-[#FF6B2B] flex-shrink-0" />
             <div>
-              <p className="text-green-400 text-sm font-medium">Paiements activés</p>
-              <p className="text-green-400/60 text-xs">Votre compte Stripe est connecté. Vos clients peuvent payer en ligne.</p>
+              <p className="text-[#FF6B2B] text-sm font-medium">Paiements activés</p>
+              <p className="text-[#FF6B2B]/60 text-xs">Votre compte Stripe est connecté. Vos clients peuvent payer en ligne.</p>
             </div>
           </div>
         ) : (

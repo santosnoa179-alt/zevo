@@ -12,11 +12,11 @@ import {
 
 // Icônes & couleurs par type de ressource
 const RESSOURCE_ICONS = {
-  pdf: { icon: FileText, color: 'text-red-400', bg: 'bg-red-500/10' },
-  video: { icon: Video, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-  lien: { icon: LinkIcon, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-  image: { icon: ImageIcon, color: 'text-green-400', bg: 'bg-green-500/10' },
-  guide: { icon: BookOpen, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+  pdf: { icon: FileText, color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10' },
+  video: { icon: Video, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]' },
+  lien: { icon: LinkIcon, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]' },
+  image: { icon: ImageIcon, color: 'text-[#FF9A6C]', bg: 'bg-[#FF6B2B]/10' },
+  guide: { icon: BookOpen, color: 'text-[#FF9A6C]', bg: 'bg-[#FF6B2B]/10' },
 }
 
 const CATEGORIES = ['Remise en forme', 'Perte de poids', 'Prise de masse', 'Bien-être', 'Nutrition', 'Mindset', 'Autre']
@@ -515,8 +515,8 @@ export default function CoachProgrammesPage() {
   const templateProgs = programmes.filter(p => !assignedProgIds.has(p.id))
   const STATUS_LABELS = { en_cours: 'En cours', pause: 'Pause', termine: 'Terminé' }
   const STATUS_COLORS = {
-    en_cours: 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20',
-    pause: 'text-amber-400 bg-amber-500/10 border border-amber-500/20',
+    en_cours: 'text-[#FF6B2B] bg-[#FF6B2B]/10 border border-[#FF6B2B]/20',
+    pause: 'text-[var(--text-muted)] bg-[var(--bg-surface)] border border-[var(--border-base)]',
     termine: 'text-[var(--text-muted)] bg-white/5 border border-white/10',
   }
 
@@ -617,7 +617,7 @@ export default function CoachProgrammesPage() {
 
                     <div className="flex items-start gap-4">
                       <div className={`w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                        isComplete ? 'bg-emerald-500/15 text-emerald-400 ring-2 ring-emerald-500/20' : 'bg-[#FF6B2B]/15 text-[#FF6B2B] ring-2 ring-[#FF6B2B]/10'
+                        isComplete ? 'bg-[#FF6B2B]/15 text-[#FF6B2B] ring-2 ring-[#FF6B2B]/20' : 'bg-[#FF6B2B]/15 text-[#FF6B2B] ring-2 ring-[#FF6B2B]/10'
                       }`}>
                         {assign.clients?.profiles?.avatar_url ? (
                           <img src={assign.clients.profiles.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
@@ -650,13 +650,13 @@ export default function CoachProgrammesPage() {
                             <div
                               className={`h-full rounded-full transition-all duration-700 ease-out ${
                                 isComplete
-                                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+                                  ? 'bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]'
                                   : 'bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]'
                               }`}
                               style={{ width: `${progressPct}%` }}
                             />
                           </div>
-                          <span className={`text-xs font-bold shrink-0 tabular-nums ${isComplete ? 'text-emerald-400' : 'text-[#FF6B2B]'}`}>
+                          <span className={`text-xs font-bold shrink-0 tabular-nums ${isComplete ? 'text-[#FF6B2B]' : 'text-[#FF6B2B]'}`}>
                             {weeksDone}/{totalWeeks} sem.
                           </span>
                         </div>
@@ -1114,11 +1114,11 @@ function PhaseEditor({ phase, index, isLast, allExercises, allRessources, onUpda
               <div className="bg-[var(--bg-base)] rounded-xl border border-[var(--border-base)] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <BookOpen size={14} className="text-blue-400" />
+                    <BookOpen size={14} className="text-[var(--text-muted)]" />
                     <label className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wider">Ressources</label>
                   </div>
                   <button onClick={() => setShowResourcePicker(true)}
-                    className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                    className="inline-flex items-center gap-1.5 text-xs text-[#FF6B2B] hover:text-[#FF9A6C] font-medium transition-colors">
                     <BookOpen size={14} /> Parcourir ma bibliothèque
                   </button>
                 </div>
@@ -1365,10 +1365,10 @@ function ResourcePicker({ ressources, selected, onToggle, onClose }) {
             <input ref={inputRef} type="text" value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher une ressource..."
-              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-500/50" />
+              className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50" />
           </div>
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
-            className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50">
+            className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#FF6B2B]/50">
             <option value="">Tous types</option>
             {types.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
           </select>
@@ -1395,7 +1395,7 @@ function ResourcePicker({ ressources, selected, onToggle, onClose }) {
                 <button key={res.id} onClick={() => onToggle(res)}
                   className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
                     isSelected
-                      ? 'bg-blue-500/10 border border-blue-500/30'
+                      ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30'
                       : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] hover:border-[var(--border-base)]'
                   }`}>
                   <div className={`w-10 h-10 rounded-lg ${typeInfo.bg} flex items-center justify-center flex-shrink-0`}>
@@ -1408,7 +1408,7 @@ function ResourcePicker({ ressources, selected, onToggle, onClose }) {
                     </p>
                   </div>
                   <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all ${
-                    isSelected ? 'bg-blue-500' : 'border border-white/20'
+                    isSelected ? 'bg-[#FF6B2B]' : 'border border-white/20'
                   }`}>
                     {isSelected && <CheckSquare size={12} className="text-white" />}
                   </div>
@@ -1421,7 +1421,7 @@ function ResourcePicker({ ressources, selected, onToggle, onClose }) {
         {/* Footer */}
         <div className="px-6 py-3 border-t border-[var(--border-base)] flex justify-end">
           <button onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20">
+            className="px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
             Valider ({selected.length})
           </button>
         </div>

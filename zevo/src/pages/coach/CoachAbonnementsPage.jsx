@@ -16,10 +16,10 @@ const FREQ_LABELS = {
 }
 
 const STATUT_CONFIG = {
-  paye: { label: 'Paye', icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10' },
-  en_attente: { label: 'En attente', icon: Clock, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+  paye: { label: 'Paye', icon: CheckCircle, color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10' },
+  en_attente: { label: 'En attente', icon: Clock, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--surface)]' },
   echoue: { label: 'Echoue', icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/10' },
-  rembourse: { label: 'Rembourse', icon: RefreshCw, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  rembourse: { label: 'Rembourse', icon: RefreshCw, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--surface)]' },
 }
 
 export default function CoachAbonnementsPage() {

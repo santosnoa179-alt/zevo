@@ -527,7 +527,7 @@ export default function CoachBibliothequePage() {
                       {/* Favori star */}
                       {res.favori && (
                         <div className="absolute top-3 right-3 z-10">
-                          <Star size={14} className="text-yellow-400 fill-yellow-400" />
+                          <Star size={14} className="text-[#FF6B2B] fill-[#FF6B2B]" />
                         </div>
                       )}
 
@@ -570,8 +570,8 @@ export default function CoachBibliothequePage() {
 
                         <div className="flex items-center gap-0.5 opacity-40 group-hover:opacity-100 transition-opacity">
                           <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavori(res) }} title="Favori"
-                            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-yellow-400 hover:bg-yellow-400/10 transition-colors">
-                            {res.favori ? <BookmarkCheck size={15} className="text-yellow-400" /> : <Bookmark size={15} />}
+                            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors">
+                            {res.favori ? <BookmarkCheck size={15} className="text-[#FF6B2B]" /> : <Bookmark size={15} />}
                           </button>
                           <button type="button" onClick={(e) => { e.stopPropagation(); openShareModal(res.id) }} title="Partager"
                             className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-colors">
@@ -626,7 +626,7 @@ export default function CoachBibliothequePage() {
                     {res.categorie && <><span className="text-[var(--text-muted)]">·</span><span className="text-[10px] text-[var(--text-muted)]">{res.categorie}</span></>}
                   </div>
                 </div>
-                {res.favori && <Star size={13} className="text-yellow-400 fill-yellow-400 flex-shrink-0" />}
+                {res.favori && <Star size={13} className="text-[#FF6B2B] fill-[#FF6B2B] flex-shrink-0" />}
                 {nbPartages > 0 ? (
                   <span className="text-[10px] text-[#FF6B2B]/60 flex items-center gap-1 flex-shrink-0"><Globe size={10} />{nbPartages}</span>
                 ) : (
@@ -635,7 +635,7 @@ export default function CoachBibliothequePage() {
                 <span className="text-[var(--text-muted)] text-[10px] flex-shrink-0 w-16 text-right">{formatDate(res.created_at)}</span>
                 <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                   <button onClick={(e) => { e.stopPropagation(); toggleFavori(res) }}
-                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-yellow-400 transition-colors">
+                    className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] transition-colors">
                     {res.favori ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); openShareModal(res.id) }}
@@ -668,7 +668,7 @@ export default function CoachBibliothequePage() {
               </button>
               <button onClick={() => { toggleFavori(contextMenu.item) }}
                 className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
-                <Star size={13} className="text-yellow-400" /> {contextMenu.item.favori ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                <Star size={13} className="text-[#FF6B2B]" /> {contextMenu.item.favori ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               </button>
               <div className="border-t border-[var(--border-base)] my-1" />
               <button onClick={() => handleDelete(contextMenu.item)}

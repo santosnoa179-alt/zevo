@@ -18,7 +18,7 @@ import { exportHabitudes, exportObjectifs } from '../../utils/exportCsv'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 const ONGLETS = ['Aperçu', 'Habitudes', 'Objectifs', 'Messages']
-const COULEURS_HAB = ['#FF6B2B', '#22c55e', '#3b82f6', '#a855f7', '#f59e0b']
+const COULEURS_HAB = ['#FF6B2B', '#FF9A6C', '#FFB892', '#a1a1aa', '#71717a']
 
 export default function CoachClientFichePage() {
   const { clientId } = useParams()
@@ -585,7 +585,7 @@ export default function CoachClientFichePage() {
                     <button
                       onClick={changerPhase}
                       disabled={advancingPhase}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF6B2B] text-white text-xs font-semibold hover:bg-[#FF9A6C] transition-colors disabled:opacity-50"
                     >
                       {advancingPhase ? (
                         <Loader2 size={13} className="animate-spin" />

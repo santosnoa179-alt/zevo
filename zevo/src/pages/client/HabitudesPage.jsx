@@ -37,7 +37,7 @@ function genererMensuel(logsDates) {
   })
 }
 
-const COULEURS = ['#FF6B2B', '#22c55e', '#3b82f6', '#a855f7', '#f59e0b', '#ec4899', '#14b8a6']
+const COULEURS = ['#FF6B2B', '#FF9A6C', '#FFB894', '#E85A1F', '#C94A15', '#7A7A78', '#F5F5F3']
 
 export default function HabitudesPage() {
   const { user } = useAuth()

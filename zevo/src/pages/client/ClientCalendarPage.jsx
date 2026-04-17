@@ -14,13 +14,13 @@ const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
 const EVENT_TYPES = {
   seance:  { label: 'Séance',     icon: Dumbbell,    color: '#FF6B2B' },
-  bilan:   { label: 'Bilan',      icon: CheckSquare,  color: '#22c55e' },
-  appel:   { label: 'Appel',      icon: Phone,        color: '#3b82f6' },
-  reunion: { label: 'Réunion',    icon: UsersIcon,    color: '#a855f7' },
-  note:    { label: 'Note',       icon: FileText,     color: '#f59e0b' },
-  perso:   { label: 'Personnel',  icon: Star,         color: '#ec4899' },
-  autre:   { label: 'Autre',      icon: Calendar,     color: '#64748b' },
-  reservation: { label: 'Réservation', icon: CalendarCheck, color: '#06b6d4' },
+  bilan:   { label: 'Bilan',      icon: CheckSquare,  color: '#FF6B2B' },
+  appel:   { label: 'Appel',      icon: Phone,        color: '#FF9A6C' },
+  reunion: { label: 'Réunion',    icon: UsersIcon,    color: '#FF9A6C' },
+  note:    { label: 'Note',       icon: FileText,     color: '#7A7A78' },
+  perso:   { label: 'Personnel',  icon: Star,         color: '#7A7A78' },
+  autre:   { label: 'Autre',      icon: Calendar,     color: '#7A7A78' },
+  reservation: { label: 'Réservation', icon: CalendarCheck, color: '#FF6B2B' },
 }
 
 // ── Date helpers ──
@@ -115,7 +115,7 @@ export default function ClientCalendarPage() {
       items.push({
         id: `s-${s.id}`, type: 'seance', dateStr,
         title: s.titre || 'Séance',
-        color: s.is_completed ? '#22c55e' : '#FF6B2B',
+        color: s.is_completed ? '#FF9A6C' : '#FF6B2B',
         isCompleted: !!s.is_completed, original: s,
       })
     })
@@ -133,7 +133,7 @@ export default function ClientCalendarPage() {
       items.push({
         id: `r-${r.id}`, type: 'event', dateStr,
         title: 'Réservation',
-        color: '#06b6d4', isCompleted: false,
+        color: '#FF6B2B', isCompleted: false,
         original: { ...r, event_type: 'reservation', title: 'Réservation', event_date: r.date_debut },
       })
     })
@@ -337,7 +337,7 @@ export default function ClientCalendarPage() {
                     <div className="flex-1 min-w-0 text-left">
                       <p className="text-[var(--text-primary)] text-[13px] font-semibold truncate">{item.title}</p>
                       {item.isCompleted && (
-                        <p className="text-emerald-400/60 text-[10px] font-medium">Terminée</p>
+                        <p className="text-[#FF6B2B]/60 text-[10px] font-medium">Terminée</p>
                       )}
                     </div>
                     <ChevronRight size={14} className="text-[var(--text-muted)] flex-shrink-0" />
@@ -412,21 +412,21 @@ export default function ClientCalendarPage() {
                                 onClick={() => openSeanceDetail(s)}
                                 className="w-full text-left px-3 py-2.5 rounded-lg transition-all flex items-center gap-2.5 active:scale-[0.98]"
                                 style={{
-                                  background: s.is_completed ? 'rgba(34,197,94,0.06)' : 'rgba(255,107,43,0.06)',
-                                  borderLeft: `2px solid ${s.is_completed ? '#22c55e' : '#FF6B2B'}`,
+                                  background: s.is_completed ? 'rgba(255,154,108,0.06)' : 'rgba(255,107,43,0.06)',
+                                  borderLeft: `2px solid ${s.is_completed ? '#FF9A6C' : '#FF6B2B'}`,
                                 }}
                               >
                                 <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${
-                                  s.is_completed ? 'bg-emerald-500/10' : 'bg-[#FF6B2B]/10'
+                                  s.is_completed ? 'bg-[#FF9A6C]/10' : 'bg-[#FF6B2B]/10'
                                 }`}>
                                   {s.is_completed
-                                    ? <CheckCircle2 size={14} className="text-emerald-400" />
+                                    ? <CheckCircle2 size={14} className="text-[#FF9A6C]" />
                                     : <Dumbbell size={14} className="text-[#FF6B2B]" />
                                   }
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className={`text-[12px] font-semibold truncate ${
-                                    s.is_completed ? 'text-emerald-300/70' : 'text-[var(--text-primary)]'
+                                    s.is_completed ? 'text-[#FF9A6C]/70' : 'text-[var(--text-primary)]'
                                   }`}>
                                     {s.titre}
                                   </p>
@@ -435,7 +435,7 @@ export default function ClientCalendarPage() {
                                   )}
                                 </div>
                                 {s.is_completed && (
-                                  <span className="text-emerald-400/60 text-[8px] font-bold shrink-0 uppercase tracking-wider">Done</span>
+                                  <span className="text-[#FF9A6C]/60 text-[8px] font-bold shrink-0 uppercase tracking-wider">Done</span>
                                 )}
                               </button>
                             )
@@ -497,7 +497,7 @@ export default function ClientCalendarPage() {
           style={{ boxShadow: '0 -8px 40px rgba(0,0,0,0.4)' }}>
 
           {/* Accent bar */}
-          <div className="h-[3px] w-full rounded-t-2xl" style={{ background: isDone ? 'linear-gradient(90deg, #22c55e, #4ade80, transparent)' : 'linear-gradient(90deg, #FF6B2B, #FF9A6C, transparent)' }} />
+          <div className="h-[3px] w-full rounded-t-2xl" style={{ background: isDone ? 'linear-gradient(90deg, #FF9A6C, #FFB894, transparent)' : 'linear-gradient(90deg, #FF6B2B, #FF9A6C, transparent)' }} />
 
           {/* Handle bar (mobile) */}
           <div className="flex justify-center pt-2 pb-1 sm:hidden">
@@ -509,10 +509,10 @@ export default function ClientCalendarPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 {isDone
-                  ? <CheckCircle2 size={14} className="text-emerald-400 flex-shrink-0" />
+                  ? <CheckCircle2 size={14} className="text-[#FF9A6C] flex-shrink-0" />
                   : <Dumbbell size={14} className="text-[#FF6B2B] flex-shrink-0" />
                 }
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${isDone ? 'text-emerald-400/60' : 'text-[#FF6B2B]/60'}`}>
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${isDone ? 'text-[#FF9A6C]/60' : 'text-[#FF6B2B]/60'}`}>
                   {isDone ? 'Séance terminée' : 'Séance prévue'}
                 </span>
               </div>
@@ -690,21 +690,21 @@ export default function ClientCalendarPage() {
                     onClick={() => { setSelectedDay(null); openSeanceDetail(s) }}
                     className="w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 active:scale-[0.98]"
                     style={{
-                      background: s.is_completed ? 'rgba(34,197,94,0.06)' : 'rgba(255,107,43,0.06)',
-                      borderLeft: `2px solid ${s.is_completed ? '#22c55e' : '#FF6B2B'}`,
+                      background: s.is_completed ? 'rgba(255,154,108,0.06)' : 'rgba(255,107,43,0.06)',
+                      borderLeft: `2px solid ${s.is_completed ? '#FF9A6C' : '#FF6B2B'}`,
                     }}
                   >
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                      s.is_completed ? 'bg-emerald-500/10' : 'bg-[#FF6B2B]/10'
+                      s.is_completed ? 'bg-[#FF9A6C]/10' : 'bg-[#FF6B2B]/10'
                     }`}>
                       {s.is_completed
-                        ? <CheckCircle2 size={15} className="text-emerald-400" />
+                        ? <CheckCircle2 size={15} className="text-[#FF9A6C]" />
                         : <Dumbbell size={15} className="text-[#FF6B2B]" />
                       }
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-[12px] font-semibold truncate ${
-                        s.is_completed ? 'text-emerald-300/70' : 'text-[var(--text-primary)]'
+                        s.is_completed ? 'text-[#FF9A6C]/70' : 'text-[var(--text-primary)]'
                       }`}>
                         {s.titre || 'Séance'}
                       </p>
@@ -713,7 +713,7 @@ export default function ClientCalendarPage() {
                       )}
                     </div>
                     {s.is_completed && (
-                      <span className="text-emerald-400/50 text-[8px] font-bold shrink-0 uppercase">Done</span>
+                      <span className="text-[#FF9A6C]/50 text-[8px] font-bold shrink-0 uppercase">Done</span>
                     )}
                   </button>
                 )
@@ -827,7 +827,7 @@ export default function ClientCalendarPage() {
         <button
           onClick={() => setBookingOpen(true)}
           className="fixed bottom-24 right-5 z-30 flex items-center gap-2 px-5 py-3 rounded-2xl text-white text-sm font-semibold shadow-lg active:scale-[0.95] transition-all"
-          style={{ background: 'linear-gradient(135deg, #06b6d4, #0891b2)', boxShadow: '0 6px 20px rgba(6,182,212,0.35)' }}
+          style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF9A6C)', boxShadow: '0 6px 20px rgba(255,107,43,0.35)' }}
         >
           <CalendarPlus size={18} /> Réserver
         </button>

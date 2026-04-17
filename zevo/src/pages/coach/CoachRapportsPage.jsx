@@ -701,7 +701,7 @@ export default function CoachRapportsPage() {
                           <p className="text-[#FF6B2B] text-lg md:text-xl font-bold tabular-nums">{preview.data.tauxHabitudes}%</p>
                           <p className="text-[#71717A] text-[7px] md:text-[8px] tracking-wider font-medium mt-0.5">HABITUDES</p>
                           {preview.data.comparaison?.habitudes != null && (
-                            <p className={`text-[9px] font-bold mt-0.5 ${preview.data.comparaison.habitudes >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                            <p className={`text-[9px] font-bold mt-0.5 ${preview.data.comparaison.habitudes >= 0 ? 'text-[#FF6B2B]' : 'text-red-500'}`}>
                               {preview.data.comparaison.habitudes >= 0 ? '+' : ''}{preview.data.comparaison.habitudes}%
                             </p>
                           )}
@@ -711,7 +711,7 @@ export default function CoachRapportsPage() {
                           <p className="text-[#FF6B2B] text-lg md:text-xl font-bold tabular-nums">{preview.data.seancesCompleted}/{preview.data.seancesTotal}</p>
                           <p className="text-[#71717A] text-[7px] md:text-[8px] tracking-wider font-medium mt-0.5">SEANCES</p>
                           {preview.data.comparaison?.seances != null && (
-                            <p className={`text-[9px] font-bold mt-0.5 ${preview.data.comparaison.seances >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                            <p className={`text-[9px] font-bold mt-0.5 ${preview.data.comparaison.seances >= 0 ? 'text-[#FF6B2B]' : 'text-red-500'}`}>
                               {preview.data.comparaison.seances >= 0 ? '+' : ''}{preview.data.comparaison.seances}%
                             </p>
                           )}
@@ -786,7 +786,7 @@ export default function CoachRapportsPage() {
                             {preview.data.deltaPoids !== null && (
                               <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-lg p-3">
                                 <p className="text-[#71717A] text-[9px] tracking-wider font-medium">VARIATION</p>
-                                <p className={`text-lg md:text-xl font-bold mt-1 ${parseFloat(preview.data.deltaPoids) <= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                <p className={`text-lg md:text-xl font-bold mt-1 ${parseFloat(preview.data.deltaPoids) <= 0 ? 'text-[#FF6B2B]' : 'text-red-500'}`}>
                                   {parseFloat(preview.data.deltaPoids) > 0 ? '+' : ''}{preview.data.deltaPoids} kg
                                 </p>
                               </div>

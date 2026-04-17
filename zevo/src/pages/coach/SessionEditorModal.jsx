@@ -536,10 +536,10 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                             : 'bg-[var(--bg-base)] border border-transparent hover:border-[#FF6B2B]/20 hover:bg-[var(--bg-card)]'
                         }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                          file.type === 'pdf' ? 'bg-red-500/10' : file.type === 'video' ? 'bg-purple-500/10' : 'bg-blue-500/10'
+                          file.type === 'pdf' ? 'bg-red-500/10' : file.type === 'video' ? 'bg-[var(--bg-surface)]' : 'bg-[var(--bg-surface)]'
                         }`}>
                           <FileText size={16} className={
-                            file.type === 'pdf' ? 'text-red-400' : file.type === 'video' ? 'text-purple-400' : 'text-blue-400'
+                            file.type === 'pdf' ? 'text-red-400' : file.type === 'video' ? 'text-[var(--text-muted)]' : 'text-[var(--text-muted)]'
                           } />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -943,7 +943,7 @@ export default function SessionEditorModal({ session, dayLabel, onSave, onClose 
                   {attachedFiles.map(file => (
                     <div key={file.id} onClick={() => handleOpenFile(file)}
                       className="group flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-base)]/50 cursor-pointer hover:bg-[var(--bg-surface)] hover:border-[var(--border-base)] transition-all">
-                      <FileText size={12} className={file.type === 'pdf' ? 'text-red-400' : file.type === 'video' ? 'text-purple-400' : 'text-blue-400'} />
+                      <FileText size={12} className={file.type === 'pdf' ? 'text-red-400' : file.type === 'video' ? 'text-[var(--text-muted)]' : 'text-[var(--text-muted)]'} />
                       <span className="text-[var(--text-primary)] text-[11px] font-medium">{file.name}</span>
                       <ExternalLink size={9} className="text-[var(--text-muted)] group-hover:text-[var(--text-muted)] transition-all" />
                       <button onClick={e => { e.stopPropagation(); removeFile(file.id) }}

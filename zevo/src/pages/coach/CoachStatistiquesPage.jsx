@@ -632,7 +632,7 @@ function ObjectifBar({ label, current, cible, suffix = '', editing, onChangeCibl
           ) : (
             <span className="text-[var(--text-muted)] text-xs md:text-sm">{cible}{suffix}</span>
           )}
-          <span className={`text-xs font-medium ${atteint ? 'text-green-400' : 'text-[var(--text-muted)]'}`}>
+          <span className={`text-xs font-medium ${atteint ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
             ({pct}%)
           </span>
         </div>
@@ -643,7 +643,7 @@ function ObjectifBar({ label, current, cible, suffix = '', editing, onChangeCibl
           style={{
             width: `${pct}%`,
             background: atteint
-              ? 'linear-gradient(to right, #22c55e, #4ade80)'
+              ? 'linear-gradient(to right, #FF6B2B, #FF9A6C)'
               : 'linear-gradient(to right, #FF6B2B, #FF8F5E)',
           }}
         />

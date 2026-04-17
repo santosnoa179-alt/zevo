@@ -12,7 +12,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 // ── Constants ──
-const COLORS = { poids: '#FF6B2B', tour_bras: '#3b82f6', tour_poitrine: '#8b5cf6', tour_taille: '#f59e0b', tour_hanches: '#ec4899', tour_cuisses: '#22c55e' }
+const COLORS = { poids: '#FF6B2B', tour_bras: '#FF9A6C', tour_poitrine: '#FFB894', tour_taille: '#E85A1F', tour_hanches: '#C94A15', tour_cuisses: '#7A7A78' }
 const LABELS = { poids: 'Poids', tour_bras: 'Bras', tour_poitrine: 'Poitrine', tour_taille: 'Taille', tour_hanches: 'Hanches', tour_cuisses: 'Cuisses' }
 const UNITS = { poids: 'kg', tour_bras: 'cm', tour_poitrine: 'cm', tour_taille: 'cm', tour_hanches: 'cm', tour_cuisses: 'cm' }
 
@@ -83,7 +83,7 @@ function HeroRing({ pct, size = 120, stroke = 8, color = '#FF6B2B', children }) 
 
 // ── Mini Ring (objectif cards) ──
 function MiniRing({ pct, size = 44, stroke = 3.5 }) {
-  const color = pct >= 100 ? '#22c55e' : pct >= 50 ? '#FF6B2B' : pct >= 25 ? '#f59e0b' : '#ef4444'
+  const color = pct >= 100 ? '#FF6B2B' : pct >= 50 ? '#FF6B2B' : pct >= 25 ? '#FF9A6C' : '#ef4444'
   const r = (size - stroke) / 2
   const circ = 2 * Math.PI * r
   const offset = circ - (Math.min(pct, 100) / 100) * circ
@@ -107,7 +107,7 @@ function MiniRing({ pct, size = 44, stroke = 3.5 }) {
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         {pct >= 100
-          ? <Check size={14} className="text-emerald-400" strokeWidth={3} />
+          ? <Check size={14} className="text-[#FF6B2B]" strokeWidth={3} />
           : <span className="text-[10px] font-bold text-[var(--text-primary)]">{pct}%</span>
         }
       </div>
@@ -321,13 +321,13 @@ export default function ObjectifsPage() {
                     {delta !== null && (
                       <div className="flex items-center gap-1.5">
                         <div className={`w-5 h-5 rounded-md flex items-center justify-center ${
-                          delta < 0 ? 'bg-emerald-500/15' : delta > 0 ? 'bg-red-500/15' : 'bg-[var(--bg-surface)]'
+                          delta < 0 ? 'bg-[#FF6B2B]/15' : delta > 0 ? 'bg-red-500/15' : 'bg-[var(--bg-surface)]'
                         }`}>
-                          {delta < 0 ? <TrendingDown size={11} className="text-emerald-400" />
+                          {delta < 0 ? <TrendingDown size={11} className="text-[#FF6B2B]" />
                             : delta > 0 ? <TrendingUp size={11} className="text-red-400" />
                             : null}
                         </div>
-                        <span className={`text-sm font-bold tabular-nums ${delta < 0 ? 'text-emerald-400' : delta > 0 ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>
+                        <span className={`text-sm font-bold tabular-nums ${delta < 0 ? 'text-[#FF6B2B]' : delta > 0 ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>
                           {delta > 0 ? '+' : ''}{delta} kg
                         </span>
                       </div>
@@ -437,8 +437,8 @@ export default function ObjectifsPage() {
       {/* Hint for single measurement */}
       {hasMens && !hasChartData && (
         <div className="glass-card px-4 py-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-            <Activity size={14} className="text-amber-400" />
+          <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+            <Activity size={14} className="text-[#FF6B2B]" />
           </div>
           <p className="text-[var(--text-muted)] text-[11px] leading-relaxed">Encore 1 pesee pour debloquer tes courbes d'evolution</p>
         </div>
@@ -478,9 +478,9 @@ export default function ObjectifsPage() {
             return (
               <div key={o.id}
                 className={`glass-card overflow-hidden transition-all ${
-                  done ? '!border-emerald-500/20' : ''
+                  done ? '!border-[#FF6B2B]/20' : ''
                 }`}
-                style={done ? { boxShadow: '0 0 20px rgba(34,197,94,0.06)' } : undefined}
+                style={done ? { boxShadow: '0 0 20px rgba(255,107,43,0.06)' } : undefined}
               >
                 <div className="p-4">
                   <div className="flex items-center gap-3">
@@ -490,7 +490,7 @@ export default function ObjectifsPage() {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <p className={`text-sm font-semibold truncate ${done ? 'text-emerald-400' : 'text-[var(--text-primary)]'}`}>{o.titre}</p>
+                        <p className={`text-sm font-semibold truncate ${done ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{o.titre}</p>
                         {o.date_cible && (
                           <span className="text-[var(--text-muted)] text-[9px] flex items-center gap-0.5 flex-shrink-0 bg-[var(--bg-surface)] px-1.5 py-0.5 rounded-md">
                             <Calendar size={8} />
@@ -518,7 +518,7 @@ export default function ObjectifsPage() {
                         )}
 
                         {done && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-[#FF6B2B] bg-[#FF6B2B]/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
                             <Check size={9} strokeWidth={3} /> Atteint
                           </span>
                         )}
@@ -579,11 +579,11 @@ export default function ObjectifsPage() {
                   <div className="h-0.5 bg-[var(--border-subtle)]">
                     <div className="h-full rounded-full transition-all duration-700" style={{
                       width: `${pct}%`,
-                      background: pct >= 50 ? 'linear-gradient(90deg, #FF6B2B, #FF9A6C)' : pct >= 25 ? '#f59e0b' : '#ef4444',
+                      background: pct >= 50 ? 'linear-gradient(90deg, #FF6B2B, #FF9A6C)' : pct >= 25 ? '#FF9A6C' : '#ef4444',
                     }} />
                   </div>
                 )}
-                {done && <div className="h-0.5 bg-gradient-to-r from-emerald-500 to-emerald-400" />}
+                {done && <div className="h-0.5 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />}
               </div>
             )
           })}
@@ -642,7 +642,7 @@ export default function ObjectifsPage() {
                     if (isNaN(diff) || diff === 0) return null
                     return (
                       <span className={`inline-block mt-3 text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
-                        diff < 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                        diff < 0 ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]' : 'bg-red-500/10 text-red-400'
                       }`}>{diff > 0 ? '+' : ''}{diff} kg vs derniere pesee</span>
                     )
                   })()}
@@ -669,7 +669,7 @@ export default function ObjectifsPage() {
                         <span className="text-[var(--text-secondary)] text-[11px] font-semibold">{LABELS[field]}</span>
                       </div>
                       {diff !== null && !isNaN(diff) && diff !== 0 && (
-                        <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${diff < 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                        <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${diff < 0 ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]' : 'bg-red-500/10 text-red-400'}`}>
                           {diff > 0 ? '+' : ''}{diff} {UNITS[field]}
                         </span>
                       )}

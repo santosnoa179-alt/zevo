@@ -530,9 +530,9 @@ export default function CoachNutritionPage() {
 
                         <div className="flex items-center gap-2 mt-2">
                           <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${
-                            plan.is_active ? 'text-emerald-400' : 'text-[var(--text-muted)]'
+                            plan.is_active ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
                           }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${plan.is_active ? 'bg-emerald-400' : 'bg-[var(--text-muted)]'}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${plan.is_active ? 'bg-[#FF6B2B]' : 'bg-[var(--text-muted)]'}`} />
                             {plan.is_active ? 'Actif' : 'Inactif'}
                           </span>
                           {plan.date_plan && (
@@ -552,11 +552,11 @@ export default function CoachNutritionPage() {
                         max={totalWeeks}
                         size={42}
                         thickness={3.5}
-                        color={isComplete ? '#22c55e' : '#FF6B2B'}
+                        color={isComplete ? '#FF6B2B' : '#FF6B2B'}
                         trackColor="var(--ring-track)"
                         className="shrink-0"
                       >
-                        <span className={`text-[9px] font-black tabular-nums ${isComplete ? 'text-emerald-400' : 'text-[var(--text-primary)]'}`}>{weeksDone}/{totalWeeks}</span>
+                        <span className={`text-[9px] font-black tabular-nums ${isComplete ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{weeksDone}/{totalWeeks}</span>
                       </Ring>
 
                       <button onClick={e => { e.stopPropagation(); handleDelete(plan.id, e) }}
@@ -593,8 +593,8 @@ export default function CoachNutritionPage() {
                           </div>
                           <p className="text-[var(--text-muted)] text-xs truncate mt-0.5">{prog.nom}</p>
                           <div className="flex items-center gap-2 mt-2 flex-wrap">
-                            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${prog.is_active ? 'text-emerald-400' : 'text-[var(--text-muted)]'}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${prog.is_active ? 'bg-emerald-400' : 'bg-[var(--text-muted)]'}`} />
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${prog.is_active ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${prog.is_active ? 'bg-[#FF6B2B]' : 'bg-[var(--text-muted)]'}`} />
                               {prog.is_active ? 'Actif' : 'Inactif'}
                             </span>
                             <span className="text-[var(--text-muted)] text-[10px]">·</span>
@@ -661,10 +661,10 @@ export default function CoachNutritionPage() {
                     </span>
                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold ${
                       plan.is_active
-                        ? 'text-emerald-400 bg-emerald-500/10'
+                        ? 'text-[#FF6B2B] bg-[#FF6B2B]/10'
                         : 'text-[var(--text-muted)] bg-[var(--bg-surface)]'
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${plan.is_active ? 'bg-emerald-400' : 'bg-[var(--text-muted)]'}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${plan.is_active ? 'bg-[#FF6B2B]' : 'bg-[var(--text-muted)]'}`} />
                       {plan.is_active ? 'Actif' : 'Inactif'}
                     </span>
                   </div>

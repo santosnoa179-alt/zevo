@@ -233,15 +233,15 @@ export default function CoachClientsPage() {
               const freq = FREQ_LABELS[p.offres_coaching?.frequence] || ''
               const prix = p.offres_coaching?.prix ? `${(p.offres_coaching.prix / 100).toFixed(0)}€${freq}` : ''
               badgeStatut = (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full truncate max-w-[140px]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-[#FF6B2B]/10 text-[#FF6B2B] px-2 py-0.5 rounded-full truncate max-w-[140px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] flex-shrink-0" />
                   {offreTitre}{prix ? ` · ${prix}` : ''}
                 </span>
               )
             } else if (p?.statut === 'en_attente') {
               badgeStatut = (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-[var(--surface)] text-[var(--text-muted)] px-2 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] flex-shrink-0" />
                   En attente
                 </span>
               )
@@ -317,7 +317,7 @@ export default function CoachClientsPage() {
                     Expire {new Date(inv.expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                   </p>
                 </div>
-                <span className="text-[10px] bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded-full flex-shrink-0">
+                <span className="text-[10px] bg-[var(--surface)] text-[var(--text-muted)] px-2 py-0.5 rounded-full flex-shrink-0">
                   en attente
                 </span>
               </CardBody>
@@ -364,8 +364,8 @@ export default function CoachClientsPage() {
           </form>
         ) : (
           <div className="space-y-4">
-            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
-              <p className="text-green-400 text-sm font-medium mb-1">✓ Invitation créée !</p>
+            <div className="bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 rounded-xl p-4">
+              <p className="text-[#FF6B2B] text-sm font-medium mb-1">✓ Invitation créée !</p>
               <p className="text-[var(--text-muted)] text-xs">Envoyez ce lien à {invitSuccess.prenom || invitSuccess.email} :</p>
             </div>
             <div className="bg-[var(--bg-surface)] rounded-lg p-3">

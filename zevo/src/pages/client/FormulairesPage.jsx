@@ -118,8 +118,8 @@ export default function FormulairesPage() {
     if (submitted) {
       return (
         <div className="p-6 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh]">
-          <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
-            <Check size={32} className="text-green-400" />
+          <div className="w-16 h-16 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center mb-4">
+            <Check size={32} className="text-[#FF6B2B]" />
           </div>
           <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Formulaire envoyé !</h2>
           <p className="text-[var(--text-muted)] text-sm text-center mb-6">
@@ -392,7 +392,7 @@ export default function FormulairesPage() {
                           Complété le {new Date(f.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
                         </p>
                       </div>
-                      <span className="text-xs text-green-400 font-medium flex items-center gap-1">
+                      <span className="text-xs text-[#FF6B2B] font-medium flex items-center gap-1">
                         <Check size={12} />
                         Envoyé
                       </span>
