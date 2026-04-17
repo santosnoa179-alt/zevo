@@ -128,10 +128,14 @@ export default function WorkoutTrackerPage() {
         return
       }
 
-      // Charger les exercices (+ description coach + library_id pour fetch instructions)
+      // Charger les exercices (+ params Pro V3 : RPE, tempo, rest, supersets, progression…)
       const { data: exosData, error: exosErr } = await supabase
         .from('seance_exercices')
-        .select('id, series, reps, poids, repos, ordre, media_url, note_coach, exercices(nom, muscle_group, equipment, image_url, video_url, gif_url, description, library_id)')
+        .select(`id, series, reps, poids, repos, ordre, media_url, note_coach,
+                 charge_kg, charge_unite, rpe_cible, rir_cible, tempo, rest_sec,
+                 superset_group, technique, notes_coach, sport_seance_exercice_id,
+                 seance_exercice_logs(id, set_number, charge_kg_reel, reps_reel, rpe_percu, notes_client),
+                 exercices(nom, muscle_group, equipment, image_url, video_url, gif_url, description, library_id)`)
         .eq('seance_id', seanceId)
         .order('ordre')
 
@@ -439,6 +443,43 @@ export default function WorkoutTrackerPage() {
   const isLastExo = currentIdx === totalExos - 1
   const allSeriesDone = currentExo ? completedForCurrent.size >= (currentExo.series || 0) : false
 
+  // ── Log d'une perf pour un set (V3b suivi client) ──
+  const logSetPerf = async (seanceExoId, setNumber, field, value) => {
+    if (!user?.id || !seanceExoId) return
+    // Cherche un log existant pour (seance_exercice_id, set_number)
+    const exoLogs = exercices.find(e => e.id === seanceExoId)?.seance_exercice_logs || []
+    const existing = exoLogs.find(l => l.set_number === setNumber)
+    const numVal = value === '' ? null : +value
+    try {
+      if (existing) {
+        const { error } = await supabase.from('seance_exercice_logs').update({ [field]: numVal }).eq('id', existing.id)
+        if (error) throw error
+        // Update local state
+        setExercices(prev => prev.map(e => e.id !== seanceExoId ? e : {
+          ...e,
+          seance_exercice_logs: (e.seance_exercice_logs || []).map(l =>
+            l.id === existing.id ? { ...l, [field]: numVal } : l
+          )
+        }))
+      } else {
+        const payload = { seance_exercice_id: seanceExoId, client_id: user.id, set_number: setNumber, [field]: numVal }
+        const { data, error } = await supabase.from('seance_exercice_logs').insert(payload).select().single()
+        if (error) throw error
+        setExercices(prev => prev.map(e => e.id !== seanceExoId ? e : {
+          ...e,
+          seance_exercice_logs: [...(e.seance_exercice_logs || []), data]
+        }))
+      }
+    } catch (err) {
+      console.error('[logSetPerf]', err)
+    }
+  }
+
+  const getLogForSet = (exoId, setNumber) => {
+    const exo = exercices.find(e => e.id === exoId)
+    return (exo?.seance_exercice_logs || []).find(l => l.set_number === setNumber) || {}
+  }
+
   return (
     <div className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] flex flex-col select-none overflow-hidden">
 
@@ -643,11 +684,48 @@ export default function WorkoutTrackerPage() {
                 <h1 className="text-[var(--text-primary)] text-2xl font-black leading-tight">
                   {currentExo.exercices?.nom || 'Exercice'}
                 </h1>
-                {currentExo.poids && (
-                  <p className="text-[var(--text-muted)] text-sm mt-1">{currentExo.series} séries × {currentExo.reps} reps — {currentExo.poids} kg</p>
+                {/* Subtitle série × reps — charge */}
+                <p className="text-[var(--text-muted)] text-sm mt-1">
+                  {currentExo.series} séries × {currentExo.reps || currentExo.reps_cible || '?'} reps
+                  {currentExo.charge_kg != null ? ` — ${currentExo.charge_kg} ${currentExo.charge_unite || 'kg'}` : (currentExo.poids ? ` — ${currentExo.poids} kg` : '')}
+                </p>
+
+                {/* Chips Pro (V3) : RPE / tempo / rest / superset / technique */}
+                {(currentExo.rpe_cible || currentExo.tempo || currentExo.rest_sec || currentExo.superset_group || currentExo.technique) && (
+                  <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                    {currentExo.rpe_cible != null && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#FF6B2B] bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 px-2 py-0.5 rounded">
+                        RPE {currentExo.rpe_cible}
+                      </span>
+                    )}
+                    {currentExo.tempo && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] bg-[var(--bg-surface)] border border-[var(--border-subtle)] px-2 py-0.5 rounded tabular-nums">
+                        Tempo {currentExo.tempo}
+                      </span>
+                    )}
+                    {currentExo.rest_sec != null && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] bg-[var(--bg-surface)] border border-[var(--border-subtle)] px-2 py-0.5 rounded tabular-nums">
+                        Repos {currentExo.rest_sec}s
+                      </span>
+                    )}
+                    {currentExo.superset_group && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B2B] bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 px-2 py-0.5 rounded">
+                        Superset {currentExo.superset_group}
+                      </span>
+                    )}
+                    {currentExo.technique && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] bg-[var(--bg-surface)] border border-[var(--border-subtle)] px-2 py-0.5 rounded">
+                        {currentExo.technique.replace('_', ' ')}
+                      </span>
+                    )}
+                  </div>
                 )}
-                {!currentExo.poids && (
-                  <p className="text-[var(--text-muted)] text-sm mt-1">{currentExo.series} séries × {currentExo.reps} reps</p>
+
+                {/* Notes du coach (V3) */}
+                {currentExo.notes_coach && (
+                  <p className="text-[var(--text-secondary)] text-xs mt-2 italic">
+                    💬 {currentExo.notes_coach}
+                  </p>
                 )}
 
                 {/* ═══ Description / Instructions (toggle) ═══ */}
@@ -746,51 +824,77 @@ export default function WorkoutTrackerPage() {
                 </p>
                 {Array.from({ length: currentExo.series || 0 }, (_, i) => {
                   const done = completedForCurrent.has(i)
+                  const setNum = i + 1
+                  const log = getLogForSet(currentExo.id, setNum)
+                  const chargeDisplay = currentExo.charge_kg ?? currentExo.poids
+                  const restDisplay = currentExo.rest_sec ?? currentExo.repos
                   return (
-                    <button
-                      key={i}
-                      onClick={() => toggleSerie(i)}
-                      className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl border transition-all active:scale-[0.98] ${
-                        done
-                          ? 'bg-[#FF6B2B]/[0.08] border-[#FF6B2B]/25'
-                          : 'bg-[var(--bg-surface)] border-[var(--border-base)] hover:border-[var(--border-base)]'
-                      }`}
-                    >
-                      {/* Check circle */}
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                        done
-                          ? 'bg-[#FF6B2B] shadow-lg shadow-[#FF6B2B]/25'
-                          : 'bg-[var(--bg-surface)] border-2 border-[var(--border-base)]'
-                      }`}>
-                        {done ? (
-                          <Check className="w-5 h-5 text-white" />
-                        ) : (
-                          <span className="text-[var(--text-muted)] text-sm font-bold">{i + 1}</span>
+                    <div key={i} className={`rounded-2xl border transition-all ${
+                      done ? 'bg-[#FF6B2B]/[0.08] border-[#FF6B2B]/25' : 'bg-[var(--bg-surface)] border-[var(--border-base)]'
+                    }`}>
+                      <button
+                        onClick={() => toggleSerie(i)}
+                        className="w-full flex items-center gap-4 px-4 py-4 active:scale-[0.98] transition-all"
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                          done ? 'bg-[#FF6B2B] shadow-lg shadow-[#FF6B2B]/25' : 'bg-[var(--bg-surface)] border-2 border-[var(--border-base)]'
+                        }`}>
+                          {done ? <Check className="w-5 h-5 text-white" /> : <span className="text-[var(--text-muted)] text-sm font-bold">{setNum}</span>}
+                        </div>
+                        <div className="flex-1 text-left min-w-0">
+                          <p className={`text-base font-bold transition-all ${done ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
+                            Série {setNum}
+                          </p>
+                          <p className="text-sm mt-0.5 text-[var(--text-muted)]">
+                            {currentExo.reps || currentExo.reps_cible || '?'} reps
+                            {chargeDisplay != null ? ` — ${chargeDisplay} ${currentExo.charge_unite || 'kg'}` : ''}
+                          </p>
+                        </div>
+                        {!done && restDisplay && (
+                          <div className="flex items-center gap-1 text-[var(--text-muted)] flex-shrink-0">
+                            <Timer className="w-3 h-3" />
+                            <span className="text-[10px] font-medium">{restDisplay}s</span>
+                          </div>
                         )}
-                      </div>
+                        {done && <span className="text-[10px] font-bold text-[#FF6B2B] flex-shrink-0">FAIT</span>}
+                      </button>
 
-                      {/* Content */}
-                      <div className="flex-1 text-left min-w-0">
-                        <p className={`text-base font-bold transition-all ${done ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
-                          Série {i + 1}
-                        </p>
-                        <p className={`text-sm mt-0.5 transition-all ${done ? 'text-[var(--text-muted)]' : 'text-[var(--text-muted)]'}`}>
-                          {currentExo.reps} reps{currentExo.poids ? ` — ${currentExo.poids} kg` : ''}
-                        </p>
-                      </div>
-
-                      {/* Repos indicator */}
-                      {!done && currentExo.repos && (
-                        <div className="flex items-center gap-1 text-[var(--text-muted)] flex-shrink-0">
-                          <Timer className="w-3 h-3" />
-                          <span className="text-[10px] font-medium">{currentExo.repos}s</span>
+                      {/* Log inputs — apparaît quand la série est cochée (V3b) */}
+                      {done && (
+                        <div className="px-4 pb-3 pt-0 border-t border-[var(--border-subtle)] bg-[var(--bg-card)]/40">
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] mt-3 mb-2">Ma performance</p>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1.5">
+                              <label className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-muted)] block">Charge</label>
+                              <div className="flex items-baseline gap-1">
+                                <input type="number" min={0} step={0.5}
+                                  defaultValue={log.charge_kg_reel ?? chargeDisplay ?? ''}
+                                  onBlur={e => logSetPerf(currentExo.id, setNum, 'charge_kg_reel', e.target.value)}
+                                  placeholder={chargeDisplay ?? '0'}
+                                  className="w-full bg-transparent text-[var(--text-primary)] text-base font-black tabular-nums border-none focus:outline-none" />
+                                <span className="text-[10px] text-[var(--text-muted)]">{currentExo.charge_unite || 'kg'}</span>
+                              </div>
+                            </div>
+                            <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1.5">
+                              <label className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-muted)] block">Reps</label>
+                              <input type="number" min={0}
+                                defaultValue={log.reps_reel ?? (typeof currentExo.reps === 'number' ? currentExo.reps : '')}
+                                onBlur={e => logSetPerf(currentExo.id, setNum, 'reps_reel', e.target.value)}
+                                placeholder={currentExo.reps_cible || '?'}
+                                className="w-full bg-transparent text-[var(--text-primary)] text-base font-black tabular-nums border-none focus:outline-none" />
+                            </div>
+                            <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1.5">
+                              <label className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-muted)] block">RPE</label>
+                              <input type="number" min={0} max={10} step={0.5}
+                                defaultValue={log.rpe_percu ?? currentExo.rpe_cible ?? ''}
+                                onBlur={e => logSetPerf(currentExo.id, setNum, 'rpe_percu', e.target.value)}
+                                placeholder={currentExo.rpe_cible ?? '—'}
+                                className="w-full bg-transparent text-[var(--text-primary)] text-base font-black tabular-nums border-none focus:outline-none" />
+                            </div>
+                          </div>
                         </div>
                       )}
-
-                      {done && (
-                        <span className="text-[10px] font-bold text-[#FF6B2B] flex-shrink-0">FAIT</span>
-                      )}
-                    </button>
+                    </div>
                   )
                 })}
               </div>

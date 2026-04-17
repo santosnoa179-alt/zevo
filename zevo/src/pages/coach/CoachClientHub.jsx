@@ -378,6 +378,7 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
   const [seancesSemaine, setSeancesSemaine] = useState([])
   const [dernieresCompletions, setDernieresCompletions] = useState([])
   const [stats30j, setStats30j] = useState({ planifiees: 0, completees: 0, exercices: 0, series: 0 })
+  const [progressionData, setProgressionData] = useState([])  // V3b : charges prévues vs faites
 
   // ── Charger les donnees ──
   useEffect(() => {
@@ -459,6 +460,61 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
         exercices: nbExos,
         series: nbSeries,
       })
+
+      // 3-bis. Progression des charges (V3b) — pour chaque exercice du programme Pro,
+      // compare charges prévues vs réalisées (logs client) sur les dernières semaines
+      try {
+        const { data: progData } = await supabase
+          .from('v_sport_progression_exercices')
+          .select('*')
+          .eq('client_id', clientId)
+          .eq('coach_id', coachId)
+          .order('semaine', { ascending: false })
+          .limit(50)
+        // Grouper par exercice_id pour avoir la timeline de chaque exo
+        const byExo = {}
+        ;(progData || []).forEach(row => {
+          if (!row.exercice_id) return
+          if (!byExo[row.exercice_id]) byExo[row.exercice_id] = []
+          byExo[row.exercice_id].push(row)
+        })
+        // Enrichir avec le nom de l'exercice
+        const exoIds = Object.keys(byExo)
+        if (exoIds.length > 0) {
+          const { data: exosMeta } = await supabase
+            .from('exercises')
+            .select('id, name, name_fr, target_muscle, body_part, gif_url')
+            .in('id', exoIds)
+          const metaMap = Object.fromEntries((exosMeta || []).map(e => [e.id, e]))
+          const progressionList = exoIds.map(id => {
+            const weeks = byExo[id].sort((a, b) => new Date(a.semaine) - new Date(b.semaine))
+            const lastCharge = weeks[weeks.length - 1]?.charge_faite_moy ?? weeks[weeks.length - 1]?.charge_prevue_moy
+            const firstCharge = weeks[0]?.charge_faite_moy ?? weeks[0]?.charge_prevue_moy
+            const progression = (firstCharge > 0 && lastCharge > 0) ? Math.round(((lastCharge - firstCharge) / firstCharge) * 100) : 0
+            // Stagnation : 3+ semaines consécutives avec la même charge faite
+            const last3 = weeks.slice(-3).map(w => w.charge_faite_moy).filter(c => c != null)
+            const stagne = last3.length >= 3 && last3.every(c => Math.abs(c - last3[0]) < 0.5)
+            return {
+              exercice_id: id,
+              exercice: metaMap[id] || null,
+              weeks,
+              lastCharge: lastCharge || 0,
+              firstCharge: firstCharge || 0,
+              progression,
+              stagne,
+              nb_weeks: weeks.length,
+            }
+          }).sort((a, b) => {
+            // Stagnations en premier, puis progression décroissante
+            if (a.stagne && !b.stagne) return -1
+            if (!a.stagne && b.stagne) return 1
+            return b.progression - a.progression
+          })
+          setProgressionData(progressionList)
+        }
+      } catch (e) {
+        console.warn('[SportTab] Vue progression indisponible (schema V3 non appliqué ?):', e)
+      }
 
       // 4. Dernieres seances completees (5 max)
       const { data: completed } = await supabase
@@ -678,6 +734,58 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
                       </span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* ═══ SECTION 4 : Progression des charges (V3b) ═══ */}
+            {progressionData.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Progression des charges</p>
+                  <span className="text-[var(--text-muted)] text-[10px]">{progressionData.length} exercice{progressionData.length > 1 ? 's' : ''} suivi{progressionData.length > 1 ? 's' : ''}</span>
+                </div>
+                <div className="space-y-1.5">
+                  {progressionData.slice(0, 8).map(p => {
+                    const nom = p.exercice?.name_fr || p.exercice?.name || 'Exercice'
+                    const delta = p.lastCharge - p.firstCharge
+                    return (
+                      <div key={p.exercice_id}
+                        className={`glass-card rounded-xl p-3 flex items-center gap-3 ${p.stagne ? 'border-l-[3px] !border-l-red-400' : ''}`}>
+                        {/* Thumbnail GIF */}
+                        <div className="w-10 h-10 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] overflow-hidden flex items-center justify-center shrink-0">
+                          {p.exercice?.gif_url ? (
+                            <img src={p.exercice.gif_url} alt={nom} loading="lazy" className="max-w-full max-h-full object-contain" />
+                          ) : (
+                            <Dumbbell size={14} className="text-[var(--text-muted)]" strokeWidth={1.5} />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-[var(--text-primary)] text-xs font-bold truncate">{nom}</p>
+                            {p.stagne && (
+                              <span className="text-[8px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded shrink-0">
+                                Stagnation
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[var(--text-muted)] text-[10px] tabular-nums">
+                            {p.firstCharge}kg → {p.lastCharge}kg · {p.nb_weeks} sem.
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end shrink-0">
+                          <span className={`text-[11px] font-black tabular-nums ${
+                            p.stagne ? 'text-red-400' : p.progression > 0 ? 'text-emerald-400' : 'text-[var(--text-muted)]'
+                          }`}>
+                            {p.progression > 0 ? '+' : ''}{p.progression}%
+                          </span>
+                          <span className="text-[9px] text-[var(--text-muted)] tabular-nums">
+                            {delta > 0 ? '+' : ''}{Math.round(delta * 10) / 10}kg
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
