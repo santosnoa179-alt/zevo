@@ -5587,6 +5587,9 @@ function NutritionTab({ coachId, clientId, clientName }) {
   const [loadingAssigned, setLoadingAssigned] = useState(true)
   // Programme Pro assigné (nutrition_programmes)
   const [nutritionProAssigne, setNutritionProAssigne] = useState(null)
+  const [nutritionProStats, setNutritionProStats] = useState({ phases: 0, jourTypes: 0, repas: 0, macros: null })
+  // Suivi client (V2) : logs cette semaine + taux respect
+  const [suiviHebdo, setSuiviHebdo] = useState(null)
   const [historyPlans, setHistoryPlans] = useState([])
   const [planDocuments, setPlanDocuments] = useState([])
   const [activating, setActivating] = useState(null)
@@ -5730,7 +5733,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
     setAssigning(false)
   }
 
-  // ── Load programme Pro nutrition assigné (nutrition_programmes) ──
+  // ── Load programme Pro nutrition assigné (nutrition_programmes) + stats ──
   useEffect(() => {
     if (!coachId || !clientId) return
     ;(async () => {
@@ -5744,9 +5747,71 @@ function NutritionTab({ coachId, clientId, clientName }) {
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle()
-        if (data) setNutritionProAssigne(data)
+        if (data) {
+          setNutritionProAssigne(data)
+          // Fetch stats : phases, jour_types, repas + macros de la phase 1
+          const { data: phases } = await supabase
+            .from('nutrition_phases')
+            .select('id, ordre, kcal_cible, proteines_cible_g, glucides_cible_g, lipides_cible_g')
+            .eq('programme_id', data.id)
+            .order('ordre')
+          const phaseIds = (phases || []).map(p => p.id)
+          let jourTypeCount = 0
+          let repasCount = 0
+          if (phaseIds.length > 0) {
+            const { count: jtCount } = await supabase
+              .from('nutrition_jour_types')
+              .select('id', { count: 'exact', head: true })
+              .in('phase_id', phaseIds)
+            jourTypeCount = jtCount || 0
+            const { data: jts } = await supabase
+              .from('nutrition_jour_types')
+              .select('id')
+              .in('phase_id', phaseIds)
+            const jtIds = (jts || []).map(j => j.id)
+            if (jtIds.length) {
+              const { count: rCount } = await supabase
+                .from('nutrition_programme_repas')
+                .select('id', { count: 'exact', head: true })
+                .in('jour_type_id', jtIds)
+              repasCount = rCount || 0
+            }
+          }
+          const phase1 = (phases || [])[0]
+          setNutritionProStats({
+            phases: phases?.length || 0,
+            jourTypes: jourTypeCount,
+            repas: repasCount,
+            macros: phase1 ? {
+              kcal: phase1.kcal_cible,
+              prot: phase1.proteines_cible_g,
+              gluc: phase1.glucides_cible_g,
+              lip: phase1.lipides_cible_g,
+            } : null,
+          })
+        }
       } catch (e) {
         console.warn('[NutritionTab] nutrition_programmes indisponible:', e)
+      }
+    })()
+  }, [coachId, clientId])
+
+  // ── Load suivi hebdo (V2 logs client) ──
+  useEffect(() => {
+    if (!coachId || !clientId) return
+    ;(async () => {
+      try {
+        const { data } = await supabase
+          .from('v_nutrition_suivi_hebdo')
+          .select('*')
+          .eq('client_id', clientId)
+          .order('semaine', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (data) setSuiviHebdo(data)
+      } catch (e) {
+        // Vue pas encore déployée → silencieux
+        console.warn('[NutritionTab] v_nutrition_suivi_hebdo indisponible:', e?.message)
       }
     })()
   }, [coachId, clientId])
@@ -5871,40 +5936,119 @@ function NutritionTab({ coachId, clientId, clientName }) {
         </a>
       </div>
 
-      {/* ── Programme Pro nutrition assigné (nutrition_programmes) ── */}
+      {/* ── Programme Pro nutrition assigné (nutrition_programmes) — ENRICHI V2 ── */}
       {nutritionProAssigne && (
-        <button onClick={() => window.location.href = `/coach/nutrition/programme/${nutritionProAssigne.id}`}
-          className="w-full text-left glass-card rounded-2xl p-4 relative overflow-hidden hover:bg-[var(--bg-surface)]/30 transition-colors">
+        <div className="glass-card rounded-2xl p-4 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                <Layers size={18} className="text-[#FF6B2B]" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-[var(--text-primary)] text-sm font-bold truncate">{nutritionProAssigne.nom}</h4>
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+          <button onClick={() => window.location.href = `/coach/nutrition/programme/${nutritionProAssigne.id}`}
+            className="w-full text-left hover:bg-[var(--bg-surface)]/30 -m-4 p-4 rounded-2xl transition-colors block">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                  <Layers size={18} className="text-[#FF6B2B]" />
                 </div>
-                <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
-                  Programme {nutritionProAssigne.duree_semaines} sem.{nutritionProAssigne.objectif ? ` · ${nutritionProAssigne.objectif}` : ''}
-                </p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-[var(--text-primary)] text-sm font-bold truncate">{nutritionProAssigne.nom}</h4>
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                  </div>
+                  <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
+                    {nutritionProAssigne.duree_semaines} sem.{nutritionProAssigne.objectif ? ` · ${nutritionProAssigne.objectif}` : ''}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">Actif</span>
+                <ChevronRight size={14} className="text-[var(--text-muted)]" />
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">Actif</span>
-              <ChevronRight size={14} className="text-[var(--text-muted)]" />
+          </button>
+
+          {/* Stats + macros cibles phase 1 */}
+          <div className="mt-3 pt-3 border-t border-[var(--border-base)]">
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              <div className="bg-[var(--bg-base)] rounded-lg p-2 text-center">
+                <p className="text-[var(--text-primary)] text-sm font-black tabular-nums">{nutritionProStats.phases}</p>
+                <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest">Phase{nutritionProStats.phases > 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-[var(--bg-base)] rounded-lg p-2 text-center">
+                <p className="text-[var(--text-primary)] text-sm font-black tabular-nums">{nutritionProStats.jourTypes}</p>
+                <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest">Jour{nutritionProStats.jourTypes > 1 ? 's' : ''} type{nutritionProStats.jourTypes > 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-[var(--bg-base)] rounded-lg p-2 text-center">
+                <p className="text-[var(--text-primary)] text-sm font-black tabular-nums">{nutritionProStats.repas}</p>
+                <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest">Repas</p>
+              </div>
             </div>
+            {nutritionProStats.macros && (nutritionProStats.macros.kcal || nutritionProStats.macros.prot) && (
+              <div className="flex items-center justify-between gap-2 bg-[var(--bg-base)] rounded-lg px-3 py-2">
+                <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Cibles phase 1</div>
+                <div className="flex items-center gap-3 text-[10px]">
+                  {nutritionProStats.macros.kcal ? (
+                    <span><span className="text-[#FF6B2B] font-bold tabular-nums">{nutritionProStats.macros.kcal}</span> <span className="text-[var(--text-muted)]">kcal</span></span>
+                  ) : null}
+                  {nutritionProStats.macros.prot ? (
+                    <span><span className="text-blue-400 font-bold tabular-nums">{nutritionProStats.macros.prot}</span> <span className="text-[var(--text-muted)]">P</span></span>
+                  ) : null}
+                  {nutritionProStats.macros.gluc ? (
+                    <span><span className="text-amber-400 font-bold tabular-nums">{nutritionProStats.macros.gluc}</span> <span className="text-[var(--text-muted)]">G</span></span>
+                  ) : null}
+                  {nutritionProStats.macros.lip ? (
+                    <span><span className="text-red-400 font-bold tabular-nums">{nutritionProStats.macros.lip}</span> <span className="text-[var(--text-muted)]">L</span></span>
+                  ) : null}
+                </div>
+              </div>
+            )}
           </div>
-        </button>
+        </div>
       )}
 
-      {/* ═══ Plan assigné au client ═══ */}
-      {loadingAssigned ? (
+      {/* ═══ Suivi réel vs prévu (V2 - logs client) ═══ */}
+      {nutritionProAssigne && suiviHebdo && (
+        <div className="glass-card rounded-2xl p-4 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-emerald-300" />
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h4 className="text-[var(--text-primary)] text-sm font-bold">Suivi réel · cette semaine</h4>
+              <p className="text-[var(--text-muted)] text-[10px] mt-0.5">
+                <span className="text-[var(--text-primary)] font-bold tabular-nums">{suiviHebdo.jours_logges || 0}</span> jour{(suiviHebdo.jours_logges || 0) > 1 ? 's' : ''} loggé{(suiviHebdo.jours_logges || 0) > 1 ? 's' : ''} · moyenne vs cibles
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: 'kcal', real: suiviHebdo.kcal_reel_moy, cible: suiviHebdo.kcal_cible, color: '#FF6B2B' },
+              { label: 'P', real: suiviHebdo.prot_reel_moy, cible: suiviHebdo.prot_cible, color: '#3b82f6' },
+              { label: 'G', real: suiviHebdo.gluc_reel_moy, cible: suiviHebdo.gluc_cible, color: '#f59e0b' },
+              { label: 'L', real: suiviHebdo.lip_reel_moy, cible: suiviHebdo.lip_cible, color: '#ef4444' },
+            ].map(m => {
+              const real = Math.round(+m.real || 0)
+              const cible = Math.round(+m.cible || 0)
+              const pct = cible > 0 ? Math.round((real / cible) * 100) : 0
+              const isGood = pct >= 90 && pct <= 110
+              return (
+                <div key={m.label} className="bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-lg p-2.5">
+                  <p className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">{m.label}</p>
+                  <p className="text-[var(--text-primary)] text-sm font-black tabular-nums mt-0.5">{real}<span className="text-[var(--text-muted)] text-[10px] font-medium"> / {cible || '—'}</span></p>
+                  {cible > 0 && (
+                    <p className={`text-[9px] font-bold mt-1 ${isGood ? 'text-emerald-400' : pct > 110 ? 'text-red-400' : 'text-amber-400'}`}>
+                      {pct}%
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Plan assigné au client (legacy NutritionBuilder) ═══ */}
+      {/* Ne s'affiche QUE si aucun programme Pro n'est assigné (sinon contradiction visuelle) */}
+      {!nutritionProAssigne && loadingAssigned ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="animate-spin text-[#FF6B2B]" size={24} />
         </div>
-      ) : !assignedPlan ? (
+      ) : !nutritionProAssigne && !assignedPlan ? (
         <div className="glass-card rounded-2xl p-10 text-center relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-emerald-300" />
           <Apple size={36} className="text-[var(--text-muted)] mx-auto mb-3" />
@@ -5923,7 +6067,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
             </button>
           </div>
         </div>
-        ) : (
+        ) : !nutritionProAssigne && assignedPlan ? (
           <div className="space-y-4">
             {/* Plan header */}
             <div className="glass-card rounded-2xl p-4 md:p-5 relative overflow-hidden">
@@ -6009,7 +6153,7 @@ function NutritionTab({ coachId, clientId, clientName }) {
               })
             )}
           </div>
-        )
+        ) : null
       }
 
       {/* ── Documents du plan ── */}
