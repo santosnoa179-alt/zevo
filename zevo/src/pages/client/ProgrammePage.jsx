@@ -139,6 +139,8 @@ export default function ProgrammePage() {
   // Sport V3 Pro (sport_programmes)
   const [sportProAssigne, setSportProAssigne] = useState(null)
   const [sportProPhases, setSportProPhases] = useState([])
+  const [sportProSeanceTypes, setSportProSeanceTypes] = useState([])  // [{id, phase_id, nom, duree_estimee_min, ...}]
+  const [expandedSportPhase, setExpandedSportPhase] = useState(null)
 
   // Nutrition
   const [nutritionPlan, setNutritionPlan] = useState(null)
@@ -147,6 +149,8 @@ export default function ProgrammePage() {
   // Nutrition V2 Pro (nutrition_programmes)
   const [nutriProAssigne, setNutriProAssigne] = useState(null)
   const [nutriProPhases, setNutriProPhases] = useState([])
+  const [nutriProJourTypes, setNutriProJourTypes] = useState([])  // { id, phase_id, nom, repas: [{type, titre, proteines_g, glucides_g, lipides_g, aliments}] }
+  const [expandedNutriPhase, setExpandedNutriPhase] = useState(null)
 
   // Suivi semaines (sport)
   const [completedWeeks, setCompletedWeeks] = useState([])
@@ -181,6 +185,16 @@ export default function ProgrammePage() {
           .eq('programme_id', proProg.id)
           .order('ordre')
         setSportProPhases(phasesData || [])
+        const phaseIds = (phasesData || []).map(p => p.id)
+        if (phaseIds.length > 0) {
+          const { data: stData } = await supabase
+            .from('sport_seance_types')
+            .select('id, phase_id, nom, duree_estimee_min, objectif_seance, ordre')
+            .in('phase_id', phaseIds)
+            .order('ordre')
+          setSportProSeanceTypes(stData || [])
+        }
+        if (phasesData && phasesData[0]) setExpandedSportPhase(phasesData[0].id)
       }
     } catch (e) {
       console.warn('[ProgrammePage] sport_programmes indisponible:', e?.message)
@@ -243,6 +257,32 @@ export default function ProgrammePage() {
           .eq('programme_id', proProg.id)
           .order('ordre')
         setNutriProPhases(phasesData || [])
+        const phaseIds = (phasesData || []).map(p => p.id)
+        if (phaseIds.length > 0) {
+          // Fetch jour_types + repas (+ aliments) pour affichage détaillé
+          const { data: jtData } = await supabase
+            .from('nutrition_jour_types')
+            .select('id, phase_id, nom, icon, ordre, notes')
+            .in('phase_id', phaseIds)
+            .order('ordre')
+          const jtIds = (jtData || []).map(j => j.id)
+          let repasMap = {}
+          if (jtIds.length > 0) {
+            const { data: repasData } = await supabase
+              .from('nutrition_programme_repas')
+              .select('id, jour_type_id, type, ordre, titre, description, proteines_g, glucides_g, lipides_g, nutrition_programme_repas_aliments(quantite_g, aliments(nom, kcal_100g, proteines, glucides, lipides))')
+              .in('jour_type_id', jtIds)
+              .order('ordre')
+            ;(repasData || []).forEach(r => {
+              if (!repasMap[r.jour_type_id]) repasMap[r.jour_type_id] = []
+              repasMap[r.jour_type_id].push(r)
+            })
+          }
+          const enrichedJt = (jtData || []).map(jt => ({ ...jt, repas: repasMap[jt.id] || [] }))
+          setNutriProJourTypes(enrichedJt)
+          // Pré-déplier phase 1
+          if (phasesData && phasesData[0]) setExpandedNutriPhase(phasesData[0].id)
+        }
       }
     } catch (e) {
       console.warn('[ProgrammePage] nutrition_programmes indisponible:', e?.message)
@@ -501,31 +541,66 @@ export default function ProgrammePage() {
                     <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">{sportProAssigne.description}</p>
                   )}
 
-                  {/* Phases */}
+                  {/* Phases dépliables avec séances types */}
                   {sportProPhases.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold mb-1">Phases du programme</p>
-                      {sportProPhases.map((ph, idx) => (
-                        <div key={ph.id} className="bg-[var(--bg-base)] rounded-xl p-3 border border-[var(--border-base)]">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
-                              <span className="text-[#FF6B2B] text-xs font-black tabular-nums">{idx + 1}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{ph.nom}</p>
-                              <p className="text-[var(--text-muted)] text-[10px] mt-0.5 tabular-nums">
-                                {ph.duree_semaines} sem.
-                                {ph.objectif ? ` · ${ph.objectif}` : ''}
-                              </p>
-                            </div>
+                      {sportProPhases.map((ph, idx) => {
+                        const isExpanded = expandedSportPhase === ph.id
+                        const phaseSeanceTypes = sportProSeanceTypes.filter(st => st.phase_id === ph.id)
+                        return (
+                          <div key={ph.id} className="bg-[var(--bg-base)] rounded-xl border border-[var(--border-base)] overflow-hidden">
+                            <button
+                              onClick={() => setExpandedSportPhase(isExpanded ? null : ph.id)}
+                              className="w-full p-3 flex items-center gap-3 hover:bg-[var(--bg-surface)]/40 transition-colors"
+                            >
+                              <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
+                                <span className="text-[#FF6B2B] text-xs font-black tabular-nums">{idx + 1}</span>
+                              </div>
+                              <div className="flex-1 min-w-0 text-left">
+                                <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{ph.nom}</p>
+                                <p className="text-[var(--text-muted)] text-[10px] mt-0.5 tabular-nums">
+                                  {ph.duree_semaines} sem.
+                                  {ph.objectif ? ` · ${ph.objectif}` : ''}
+                                  {phaseSeanceTypes.length > 0 ? ` · ${phaseSeanceTypes.length} séance${phaseSeanceTypes.length > 1 ? 's' : ''} type${phaseSeanceTypes.length > 1 ? 's' : ''}` : ''}
+                                </p>
+                              </div>
+                              <ChevronDown size={16} className={`text-[var(--text-muted)] shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {isExpanded && (
+                              <div className="px-3 pb-3 border-t border-[var(--border-base)] pt-3">
+                                {phaseSeanceTypes.length > 0 ? (
+                                  <div className="space-y-1.5">
+                                    <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold mb-1">Séances types</p>
+                                    {phaseSeanceTypes.map(st => (
+                                      <div key={st.id} className="flex items-center gap-2 bg-[var(--bg-surface)] rounded-md px-2.5 py-2 border border-[var(--border-base)]">
+                                        <Dumbbell size={12} className="text-[#FF6B2B] shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-[var(--text-primary)] text-xs font-semibold truncate">{st.nom}</p>
+                                          {st.objectif_seance && (
+                                            <p className="text-[var(--text-muted)] text-[9px] truncate">{st.objectif_seance}</p>
+                                          )}
+                                        </div>
+                                        {st.duree_estimee_min && (
+                                          <span className="text-[var(--text-muted)] text-[10px] font-bold tabular-nums shrink-0">{st.duree_estimee_min} min</span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-[var(--text-muted)] text-[10px] italic">Ton coach n'a pas encore défini les séances types de cette phase</p>
+                                )}
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
 
-                  {/* CTA vers calendrier */}
-                  <a href="/app/calendar" className="mt-4 inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all active:scale-[0.98] shadow-lg shadow-[#FF6B2B]/20">
+                  {/* CTA vers mes séances */}
+                  <a href="/app/seances" className="mt-4 inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all active:scale-[0.98] shadow-lg shadow-[#FF6B2B]/20">
                     <Calendar size={16} /> Voir mes séances
                   </a>
                 </div>
@@ -906,51 +981,111 @@ export default function ProgrammePage() {
                     <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">{nutriProAssigne.description}</p>
                   )}
 
-                  {/* Phases avec macros */}
+                  {/* Phases avec macros + jours types dépliables */}
                   {nutriProPhases.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold mb-1">Phases du programme</p>
-                      {nutriProPhases.map((ph, idx) => (
-                        <div key={ph.id} className="bg-[var(--bg-base)] rounded-xl p-3 border border-[var(--border-base)]">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
-                              <span className="text-[#FF6B2B] text-xs font-black tabular-nums">{idx + 1}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{ph.nom}</p>
-                              <p className="text-[var(--text-muted)] text-[10px] mt-0.5 tabular-nums">{ph.duree_semaines} sem.</p>
-                            </div>
+                      {nutriProPhases.map((ph, idx) => {
+                        const isExpanded = expandedNutriPhase === ph.id
+                        const phaseJourTypes = nutriProJourTypes.filter(jt => jt.phase_id === ph.id)
+                        return (
+                          <div key={ph.id} className="bg-[var(--bg-base)] rounded-xl border border-[var(--border-base)] overflow-hidden">
+                            <button
+                              onClick={() => setExpandedNutriPhase(isExpanded ? null : ph.id)}
+                              className="w-full p-3 flex items-center gap-3 hover:bg-[var(--bg-surface)]/40 transition-colors"
+                            >
+                              <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
+                                <span className="text-[#FF6B2B] text-xs font-black tabular-nums">{idx + 1}</span>
+                              </div>
+                              <div className="flex-1 min-w-0 text-left">
+                                <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{ph.nom}</p>
+                                <p className="text-[var(--text-muted)] text-[10px] mt-0.5 tabular-nums">
+                                  {ph.duree_semaines} sem.{phaseJourTypes.length > 0 ? ` · ${phaseJourTypes.length} jour${phaseJourTypes.length > 1 ? 's' : ''} type${phaseJourTypes.length > 1 ? 's' : ''}` : ''}
+                                </p>
+                              </div>
+                              <ChevronDown size={16} className={`text-[var(--text-muted)] shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {isExpanded && (
+                              <div className="px-3 pb-3 space-y-3 border-t border-[var(--border-base)] pt-3">
+                                {/* Macros cibles */}
+                                {(ph.kcal_cible || ph.proteines_cible_g) && (
+                                  <div>
+                                    <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold mb-1.5">Macros cibles</p>
+                                    <div className="grid grid-cols-4 gap-1.5">
+                                      {ph.kcal_cible && (
+                                        <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
+                                          <p className="text-[#FF6B2B] text-xs font-black tabular-nums">{ph.kcal_cible}</p>
+                                          <p className="text-[var(--text-muted)] text-[8px] uppercase">kcal</p>
+                                        </div>
+                                      )}
+                                      {ph.proteines_cible_g && (
+                                        <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
+                                          <p className="text-[var(--text-primary)] text-xs font-black tabular-nums">{ph.proteines_cible_g}g</p>
+                                          <p className="text-[var(--text-muted)] text-[8px] uppercase">Prot.</p>
+                                        </div>
+                                      )}
+                                      {ph.glucides_cible_g && (
+                                        <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
+                                          <p className="text-[var(--text-primary)] text-xs font-black tabular-nums">{ph.glucides_cible_g}g</p>
+                                          <p className="text-[var(--text-muted)] text-[8px] uppercase">Gluc.</p>
+                                        </div>
+                                      )}
+                                      {ph.lipides_cible_g && (
+                                        <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
+                                          <p className="text-[var(--text-primary)] text-xs font-black tabular-nums">{ph.lipides_cible_g}g</p>
+                                          <p className="text-[var(--text-muted)] text-[8px] uppercase">Lip.</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Jours types + repas */}
+                                {phaseJourTypes.length > 0 ? (
+                                  <div className="space-y-2">
+                                    <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold">Jours types</p>
+                                    {phaseJourTypes.map(jt => (
+                                      <div key={jt.id} className="bg-[var(--bg-surface)] rounded-lg p-2.5 border border-[var(--border-base)]">
+                                        <p className="text-[var(--text-primary)] text-xs font-bold mb-2">{jt.nom}</p>
+                                        {jt.repas.length > 0 ? (
+                                          <div className="space-y-1.5">
+                                            {jt.repas.map(r => {
+                                              let kcal = 0
+                                              ;(r.nutrition_programme_repas_aliments || []).forEach(ra => {
+                                                if (ra.aliments) kcal += Math.round((ra.aliments.kcal_100g || 0) * (ra.quantite_g || 0) / 100)
+                                              })
+                                              return (
+                                                <div key={r.id} className="flex items-center gap-2 bg-[var(--bg-base)] rounded-md px-2 py-1.5">
+                                                  <div className="flex-1 min-w-0">
+                                                    <p className="text-[var(--text-primary)] text-[11px] font-semibold truncate">{r.titre || r.type?.replace('_', ' ')}</p>
+                                                    {(r.nutrition_programme_repas_aliments || []).length > 0 && (
+                                                      <p className="text-[var(--text-muted)] text-[9px] truncate">
+                                                        {(r.nutrition_programme_repas_aliments || []).map(ra => ra.aliments?.nom).filter(Boolean).join(' · ')}
+                                                      </p>
+                                                    )}
+                                                  </div>
+                                                  {kcal > 0 && (
+                                                    <span className="text-[#FF6B2B] text-[10px] font-bold tabular-nums shrink-0">{kcal} kcal</span>
+                                                  )}
+                                                </div>
+                                              )
+                                            })}
+                                          </div>
+                                        ) : (
+                                          <p className="text-[var(--text-muted)] text-[10px] italic">Aucun repas défini</p>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-[var(--text-muted)] text-[10px] italic">Ton coach n'a pas encore défini les jours types de cette phase</p>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          {(ph.kcal_cible || ph.proteines_cible_g) && (
-                            <div className="grid grid-cols-4 gap-1.5 ml-11">
-                              {ph.kcal_cible && (
-                                <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
-                                  <p className="text-[#FF6B2B] text-xs font-black tabular-nums">{ph.kcal_cible}</p>
-                                  <p className="text-[var(--text-muted)] text-[8px] uppercase">kcal</p>
-                                </div>
-                              )}
-                              {ph.proteines_cible_g && (
-                                <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
-                                  <p className="text-[var(--text-primary)] text-xs font-black tabular-nums">{ph.proteines_cible_g}g</p>
-                                  <p className="text-[var(--text-muted)] text-[8px] uppercase">Prot.</p>
-                                </div>
-                              )}
-                              {ph.glucides_cible_g && (
-                                <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
-                                  <p className="text-[var(--text-primary)] text-xs font-black tabular-nums">{ph.glucides_cible_g}g</p>
-                                  <p className="text-[var(--text-muted)] text-[8px] uppercase">Gluc.</p>
-                                </div>
-                              )}
-                              {ph.lipides_cible_g && (
-                                <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
-                                  <p className="text-[var(--text-primary)] text-xs font-black tabular-nums">{ph.lipides_cible_g}g</p>
-                                  <p className="text-[var(--text-muted)] text-[8px] uppercase">Lip.</p>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </div>
