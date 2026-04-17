@@ -71,9 +71,11 @@ function StatCard({ icon: Icon, label, value, sub, accent = false }) {
 // ══════════════════════════════════════
 
 function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNutrition }) {
-  const [sportProgrammes, setSportProgrammes] = useState([])
-  const [nutritionPlans, setNutritionPlans] = useState([])
-  const [progProgress, setProgProgress] = useState({}) // {assignation_id: {total, done, pct}}
+  const [sportProgrammes, setSportProgrammes] = useState([])      // legacy (programme_assignations)
+  const [sportProProgrammes, setSportProProgrammes] = useState([]) // V3 Pro (sport_programmes)
+  const [nutritionPlans, setNutritionPlans] = useState([])         // legacy (client_nutrition_plans)
+  const [nutritionProProgrammes, setNutritionProProgrammes] = useState([]) // V2 Pro (nutrition_programmes)
+  const [progProgress, setProgProgress] = useState({}) // {assignation_id|programme_id: {total, done, pct}}
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -81,7 +83,41 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
     setLoading(true)
 
     const loadAll = async () => {
-      // Sport programmes
+      // 1) Sport — Pro (sport_programmes) en priorité
+      try {
+        const { data: proSport } = await supabase
+          .from('sport_programmes')
+          .select('id, nom, description, duree_semaines, objectif, niveau, frequence_hebdo, is_active')
+          .eq('client_id', clientId)
+          .eq('coach_id', coachId)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+        setSportProProgrammes(proSport || [])
+
+        // Calcul progression depuis les séances déployées (sport_programme_id)
+        const progressMap = {}
+        for (const p of (proSport || [])) {
+          const { count: total } = await supabase
+            .from('seances')
+            .select('id', { count: 'exact', head: true })
+            .eq('sport_programme_id', p.id)
+          const { count: done } = await supabase
+            .from('seances')
+            .select('id', { count: 'exact', head: true })
+            .eq('sport_programme_id', p.id)
+            .eq('is_completed', true)
+          progressMap[`pro:${p.id}`] = {
+            total: total || 0,
+            done: done || 0,
+            pct: total > 0 ? Math.round((done / total) * 100) : 0,
+          }
+        }
+        setProgProgress(prev => ({ ...prev, ...progressMap }))
+      } catch (e) {
+        console.warn('[Programmes] sport_programmes indisponible:', e?.message)
+      }
+
+      // 2) Sport — Legacy (programme_assignations) si pas de Pro
       const { data: sportData, error: sportErr } = await supabase
         .from('programme_assignations')
         .select('id, date_debut, statut, phase_actuelle, programmes(id, titre, duree_semaines, categorie)')
@@ -91,29 +127,41 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
       const progs = (sportData || []).filter(a => a.programmes)
       setSportProgrammes(progs)
 
-      // Calculer la progression de chaque programme
-      const progressMap = {}
+      const progressMapLegacy = {}
       for (const assign of progs) {
         if (!assign.programmes?.id) continue
         const marker = `programme:${assign.programmes.id}`
-        const { data: seancesData, error: seErr } = await supabase
+        const { data: seancesData } = await supabase
           .from('seances')
           .select('id, is_completed')
           .eq('client_id', clientId)
           .eq('is_template', false)
           .not('client_id', 'is', null)
           .eq('notes', marker)
-        if (seErr) console.error('[Programmes] Erreur fetch séances programme:', seErr.message)
         const all = seancesData || []
         const done = all.filter(s => s.is_completed).length
-        progressMap[assign.id] = { total: all.length, done, pct: all.length > 0 ? Math.round((done / all.length) * 100) : 0 }
+        progressMapLegacy[assign.id] = { total: all.length, done, pct: all.length > 0 ? Math.round((done / all.length) * 100) : 0 }
       }
-      setProgProgress(progressMap)
+      setProgProgress(prev => ({ ...prev, ...progressMapLegacy }))
 
-      // Nutrition plans (from client_nutrition_plans table)
-      const { data: nutritionData, error: nutritionErr } = await supabase
+      // 3) Nutrition — Pro (nutrition_programmes) en priorité
+      try {
+        const { data: proNutri } = await supabase
+          .from('nutrition_programmes')
+          .select('id, nom, description, duree_semaines, objectif, is_active')
+          .eq('client_id', clientId)
+          .eq('coach_id', coachId)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+        setNutritionProProgrammes(proNutri || [])
+      } catch (e) {
+        console.warn('[Programmes] nutrition_programmes indisponible:', e?.message)
+      }
+
+      // 4) Nutrition — Legacy (client_nutrition_plans) si pas de Pro
+      const { data: nutritionData } = await supabase
         .from('client_nutrition_plans')
-        .select('id, nom, date_plan, created_at')
+        .select('id, nom, date_plan, created_at, is_active')
         .eq('coach_id', coachId)
         .eq('client_id', clientId)
         .order('created_at', { ascending: false })
@@ -130,75 +178,118 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
   return (
     <div className="space-y-4">
 
-      {/* Section Entrainement Sportif */}
-      <div className="glass-card overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] via-[#FF8F5E] to-transparent" />
+      {/* ══════════════════════════════ */}
+      {/* Section Entrainement Sportif   */}
+      {/* ══════════════════════════════ */}
+      <div className="glass-card overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
         <div className="px-5 md:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B2B]/15 to-[#FF8F5E]/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
               <Dumbbell size={17} className="text-[#FF6B2B]" />
             </div>
             <div>
-              <h3 className="text-[var(--text-primary)] text-sm font-bold">Entrainement Sportif</h3>
+              <h3 className="text-[var(--text-primary)] text-sm font-bold">Entraînement sportif</h3>
               <p className="text-[var(--text-muted)] text-[11px]">Programmes multi-semaines</p>
             </div>
           </div>
           <a href="/coach/sport"
             className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors flex items-center gap-1">
-            Gerer <ChevronRight size={12} />
+            Gérer <ChevronRight size={12} />
           </a>
         </div>
 
         <div className="px-5 md:px-6 pb-5">
-          {sportProgrammes.length === 0 ? (
+          {sportProProgrammes.length === 0 && sportProgrammes.length === 0 ? (
             <div className="bg-[var(--bg-base)] rounded-xl p-6 text-center border border-[var(--border-subtle)]">
               <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
                 <Dumbbell size={18} className="text-[var(--text-muted)]" />
               </div>
-              <p className="text-[var(--text-muted)] text-xs">Aucun programme sportif assigne</p>
+              <p className="text-[var(--text-muted)] text-xs">Aucun programme sportif assigné</p>
               <a href="/coach/sport"
-                className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors">
+                className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors border border-[#FF6B2B]/15">
                 <Plus size={12} /> Assigner un programme
               </a>
             </div>
           ) : (
             <div className="space-y-2.5">
+              {/* Pro en priorité */}
+              {sportProProgrammes.map(p => {
+                const prog = progProgress[`pro:${p.id}`] || { total: 0, done: 0, pct: 0 }
+                return (
+                  <a key={`pro-${p.id}`} href={`/coach/sport/programme/${p.id}`}
+                    className="bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-subtle)] hover:border-[#FF6B2B]/30 transition-all block group">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
+                        <Layers size={18} className="text-[#FF6B2B]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{p.nom}</p>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium border border-[var(--border-base)]">{p.duree_semaines} sem.</span>
+                          {p.objectif && <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium border border-[var(--border-base)]">{p.objectif}</span>}
+                          {p.frequence_hebdo && <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium border border-[var(--border-base)]">{p.frequence_hebdo}/sem</span>}
+                        </div>
+                      </div>
+                      <ChevronRight size={14} className="text-[var(--text-muted)] group-hover:text-[#FF6B2B] shrink-0 transition-colors" />
+                    </div>
+                    {prog.total > 0 && (
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[var(--text-muted)] text-[10px] tabular-nums">{prog.done}/{prog.total} séances complétées</span>
+                          <span className="text-[10px] font-black text-[#FF6B2B] tabular-nums">{prog.pct}%</span>
+                        </div>
+                        <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700 bg-[#FF6B2B]" style={{ width: `${prog.pct}%` }} />
+                        </div>
+                      </div>
+                    )}
+                    {prog.total === 0 && (
+                      <div className="mt-3 flex items-center gap-1.5 text-[10px]">
+                        <span className="text-[#FF6B2B] font-bold">⚠</span>
+                        <span className="text-[var(--text-muted)]">Aucune séance déployée dans le calendrier</span>
+                      </div>
+                    )}
+                  </a>
+                )
+              })}
+              {/* Legacy ensuite */}
               {sportProgrammes.map(a => {
                 const prog = progProgress[a.id]
                 const pct = prog?.pct ?? 0
-                const progressColor = pct >= 80 ? '#22c55e' : pct >= 40 ? '#f59e0b' : '#FF6B2B'
                 return (
                   <div key={a.id} className="bg-[var(--bg-base)] rounded-xl p-4 border border-[var(--border-subtle)] hover:border-[var(--border-base)] transition-all group">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0">
-                        <Dumbbell size={18} className="text-[#FF6B2B]" />
+                      <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center shrink-0 border border-[var(--border-base)]">
+                        <Dumbbell size={18} className="text-[var(--text-secondary)]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{a.programmes?.titre}</p>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium">{a.programmes?.duree_semaines} sem.</span>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium border border-[var(--border-base)]">{a.programmes?.duree_semaines} sem.</span>
                           {a.programmes?.categorie && (
-                            <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium">{a.programmes.categorie}</span>
+                            <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium border border-[var(--border-base)]">{a.programmes.categorie}</span>
                           )}
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Phase {a.phase_actuelle}</span>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium border border-[#FF6B2B]/20">Phase {a.phase_actuelle}</span>
                         </div>
                       </div>
                       <button
                         onClick={() => onOpenProgramme?.(a.programmes)}
-                        className="px-3 py-2 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-[11px] font-medium hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all flex items-center gap-1.5 shrink-0">
+                        className="px-3 py-2 rounded-xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-[11px] font-medium hover:text-[var(--text-primary)] transition-all flex items-center gap-1.5 shrink-0 border border-[var(--border-base)]">
                         Ouvrir <ChevronRight size={12} />
                       </button>
                     </div>
                     {prog && prog.total > 0 && (
                       <div className="mt-3">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[var(--text-muted)] text-[10px]">{prog.done}/{prog.total} seances completees</span>
-                          <span className="text-[10px] font-bold" style={{ color: progressColor }}>{pct}%</span>
+                          <span className="text-[var(--text-muted)] text-[10px] tabular-nums">{prog.done}/{prog.total} séances complétées</span>
+                          <span className="text-[10px] font-black text-[#FF6B2B] tabular-nums">{pct}%</span>
                         </div>
                         <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-700 relative" style={{ width: `${pct}%`, backgroundColor: progressColor }}>
-                            {pct > 8 && <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15) 50%, transparent)' }} />}
-                          </div>
+                          <div className="h-full rounded-full transition-all duration-700 bg-[#FF6B2B]" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                     )}
@@ -210,55 +301,79 @@ function ClientProgrammesSection({ clientId, coachId, onOpenProgramme, onOpenNut
         </div>
       </div>
 
-      {/* Section Plan Nutritionnel */}
-      <div className="glass-card overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-emerald-500 via-emerald-400 to-transparent" />
+      {/* ══════════════════════════════ */}
+      {/* Section Plan Nutritionnel       */}
+      {/* ══════════════════════════════ */}
+      <div className="glass-card overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
         <div className="px-5 md:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/15 to-emerald-400/10 flex items-center justify-center">
-              <Apple size={17} className="text-emerald-400" />
+            <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+              <Apple size={17} className="text-[#FF6B2B]" />
             </div>
             <div>
-              <h3 className="text-[var(--text-primary)] text-sm font-bold">Plan Nutritionnel</h3>
+              <h3 className="text-[var(--text-primary)] text-sm font-bold">Plan nutritionnel</h3>
               <p className="text-[var(--text-muted)] text-[11px]">Plans de repas et macros</p>
             </div>
           </div>
           <a href="/coach/nutrition"
-            className="text-[11px] text-emerald-400 font-semibold hover:text-emerald-300 transition-colors flex items-center gap-1">
-            Gerer <ChevronRight size={12} />
+            className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors flex items-center gap-1">
+            Gérer <ChevronRight size={12} />
           </a>
         </div>
 
         <div className="px-5 md:px-6 pb-5">
-          {nutritionPlans.length === 0 ? (
+          {nutritionProProgrammes.length === 0 && nutritionPlans.length === 0 ? (
             <div className="bg-[var(--bg-base)] rounded-xl p-6 text-center border border-[var(--border-subtle)]">
               <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
                 <Apple size={18} className="text-[var(--text-muted)]" />
               </div>
-              <p className="text-[var(--text-muted)] text-xs">Aucun plan nutritionnel cree</p>
+              <p className="text-[var(--text-muted)] text-xs">Aucun plan nutritionnel créé</p>
               <a href={`/coach/nutrition/new?clientId=${clientId}`}
-                className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold hover:bg-emerald-500/20 transition-colors">
-                <Plus size={12} /> Creer un plan
+                className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] text-[11px] font-semibold hover:bg-[#FF6B2B]/20 transition-colors border border-[#FF6B2B]/15">
+                <Plus size={12} /> Créer un plan
               </a>
             </div>
           ) : (
             <div className="space-y-2.5">
+              {/* Pro en priorité */}
+              {nutritionProProgrammes.map(p => (
+                <a key={`pro-${p.id}`} href={`/coach/nutrition/programme/${p.id}`}
+                  className="bg-[var(--bg-base)] rounded-xl p-4 flex items-center gap-4 border border-[var(--border-subtle)] hover:border-[#FF6B2B]/30 transition-all block group">
+                  <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
+                    <Layers size={18} className="text-[#FF6B2B]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{p.nom}</p>
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium border border-[var(--border-base)]">{p.duree_semaines} sem.</span>
+                      {p.objectif && <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium border border-[var(--border-base)]">{p.objectif}</span>}
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium border border-[#FF6B2B]/20">Actif</span>
+                    </div>
+                  </div>
+                  <ChevronRight size={14} className="text-[var(--text-muted)] group-hover:text-[#FF6B2B] shrink-0 transition-colors" />
+                </a>
+              ))}
+              {/* Legacy ensuite */}
               {nutritionPlans.map(plan => (
                 <a key={plan.id} href={`/coach/nutrition/${plan.id}`}
                   className="bg-[var(--bg-base)] rounded-xl p-4 flex items-center gap-4 border border-[var(--border-subtle)] hover:border-[var(--border-base)] transition-all block group">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-                    <Apple size={18} className="text-emerald-400" />
+                  <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center shrink-0 border border-[var(--border-base)]">
+                    <Apple size={18} className="text-[var(--text-secondary)]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{plan.nom || 'Plan du jour'}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium">
-                        {new Date(plan.date_plan).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-muted)] font-medium border border-[var(--border-base)]">
+                        {plan.date_plan ? new Date(plan.date_plan).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—'}
                       </span>
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Actif</span>
+                      {plan.is_active && <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-medium border border-[#FF6B2B]/20">Actif</span>}
                     </div>
                   </div>
-                  <ChevronRight size={14} className="text-[var(--text-muted)] group-hover:text-emerald-400 shrink-0 transition-colors" />
+                  <ChevronRight size={14} className="text-[var(--text-muted)] group-hover:text-[#FF6B2B] shrink-0 transition-colors" />
                 </a>
               ))}
             </div>
@@ -296,20 +411,20 @@ function ClientSeancesSection({ clientId, onOpenCalendar }) {
   if (loading) return <div className="h-28 skel-block" />
 
   return (
-    <div className="glass-card overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-blue-500 via-blue-400 to-transparent" />
+    <div className="glass-card overflow-hidden relative">
+      <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
       <div className="px-5 md:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/15 to-blue-400/10 flex items-center justify-center">
-            <Calendar size={17} className="text-blue-400" />
+          <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
+            <Calendar size={17} className="text-[#FF6B2B]" />
           </div>
           <div>
-            <h3 className="text-[var(--text-primary)] text-sm font-bold">Prochaines seances</h3>
-            <p className="text-[var(--text-muted)] text-[11px]">Entrainements planifies</p>
+            <h3 className="text-[var(--text-primary)] text-sm font-bold">Prochaines séances</h3>
+            <p className="text-[var(--text-muted)] text-[11px]">Entraînements planifiés</p>
           </div>
         </div>
         <button onClick={onOpenCalendar}
-          className="text-[11px] text-blue-400 font-semibold hover:text-blue-300 transition-colors flex items-center gap-1">
+          className="text-[11px] text-[#FF6B2B] font-semibold hover:text-[#FF9A6C] transition-colors flex items-center gap-1">
           Calendrier <ChevronRight size={12} />
         </button>
       </div>
@@ -320,29 +435,28 @@ function ClientSeancesSection({ clientId, onOpenCalendar }) {
             <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-3">
               <Calendar size={18} className="text-[var(--text-muted)]" />
             </div>
-            <p className="text-[var(--text-muted)] text-xs">Aucune seance planifiee</p>
+            <p className="text-[var(--text-muted)] text-xs">Aucune séance planifiée</p>
           </div>
         ) : (
           <div className="space-y-2">
             {seances.map(s => (
               <div key={s.id} className="flex items-center gap-3.5 px-4 py-3 rounded-xl bg-[var(--bg-base)] border border-[var(--border-subtle)] hover:border-[var(--border-base)] transition-all">
-                <div className="w-11 h-11 rounded-xl bg-blue-500/8 flex flex-col items-center justify-center shrink-0">
-                  <p className="text-blue-400 text-sm font-bold leading-none">
+                <div className="w-11 h-11 rounded-xl bg-[#FF6B2B]/10 flex flex-col items-center justify-center shrink-0 border border-[#FF6B2B]/15">
+                  <p className="text-[#FF6B2B] text-sm font-black leading-none tabular-nums">
                     {new Date(s.date_prevue + 'T00:00:00').getDate()}
                   </p>
-                  <p className="text-[var(--text-muted)] text-[8px] uppercase font-medium">
+                  <p className="text-[var(--text-muted)] text-[8px] uppercase font-bold">
                     {new Date(s.date_prevue + 'T00:00:00').toLocaleDateString('fr-FR', { month: 'short' })}
                   </p>
                 </div>
-                <div className="w-[2px] h-8 rounded-full shrink-0 bg-gradient-to-b from-blue-500/30 to-transparent" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[var(--text-primary)] text-sm font-medium truncate">{s.titre}</p>
+                  <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{s.titre}</p>
                   <p className="text-[var(--text-muted)] text-[10px] capitalize">
                     {new Date(s.date_prevue + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long' })}
                   </p>
                 </div>
                 {s.is_completed && (
-                  <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+                  <CheckCircle2 size={15} className="text-[#FF6B2B] shrink-0" />
                 )}
               </div>
             ))}
