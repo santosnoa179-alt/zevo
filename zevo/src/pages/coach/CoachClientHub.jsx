@@ -4167,21 +4167,19 @@ function SuiviTab({ coachId, clientId }) {
               const color = progressColor(pct)
               const isLoss = obj.valeur_cible < obj.valeur_depart
               const jours = joursRestants(obj.date_limite)
-              const typeInfo = OBJ_TYPES.find(t => t.id === obj.type_objectif) || OBJ_TYPES[3]
               return (
                 <div key={obj.id} className="glass-card !rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: `${typeInfo.color}12` }}>
-                        {isLoss ? <TrendingDown size={13} style={{ color }} /> : <TrendingUp size={13} style={{ color }} />}
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[#FF6B2B]/10 border border-[#FF6B2B]/15">
+                        {isLoss ? <TrendingDown size={13} className="text-[#FF6B2B]" /> : <TrendingUp size={13} className="text-[#FF6B2B]" />}
                       </div>
                       <div className="min-w-0">
                         <p className="text-[var(--text-primary)] text-[13px] font-semibold truncate">{obj.titre}</p>
-                        <p className="text-[var(--text-muted)] text-[10px] mt-0.5">
+                        <p className="text-[var(--text-muted)] text-[10px] mt-0.5 tabular-nums">
                           {obj.valeur_actuelle ?? obj.valeur_depart} / {obj.valeur_cible} {obj.unite}
                           {jours !== null && (
-                            <span className={`ml-2 ${jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : ''}`}>
+                            <span className={`ml-2 ${jours < 0 ? 'text-[#FF6B2B] font-bold' : ''}`}>
                               · {jours < 0 ? `${Math.abs(jours)}j retard` : jours === 0 ? "Aujourd'hui" : `${jours}j restants`}
                             </span>
                           )}
@@ -4610,11 +4608,13 @@ const ALIMENT_CATEGORIES = ['Tous', 'Protéine', 'Féculent', 'Légume', 'Fruit'
 // ══════════════════════════════════════
 // OBJECTIFS TAB — Module Objectifs SMART
 // ══════════════════════════════════════
+// Monochrome orange : seul le type d'icône change, pas la couleur.
+// Cohérent avec le thème Zevo (orange + neutres).
 const OBJ_TYPES = [
-  { id: 'poids', label: 'Poids', icon: Scale, color: '#FF6B2B' },
-  { id: 'mensuration', label: 'Mensuration', icon: Ruler, color: '#3b82f6' },
-  { id: 'performance', label: 'Performance', icon: TrendingUp, color: '#22c55e' },
-  { id: 'autre', label: 'Autre', icon: Target, color: '#a855f7' },
+  { id: 'poids', label: 'Poids', icon: Scale },
+  { id: 'mensuration', label: 'Mensuration', icon: Ruler },
+  { id: 'performance', label: 'Performance', icon: TrendingUp },
+  { id: 'autre', label: 'Autre', icon: Target },
 ]
 
 function calcProgress(depart, actuelle, cible) {
@@ -4627,12 +4627,11 @@ function calcProgress(depart, actuelle, cible) {
   return Math.max(0, Math.min(100, Math.round(pct)))
 }
 
-// Couleur de progression minimaliste : orange par défaut,
-// vert uniquement à l'objectif atteint, rouge uniquement sous les 10% (alerte).
-// Plus de dégradé jaune/orange arbitraire — la valeur % porte l'info.
+// Palette monochrome : orange uniquement pour la progression active.
+// Atteint bascule en text-primary (blanc) — pas de vert criard.
+// Plus de rouge alerte : c'est le 0% + absence d'historique qui porte l'info.
 function progressColor(pct) {
-  if (pct >= 100) return '#22c55e'
-  if (pct < 10) return '#ef4444'
+  if (pct >= 100) return 'var(--text-primary)'
   return '#FF6B2B'
 }
 
@@ -4772,45 +4771,88 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
     )
   }
 
-  return (
-    <div className="space-y-5">
+  // ── Stats globales ──
+  const avgProgress = enCours.length > 0
+    ? Math.round(enCours.reduce((s, o) => s + calcProgress(o.valeur_depart, o.valeur_actuelle, o.valeur_cible), 0) / enCours.length)
+    : 0
 
-      {/* ── Header stats ── */}
-      <div className="grid grid-cols-3 gap-2 md:gap-3">
-        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">En cours</p>
-          <p className="text-[#FF6B2B] text-xl md:text-2xl font-bold mt-1">{enCours.length}</p>
-        </div>
-        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-emerald-300" />
-          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Atteints</p>
-          <p className="text-emerald-400 text-xl md:text-2xl font-bold mt-1">{atteints.length}</p>
-        </div>
-        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[var(--text-muted)] to-[var(--text-primary)]" />
-          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Progression moy.</p>
-          <p className="text-[var(--text-primary)] text-xl md:text-2xl font-bold mt-1">
-            {enCours.length > 0
-              ? Math.round(enCours.reduce((s, o) => s + calcProgress(o.valeur_depart, o.valeur_actuelle, o.valeur_cible), 0) / enCours.length)
-              : 0}%
-          </p>
+  // Ring SVG pour le hero
+  const HeroRing = ({ pct, size = 120 }) => {
+    const r = (size - 14) / 2
+    const circ = 2 * Math.PI * r
+    const offset = circ - (pct / 100) * circ
+    return (
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--bg-surface)" strokeWidth="8" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#FF6B2B" strokeWidth="8"
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 0.8s ease' }} />
+      </svg>
+    )
+  }
+
+  return (
+    <div className="space-y-5 max-w-3xl mx-auto">
+
+      {/* ── HERO : ring progression moyenne + stats ── */}
+      <div className="glass-card rounded-2xl p-5 md:p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+        <div className="flex items-center gap-5 md:gap-8">
+          {/* Ring progression moyenne */}
+          <div className="relative shrink-0">
+            <HeroRing pct={avgProgress} size={120} />
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <p className="text-[var(--text-primary)] text-2xl font-black tabular-nums leading-none">
+                {avgProgress}<span className="text-[var(--text-muted)] text-lg font-bold">%</span>
+              </p>
+              <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold mt-1">Moyenne</p>
+            </div>
+          </div>
+
+          {/* Stats droites */}
+          <div className="flex-1 grid grid-cols-3 gap-3 md:gap-4">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Target size={11} className="text-[#FF6B2B]" />
+                <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold">En cours</p>
+              </div>
+              <p className="text-[var(--text-primary)] text-xl font-black tabular-nums mt-1">{enCours.length}</p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 size={11} className="text-[var(--text-muted)]" />
+                <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold">Atteints</p>
+              </div>
+              <p className="text-[var(--text-primary)] text-xl font-black tabular-nums mt-1">{atteints.length}</p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <TrendingUp size={11} className="text-[var(--text-muted)]" />
+                <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold">Total</p>
+              </div>
+              <p className="text-[var(--text-primary)] text-xl font-black tabular-nums mt-1">{enCours.length + atteints.length}</p>
+              <p className="text-[var(--text-muted)] text-[9px] mt-0.5">objectifs</p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ── Action bar ── */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
             <Target size={15} className="text-[#FF6B2B]" />
           </div>
-          <h3 className="text-[var(--text-primary)] text-sm font-bold">
-            Objectifs de {clientName || 'ce client'}
-          </h3>
+          <div>
+            <h3 className="text-[var(--text-primary)] text-sm font-bold leading-none">
+              Objectifs
+            </h3>
+            <p className="text-[var(--text-muted)] text-[10px] mt-0.5">de {clientName || 'ce client'}</p>
+          </div>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF6B2B] hover:bg-[#e55a1b] text-white text-xs font-semibold transition-all active:scale-95"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B] hover:bg-[#FF6B2B]/90 text-white text-xs font-bold transition-all active:scale-95 shadow-lg shadow-[#FF6B2B]/20"
         >
           <Plus size={14} /> Nouvel objectif
         </button>
@@ -4818,12 +4860,19 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
 
       {/* ── Liste objectifs en cours ── */}
       {enCours.length === 0 && atteints.length === 0 ? (
-        <div className="glass-card rounded-2xl py-16 text-center">
-          <div className="w-14 h-14 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-4">
+        <div className="glass-card rounded-2xl py-16 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+          <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
             <Target size={24} className="text-[#FF6B2B]" />
           </div>
-          <p className="text-[var(--text-muted)] text-sm">Aucun objectif défini</p>
-          <p className="text-[var(--text-muted)] text-xs mt-1">Cliquez sur "Nouvel objectif" pour commencer</p>
+          <h4 className="text-[var(--text-primary)] text-sm font-bold mb-1">Aucun objectif défini</h4>
+          <p className="text-[var(--text-muted)] text-xs mb-5 max-w-xs mx-auto">
+            Définissez des objectifs SMART pour cadrer la progression de {clientName || 'ce client'}
+          </p>
+          <button onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-xs font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
+            <Plus size={13} /> Créer le premier
+          </button>
         </div>
       ) : (
         <>
@@ -4837,31 +4886,34 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                 const typeInfo = OBJ_TYPES.find(t => t.id === obj.type_objectif) || OBJ_TYPES[3]
                 const IconComp = typeInfo.icon
                 const isLoss = obj.valeur_cible < obj.valeur_depart
+                const isDone = pct >= 100
+                const hasProgress = pct > 0
 
                 return (
-                  <div key={obj.id} className="glass-card rounded-2xl p-5 hover:border-[var(--border-base)]/80 transition-all group relative overflow-hidden" style={{ borderLeft: `3px solid ${typeInfo.color}` }}>
+                  <div key={obj.id} className="glass-card rounded-2xl p-5 transition-all group relative overflow-hidden">
+                    <div className={`absolute top-0 left-0 bottom-0 w-[3px] ${hasProgress ? 'bg-[#FF6B2B]' : 'bg-[var(--border-base)]'}`} />
 
                     {/* Header */}
                     <div className="flex items-start gap-3.5 mb-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: `${typeInfo.color}15` }}>
-                        <IconComp size={18} style={{ color: typeInfo.color }} />
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                        hasProgress ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/30' : 'bg-[var(--bg-surface)] border-[var(--border-base)]'
+                      }`}>
+                        <IconComp size={18} className={hasProgress ? 'text-[#FF6B2B]' : 'text-[var(--text-secondary)]'} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{obj.titre}</p>
-                          <span className="text-[9px] px-2 py-0.5 rounded-full font-bold shrink-0"
-                            style={{ backgroundColor: `${typeInfo.color}15`, color: typeInfo.color }}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-[var(--text-primary)] text-sm font-bold truncate">{obj.titre}</p>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full font-bold shrink-0 bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-base)] uppercase tracking-wider">
                             {typeInfo.label}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 mt-1">
-                          <span className="text-[var(--text-muted)] text-[10px]">
+                          <span className="text-[var(--text-muted)] text-[10px] tabular-nums">
                             {obj.valeur_depart} → {obj.valeur_cible} {obj.unite}
                           </span>
                           {jours !== null && (
                             <span className={`text-[10px] flex items-center gap-1 ${
-                              jours < 0 ? 'text-red-400' : jours <= 7 ? 'text-amber-400' : 'text-[var(--text-muted)]'
+                              jours < 0 ? 'text-[#FF6B2B] font-bold' : 'text-[var(--text-muted)]'
                             }`}>
                               <Calendar size={9} />
                               {jours < 0 ? `${Math.abs(jours)}j en retard` : jours === 0 ? "Aujourd'hui" : `${jours}j restants`}
@@ -4873,11 +4925,11 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                       {/* Actions — always visible on mobile */}
                       <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
                         <button onClick={() => handleArchive(obj.id)}
-                          className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-amber-400 hover:bg-amber-500/10 transition-all" title="Archiver">
+                          className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all" title="Archiver">
                           <FolderOpen size={14} />
                         </button>
                         <button onClick={() => handleDelete(obj.id)}
-                          className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all" title="Supprimer">
+                          className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-all" title="Supprimer">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -4887,45 +4939,39 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-1.5">
-                          {isLoss ? <TrendingDown size={12} style={{ color }} /> : <TrendingUp size={12} style={{ color }} />}
-                          <span className="text-xs font-bold" style={{ color }}>
+                          {isLoss ? <TrendingDown size={12} className="text-[#FF6B2B]" /> : <TrendingUp size={12} className="text-[#FF6B2B]" />}
+                          <span className="text-xs font-bold text-[var(--text-primary)] tabular-nums">
                             {obj.valeur_actuelle ?? obj.valeur_depart} {obj.unite}
                           </span>
                         </div>
-                        <span className="text-xs font-bold" style={{ color }}>{pct}%</span>
+                        <span className="text-xs font-black text-[#FF6B2B] tabular-nums">{pct}%</span>
                       </div>
-                      <div className="h-2.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-700 relative"
-                          style={{ width: `${pct}%`, backgroundColor: color }}>
-                          {pct > 8 && (
-                            <div className="absolute inset-0 rounded-full"
-                              style={{ background: `linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)` }} />
-                          )}
-                        </div>
+                      <div className="h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700 bg-[#FF6B2B]"
+                          style={{ width: `${pct}%` }} />
                       </div>
-                      {/* Scale markers */}
                       <div className="flex items-center justify-between mt-1">
-                        <span className="text-[9px] text-[var(--text-muted)]">{obj.valeur_depart} {obj.unite}</span>
-                        <span className="text-[9px] text-[var(--text-muted)]">{obj.valeur_cible} {obj.unite}</span>
+                        <span className="text-[9px] text-[var(--text-muted)] tabular-nums">{obj.valeur_depart} {obj.unite}</span>
+                        <span className="text-[9px] text-[var(--text-muted)] tabular-nums">{obj.valeur_cible} {obj.unite}</span>
                       </div>
                     </div>
 
                     {/* Update value inline */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-[var(--border-base)]/40">
-                      <span className="text-[var(--text-muted)] text-[10px] shrink-0">Mise à jour :</span>
+                    <div className="flex items-center gap-2 pt-2 border-t border-[var(--border-base)]/50">
+                      <span className="text-[var(--text-muted)] text-[10px] shrink-0 uppercase tracking-wider font-bold">Mise à jour</span>
                       <input
                         type="number"
                         step="0.1"
                         value={editingValue[obj.id] ?? ''}
                         onChange={(e) => setEditingValue(prev => ({ ...prev, [obj.id]: e.target.value }))}
                         placeholder={`${obj.valeur_actuelle ?? obj.valeur_depart}`}
-                        className="flex-1 bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-lg px-3 py-1.5 text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors min-w-0"
+                        className="flex-1 bg-[var(--bg-base)] border border-[var(--border-base)] rounded-lg px-3 py-1.5 text-[var(--text-primary)] text-xs placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/50 transition-colors min-w-0 tabular-nums"
                       />
                       <span className="text-[var(--text-muted)] text-[10px] shrink-0">{obj.unite}</span>
                       <button
                         onClick={() => handleUpdateValue(obj)}
                         disabled={!editingValue[obj.id] || updatingId === obj.id}
-                        className="px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold hover:bg-[#FF6B2B]/20 transition-all disabled:opacity-30 shrink-0 flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-bold hover:bg-[#FF6B2B]/20 transition-all disabled:opacity-30 shrink-0 flex items-center gap-1 border border-[#FF6B2B]/15"
                       >
                         {updatingId === obj.id ? <Loader2 size={10} className="animate-spin" /> : <Save size={10} />}
                         OK
@@ -4937,14 +4983,14 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
             </div>
           )}
 
-          {/* Atteints */}
+          {/* Atteints — monochrome neutre avec accent orange */}
           {atteints.length > 0 && (
             <div>
               <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                  <CheckCircle2 size={13} className="text-emerald-400" />
+                <div className="w-7 h-7 rounded-lg bg-[var(--bg-surface)] flex items-center justify-center border border-[var(--border-base)]">
+                  <CheckCircle2 size={13} className="text-[#FF6B2B]" />
                 </div>
-                <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">
+                <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">
                   Objectifs atteints ({atteints.length})
                 </p>
               </div>
@@ -4952,19 +4998,22 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
                 {atteints.map((obj) => {
                   const typeInfo = OBJ_TYPES.find(t => t.id === obj.type_objectif) || OBJ_TYPES[3]
                   return (
-                    <div key={obj.id} className="glass-card rounded-2xl px-5 py-3.5 flex items-center gap-3.5 group" style={{ borderLeft: '3px solid #22c55e' }}>
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0">
-                        <CheckCircle2 size={16} className="text-emerald-400" />
+                    <div key={obj.id} className="glass-card rounded-2xl px-5 py-3.5 flex items-center gap-3.5 group relative overflow-hidden">
+                      <div className="absolute top-0 left-0 bottom-0 w-[3px] bg-[#FF6B2B]" />
+                      <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
+                        <CheckCircle2 size={16} className="text-[#FF6B2B]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-emerald-300/80 text-sm font-semibold truncate">{obj.titre}</p>
-                        <p className="text-emerald-400/30 text-[10px] mt-0.5">
+                        <p className="text-[var(--text-primary)] text-sm font-bold truncate">{obj.titre}</p>
+                        <p className="text-[var(--text-muted)] text-[10px] mt-0.5 tabular-nums">
                           {obj.valeur_depart} → {obj.valeur_actuelle ?? obj.valeur_cible} {obj.unite} · {typeInfo.label}
                         </p>
                       </div>
-                      <span className="text-emerald-400 text-xs font-bold shrink-0">100%</span>
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold shrink-0 uppercase tracking-wider border border-[#FF6B2B]/20">
+                        100%
+                      </span>
                       <button onClick={() => handleDelete(obj.id)}
-                        className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all md:opacity-0 md:group-hover:opacity-100 shrink-0" title="Supprimer">
+                        className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[#FF6B2B] hover:bg-[#FF6B2B]/10 transition-all md:opacity-0 md:group-hover:opacity-100 shrink-0" title="Supprimer">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -5019,22 +5068,24 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
               <div>
                 <label className="block text-xs text-[var(--text-muted)] font-medium mb-1.5">Type</label>
                 <div className="flex flex-wrap gap-2">
-                  {OBJ_TYPES.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setFormType(t.id)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                        formType === t.id
-                          ? 'border text-[var(--text-primary)]'
-                          : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border-base)] hover:text-[var(--text-secondary)]'
-                      }`}
-                      style={formType === t.id ? { backgroundColor: `${t.color}15`, borderColor: `${t.color}40`, color: t.color } : {}}
-                    >
-                      <t.icon size={13} />
-                      {t.label}
-                    </button>
-                  ))}
+                  {OBJ_TYPES.map((t) => {
+                    const isSelected = formType === t.id
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setFormType(t.id)}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all border ${
+                          isSelected
+                            ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] border-[#FF6B2B]/30'
+                            : 'bg-[var(--bg-elevated)] text-[var(--text-muted)] border-[var(--border-base)] hover:text-[var(--text-secondary)] hover:border-[var(--border-base)]/80'
+                        }`}
+                      >
+                        <t.icon size={13} />
+                        {t.label}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
@@ -5093,16 +5144,16 @@ function ObjectifsTab({ coachId, clientId, clientName, onObjectifsChanged }) {
               {/* Preview */}
               {formDepart && formCible && (
                 <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)]/50 rounded-xl p-3">
-                  <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider mb-1.5">Aperçu</p>
+                  <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold mb-1.5">Aperçu</p>
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="text-[var(--text-muted)]">{formDepart} {formUnite}</span>
+                    <span className="text-[var(--text-muted)] tabular-nums">{formDepart} {formUnite}</span>
                     <span className="text-[var(--text-muted)]">→</span>
                     {parseFloat(formCible) < parseFloat(formDepart)
                       ? <TrendingDown size={12} className="text-[#FF6B2B]" />
-                      : <TrendingUp size={12} className="text-emerald-400" />
+                      : <TrendingUp size={12} className="text-[#FF6B2B]" />
                     }
-                    <span className="text-[var(--text-primary)] font-bold">{formCible} {formUnite}</span>
-                    <span className="text-[var(--text-muted)] ml-auto">
+                    <span className="text-[var(--text-primary)] font-bold tabular-nums">{formCible} {formUnite}</span>
+                    <span className="text-[var(--text-muted)] ml-auto tabular-nums">
                       Δ {Math.abs(parseFloat(formCible) - parseFloat(formDepart)).toFixed(1)} {formUnite}
                     </span>
                   </div>
