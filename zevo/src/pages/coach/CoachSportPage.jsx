@@ -315,13 +315,19 @@ export default function CoachSportPage() {
       {/* ═══ Header ═══ */}
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-[var(--text-primary)] text-2xl md:text-3xl font-bold tracking-tight">Programmes Sport</h1>
-          <p className="text-[var(--text-muted)] text-sm mt-1.5">Parcours multi-semaines pour tes clients</p>
+          <h1 className="text-[var(--text-primary)] text-2xl md:text-3xl font-bold tracking-tight">Sport</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1.5">Programmes simples, programmes pro multi-phases et bibliothèque</p>
         </div>
-        <button onClick={openCreate}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95 shrink-0">
-          <Plus size={15} /> Créer un programme
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button onClick={openCreate}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[var(--text-secondary)] border border-[var(--border-base)] text-sm font-semibold hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all active:scale-95">
+            <Plus size={15} /> Programme simple
+          </button>
+          <button onClick={() => window.location.href = '/coach/sport/programme/new'}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-all active:scale-95">
+            <Plus size={15} /> Programme Pro
+          </button>
+        </div>
       </div>
 
       {/* ═══ Stats overview — metric-card ═══ */}
