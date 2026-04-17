@@ -373,7 +373,8 @@ const GROUP_COLORS = {
 
 function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgramme }) {
   const [loading, setLoading] = useState(true)
-  const [programme, setProgramme] = useState(null)
+  const [programme, setProgramme] = useState(null)       // legacy programme assigné
+  const [programmeProAssigne, setProgrammeProAssigne] = useState(null)  // Pro programme (sport_programmes)
   const [seancesSemaine, setSeancesSemaine] = useState([])
   const [dernieresCompletions, setDernieresCompletions] = useState([])
   const [stats30j, setStats30j] = useState({ planifiees: 0, completees: 0, exercices: 0, series: 0 })
@@ -384,7 +385,7 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
     const load = async () => {
       setLoading(true)
 
-      // 1. Programme assigne (schema: titre + duree_semaines, pas nom/nb_semaines)
+      // 1. Programme assigne legacy (schema: titre + duree_semaines)
       const { data: assignations } = await supabase
         .from('programme_assignations')
         .select('*, programmes(id, titre, description, duree_semaines, categorie)')
@@ -393,6 +394,22 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
         .order('created_at', { ascending: false })
         .limit(1)
       if (assignations?.length > 0) setProgramme(assignations[0].programmes)
+
+      // 1-bis. Programme Pro assigné (sport_programmes avec client_id)
+      try {
+        const { data: proAssigned } = await supabase
+          .from('sport_programmes')
+          .select('id, nom, description, duree_semaines, objectif, niveau, frequence_hebdo, date_debut, is_active')
+          .eq('client_id', clientId)
+          .eq('coach_id', coachId)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (proAssigned) setProgrammeProAssigne(proAssigned)
+      } catch (e) {
+        console.warn('[SportTab] sport_programmes indisponible:', e)
+      }
 
       // 2. Seances de cette semaine (Lundi -> Dimanche)
       const now = new Date()
@@ -487,7 +504,33 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
           {/* ═══ SECTION 1 : Programme actuel ═══ */}
           <div className="space-y-2">
             <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Programme actuel</p>
-            {programme ? (
+            {/* Programme Pro en priorité s'il existe */}
+            {programmeProAssigne ? (
+              <button onClick={() => window.location.href = `/coach/sport/programme/${programmeProAssigne.id}`}
+                className="w-full text-left glass-card rounded-2xl p-4 relative overflow-hidden hover:bg-[var(--bg-surface)]/30 transition-colors">
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
+                      <Layers size={18} className="text-[#FF6B2B]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-[var(--text-primary)] text-sm font-bold truncate">{programmeProAssigne.nom}</h4>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                      </div>
+                      <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">
+                        {programmeProAssigne.duree_semaines} semaines{programmeProAssigne.objectif ? ` · ${programmeProAssigne.objectif}` : ''}{programmeProAssigne.frequence_hebdo ? ` · ${programmeProAssigne.frequence_hebdo}/sem` : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">Actif</span>
+                    <ChevronRight size={14} className="text-[var(--text-muted)]" />
+                  </div>
+                </div>
+              </button>
+            ) : programme ? (
               <button onClick={() => onOpenProgramme?.(programme)}
                 className="w-full text-left glass-card rounded-2xl p-4 relative overflow-hidden hover:bg-[var(--bg-surface)]/30 transition-colors">
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
