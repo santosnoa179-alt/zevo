@@ -130,18 +130,18 @@ export default function SportProgrammeBuilder() {
         setClients(list)
       })
 
-    // Exercices de référence
+    // Exercices de référence (ExerciseDB : ~1500 exos avec GIFs)
     supabase
-      .from('exercices')
-      .select('*')
-      .order('nom')
+      .from('exercises')
+      .select('id, name, name_fr, target_muscle, body_part, equipment, gif_url')
+      .order('name')
       .limit(2000)
       .then(({ data }) => setExercises(data || []))
 
     // Bibliothèque de séances du coach
     supabase
       .from('sport_seances_biblio')
-      .select('*, sport_seances_biblio_exercices(*, exercices(*))')
+      .select('*, sport_seances_biblio_exercices(*, exercises(id, name, name_fr, target_muscle, body_part, equipment, gif_url))')
       .eq('coach_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
@@ -187,7 +187,7 @@ export default function SportProgrammeBuilder() {
       supabase.from('sport_phases').select('*').eq('programme_id', programmeId).order('ordre'),
       supabase.from('sport_seance_types').select('*, phase_id').order('ordre'),
       supabase.from('sport_phase_jours').select('*'),
-      supabase.from('sport_seance_exercices').select('*, exercices(*)').order('ordre'),
+      supabase.from('sport_seance_exercices').select('*, exercises(id, name, name_fr, target_muscle, body_part, equipment, gif_url)').order('ordre'),
     ])
 
     const allPhases = phasesRes.data || []
@@ -195,7 +195,7 @@ export default function SportProgrammeBuilder() {
     const allPhaseJours = phaseJoursRes.data || []
     const allExos = (exosRes.data || []).map(e => ({
       ...e,
-      exercice: e.exercices, // join
+      exercice: e.exercises, // join (table `exercises` ExerciseDB)
     }))
 
     const structured = allPhases.map(ph => {
@@ -486,7 +486,7 @@ export default function SportProgrammeBuilder() {
     const exercices = (biblio.sport_seances_biblio_exercices || []).map(be => ({
       id: `new-exo-${Date.now()}-${Math.random()}`,
       exercice_id: be.exercice_id,
-      exercice: be.exercices,
+      exercice: be.exercises,
       exercice_nom_custom: be.exercice_nom_custom,
       ordre: be.ordre,
       series: be.series,
@@ -717,10 +717,10 @@ export default function SportProgrammeBuilder() {
     return [...eqSet].sort()
   }, [phases])
 
-  // Muscle filters (from exercises library)
+  // Muscle filters (from ExerciseDB : target_muscle est précis, body_part est plus large)
   const muscleList = useMemo(() => {
     const mset = new Set()
-    exercises.forEach(e => { if (e.muscle_cible) mset.add(e.muscle_cible) })
+    exercises.forEach(e => { if (e.body_part) mset.add(e.body_part) })
     return [...mset].sort()
   }, [exercises])
 
@@ -1041,26 +1041,37 @@ export default function SportProgrammeBuilder() {
                           </div>
                         ) : (
                           currentExos.map((exo, exoIdx) => {
-                            const exerciceNom = exo.exercice?.nom_fr || exo.exercice?.nom || exo.exercice_nom_custom || 'Exercice'
+                            const exerciceNom = exo.exercice?.name_fr || exo.exercice?.name || exo.exercice_nom_custom || 'Exercice'
                             const chargeWk1 = chargeAtWeek(exo.charge_kg, exo.progression_type, exo.progression_value, 0)
                             const chargeFinal = chargeAtWeek(exo.charge_kg, exo.progression_type, exo.progression_value, activePhase.duree_semaines - 1)
                             return (
                               <div key={exo.id} className="group bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl overflow-hidden">
-                                <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[var(--border-subtle)]">
-                                  <GripVertical size={13} className="text-[var(--text-muted)] opacity-40 cursor-grab" strokeWidth={1.75} />
+                                <div className="flex items-center gap-3 px-3 py-2 border-b border-[var(--border-subtle)]">
+                                  <GripVertical size={13} className="text-[var(--text-muted)] opacity-40 cursor-grab shrink-0" strokeWidth={1.75} />
+                                  {/* Thumbnail GIF */}
+                                  <div className="w-10 h-10 shrink-0 rounded-lg bg-[var(--bg-card)] border border-[var(--border-subtle)] overflow-hidden flex items-center justify-center">
+                                    {exo.exercice?.gif_url ? (
+                                      <img src={exo.exercice.gif_url}
+                                        alt={exerciceNom}
+                                        loading="lazy"
+                                        className="max-w-full max-h-full object-contain" />
+                                    ) : (
+                                      <Dumbbell size={14} className="text-[var(--text-muted)]" strokeWidth={1.5} />
+                                    )}
+                                  </div>
                                   {exo.superset_group && (
                                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20">
                                       {exo.superset_group}
                                     </span>
                                   )}
                                   <span className="text-[var(--text-primary)] text-sm font-bold flex-1 truncate">{exerciceNom}</span>
-                                  {exo.exercice?.muscle_cible && (
+                                  {(exo.exercice?.target_muscle || exo.exercice?.body_part) && (
                                     <span className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider bg-[var(--bg-surface)] px-2 py-0.5 rounded-md hidden md:inline-block">
-                                      {exo.exercice.muscle_cible}
+                                      {exo.exercice?.target_muscle || exo.exercice?.body_part}
                                     </span>
                                   )}
                                   <button onClick={() => removeExo(exoIdx)}
-                                    className="p-1 rounded text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100">
+                                    className="p-1 rounded text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0">
                                     <Trash2 size={11} />
                                   </button>
                                 </div>
@@ -1208,13 +1219,13 @@ export default function SportProgrammeBuilder() {
         </div>
       )}
 
-      {/* ══ DRAWER EXERCICES ══ */}
+      {/* ══ DRAWER EXERCICES (ExerciseDB avec GIFs animés) ══ */}
       {exoDrawer && (() => {
         const filtered = exercises.filter(e => {
-          if (exoMuscleFilter && e.muscle_cible !== exoMuscleFilter) return false
+          if (exoMuscleFilter && e.body_part !== exoMuscleFilter) return false
           if (exoSearch.trim()) {
             const term = exoSearch.toLowerCase()
-            const nom = (e.nom_fr || e.nom || '').toLowerCase()
+            const nom = ((e.name_fr || '') + ' ' + (e.name || '')).toLowerCase()
             if (!nom.includes(term)) return false
           }
           return true
@@ -1225,11 +1236,18 @@ export default function SportProgrammeBuilder() {
             <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-[var(--bg-card)] border-l border-[var(--border-base)] shadow-2xl overflow-hidden flex flex-col">
               <div className="px-5 py-4 border-b border-[var(--border-base)] flex items-center justify-between">
                 <div>
-                  <h3 className="text-[var(--text-primary)] text-base font-bold tracking-tight">Ajouter un exercice</h3>
+                  <h3 className="text-[var(--text-primary)] text-base font-bold tracking-tight">Bibliothèque d'exercices</h3>
                   <p className="text-[var(--text-muted)] text-xs mt-0.5">
                     <span className="text-[var(--text-primary)] font-semibold tabular-nums">{filtered.length}</span>
                     {' / '}
                     <span className="tabular-nums">{exercises.length}</span>
+                    {' exercices'}
+                    {(exoSearch.trim() || exoMuscleFilter) && (
+                      <button onClick={() => { setExoSearch(''); setExoMuscleFilter('') }}
+                        className="ml-2 text-[#FF6B2B] font-semibold hover:underline">
+                        · Réinitialiser
+                      </button>
+                    )}
                   </p>
                 </div>
                 <button onClick={() => setExoDrawer(null)} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]">
@@ -1241,7 +1259,7 @@ export default function SportProgrammeBuilder() {
                 <div className="relative">
                   <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                   <input type="text" value={exoSearch} onChange={e => setExoSearch(e.target.value)}
-                    placeholder="Rechercher un exercice..."
+                    placeholder="Rechercher (fr ou en)..."
                     autoFocus
                     className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl pl-9 pr-3 py-2 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40" />
                 </div>
@@ -1252,7 +1270,7 @@ export default function SportProgrammeBuilder() {
                     }`}>
                     Tous
                   </button>
-                  {muscleList.slice(0, 20).map(m => (
+                  {muscleList.map(m => (
                     <button key={m} onClick={() => setExoMuscleFilter(m === exoMuscleFilter ? '' : m)}
                       className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-[0.1em] transition-all ${
                         exoMuscleFilter === m ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-secondary)]'
@@ -1263,17 +1281,54 @@ export default function SportProgrammeBuilder() {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-3 space-y-1">
-                {filtered.slice(0, 150).map(e => (
-                  <button key={e.id}
-                    onClick={() => addExerciceToSeance(e)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--bg-surface)] transition-colors text-left">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{e.nom_fr || e.nom}</p>
-                      <p className="text-[var(--text-muted)] text-[10px]">{e.muscle_cible || '—'}{e.equipment ? ` · ${e.equipment}` : ''}</p>
-                    </div>
-                  </button>
-                ))}
+              <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+                {filtered.length === 0 ? (
+                  <div className="text-center py-12 animate-breathe">
+                    <Search size={22} className="text-[var(--text-muted)] mx-auto mb-3" strokeWidth={1.5} />
+                    <p className="text-[var(--text-muted)] text-sm font-semibold">Aucun exercice trouvé</p>
+                    <p className="text-[var(--text-muted)] text-[11px] mt-1">Essaie une autre recherche ou catégorie</p>
+                  </div>
+                ) : (
+                  filtered.slice(0, 150).map(e => (
+                    <button key={e.id}
+                      onClick={() => addExerciceToSeance(e)}
+                      className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--bg-surface)] transition-colors text-left group">
+                      {/* Thumbnail GIF — lazy load */}
+                      <div className="w-14 h-14 shrink-0 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] overflow-hidden flex items-center justify-center relative">
+                        {e.gif_url ? (
+                          <img src={e.gif_url}
+                            alt={e.name_fr || e.name}
+                            loading="lazy"
+                            className="max-w-full max-h-full object-contain"
+                            onError={(ev) => { ev.target.style.display = 'none' }} />
+                        ) : (
+                          <Dumbbell size={18} className="text-[var(--text-muted)]" strokeWidth={1.5} />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[var(--text-primary)] text-sm font-semibold truncate group-hover:text-[#FF6B2B] transition-colors">
+                          {e.name_fr || e.name}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          {e.target_muscle && (
+                            <span className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider bg-[var(--bg-base)] px-1.5 py-0.5 rounded">
+                              {e.target_muscle}
+                            </span>
+                          )}
+                          {e.equipment && e.equipment !== 'body weight' && (
+                            <span className="text-[9px] text-[var(--text-muted)] font-semibold uppercase tracking-wider">
+                              · {e.equipment}
+                            </span>
+                          )}
+                          {e.equipment === 'body weight' && (
+                            <span className="text-[9px] text-[var(--text-muted)] font-semibold">· Poids du corps</span>
+                          )}
+                        </div>
+                      </div>
+                      <Plus size={13} className="text-[var(--text-muted)] group-hover:text-[#FF6B2B] shrink-0" />
+                    </button>
+                  ))
+                )}
                 {filtered.length > 150 && (
                   <p className="text-center text-[var(--text-muted)] text-[10px] pt-3">
                     {filtered.length - 150} autres résultats — affine ta recherche

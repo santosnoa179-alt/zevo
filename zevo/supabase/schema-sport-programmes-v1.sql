@@ -88,11 +88,13 @@ CREATE TABLE IF NOT EXISTS sport_phase_jours (
 
 -- ═══════════════════════════════════════════════════════
 -- 5) TABLE SÉANCE EXERCICES (exos avec tous les paramètres avancés)
+--    exercice_id est TEXT car référence la table `exercises` (ExerciseDB)
+--    qui a ~1500 exos avec GIFs animés déjà disponibles.
 -- ═══════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS sport_seance_exercices (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   seance_type_id uuid NOT NULL REFERENCES sport_seance_types(id) ON DELETE CASCADE,
-  exercice_id uuid REFERENCES exercices(id) ON DELETE SET NULL,
+  exercice_id text REFERENCES exercises(id) ON DELETE SET NULL,
   -- Fallback si l'exercice n'est pas dans la biblio officielle
   exercice_nom_custom text,                                   -- nom libre si pas d'exercice référencé
   ordre int NOT NULL DEFAULT 0,
@@ -150,7 +152,7 @@ CREATE TABLE IF NOT EXISTS sport_seances_biblio (
 CREATE TABLE IF NOT EXISTS sport_seances_biblio_exercices (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   seance_biblio_id uuid NOT NULL REFERENCES sport_seances_biblio(id) ON DELETE CASCADE,
-  exercice_id uuid REFERENCES exercices(id) ON DELETE SET NULL,
+  exercice_id text REFERENCES exercises(id) ON DELETE SET NULL,
   exercice_nom_custom text,
   ordre int NOT NULL DEFAULT 0,
   series int DEFAULT 3,
