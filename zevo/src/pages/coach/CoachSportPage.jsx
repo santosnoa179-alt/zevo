@@ -368,7 +368,96 @@ export default function CoachSportPage() {
         }
       }
 
-      toast.success('Programme assigné au client !')
+      // 7. DÉPLOIEMENT AUTO : générer les séances individuelles dans le calendrier
+      //    Pour chaque phase, chaque semaine, chaque jour avec assignation →
+      //    créer une séance + copier les exercices (avec charge progressée)
+      const dateDebut = new Date()
+      dateDebut.setHours(0, 0, 0, 0)
+      const allSeancesToInsert = []
+      const exosSourceByStId = {} // stId old → [exo sources]
+      ;(exos || []).forEach(e => {
+        if (!exosSourceByStId[e.seance_type_id]) exosSourceByStId[e.seance_type_id] = []
+        exosSourceByStId[e.seance_type_id].push(e)
+      })
+      // Pour chaque phase source, construire les séances à créer
+      for (const phSrc of (srcPhasesRes.data || [])) {
+        const newPhaseId = phaseIdMap[phSrc.id]
+        const pjForPhase = phaseJours.filter(pj => pj.phase_id === phSrc.id)
+        for (let weekOffset = 0; weekOffset < phSrc.duree_semaines; weekOffset++) {
+          const weekNumber = phSrc.semaine_debut + weekOffset
+          for (const pj of pjForPhase) {
+            if (!pj.seance_type_id) continue
+            const stSrc = seanceTypes.find(s => s.id === pj.seance_type_id)
+            if (!stSrc) continue
+            const date = new Date(dateDebut)
+            date.setDate(dateDebut.getDate() + (weekNumber - 1) * 7 + pj.jour_semaine)
+            allSeancesToInsert.push({
+              __stSrcId: stSrc.id, // temp pour lier les exos après
+              __weekOffset: weekOffset,
+              coach_id: user.id,
+              client_id: proAssignClientId,
+              titre: stSrc.nom || 'Séance',
+              date_prevue: date.toISOString().slice(0, 10),
+              is_template: false,
+              is_completed: false,
+              sport_programme_id: newProg.id,
+              sport_phase_id: newPhaseId,
+              sport_seance_type_id: stIdMap[stSrc.id],
+              week_number: weekNumber,
+              duree_estimee_min: stSrc.duree_estimee_min || null,
+              notes: `programme_pro:${newProg.id}`,
+            })
+          }
+        }
+      }
+      // Insérer toutes les séances en batch
+      if (allSeancesToInsert.length) {
+        const seancesPayload = allSeancesToInsert.map(({ __stSrcId, __weekOffset, ...row }) => row)
+        const { data: insertedSeances, error: seancesErr } = await supabase.from('seances').insert(seancesPayload).select()
+        if (seancesErr) throw seancesErr
+
+        // Pour chaque séance insérée, retrouver ses exos sources via l'index
+        const exosToInsert = []
+        insertedSeances.forEach((seanceRow, idx) => {
+          const meta = allSeancesToInsert[idx]
+          const sources = exosSourceByStId[meta.__stSrcId] || []
+          sources.forEach(exo => {
+            // Calcul de la charge pour cette semaine (progression auto)
+            const baseCharge = +exo.charge_kg || 0
+            let chargeAtWeek = baseCharge
+            if (baseCharge > 0 && exo.progression_type && exo.progression_value) {
+              if (exo.progression_type === 'lineaire') chargeAtWeek = baseCharge + (+exo.progression_value * meta.__weekOffset)
+              else if (exo.progression_type === 'pourcentage') chargeAtWeek = baseCharge * Math.pow(1 + (+exo.progression_value / 100), meta.__weekOffset)
+            }
+            exosToInsert.push({
+              seance_id: seanceRow.id,
+              exercice_id: exo.exercice_id,
+              ordre: exo.ordre,
+              series: exo.series,
+              reps_cible: exo.reps_cible,
+              charge_kg: Math.round(chargeAtWeek * 10) / 10 || null,
+              charge_unite: exo.charge_unite || 'kg',
+              rpe_cible: exo.rpe_cible,
+              rir_cible: exo.rir_cible,
+              tempo: exo.tempo,
+              rest_sec: exo.rest_sec,
+              superset_group: exo.superset_group,
+              technique: exo.technique,
+              notes_coach: exo.notes_coach,
+              progression_type: exo.progression_type,
+              progression_value: exo.progression_value,
+              progression_freq: exo.progression_freq,
+              sport_seance_exercice_id: exo.id,
+            })
+          })
+        })
+        if (exosToInsert.length) {
+          const { error: exosErr } = await supabase.from('seance_exercices').insert(exosToInsert)
+          if (exosErr) throw exosErr
+        }
+      }
+
+      toast.success(`Programme assigné — ${allSeancesToInsert.length} séances déployées !`)
       setProAssignId(null)
       setProAssignClientId('')
       fetchProgrammes()
