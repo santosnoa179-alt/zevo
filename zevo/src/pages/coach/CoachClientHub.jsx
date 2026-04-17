@@ -5283,30 +5283,83 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
     )
   }
 
-  return (
-    <div className="space-y-5">
+  // ── Stats globales ──
+  const completionPct = habitudes.length ? Math.round((cochees / habitudes.length) * 100) : 0
+  const bestStreak = habitudes.length ? Math.max(0, ...habitudes.map(h => calculerStreak(allLogs.filter(l => l.habitude_id === h.id).map(l => l.date)))) : 0
+  const totalLogs30j = allLogs.length
+  const totalPossible30j = habitudes.length * 30
+  const consistance = totalPossible30j > 0 ? Math.round((totalLogs30j / totalPossible30j) * 100) : 0
 
-      {/* ── Header stats ── */}
-      <div className="grid grid-cols-3 gap-2 md:gap-3">
-        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-500 to-amber-300" />
-          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Actives</p>
-          <p className="text-[var(--text-primary)] text-xl md:text-2xl font-bold mt-1">{habitudes.length}</p>
-        </div>
-        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-emerald-300" />
-          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Aujourd'hui</p>
-          <p className="text-xl md:text-2xl font-bold mt-1" style={{ color: cochees === habitudes.length && habitudes.length > 0 ? '#22c55e' : '#FF6B2B' }}>
-            {cochees}/{habitudes.length}
-          </p>
-        </div>
-        <div className="glass-card rounded-2xl p-3 md:p-4 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
-          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-medium">Meilleur streak</p>
-          <p className="text-[#FF6B2B] text-xl md:text-2xl font-bold mt-1 flex items-center justify-center gap-1">
-            <Flame size={16} />
-            {Math.max(0, ...habitudes.map(h => calculerStreak(allLogs.filter(l => l.habitude_id === h.id).map(l => l.date))))}j
-          </p>
+  // Ring SVG helper (réutilisé pour le hero)
+  const HeroRing = ({ pct, color, size = 120 }) => {
+    const r = (size - 14) / 2
+    const circ = 2 * Math.PI * r
+    const offset = circ - (pct / 100) * circ
+    return (
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--bg-surface)" strokeWidth="8" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="8"
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 0.8s ease' }} />
+      </svg>
+    )
+  }
+
+  // Trier : non-fait en premier, puis par streak desc
+  const sortedHabitudes = [...habitudes].sort((a, b) => {
+    const aDone = todayLogs.includes(a.id) ? 1 : 0
+    const bDone = todayLogs.includes(b.id) ? 1 : 0
+    if (aDone !== bDone) return aDone - bDone // non-fait d'abord
+    const aStreak = calculerStreak(allLogs.filter(l => l.habitude_id === a.id).map(l => l.date))
+    const bStreak = calculerStreak(allLogs.filter(l => l.habitude_id === b.id).map(l => l.date))
+    return bStreak - aStreak
+  })
+
+  return (
+    <div className="space-y-5 max-w-3xl mx-auto">
+
+      {/* ── HERO : Ring jour + stats clés ── */}
+      <div className="glass-card rounded-2xl p-5 md:p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-500 via-[#FF6B2B] to-[#FF9A6C]" />
+        <div className="flex items-center gap-5 md:gap-8">
+          {/* Ring de complétion jour */}
+          <div className="relative shrink-0">
+            <HeroRing pct={completionPct} color={completionPct === 100 ? '#22c55e' : '#FF6B2B'} size={120} />
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <p className="text-[var(--text-primary)] text-2xl font-black tabular-nums leading-none">
+                {cochees}<span className="text-[var(--text-muted)] text-lg font-bold">/{habitudes.length}</span>
+              </p>
+              <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold mt-1">Aujourd'hui</p>
+            </div>
+          </div>
+
+          {/* Stats droites */}
+          <div className="flex-1 grid grid-cols-3 gap-3 md:gap-4">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Activity size={11} className="text-amber-400" />
+                <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold">Actives</p>
+              </div>
+              <p className="text-[var(--text-primary)] text-xl font-black tabular-nums mt-1">{habitudes.length}</p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Flame size={11} className="text-[#FF6B2B]" />
+                <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold">Streak</p>
+              </div>
+              <p className="text-[#FF6B2B] text-xl font-black tabular-nums mt-1">{bestStreak}j</p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <TrendingUp size={11} className="text-emerald-400" />
+                <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold">Consistance</p>
+              </div>
+              <p className="text-[var(--text-primary)] text-xl font-black tabular-nums mt-1">
+                {consistance}<span className="text-[var(--text-muted)] text-xs font-bold">%</span>
+              </p>
+              <p className="text-[var(--text-muted)] text-[9px] mt-0.5">30 derniers jours</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -5316,13 +5369,16 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
           <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
             <Flame size={15} className="text-amber-500" />
           </div>
-          <h3 className="text-[var(--text-primary)] text-sm font-bold">
-            Habitudes de {clientName || 'ce client'}
-          </h3>
+          <div>
+            <h3 className="text-[var(--text-primary)] text-sm font-bold leading-none">
+              Habitudes
+            </h3>
+            <p className="text-[var(--text-muted)] text-[10px] mt-0.5">de {clientName || 'ce client'}</p>
+          </div>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF6B2B] hover:bg-[#e55a1b] text-white text-xs font-semibold transition-all active:scale-95"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF6B2B] hover:bg-[#FF6B2B]/90 text-white text-xs font-bold transition-all active:scale-95 shadow-lg shadow-[#FF6B2B]/20"
         >
           <Plus size={14} /> Assigner
         </button>
@@ -5330,74 +5386,76 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
 
       {/* ── Liste des habitudes ── */}
       {habitudes.length === 0 ? (
-        <div className="glass-card rounded-2xl py-16 text-center">
-          <div className="w-14 h-14 rounded-xl bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
+        <div className="glass-card rounded-2xl py-16 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-amber-500 to-amber-300" />
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
             <Flame size={24} className="text-amber-500" />
           </div>
-          <p className="text-[var(--text-muted)] text-sm">Aucune habitude assignée</p>
-          <p className="text-[var(--text-muted)] text-xs mt-1">Cliquez sur "Assigner" pour créer la premiere habitude</p>
+          <h4 className="text-[var(--text-primary)] text-sm font-bold mb-1">Aucune habitude assignée</h4>
+          <p className="text-[var(--text-muted)] text-xs mb-5 max-w-xs mx-auto">
+            Créez des habitudes pour aider {clientName || 'ce client'} à ancrer ses rituels
+          </p>
+          <button onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-xs font-bold hover:bg-[#FF6B2B]/90 transition-all shadow-lg shadow-[#FF6B2B]/20">
+            <Plus size={13} /> Créer la première
+          </button>
         </div>
       ) : (
         <div className="space-y-2.5">
-          {habitudes.map((h) => {
+          {sortedHabitudes.map((h) => {
             const fait = todayLogs.includes(h.id)
             const logsDates = allLogs.filter(l => l.habitude_id === h.id).map(l => l.date)
             const streak = calculerStreak(logsDates)
             const rate = Math.round((logsDates.length / 30) * 100)
             const IconComp = getHabitIcon(h.icone)
+            const color = h.couleur || '#FF6B2B'
 
             return (
               <div key={h.id}
-                className="glass-card rounded-2xl p-4 hover:border-[var(--border-base)]/80 transition-all group relative overflow-hidden"
-                style={{ borderLeft: `3px solid ${h.couleur || '#FF6B2B'}` }}>
+                className={`glass-card rounded-2xl p-4 transition-all group relative overflow-hidden ${fait ? '' : ''}`}>
+                <div className="absolute top-0 left-0 bottom-0 w-[3px]" style={{ background: color }} />
 
                 {/* Ligne principale */}
                 <div className="flex items-center gap-3.5">
-                  {/* Icône + état today */}
-                  <div className="relative">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                      style={{ backgroundColor: `${h.couleur || '#FF6B2B'}15` }}>
-                      <IconComp size={18} style={{ color: h.couleur || '#FF6B2B' }} />
-                    </div>
-                    {fait && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
-                        <CheckCircle2 size={10} className="text-white" />
-                      </div>
-                    )}
+                  {/* Icône */}
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all ${fait ? 'scale-100' : 'opacity-80'}`}
+                    style={{ backgroundColor: `${color}15`, boxShadow: fait ? `0 0 0 2px ${color}40` : 'none' }}>
+                    {fait ? <CheckCircle2 size={20} style={{ color }} /> : <IconComp size={19} style={{ color }} />}
                   </div>
 
                   {/* Nom + description */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{h.nom}</p>
-                      {fait && (
-                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold shrink-0">
-                          Fait
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className={`text-[var(--text-primary)] text-sm font-bold truncate ${fait ? 'opacity-90' : ''}`}>{h.nom}</p>
+                      {fait ? (
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold shrink-0 uppercase tracking-wider">
+                          ✓ Fait
                         </span>
-                      )}
-                      {!fait && (
-                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-[var(--text-muted)] font-bold shrink-0">
-                          En attente
+                      ) : (
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-bold shrink-0 uppercase tracking-wider">
+                          À faire
                         </span>
                       )}
                     </div>
                     {h.description && (
-                      <p className="text-[var(--text-muted)] text-xs mt-0.5 truncate">{h.description}</p>
+                      <p className="text-[var(--text-muted)] text-[11px] mt-0.5 truncate">{h.description}</p>
                     )}
                   </div>
 
-                  {/* Streak */}
-                  {streak > 0 && (
-                    <div className="flex items-center gap-1 shrink-0" style={{ color: h.couleur || '#FF6B2B' }}>
-                      <Flame size={13} />
-                      <span className="text-xs font-bold">{streak}j</span>
+                  {/* Stats chips */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {streak > 0 && (
+                      <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FF6B2B]/10 text-[#FF6B2B]">
+                        <Flame size={11} />
+                        <span className="text-[10px] font-black tabular-nums">{streak}j</span>
+                      </div>
+                    )}
+                    <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--bg-base)] text-[var(--text-secondary)]">
+                      <span className="text-[10px] font-bold tabular-nums">{rate}%</span>
                     </div>
-                  )}
+                  </div>
 
-                  {/* Taux */}
-                  <span className="text-[var(--text-muted)] text-[10px] font-medium shrink-0">{rate}%</span>
-
-                  {/* Actions — always visible on mobile */}
+                  {/* Actions — visible au hover sur desktop, toujours sur mobile */}
                   <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
                     <button
                       onClick={() => handleDeactivate(h.id)}
@@ -5405,53 +5463,53 @@ function HabitudesTab({ coachId, clientId, clientName, onHabitudesChanged }) {
                       className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-amber-400 hover:bg-amber-500/10 transition-all disabled:opacity-30"
                       title="Désactiver"
                     >
-                      <Circle size={14} />
+                      <Circle size={13} />
                     </button>
                     <button
                       onClick={() => handleDelete(h.id)}
                       className="p-2 md:p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all"
                       title="Supprimer"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </div>
 
-                {/* Barre de progression 30j */}
-                <div className="mt-3 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${rate}%`, backgroundColor: h.couleur || '#FF6B2B' }}
-                  />
-                </div>
-
-                {/* Mini heatmap 7 derniers jours */}
-                <div className="flex gap-1 mt-2.5 justify-end">
-                  {Array.from({ length: 7 }, (_, i) => {
-                    const d = new Date()
-                    d.setDate(d.getDate() - (6 - i))
-                    const ds = d.toISOString().split('T')[0]
-                    const done = logsDates.includes(ds)
-                    const isToday = ds === today
-                    return (
-                      <div key={i} className="flex flex-col items-center gap-0.5">
-                        <div
-                          className={`w-5 h-5 rounded-md transition-all ${
-                            done
-                              ? ''
-                              : isToday
-                                ? 'border border-dashed border-white/15'
-                                : 'bg-[var(--bg-surface)]'
-                          }`}
-                          style={done ? { backgroundColor: `${h.couleur || '#FF6B2B'}` } : {}}
-                          title={`${['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][d.getDay()]} ${d.getDate()}`}
-                        />
-                        <span className={`text-[8px] ${isToday ? 'text-[var(--text-muted)]' : 'text-[var(--text-muted)]'}`}>
-                          {['D', 'L', 'M', 'M', 'J', 'V', 'S'][d.getDay()]}
-                        </span>
-                      </div>
-                    )
-                  })}
+                {/* Heatmap 14 derniers jours + barre de progression sur la même ligne */}
+                <div className="mt-3 pt-3 border-t border-[var(--border-base)]/50 flex items-center gap-3">
+                  <div className="flex gap-[3px] flex-1">
+                    {Array.from({ length: 14 }, (_, i) => {
+                      const d = new Date()
+                      d.setDate(d.getDate() - (13 - i))
+                      const ds = d.toISOString().split('T')[0]
+                      const done = logsDates.includes(ds)
+                      const isToday = ds === today
+                      return (
+                        <div key={i} className="flex-1 group/day relative">
+                          <div
+                            className={`h-5 rounded-[3px] transition-all ${
+                              done
+                                ? ''
+                                : isToday
+                                  ? 'border border-dashed border-white/20'
+                                  : 'bg-[var(--bg-surface)]/60'
+                            }`}
+                            style={done ? { backgroundColor: color, opacity: 0.85 } : {}}
+                            title={`${['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][d.getDay()]} ${d.getDate()}${done ? ' · fait' : ''}`}
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--text-muted)]">14 jours</p>
+                    <p className="text-[9px] text-[var(--text-muted)]">
+                      {logsDates.filter(d => {
+                        const diff = (new Date(today) - new Date(d)) / (1000 * 60 * 60 * 24)
+                        return diff <= 13 && diff >= 0
+                      }).length}/14
+                    </p>
+                  </div>
                 </div>
               </div>
             )
