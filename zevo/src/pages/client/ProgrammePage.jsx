@@ -136,11 +136,17 @@ export default function ProgrammePage() {
   const [assignation, setAssignation] = useState(null)
   const [phases, setPhases] = useState([])
   const [expandedPhase, setExpandedPhase] = useState(null)
+  // Sport V3 Pro (sport_programmes)
+  const [sportProAssigne, setSportProAssigne] = useState(null)
+  const [sportProPhases, setSportProPhases] = useState([])
 
   // Nutrition
   const [nutritionPlan, setNutritionPlan] = useState(null)
   const [repas, setRepas] = useState([])
   const [loadingNutrition, setLoadingNutrition] = useState(false)
+  // Nutrition V2 Pro (nutrition_programmes)
+  const [nutriProAssigne, setNutriProAssigne] = useState(null)
+  const [nutriProPhases, setNutriProPhases] = useState([])
 
   // Suivi semaines (sport)
   const [completedWeeks, setCompletedWeeks] = useState([])
@@ -156,6 +162,31 @@ export default function ProgrammePage() {
   // ── Charge le programme sport ──
   const loadSport = useCallback(async () => {
     if (!user) return
+
+    // 1) Programme Pro V3 (sport_programmes) en priorité
+    try {
+      const { data: proProg } = await supabase
+        .from('sport_programmes')
+        .select('*')
+        .eq('client_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (proProg) {
+        setSportProAssigne(proProg)
+        const { data: phasesData } = await supabase
+          .from('sport_phases')
+          .select('*')
+          .eq('programme_id', proProg.id)
+          .order('ordre')
+        setSportProPhases(phasesData || [])
+      }
+    } catch (e) {
+      console.warn('[ProgrammePage] sport_programmes indisponible:', e?.message)
+    }
+
+    // 2) Legacy (programme_assignations) — fallback
     const { data: assign } = await supabase
       .from('programme_assignations')
       .select('*, programmes(*)')
@@ -193,6 +224,31 @@ export default function ProgrammePage() {
   const loadNutrition = useCallback(async () => {
     if (!user) return
     setLoadingNutrition(true)
+
+    // 1) Programme Pro V2 (nutrition_programmes) en priorité
+    try {
+      const { data: proProg } = await supabase
+        .from('nutrition_programmes')
+        .select('*')
+        .eq('client_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (proProg) {
+        setNutriProAssigne(proProg)
+        const { data: phasesData } = await supabase
+          .from('nutrition_phases')
+          .select('*')
+          .eq('programme_id', proProg.id)
+          .order('ordre')
+        setNutriProPhases(phasesData || [])
+      }
+    } catch (e) {
+      console.warn('[ProgrammePage] nutrition_programmes indisponible:', e?.message)
+    }
+
+    // 2) Legacy (client_nutrition_plans) — fallback
     const { data: plan } = await supabase
       .from('client_nutrition_plans')
       .select('*')
@@ -416,7 +472,68 @@ export default function ProgrammePage() {
          ══════════════════════════════════════════════════════════════ */}
       {tab === 'sport' && (
         <>
-          {!assignation ? (
+          {/* ═══════════════════════════════════════════ */}
+          {/* PROGRAMME PRO V3 (sport_programmes)        */}
+          {/* ═══════════════════════════════════════════ */}
+          {sportProAssigne && (
+            <div className="space-y-4 mb-5">
+              <div className="glass-card overflow-hidden relative">
+                <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+                <div className="p-5">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
+                      <Dumbbell size={22} className="text-[#FF6B2B]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-[var(--text-primary)] text-lg font-bold truncate">{sportProAssigne.nom}</h2>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                      </div>
+                      <p className="text-[var(--text-muted)] text-xs mt-0.5">
+                        {sportProAssigne.duree_semaines} semaines
+                        {sportProAssigne.objectif ? ` · ${sportProAssigne.objectif}` : ''}
+                        {sportProAssigne.frequence_hebdo ? ` · ${sportProAssigne.frequence_hebdo}/sem` : ''}
+                      </p>
+                    </div>
+                  </div>
+
+                  {sportProAssigne.description && (
+                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">{sportProAssigne.description}</p>
+                  )}
+
+                  {/* Phases */}
+                  {sportProPhases.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold mb-1">Phases du programme</p>
+                      {sportProPhases.map((ph, idx) => (
+                        <div key={ph.id} className="bg-[var(--bg-base)] rounded-xl p-3 border border-[var(--border-base)]">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
+                              <span className="text-[#FF6B2B] text-xs font-black tabular-nums">{idx + 1}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{ph.nom}</p>
+                              <p className="text-[var(--text-muted)] text-[10px] mt-0.5 tabular-nums">
+                                {ph.duree_semaines} sem.
+                                {ph.objectif ? ` · ${ph.objectif}` : ''}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* CTA vers calendrier */}
+                  <a href="/app/calendar" className="mt-4 inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all active:scale-[0.98] shadow-lg shadow-[#FF6B2B]/20">
+                    <Calendar size={16} /> Voir mes séances
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!assignation && !sportProAssigne ? (
             /* ── Empty state ── */
             <div className="glass-card p-12 text-center">
               <div className="relative inline-flex items-center justify-center mb-5">
@@ -429,7 +546,7 @@ export default function ProgrammePage() {
               <p className="text-[var(--text-muted)] text-sm max-w-[260px] mx-auto">Ton coach n'a pas encore assigne de programme sportif.</p>
             </div>
 
-          ) : isDocumentMode ? (
+          ) : !assignation ? null : isDocumentMode ? (
             /* ═══════════════════════════════════════════ */
             /* MODE DOCUMENT — PDF global                  */
             /* ═══════════════════════════════════════════ */
@@ -761,13 +878,93 @@ export default function ProgrammePage() {
          ══════════════════════════════════════════════════════════════ */}
       {tab === 'nutrition' && (
         <>
+          {/* ═══════════════════════════════════════════ */}
+          {/* PROGRAMME PRO V2 (nutrition_programmes)    */}
+          {/* ═══════════════════════════════════════════ */}
+          {nutriProAssigne && (
+            <div className="space-y-4 mb-5">
+              <div className="glass-card overflow-hidden relative">
+                <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+                <div className="p-5">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
+                      <UtensilsCrossed size={22} className="text-[#FF6B2B]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-[var(--text-primary)] text-lg font-bold truncate">{nutriProAssigne.nom}</h2>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                      </div>
+                      <p className="text-[var(--text-muted)] text-xs mt-0.5">
+                        {nutriProAssigne.duree_semaines} semaines
+                        {nutriProAssigne.objectif ? ` · ${nutriProAssigne.objectif}` : ''}
+                      </p>
+                    </div>
+                  </div>
+
+                  {nutriProAssigne.description && (
+                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">{nutriProAssigne.description}</p>
+                  )}
+
+                  {/* Phases avec macros */}
+                  {nutriProPhases.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold mb-1">Phases du programme</p>
+                      {nutriProPhases.map((ph, idx) => (
+                        <div key={ph.id} className="bg-[var(--bg-base)] rounded-xl p-3 border border-[var(--border-base)]">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
+                              <span className="text-[#FF6B2B] text-xs font-black tabular-nums">{idx + 1}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{ph.nom}</p>
+                              <p className="text-[var(--text-muted)] text-[10px] mt-0.5 tabular-nums">{ph.duree_semaines} sem.</p>
+                            </div>
+                          </div>
+                          {(ph.kcal_cible || ph.proteines_cible_g) && (
+                            <div className="grid grid-cols-4 gap-1.5 ml-11">
+                              {ph.kcal_cible && (
+                                <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
+                                  <p className="text-[#FF6B2B] text-xs font-black tabular-nums">{ph.kcal_cible}</p>
+                                  <p className="text-[var(--text-muted)] text-[8px] uppercase">kcal</p>
+                                </div>
+                              )}
+                              {ph.proteines_cible_g && (
+                                <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
+                                  <p className="text-[var(--text-primary)] text-xs font-black tabular-nums">{ph.proteines_cible_g}g</p>
+                                  <p className="text-[var(--text-muted)] text-[8px] uppercase">Prot.</p>
+                                </div>
+                              )}
+                              {ph.glucides_cible_g && (
+                                <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
+                                  <p className="text-[var(--text-primary)] text-xs font-black tabular-nums">{ph.glucides_cible_g}g</p>
+                                  <p className="text-[var(--text-muted)] text-[8px] uppercase">Gluc.</p>
+                                </div>
+                              )}
+                              {ph.lipides_cible_g && (
+                                <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
+                                  <p className="text-[var(--text-primary)] text-xs font-black tabular-nums">{ph.lipides_cible_g}g</p>
+                                  <p className="text-[var(--text-muted)] text-[8px] uppercase">Lip.</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {loadingNutrition ? (
             <div className="space-y-4">
               <div className="skel-block h-6 w-36" />
               <div className="skel-block h-40 w-full rounded-2xl" />
               <div className="skel-block h-28 w-full rounded-2xl" />
             </div>
-          ) : !nutritionPlan ? (
+          ) : !nutritionPlan && !nutriProAssigne ? (
             /* ── Empty state ── */
             <div className="glass-card p-12 text-center">
               <div className="relative inline-flex items-center justify-center mb-5">
@@ -779,7 +976,7 @@ export default function ProgrammePage() {
               <h2 className="text-[var(--text-primary)] font-semibold text-lg mb-2">Aucun plan nutritionnel</h2>
               <p className="text-[var(--text-muted)] text-sm max-w-[260px] mx-auto">Ton coach n'a pas encore assigne de plan nutrition.</p>
             </div>
-          ) : (
+          ) : !nutritionPlan ? null : (
             <>
               {/* Nutrition Header */}
               <div>

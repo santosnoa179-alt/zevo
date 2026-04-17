@@ -389,57 +389,122 @@ export default function DashboardPage() {
         setStreak(s)
       }
 
-      const { data: assignData } = await supabase
-        .from('programme_assignations')
-        .select('*, programmes(id, titre, duree_semaines)')
-        .eq('client_id', user.id)
-        .eq('statut', 'en_cours')
-        .limit(1)
-        .maybeSingle()
-
-      if (assignData) {
-        setProgramme(assignData)
-        const { data: phasesData } = await supabase
-          .from('programme_phases')
-          .select('id, titre, ordre')
-          .eq('programme_id', assignData.programme_id)
-          .order('ordre')
-        setProgrammePhases(phasesData || [])
-
-        const progId = assignData.programmes?.id || assignData.programme_id
-        const { data: progSeancesData } = await supabase
-          .from('seances')
-          .select('id, is_completed')
+      // 1) Programme Pro V3 (sport_programmes) en priorité
+      try {
+        const { data: proSport } = await supabase
+          .from('sport_programmes')
+          .select('id, nom, duree_semaines, objectif, frequence_hebdo, description')
           .eq('client_id', user.id)
-          .eq('is_template', false)
-          .like('notes', `programme:${progId}%`)
-
-        const total = progSeancesData?.length ?? 0
-        const done = progSeancesData?.filter(s => s.is_completed)?.length ?? 0
-        setProgSeances({ total, done })
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (proSport) {
+          // Format compatible avec le reste du code (champ programmes)
+          setProgramme({
+            programmes: { id: proSport.id, titre: proSport.nom, duree_semaines: proSport.duree_semaines },
+            phase_actuelle: 1,
+            __pro: true,
+          })
+          const { count: total } = await supabase
+            .from('seances')
+            .select('id', { count: 'exact', head: true })
+            .eq('sport_programme_id', proSport.id)
+          const { count: done } = await supabase
+            .from('seances')
+            .select('id', { count: 'exact', head: true })
+            .eq('sport_programme_id', proSport.id)
+            .eq('is_completed', true)
+          setProgSeances({ total: total || 0, done: done || 0 })
+        }
+      } catch (e) {
+        console.warn('[Dashboard] sport_programmes indisponible:', e?.message)
       }
 
-      const { data: nutPlan } = await supabase
-        .from('client_nutrition_plans')
-        .select('id, nom, duree_semaines')
-        .eq('client_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+      // 2) Legacy fallback
+      if (!programme) {
+        const { data: assignData } = await supabase
+          .from('programme_assignations')
+          .select('*, programmes(id, titre, duree_semaines)')
+          .eq('client_id', user.id)
+          .eq('statut', 'en_cours')
+          .limit(1)
+          .maybeSingle()
+
+        if (assignData) {
+          setProgramme(assignData)
+          const { data: phasesData } = await supabase
+            .from('programme_phases')
+            .select('id, titre, ordre')
+            .eq('programme_id', assignData.programme_id)
+            .order('ordre')
+          setProgrammePhases(phasesData || [])
+
+          const progId = assignData.programmes?.id || assignData.programme_id
+          const { data: progSeancesData } = await supabase
+            .from('seances')
+            .select('id, is_completed')
+            .eq('client_id', user.id)
+            .eq('is_template', false)
+            .like('notes', `programme:${progId}%`)
+
+          const total = progSeancesData?.length ?? 0
+          const done = progSeancesData?.filter(s => s.is_completed)?.length ?? 0
+          setProgSeances({ total, done })
+        }
+      }
+
+      // 3) Nutrition Pro V2 (nutrition_programmes) en priorité
+      let nutPlan = null
+      try {
+        const { data: proNutri } = await supabase
+          .from('nutrition_programmes')
+          .select('id, nom, duree_semaines')
+          .eq('client_id', user.id)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (proNutri) {
+          nutPlan = { ...proNutri, __pro: true }
+        }
+      } catch (e) {
+        console.warn('[Dashboard] nutrition_programmes indisponible:', e?.message)
+      }
+
+      // 4) Legacy fallback
+      if (!nutPlan) {
+        const { data: legacyPlan } = await supabase
+          .from('client_nutrition_plans')
+          .select('id, nom, duree_semaines')
+          .eq('client_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        nutPlan = legacyPlan
+      }
 
       if (nutPlan) {
         setNutritionPlan(nutPlan)
-        const [repasRes, suiviRes, repasDetailRes] = await Promise.all([
-          supabase.from('plan_repas').select('id', { count: 'exact', head: true }).eq('plan_id', nutPlan.id),
-          supabase.from('suivi_nutrition').select('id').eq('plan_id', nutPlan.id).eq('client_id', user.id),
-          supabase.from('plan_repas')
-            .select('id, type, ordre, repas_aliments(quantite_g, aliments(nom, kcal_100g, proteines, glucides, lipides))')
-            .eq('plan_id', nutPlan.id)
-            .order('ordre'),
-        ])
-        setNutriRepasCount(repasRes.count ?? 0)
-        setNutriWeeksDone(suiviRes.data?.length ?? 0)
-        setNutriRepas(repasDetailRes.data ?? [])
+        // Pro : pas de plan_repas legacy. On laisse les stats à 0, le détail
+        // sera récupéré via ProgrammePage / Hub si besoin.
+        if (nutPlan.__pro) {
+          setNutriRepasCount(0)
+          setNutriWeeksDone(0)
+          setNutriRepas([])
+        } else {
+          const [repasRes, suiviRes, repasDetailRes] = await Promise.all([
+            supabase.from('plan_repas').select('id', { count: 'exact', head: true }).eq('plan_id', nutPlan.id),
+            supabase.from('suivi_nutrition').select('id').eq('plan_id', nutPlan.id).eq('client_id', user.id),
+            supabase.from('plan_repas')
+              .select('id, type, ordre, repas_aliments(quantite_g, aliments(nom, kcal_100g, proteines, glucides, lipides))')
+              .eq('plan_id', nutPlan.id)
+              .order('ordre'),
+          ])
+          setNutriRepasCount(repasRes.count ?? 0)
+          setNutriWeeksDone(suiviRes.data?.length ?? 0)
+          setNutriRepas(repasDetailRes.data ?? [])
+        }
       } else {
         setNutritionPlan(null)
         setNutriRepas([])
