@@ -535,17 +535,11 @@ export default function CoachRapportsPage() {
     <div className="p-4 md:p-6 w-full max-w-[1400px] mx-auto">
 
       {/* ── Header ── */}
-      <div className="glass-card relative mb-6 md:mb-8 overflow-hidden">
-        {/* Barre accent gradient */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E]" />
-        <div className="p-4 md:p-6 flex items-center gap-4">
-          <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF8F5E]/10 flex items-center justify-center shrink-0">
-            <FileText size={22} className="text-[#FF6B2B]" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight">Rapports</h1>
-            <p className="text-[var(--text-secondary)] text-xs md:text-sm mt-0.5 truncate">Generez des rapports PDF professionnels pour vos clients</p>
-          </div>
+      <div className="hero-card hero-card--accent p-4 md:p-5 mb-5 md:mb-6 flex items-center gap-3">
+        <FileText size={18} className="text-[var(--text-muted)] shrink-0" strokeWidth={1.75} />
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] tracking-tight leading-tight">Rapports</h1>
+          <p className="text-[var(--text-muted)] text-xs md:text-sm mt-0.5 truncate">Générez des rapports PDF professionnels pour vos clients</p>
         </div>
       </div>
 
@@ -555,92 +549,77 @@ export default function CoachRapportsPage() {
         <div className="lg:col-span-1 space-y-3 md:space-y-4">
 
           {/* ── Type de rapport ── */}
-          <div className="glass-card relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#FF6B2B]/60 to-transparent" />
-            <div className="p-4">
-              <label className="block text-[var(--text-secondary)] text-[10px] md:text-xs mb-3 uppercase tracking-wider font-semibold">Type de rapport</label>
-              <div className="space-y-2">
-                {TYPES_RAPPORT.map(t => {
-                  const Icon = t.icon
-                  const selected = typeRapport === t.id
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => { setTypeRapport(t.id); setPreview(null) }}
-                      className={`w-full flex items-start gap-3 p-3 rounded-xl text-left transition-all duration-200 relative ${
-                        selected
-                          ? 'bg-[#FF6B2B]/8 border border-[#FF6B2B]/25 shadow-[0_0_20px_rgba(255,107,43,0.06)]'
-                          : 'border border-[var(--border-base)] hover:border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]/50'
-                      }`}
-                    >
-                      {/* Barre gauche gradient quand selectionne */}
-                      {selected && (
-                        <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-gradient-to-b from-[#FF6B2B] to-[#FF8F5E]" />
-                      )}
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                        selected
-                          ? 'bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF8F5E]/10'
-                          : 'bg-[var(--bg-surface)]'
-                      }`}>
-                        <Icon size={17} className={selected ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className={`text-sm font-medium leading-tight ${selected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>{t.label}</p>
-                        <p className="text-[var(--text-muted)] text-[11px] mt-0.5 leading-snug">{t.description}</p>
-                      </div>
-                      {selected && <ChevronRight size={14} className="text-[#FF6B2B] mt-0.5 shrink-0" />}
-                    </button>
-                  )
-                })}
-              </div>
+          <div className="hero-card p-4">
+            <label className="block text-[var(--text-muted)] text-[10px] md:text-xs mb-3 uppercase tracking-[0.14em] font-bold">Type de rapport</label>
+            <div className="space-y-1.5">
+              {TYPES_RAPPORT.map(t => {
+                const Icon = t.icon
+                const selected = typeRapport === t.id
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => { setTypeRapport(t.id); setPreview(null) }}
+                    className={`w-full relative flex items-start gap-3 pl-4 pr-3 py-3 rounded-xl text-left transition-colors ${
+                      selected
+                        ? 'bg-[#FF6B2B]/8 border border-[#FF6B2B]/25'
+                        : 'border border-[var(--border-base)] hover:border-[#FF6B2B]/20 hover:bg-[var(--bg-surface)]/50'
+                    }`}
+                  >
+                    {/* Barre latérale 3px quand sélectionné (langage unifié) */}
+                    {selected && (
+                      <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-[#FF6B2B]" />
+                    )}
+                    <Icon size={14} strokeWidth={1.75} className={`shrink-0 mt-0.5 transition-colors ${selected ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-sm font-semibold leading-tight ${selected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>{t.label}</p>
+                      <p className="text-[var(--text-muted)] text-[11px] mt-0.5 leading-snug">{t.description}</p>
+                    </div>
+                    {selected && <ChevronRight size={13} className="text-[#FF6B2B] mt-0.5 shrink-0" />}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
           {/* ── Selecteur client ── */}
           {typeRapport !== 'financier' && (
-            <div className="glass-card relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#FF6B2B]/40 to-transparent" />
-              <div className="p-4">
-                <label className="flex items-center gap-2 text-[var(--text-secondary)] text-[10px] md:text-xs mb-3 uppercase tracking-wider font-semibold">
-                  <User size={13} className="text-[var(--text-muted)]" />
-                  Client
-                </label>
-                {loading ? (
-                  <div className="skel-block h-10 rounded-lg" />
-                ) : clients.length === 0 ? (
-                  <p className="text-[var(--text-muted)] text-sm py-1">Aucun client actif</p>
-                ) : (
-                  <select
-                    value={clientId}
-                    onChange={(e) => { setClientId(e.target.value); setPreview(null) }}
-                    className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 focus:outline-none transition-all"
-                  >
-                    {clients.map(c => (
-                      <option key={c.id} value={c.id}>{c.profiles?.nom || c.profiles?.email || 'Client'}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
+            <div className="hero-card p-4">
+              <label className="flex items-center gap-2 text-[var(--text-muted)] text-[10px] md:text-xs mb-3 uppercase tracking-[0.14em] font-bold">
+                <User size={11} className="text-[var(--text-muted)]" />
+                Client
+              </label>
+              {loading ? (
+                <div className="skel-block h-10 rounded-lg" />
+              ) : clients.length === 0 ? (
+                <p className="text-[var(--text-muted)] text-sm py-1">Aucun client actif</p>
+              ) : (
+                <select
+                  value={clientId}
+                  onChange={(e) => { setClientId(e.target.value); setPreview(null) }}
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/40 focus:outline-none transition-colors"
+                >
+                  {clients.map(c => (
+                    <option key={c.id} value={c.id}>{c.profiles?.nom || c.profiles?.email || 'Client'}</option>
+                  ))}
+                </select>
+              )}
             </div>
           )}
 
           {/* ── Commentaire coach ── */}
           {typeRapport !== 'financier' && (
-            <div className="glass-card relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#FF6B2B]/40 to-transparent" />
-              <div className="p-4">
-                <label className="flex items-center gap-2 text-[var(--text-secondary)] text-[10px] md:text-xs mb-3 uppercase tracking-wider font-semibold">
-                  <MessageSquare size={13} className="text-[var(--text-muted)]" />
-                  Commentaire du coach
-                </label>
-                <textarea
-                  value={commentaire}
-                  onChange={(e) => setCommentaire(e.target.value)}
-                  placeholder="Ajoutez un message personnalise au rapport..."
-                  rows={3}
-                  className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:ring-1 focus:ring-[#FF6B2B]/20 focus:outline-none transition-all resize-none"
-                />
-              </div>
+            <div className="hero-card p-4">
+              <label className="flex items-center gap-2 text-[var(--text-muted)] text-[10px] md:text-xs mb-3 uppercase tracking-[0.14em] font-bold">
+                <MessageSquare size={11} className="text-[var(--text-muted)]" />
+                Commentaire du coach
+              </label>
+              <textarea
+                value={commentaire}
+                onChange={(e) => setCommentaire(e.target.value)}
+                placeholder="Ajoutez un message personnalisé au rapport..."
+                rows={3}
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/40 focus:outline-none transition-colors resize-none"
+              />
             </div>
           )}
 
@@ -648,17 +627,17 @@ export default function CoachRapportsPage() {
           <button
             onClick={genererPreview}
             disabled={generating || (typeRapport !== 'financier' && !clientId)}
-            className="w-full flex items-center justify-center gap-2 p-2 bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white py-3.5 rounded-xl text-sm font-semibold shadow-[0_4px_20px_rgba(255,107,43,0.3)] hover:shadow-[0_6px_28px_rgba(255,107,43,0.4)] hover:brightness-110 active:scale-[0.98] transition-all duration-200 disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-[#FF6B2B] hover:bg-[#FF6B2B]/90 text-white py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {generating ? (
               <>
-                <RefreshCw size={16} className="animate-spin" />
-                Chargement des donnees...
+                <RefreshCw size={15} className="animate-spin" />
+                Chargement des données...
               </>
             ) : (
               <>
-                <BarChart3 size={16} />
-                Generer le rapport
+                <BarChart3 size={15} />
+                Générer le rapport
               </>
             )}
           </button>
@@ -668,16 +647,14 @@ export default function CoachRapportsPage() {
         <div className="lg:col-span-2">
           {!preview ? (
             /* ── Etat vide ── */
-            <div className="glass-card border-dashed min-h-[400px] md:min-h-[500px] flex flex-col items-center justify-center p-8 md:p-12">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/10 to-[#FF8F5E]/5 flex items-center justify-center mb-5 animate-breathe">
-                <Eye size={32} className="text-[#FF6B2B]/40 md:text-[#FF6B2B]/50" />
-              </div>
-              <p className="text-[var(--text-muted)] text-sm md:text-base font-medium text-center">Selectionnez un type et cliquez sur Generer</p>
-              <p className="text-[var(--text-muted)] text-xs mt-1.5 opacity-60 text-center">La previsualisation apparaitra ici</p>
+            <div className="hero-card border-dashed min-h-[400px] md:min-h-[500px] flex flex-col items-center justify-center p-8 md:p-12">
+              <Eye size={28} className="text-[var(--text-muted)] mb-4 animate-breathe" strokeWidth={1.5} />
+              <p className="text-[var(--text-primary)] text-sm md:text-base font-bold tracking-tight text-center">Sélectionnez un type et cliquez sur Générer</p>
+              <p className="text-[var(--text-muted)] text-xs mt-1.5 text-center">La prévisualisation apparaîtra ici</p>
             </div>
           ) : (
-            /* ── Wrapper glass autour du preview blanc ── */
-            <div className="glass-card p-1 md:p-1.5">
+            /* ── Wrapper hero autour du preview blanc ── */
+            <div className="hero-card p-1 md:p-1.5">
               <div className="bg-white rounded-xl overflow-hidden shadow-sm">
                 {/* Header editorial */}
                 <div className="px-4 md:px-6 pt-4 md:pt-6 pb-3 md:pb-4 border-b border-[#E4E4E7]">
@@ -873,9 +850,9 @@ export default function CoachRapportsPage() {
                 <div className="px-4 md:px-6 py-3 md:py-4 border-t border-[#E4E4E7] bg-[#FAFAFA] flex flex-col sm:flex-row gap-2 md:gap-3">
                   <button
                     onClick={telechargerPDF}
-                    className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-[0_4px_16px_rgba(255,107,43,0.25)] hover:shadow-[0_6px_24px_rgba(255,107,43,0.35)] hover:brightness-110 active:scale-[0.98] transition-all duration-200 p-2"
+                    className="flex items-center justify-center gap-2 bg-[#FF6B2B] hover:bg-[#FF6B2B]/90 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
                   >
-                    <Download size={16} /> Telecharger PDF
+                    <Download size={15} /> Télécharger PDF
                   </button>
                   <button
                     onClick={genererPreview}
