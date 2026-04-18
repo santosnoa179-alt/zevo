@@ -10,14 +10,10 @@ const STORAGE_KEY = 'zevo-theme'
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    // 1. Vérifier localStorage
+    // 1. Vérifier localStorage — l'user a explicitement choisi
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved === 'light' || saved === 'dark') return saved
-    // 2. Sinon, préférence système
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      return 'light'
-    }
-    // 3. Par défaut : dark
+    // 2. Par défaut : dark (identité visuelle Zevo, ignore les préférences système)
     return 'dark'
   })
 
@@ -40,18 +36,8 @@ export function ThemeProvider({ children }) {
     }
   }, [theme])
 
-  // Écouter les changements de préférence système
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = (e) => {
-      // Seulement si l'user n'a pas choisi manuellement
-      if (!localStorage.getItem(STORAGE_KEY)) {
-        setTheme(e.matches ? 'dark' : 'light')
-      }
-    }
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
+  // Plus d'écoute des préférences système : Zevo est dark par défaut.
+  // L'user peut manuellement passer en light via le toggle (sauvegardé en localStorage).
 
   const toggleTheme = useCallback(() => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark')
