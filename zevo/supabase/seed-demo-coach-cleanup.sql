@@ -41,10 +41,21 @@ BEGIN
   DELETE FROM factures            WHERE coach_id = coach_uuid;
   DELETE FROM virements_coach     WHERE coach_id = coach_uuid;
 
-  -- Offres, prospects, formulaires, calendrier, programmes
+  -- Formulaires : supprimer d'abord les enfants (reponses + champs)
+  -- puis le parent (pas de ON DELETE CASCADE sur ces FK)
+  BEGIN
+    DELETE FROM formulaire_reponses
+      WHERE formulaire_id IN (SELECT id FROM formulaires WHERE coach_id = coach_uuid);
+  EXCEPTION WHEN undefined_table THEN NULL; END;
+  BEGIN
+    DELETE FROM formulaire_champs
+      WHERE formulaire_id IN (SELECT id FROM formulaires WHERE coach_id = coach_uuid);
+  EXCEPTION WHEN undefined_table THEN NULL; END;
+  DELETE FROM formulaires WHERE coach_id = coach_uuid;
+
+  -- Offres, prospects, calendrier, programmes
   DELETE FROM offres_coaching      WHERE coach_id = coach_uuid;
   DELETE FROM prospects            WHERE coach_id = coach_uuid;
-  DELETE FROM formulaires          WHERE coach_id = coach_uuid;
   DELETE FROM coach_events         WHERE coach_id = coach_uuid;
   DELETE FROM sport_programmes     WHERE coach_id = coach_uuid;
   DELETE FROM nutrition_programmes WHERE coach_id = coach_uuid;
