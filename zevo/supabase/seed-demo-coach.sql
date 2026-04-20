@@ -109,6 +109,10 @@ BEGIN
     ) ON CONFLICT (id) DO NOTHING;
 
     -- 1b. profiles (FK sur auth.users)
+    -- ⚠️ IMPORTANT: le trigger handle_new_user() crée déjà un profil à l'INSERT
+    -- de auth.users (avec juste id + email + role='client'). Du coup ON CONFLICT
+    -- doit faire UPDATE pour écrire nos nom/prenom/etc. — sinon ils restent null
+    -- et l'UI affiche juste l'email.
     INSERT INTO profiles (
       id, email, role, nom, prenom,
       age, genre, taille, poids_depart, poids_actuel, poids_cible,
@@ -139,7 +143,26 @@ BEGIN
       'https://api.dicebear.com/7.x/avataaars/svg?seed=' ||
         prenoms[1 + ((i - 1) % array_length(prenoms, 1))] || i::text,
       now() - ((i * 9) || ' days')::interval
-    ) ON CONFLICT (id) DO NOTHING;
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      nom                  = EXCLUDED.nom,
+      prenom               = EXCLUDED.prenom,
+      age                  = EXCLUDED.age,
+      genre                = EXCLUDED.genre,
+      taille               = EXCLUDED.taille,
+      poids_depart         = EXCLUDED.poids_depart,
+      poids_actuel         = EXCLUDED.poids_actuel,
+      poids_cible          = EXCLUDED.poids_cible,
+      objectif_type        = EXCLUDED.objectif_type,
+      niveau_activite      = EXCLUDED.niveau_activite,
+      niveau_sportif       = EXCLUDED.niveau_sportif,
+      calories_cibles      = EXCLUDED.calories_cibles,
+      proteines_cibles     = EXCLUDED.proteines_cibles,
+      glucides_cibles      = EXCLUDED.glucides_cibles,
+      lipides_cibles       = EXCLUDED.lipides_cibles,
+      date_debut_coaching  = EXCLUDED.date_debut_coaching,
+      telephone            = EXCLUDED.telephone,
+      avatar_url           = EXCLUDED.avatar_url;
 
     -- 1c. clients (coach link)
     INSERT INTO clients (id, coach_id, actif, onboarding_complete, created_at)
@@ -181,23 +204,50 @@ BEGIN
   WHERE id = coach_uuid;
 
   -- ─────────────────────────────────────────────────────────────
-  -- 4. PAIEMENTS — courbe croissante sur 12 mois (~1500→4500€/mois)
+  -- 4. PAIEMENTS — courbe croissante sur 12 mois
+  --    Mois -11 : ~8 clients × 89€ ≈ 712€
+  --    Mois 0  : ~35 clients × mix 89/149€ ≈ 3200-3500€
+  --    ~250 paiements au total répartis
   -- ─────────────────────────────────────────────────────────────
   FOR mois IN 0..11 LOOP
-    -- 1500 + (4500-1500) * (11-mois)/11 ; mois 0 = mois en cours
-    montant_mois := 150000 + ((11 - mois) * 27000); -- en centimes : ~1500 → ~4470
-    -- insérer ~3 paiements par mois (36 paiements répartis + quelques extras)
-    INSERT INTO paiements_clients (client_id, coach_id, offre_id, montant, statut, methode_paiement, date_paiement, created_at)
-    VALUES
-      (client_ids[1 + (mois % 40)],      coach_uuid, offre_mensuel, 8900, 'paye', 'card',
-        (now() - ((mois * 30) || ' days')::interval)::timestamptz,
-        (now() - ((mois * 30) || ' days')::interval)::timestamptz),
-      (client_ids[1 + ((mois * 3 + 7) % 40)], coach_uuid, offre_mensuel, 8900, 'paye', 'card',
-        (now() - ((mois * 30 + 5) || ' days')::interval),
-        (now() - ((mois * 30 + 5) || ' days')::interval)),
-      (client_ids[1 + ((mois * 5 + 13) % 40)], coach_uuid, offre_premium, 14900, 'paye', 'card',
-        (now() - ((mois * 30 + 12) || ' days')::interval),
-        (now() - ((mois * 30 + 12) || ' days')::interval));
+    -- Nombre de paiements pour ce mois : croît de 7 à 35 sur 12 mois
+    -- (mois 11 = il y a 1 an = 7 paiements, mois 0 = mois courant = 35)
+    DECLARE
+      nb_paie int := GREATEST(7, 35 - (mois * 3));
+      j int;
+      offre_used uuid;
+      montant_used int;
+      day_offset int;
+    BEGIN
+      FOR j IN 0..(nb_paie - 1) LOOP
+        -- Mix d'offres : 70% mensuel 89€, 20% premium 149€, 10% pack 49€
+        IF (j % 10) < 7 THEN
+          offre_used := offre_mensuel;
+          montant_used := 8900;
+        ELSIF (j % 10) < 9 THEN
+          offre_used := offre_premium;
+          montant_used := 14900;
+        ELSE
+          offre_used := offre_pack;
+          montant_used := 4900;
+        END IF;
+
+        -- Etalement des paiements dans le mois (jours 1-28)
+        day_offset := 1 + (j * 7 + mois * 3) % 27;
+
+        INSERT INTO paiements_clients (client_id, coach_id, offre_id, montant, statut, methode_paiement, date_paiement, created_at)
+        VALUES (
+          client_ids[1 + ((j * 13 + mois * 5) % 35)],
+          coach_uuid,
+          offre_used,
+          montant_used,
+          'paye',
+          'card',
+          (now() - ((mois * 30 + day_offset) || ' days')::interval)::timestamptz,
+          (now() - ((mois * 30 + day_offset) || ' days')::interval)::timestamptz
+        );
+      END LOOP;
+    END;
   END LOOP;
 
   -- Paiements en attente (mois en cours)
@@ -212,7 +262,7 @@ BEGIN
   VALUES
     (client_ids[8], coach_uuid, offre_mensuel, 8900, 'rembourse', 'card', now() - interval '10 days', now() - interval '10 days');
 
-  RAISE NOTICE '✓ Paiements (12 mois courbe croissante + 3 en attente + 1 remboursé)';
+  RAISE NOTICE '✓ Paiements (~250 sur 12 mois, courbe 712€ → 3200€) + 3 en attente + 1 remboursé';
 
   -- ─────────────────────────────────────────────────────────────
   -- 5. ABONNEMENTS ACTIFS (25 clients)
@@ -364,33 +414,60 @@ BEGIN
   RAISE NOTICE '✓ Sommeil/humeur/sport log (14j × 35 clients)';
 
   -- ─────────────────────────────────────────────────────────────
-  -- 14. COACH_EVENTS (calendrier — 20 événements semaine courante+suivante)
+  -- 14. COACH_EVENTS (calendrier)
+  --   30 jours passés + 30 jours futurs = 60 jours couverts
+  --   3-5 séances par jour en semaine (lun-ven), 0-1 le weekend
+  --   + événements perso (bilans, rdv, formations) étalés
   -- ─────────────────────────────────────────────────────────────
-  FOR i IN 0..13 LOOP
-    INSERT INTO coach_events (coach_id, client_id, title, event_date, event_type, notes)
-    VALUES (
-      coach_uuid,
-      client_ids[1 + (i % 40)],
-      'Séance ' || prenoms[1 + (i % array_length(prenoms, 1))],
-      (now()::date + (i || ' days')::interval + (8 + (i % 10) || ' hours')::interval)::timestamptz,
-      (ARRAY['bilan','appel','perso','reunion','note'])[1 + (i % 5)],
-      'Séance planifiée démo'
-    );
-  END LOOP;
+  DECLARE
+    d int;
+    slot int;
+    nb_slots_jour int;
+    event_date_raw date;
+    dow int;           -- day of week (0=dimanche, 6=samedi)
+    event_hours int[] := ARRAY[8, 9, 10, 11, 14, 15, 16, 17, 18, 19];
+  BEGIN
+    -- Séances clients : du jour J-30 à J+30
+    FOR d IN -30..30 LOOP
+      event_date_raw := (now()::date + (d || ' days')::interval)::date;
+      dow := EXTRACT(DOW FROM event_date_raw)::int;
 
-  -- 6 événements additionnels (perso / bilan)
-  FOR i IN 0..5 LOOP
-    INSERT INTO coach_events (coach_id, title, event_date, event_type, notes)
-    VALUES (
-      coach_uuid,
-      (ARRAY['Bilan trimestriel','Prospection LinkedIn','Webinaire intro','Formation continue','Révision pricing','RDV comptable'])[1 + i],
-      (now()::date + ((i + 2) || ' days')::interval + '14 hours'::interval)::timestamptz,
-      'perso',
-      NULL
-    );
-  END LOOP;
+      -- Densité : 4-5 séances en semaine, 1 le samedi, 0 le dimanche
+      nb_slots_jour := CASE
+        WHEN dow = 0 THEN 0                      -- dimanche off
+        WHEN dow = 6 THEN 1                      -- samedi light
+        ELSE 4 + (d % 2)                         -- lun-ven : 4-5 séances
+      END;
 
-  RAISE NOTICE '✓ 20 coach_events sur 2 semaines';
+      FOR slot IN 0..(nb_slots_jour - 1) LOOP
+        INSERT INTO coach_events (coach_id, client_id, title, event_date, event_type, notes)
+        VALUES (
+          coach_uuid,
+          client_ids[1 + ((d * 7 + slot * 13) % 35)],
+          'Séance ' || prenoms[1 + ((d * 3 + slot) % array_length(prenoms, 1))],
+          (event_date_raw + (event_hours[1 + (slot % array_length(event_hours, 1))] || ' hours')::interval)::timestamptz,
+          'perso',
+          NULL
+        );
+      END LOOP;
+    END LOOP;
+
+    -- Événements perso (bilans, prospection, formations) étalés sur 60 jours
+    FOR d IN 0..7 LOOP
+      INSERT INTO coach_events (coach_id, title, event_date, event_type, notes)
+      VALUES (
+        coach_uuid,
+        (ARRAY['Bilan trimestriel','Prospection LinkedIn','Webinaire découverte',
+               'Formation continue','Révision pricing','RDV comptable',
+               'Réunion partenaire','Audit business'])[1 + d],
+        (now()::date + ((d * 7 + 3) || ' days')::interval + '14 hours'::interval)::timestamptz,
+        'perso',
+        NULL
+      );
+    END LOOP;
+  END;
+
+  RAISE NOTICE '✓ ~240 séances calendrier sur 60 jours (30 passés + 30 futurs)';
 
   -- ─────────────────────────────────────────────────────────────
   -- 15. PROGRAMMES SPORT (3 templates + assignations 15 clients)
@@ -458,16 +535,19 @@ BEGIN
   -- ─────────────────────────────────────────────────────────────
   -- 17. PROSPECTS (8 leads)
   -- ─────────────────────────────────────────────────────────────
+  -- valeur_estimee est en EUROS (table prospects, pas en centimes).
+  -- LTV réaliste : coaching 6-12 mois → 534-1068€ (mensuel 89€)
+  -- ou 894-1788€ (premium 149€). On met des valeurs LTV variées.
   INSERT INTO prospects (coach_id, prenom, nom, email, telephone, valeur_estimee, statut, notes)
   VALUES
-    (coach_uuid, 'Camille',   'Rivière',  'camille.r@gmail.com',   '+33612345601', 89000,  'contact',     'Venue via Instagram reel'),
-    (coach_uuid, 'Thomas',    'Perret',   'tperret@outlook.fr',    '+33612345602', 149000, 'appel',       'Appel découverte prévu vendredi'),
-    (coach_uuid, 'Emma',      'Delacroix','emma.dlc@gmail.com',    '+33612345603', 89000,  'proposition', 'Proposition envoyée le 15/04'),
-    (coach_uuid, 'Léo',       'Favre',    'leo.favre@gmail.com',   '+33612345604', 149000, 'closing',     'Hésite entre 3 et 6 mois'),
-    (coach_uuid, 'Sophie',    'Aubert',   'saubert@free.fr',       '+33612345605', 49000,  'contact',     'Referral de Sarah Martin'),
-    (coach_uuid, 'Nicolas',   'Brun',     'nbrun@pro.fr',          '+33612345606', 89000,  'appel',       'Intéressé programme 12 sem'),
-    (coach_uuid, 'Julia',     'Meyer',    'julia.meyer@gmail.com', '+33612345607', 149000, 'proposition', 'En attente signature contrat'),
-    (coach_uuid, 'Benjamin',  'Lopez',    'blopez@gmail.com',      '+33612345608', 49000,  'contact',     'Lead Facebook Ads');
+    (coach_uuid, 'Camille',   'Rivière',  'camille.r@gmail.com',   '+33612345601',  890, 'contact',     'Venue via Instagram reel'),
+    (coach_uuid, 'Thomas',    'Perret',   'tperret@outlook.fr',    '+33612345602', 1490, 'appel',       'Appel découverte prévu vendredi'),
+    (coach_uuid, 'Emma',      'Delacroix','emma.dlc@gmail.com',    '+33612345603',  890, 'proposition', 'Proposition envoyée le 15/04'),
+    (coach_uuid, 'Léo',       'Favre',    'leo.favre@gmail.com',   '+33612345604', 1490, 'closing',     'Hésite entre 3 et 6 mois'),
+    (coach_uuid, 'Sophie',    'Aubert',   'saubert@free.fr',       '+33612345605',  490, 'contact',     'Referral de Sarah Martin'),
+    (coach_uuid, 'Nicolas',   'Brun',     'nbrun@pro.fr',          '+33612345606',  890, 'appel',       'Intéressé programme 12 sem'),
+    (coach_uuid, 'Julia',     'Meyer',    'julia.meyer@gmail.com', '+33612345607', 1490, 'proposition', 'En attente signature contrat'),
+    (coach_uuid, 'Benjamin',  'Lopez',    'blopez@gmail.com',      '+33612345608',  490, 'contact',     'Lead Facebook Ads');
 
   RAISE NOTICE '✓ 8 prospects CRM';
 
@@ -549,8 +629,8 @@ BEGIN
   RAISE NOTICE '════════════════════════════════════════════════';
   RAISE NOTICE '  ✅ SEED DÉMO COACH TERMINÉ';
   RAISE NOTICE '════════════════════════════════════════════════';
-  RAISE NOTICE '  40 clients · 4 offres · 36+ paiements · 27 abonnements';
-  RAISE NOTICE '  15 factures · 4 virements · 20 événements calendrier';
+  RAISE NOTICE '  40 clients · 4 offres · ~250 paiements · 27 abonnements';
+  RAISE NOTICE '  15 factures · 4 virements · ~240 événements calendrier (60j)';
   RAISE NOTICE '  18 programmes sport · 13 programmes nutrition';
   RAISE NOTICE '  8 prospects · 2 formulaires · 5 threads messagerie';
   RAISE NOTICE '════════════════════════════════════════════════';
