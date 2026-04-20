@@ -24,29 +24,14 @@ function PageLoader() {
   )
 }
 
-// ── Pages publiques (lazy) ──
-const LandingPage = lazy(() => import('./pages/public/LandingPage'))
+// ── Pages publiques minimales (auth uniquement) ──
+// Les anciennes landing/pricing/demo/blog/features ont été supprimées :
+// la landing marketing officielle est sur zevo-one.com (zevo-marketing/),
+// l'app ne gère que l'authentification et les invitations.
 const LoginPage = lazy(() => import('./pages/public/LoginPage'))
 const InvitePage = lazy(() => import('./pages/public/InvitePage'))
-const PricingPage = lazy(() => import('./pages/public/PricingPage'))
-const DemoPage = lazy(() => import('./pages/public/DemoPage'))
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'))
-const FonctionnalitesPage = lazy(() => import('./pages/public/FonctionnalitesPage'))
-const BlogPage = lazy(() => import('./pages/public/BlogPage'))
-
-// ── Pages features publiques (lazy) ──
-const FeatureCalendrier = lazy(() => import('./pages/public/features/CalendrierPage'))
-const FeatureEntrainement = lazy(() => import('./pages/public/features/EntrainementPage'))
-const FeatureProgrammes = lazy(() => import('./pages/public/features/ProgrammesPage'))
-const FeatureNutrition = lazy(() => import('./pages/public/features/NutritionPage'))
-const FeatureBibliotheque = lazy(() => import('./pages/public/features/BibliothequePage'))
-const FeatureHubClient = lazy(() => import('./pages/public/features/HubClientPage'))
-const FeatureMessagerie = lazy(() => import('./pages/public/features/MessageriePage'))
-const FeatureFormulaires = lazy(() => import('./pages/public/features/FormulairesPage'))
-const FeatureStatistiques = lazy(() => import('./pages/public/features/StatistiquesPage'))
-const FeatureAppBuilder = lazy(() => import('./pages/public/features/AppBuilderPage'))
-const FeaturePaiements = lazy(() => import('./pages/public/features/PaiementsPage'))
-const FeatureProspects = lazy(() => import('./pages/public/features/ProspectsPage'))
+const RootRedirect = lazy(() => import('./components/RootRedirect'))
 
 // ── Pages client (lazy) ──
 const DashboardPage = lazy(() => import('./pages/client/DashboardPage'))
@@ -108,30 +93,14 @@ export default function App() {
       <AuthProvider>
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            {/* Routes publiques */}
+            {/* Routes publiques minimales : auth + invite */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<LoginPage />} />
             <Route path="/invite/:token" element={<InvitePage />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/demo" element={<DemoPage />} />
-            <Route path="/fonctionnalites" element={<FonctionnalitesPage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/tarifs" element={<PricingPage />} />
-            <Route path="/features/calendrier" element={<FeatureCalendrier />} />
-            <Route path="/features/entrainement" element={<FeatureEntrainement />} />
-            <Route path="/features/programmes" element={<FeatureProgrammes />} />
-            <Route path="/features/nutrition" element={<FeatureNutrition />} />
-            <Route path="/features/bibliotheque" element={<FeatureBibliotheque />} />
-            <Route path="/features/hub-client" element={<FeatureHubClient />} />
-            <Route path="/features/messagerie" element={<FeatureMessagerie />} />
-            <Route path="/features/formulaires" element={<FeatureFormulaires />} />
-            <Route path="/features/statistiques" element={<FeatureStatistiques />} />
-            <Route path="/features/app-builder" element={<FeatureAppBuilder />} />
-            <Route path="/features/paiements" element={<FeaturePaiements />} />
-            <Route path="/features/prospects" element={<FeatureProspects />} />
 
-            {/* Landing page publique */}
-            <Route path="/" element={<LandingPage />} />
+            {/* Racine : redirige vers dashboard si connecté, sinon vers la
+                landing marketing (zevo-one.com). Plus de landing dans l'app. */}
+            <Route path="/" element={<RootRedirect />} />
 
             {/* ── Section client ── */}
             <Route
