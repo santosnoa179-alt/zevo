@@ -399,8 +399,7 @@ BEGIN
   VALUES
     (coach_uuid, NULL, 'Hypertrophie 12 semaines', 'Programme PPL 5x/sem prise de masse', 'Hypertrophie', 12, true, true, 5, 'intermediaire', NULL),
     (coach_uuid, NULL, 'Perte de poids 8 semaines', 'Full body + cardio HIIT', 'Perte de poids', 8, true, true, 4, 'debutant', NULL),
-    (coach_uuid, NULL, 'Débutant 4 semaines',      'Initiation full-body', 'Remise en forme', 4, true, true, 3, 'debutant', NULL)
-  RETURNING id INTO prog_sport_hyper;  -- capture 1er seulement ; on va re-SELECT
+    (coach_uuid, NULL, 'Débutant 4 semaines',      'Initiation full-body', 'Remise en forme', 4, true, true, 3, 'debutant', NULL);
 
   SELECT id INTO prog_sport_hyper FROM sport_programmes WHERE coach_id = coach_uuid AND nom = 'Hypertrophie 12 semaines' AND is_template = true LIMIT 1;
   SELECT id INTO prog_sport_perte FROM sport_programmes WHERE coach_id = coach_uuid AND nom = 'Perte de poids 8 semaines' AND is_template = true LIMIT 1;
