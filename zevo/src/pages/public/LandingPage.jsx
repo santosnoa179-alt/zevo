@@ -1302,11 +1302,11 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto items-stretch">
             {PLANS.map((plan) => {
               const price = billingYearly ? plan.price.yearly : plan.price.monthly
               return (
-                <div key={plan.id} className={`relative rounded-2xl p-7 flex flex-col transition-all duration-500 bento-card ${plan.popular ? 'border-2 border-[#FF5C1A]/25 shadow-[0_0_80px_rgba(255,92,26,0.08)] md:scale-[1.04]' : 'border border-white/[0.06] hover:border-white/[0.12] hover:shadow-[0_8px_40px_rgba(0,0,0,0.3)]'}`}>
+                <div key={plan.id} className={`relative rounded-2xl p-7 flex flex-col h-full transition-all duration-500 bento-card ${plan.popular ? 'border-2 border-[#FF5C1A]/25 shadow-[0_0_80px_rgba(255,92,26,0.08)]' : 'border border-white/[0.06] hover:border-white/[0.12] hover:shadow-[0_8px_40px_rgba(0,0,0,0.3)]'}`}>
                   {/* Gradient glow for popular */}
                   {plan.popular && <div className="pointer-events-none absolute inset-0 rounded-2xl gradient-border-glow opacity-50" />}
                   {plan.popular && (
@@ -1314,15 +1314,16 @@ export default function LandingPage() {
                       <span className="bg-gradient-to-r from-[#FF5C1A] to-[#FF7A42] text-white text-[9px] font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg shadow-[#FF5C1A]/25">Le plus populaire</span>
                     </div>
                   )}
-                  <div className="relative z-[1]">
+                  <div className="relative z-[1] flex-1 flex flex-col">
                     <h3 className="text-xl font-bold mb-1" style={{ fontFamily: clash }}>{plan.name}</h3>
-                    <p className="text-[11px] text-[#F5F5F3]/25 mb-5">{plan.desc}</p>
+                    <p className="text-[11px] text-[#F5F5F3]/25 mb-5 min-h-[32px]">{plan.desc}</p>
                     <div className="flex items-baseline gap-1 mb-1">
                       <span className="text-4xl font-bold" style={{ fontFamily: clash }}>{price}</span>
                       <span className="text-[#F5F5F3]/20 text-sm">{'\u20AC'}/mois</span>
                     </div>
-                    {billingYearly && <p className="text-[10px] text-emerald-400/60 font-medium mb-5">Économise {(plan.price.monthly - plan.price.yearly) * 12}{'\u20AC'}/an</p>}
-                    {!billingYearly && <p className="text-[10px] text-[#F5F5F3]/15 mb-5">facturé mensuellement</p>}
+                    <p className="text-[10px] mb-5 min-h-[14px]">
+                      {billingYearly ? <span className="text-emerald-400/60 font-medium">Économise {(plan.price.monthly - plan.price.yearly) * 12}{'\u20AC'}/an</span> : <span className="text-[#F5F5F3]/15">facturé mensuellement</span>}
+                    </p>
                     <ul className="space-y-2.5 mb-7 flex-1">
                       {plan.features.map(f => (
                         <li key={f} className="flex items-center gap-2.5"><Check size={13} className="text-[#FF5C1A] flex-shrink-0" /><span className="text-sm text-[#F5F5F3]/40">{f}</span></li>
