@@ -440,11 +440,12 @@ BEGIN
       END;
 
       FOR slot IN 0..(nb_slots_jour - 1) LOOP
+        -- Modulo positif (PG fait -30 % 40 = -30, pas +10) → abs()
         INSERT INTO coach_events (coach_id, client_id, title, event_date, event_type, notes)
         VALUES (
           coach_uuid,
-          client_ids[1 + ((d * 7 + slot * 13) % 35)],
-          'Séance ' || prenoms[1 + ((d * 3 + slot) % array_length(prenoms, 1))],
+          client_ids[1 + (abs(d * 7 + slot * 13) % 35)],
+          'Séance ' || prenoms[1 + (abs(d * 3 + slot) % array_length(prenoms, 1))],
           (event_date_raw + (event_hours[1 + (slot % array_length(event_hours, 1))] || ' hours')::interval)::timestamptz,
           'perso',
           NULL
