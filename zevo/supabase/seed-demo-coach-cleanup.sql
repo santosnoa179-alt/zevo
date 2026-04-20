@@ -28,51 +28,48 @@ DECLARE
   i int;
 BEGIN
   -- ─────────────────────────────────────────────────────────────
-  -- 1. Supprimer les 40 utilisateurs fictifs (cascade → profiles,
-  --    clients, habitudes, logs, paiements, factures, etc.)
+  -- 1. D'ABORD nettoyer tout ce qui REFERENCE clients/profiles
+  --    SANS ON DELETE CASCADE (sinon DELETE auth.users est bloque)
+  -- ─────────────────────────────────────────────────────────────
+
+  -- Messages (FK clients.id SANS cascade → supprimer avant les users)
+  DELETE FROM messages WHERE coach_id = coach_uuid;
+
+  -- Paiements, abonnements, factures, virements (coach-scoped)
+  DELETE FROM paiements_clients   WHERE coach_id = coach_uuid;
+  DELETE FROM abonnements_clients WHERE coach_id = coach_uuid;
+  DELETE FROM factures            WHERE coach_id = coach_uuid;
+  DELETE FROM virements_coach     WHERE coach_id = coach_uuid;
+
+  -- Offres, prospects, formulaires, calendrier, programmes
+  DELETE FROM offres_coaching      WHERE coach_id = coach_uuid;
+  DELETE FROM prospects            WHERE coach_id = coach_uuid;
+  DELETE FROM formulaires          WHERE coach_id = coach_uuid;
+  DELETE FROM coach_events         WHERE coach_id = coach_uuid;
+  DELETE FROM sport_programmes     WHERE coach_id = coach_uuid;
+  DELETE FROM nutrition_programmes WHERE coach_id = coach_uuid;
+
+  -- Bibliothèques (si remplies)
+  BEGIN
+    DELETE FROM sport_seances_biblio   WHERE coach_id = coach_uuid;
+    DELETE FROM nutrition_repas_biblio WHERE coach_id = coach_uuid;
+  EXCEPTION WHEN undefined_table THEN
+    NULL; -- tables optionnelles
+  END;
+
+  RAISE NOTICE '✓ Donnees coach-scoped supprimees';
+
+  -- ─────────────────────────────────────────────────────────────
+  -- 2. Supprimer les 40 utilisateurs fictifs
+  --    Maintenant que messages/paiements/etc. ont ete cleanup,
+  --    le DELETE auth.users cascade proprement vers profiles,
+  --    clients, habitudes, logs, etc.
   -- ─────────────────────────────────────────────────────────────
   FOR i IN 1..40 LOOP
     client_uuid := (client_prefix || lpad(i::text, 3, '0'))::uuid;
     DELETE FROM auth.users WHERE id = client_uuid;
   END LOOP;
-  RAISE NOTICE '✓ 40 clients fictifs supprimés (cascade)';
-
-  -- ─────────────────────────────────────────────────────────────
-  -- 2. Cleanup résiduel coach-scoped
-  --    (certaines tables ne cascade pas depuis clients → on nettoie
-  --    par coach_id pour être sûr)
-  -- ─────────────────────────────────────────────────────────────
-
-  -- Paiements & abonnements (certains peuvent rester si coach_id seul)
-  DELETE FROM paiements_clients  WHERE coach_id = coach_uuid;
-  DELETE FROM abonnements_clients WHERE coach_id = coach_uuid;
-  DELETE FROM factures           WHERE coach_id = coach_uuid;
-  DELETE FROM virements_coach    WHERE coach_id = coach_uuid;
-
-  -- Offres
-  DELETE FROM offres_coaching WHERE coach_id = coach_uuid;
-
-  -- Prospects
-  DELETE FROM prospects WHERE coach_id = coach_uuid;
-
-  -- Formulaires (cascade sur champs + réponses)
-  DELETE FROM formulaires WHERE coach_id = coach_uuid;
-
-  -- Calendrier
-  DELETE FROM coach_events WHERE coach_id = coach_uuid;
-
-  -- Programmes sport (templates + assignations coach-scoped)
-  DELETE FROM sport_programmes WHERE coach_id = coach_uuid;
-
-  -- Programmes nutrition
-  DELETE FROM nutrition_programmes WHERE coach_id = coach_uuid;
-
-  -- Bibliothèques (si jamais remplies par d'autres seeds)
-  DELETE FROM sport_seances_biblio WHERE coach_id = coach_uuid;
-  DELETE FROM nutrition_repas_biblio WHERE coach_id = coach_uuid;
-
-  -- Messages résiduels (si certains ont échappé au cascade client)
-  DELETE FROM messages WHERE coach_id = coach_uuid;
+  RAISE NOTICE '✓ 40 clients fictifs supprimes (cascade profiles, clients, logs)';
 
   -- ─────────────────────────────────────────────────────────────
   -- 3. Reset solde coach
