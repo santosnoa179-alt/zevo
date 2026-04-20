@@ -50,7 +50,7 @@ const STEP_CONFIG = [
     panelTitle: 'Adapté à votre métier',
     panelDesc: 'Zevo s\'ajuste à votre spécialité pour vous proposer les bons outils.',
     panelIcon: Briefcase,
-    stat: { value: '4 000+', label: 'coachs actifs' },
+    stat: { value: '500+', label: 'coachs en France' },
   },
   {
     badge: 'Étape 3 sur 3',
@@ -59,7 +59,7 @@ const STEP_CONFIG = [
     panelTitle: 'Vos outils, vos règles',
     panelDesc: 'Chaque fonctionnalité est activée selon vos besoins réels. Rien de superflu.',
     panelIcon: Target,
-    stat: { value: '10h', label: 'gagnées / mois' },
+    stat: { value: '12h', label: 'gagnées / semaine' },
   },
 ]
 
