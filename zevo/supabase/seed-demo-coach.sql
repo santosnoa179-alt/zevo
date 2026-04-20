@@ -26,7 +26,7 @@ DECLARE
   coach_uuid uuid := 'REMPLACE_MOI_PAR_COACH_UUID_DEMO';
 
   -- Préfixe stable pour tous les clients fictifs (facilite le cleanup)
-  client_prefix text := 'd0000000-0000-0000-0000-0000000000';
+  client_prefix text := 'd0000000-0000-0000-0000-000000000';
 
   -- Données fictives (prénoms + noms + objectifs)
   prenoms text[] := ARRAY[
