@@ -154,12 +154,15 @@ export default function CoachParametresPage() {
       const syncConnect = async () => {
         try {
           const { data: { session: authSession } } = await supabase.auth.getSession()
-          const res = await fetch('/api/connect-sync', {
+          // Endpoint unifié connect-onboarding avec action: 'sync'
+          // (fusionné pour rester sous la limite 12 Vercel Hobby)
+          const res = await fetch('/api/connect-onboarding', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${authSession?.access_token}`,
             },
+            body: JSON.stringify({ coachId: user.id, action: 'sync' }),
           })
           const data = await res.json()
           if (data.connected) {

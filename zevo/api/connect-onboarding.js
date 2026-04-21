@@ -46,7 +46,11 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Non autorisé' })
     }
 
-    const { coachId } = req.body
+    // action: 'link' (défaut) = crée un account link pour l'onboarding
+    // action: 'sync'           = vérifie l'état du compte Stripe, met à jour la DB
+    // (fusionné ici au lieu d'un endpoint séparé pour rester sous la limite
+    //  de 12 Serverless Functions du plan Vercel Hobby.)
+    const { coachId, action = 'link' } = req.body
 
     if (!coachId) {
       return res.status(400).json({ error: 'coachId requis' })
@@ -56,6 +60,51 @@ export default async function handler(req, res) {
     if (user.id !== coachId) {
       return res.status(403).json({ error: 'Accès interdit' })
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // ACTION: sync
+    // Vérifie en temps réel l'état du compte Stripe et sync la DB.
+    // Utilisé au retour d'onboarding (return_url) pour éviter d'attendre
+    // le webhook account.updated.
+    // ─────────────────────────────────────────────────────────────
+    if (action === 'sync') {
+      const { data: coachSync } = await supabase
+        .from('coaches')
+        .select('stripe_account_id, stripe_onboarding_complete')
+        .eq('id', coachId)
+        .maybeSingle()
+
+      if (!coachSync?.stripe_account_id) {
+        return res.status(400).json({
+          connected: false,
+          error: 'Aucun compte Stripe Connect associé',
+        })
+      }
+
+      const account = await stripe.accounts.retrieve(coachSync.stripe_account_id)
+      const isReady = account.details_submitted && account.charges_enabled
+
+      if (isReady !== coachSync.stripe_onboarding_complete) {
+        await supabase
+          .from('coaches')
+          .update({ stripe_onboarding_complete: isReady })
+          .eq('id', coachId)
+      }
+
+      return res.status(200).json({
+        connected: isReady,
+        details_submitted: account.details_submitted,
+        charges_enabled: account.charges_enabled,
+        payouts_enabled: account.payouts_enabled,
+        requirements: account.requirements?.currently_due || [],
+      })
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // ACTION: link (défaut)
+    // Crée un compte Stripe Connect si besoin, puis génère un
+    // account link pour l'onboarding Stripe.
+    // ─────────────────────────────────────────────────────────────
 
     // Vérifier si le coach a déjà un compte Stripe Connect
     // maybeSingle() évite de crash si la row coach n'existe pas encore
