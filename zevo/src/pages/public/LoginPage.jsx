@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import { useRole, invalidateRoleCache } from '../../hooks/useRole'
+import { useRole, setRoleCache } from '../../hooks/useRole'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
@@ -117,11 +117,14 @@ export default function LoginPage() {
         console.error('Erreur insert coaches:', coachError)
       }
 
-      // 4. Invalide le cache useRole : force un refetch qui va récupérer
-      //    'coach' (qu'on vient d'UPDATE) au lieu de 'client' (cache par défaut
-      //    posé par onAuthStateChange juste après le signup).
-      //    Fix race condition qui redirigeait les nouveaux coachs sur /app.
-      invalidateRoleCache()
+      // 4. Set direct 'coach' dans le cache useRole.
+      //    On NE fait PAS invalidateRoleCache (qui forcerait un refetch Supabase) :
+      //    il y a un replication lag entre UPDATE et SELECT — le refetch peut
+      //    renvoyer 'client' pendant quelques ms et déclencher la redirection
+      //    sur /app avant que 'coach' arrive en cache.
+      //    Avec setRoleCache on pousse directement la valeur qu'on vient
+      //    d'UPDATE — aucun round-trip Supabase possible.
+      setRoleCache(userId, 'coach')
 
       // Vérifier si la confirmation email est requise par Supabase
       // Si session présente → auto-confirmé, sinon → email envoyé

@@ -24,6 +24,20 @@ export function invalidateRoleCache() {
   listeners.forEach(cb => cb())
 }
 
+/**
+ * Set directement le rôle dans le cache, sans passer par un refetch Supabase.
+ * À utiliser juste après un UPDATE qu'on vient de faire nous-mêmes — on sait
+ * quelle est la nouvelle valeur, pas besoin de demander à Supabase.
+ *
+ * Règle le bug de replication lag où un SELECT immédiat après UPDATE peut
+ * renvoyer l'ancienne valeur pendant quelques millisecondes.
+ */
+export function setRoleCache(userId, role) {
+  roleCache.userId = userId
+  roleCache.role = role
+  listeners.forEach(cb => cb())
+}
+
 // Détecte le rôle de l'utilisateur connecté
 // Cascade : admins → profiles.role
 export function useRole() {
@@ -58,6 +72,9 @@ export function useRole() {
     }
 
     // Cache hit — pas besoin de refetch
+    // (inclut le cas où setRoleCache a été appelé juste avant via LoginPage
+    // après l'UPDATE role='coach' → on prend direct la valeur sans risque de
+    // replication lag Supabase)
     if (roleCache.userId === user.id && roleCache.role) {
       setRole(roleCache.role)
       setLoading(false)
