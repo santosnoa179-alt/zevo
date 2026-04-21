@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import { useRole } from '../../hooks/useRole'
+import { useRole, invalidateRoleCache } from '../../hooks/useRole'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
@@ -88,6 +88,8 @@ export default function LoginPage() {
       const userId = authData.user.id
 
       // 2. Mettre à jour le profil : rôle coach + nom
+      //    ⚠️ Important : on AWAIT cette promise avant d'invalider le cache,
+      //    sinon useRole() refetch avant l'UPDATE et récupère encore 'client'.
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ role: 'coach', nom: nom.trim() })
@@ -114,6 +116,12 @@ export default function LoginPage() {
       if (coachError) {
         console.error('Erreur insert coaches:', coachError)
       }
+
+      // 4. Invalide le cache useRole : force un refetch qui va récupérer
+      //    'coach' (qu'on vient d'UPDATE) au lieu de 'client' (cache par défaut
+      //    posé par onAuthStateChange juste après le signup).
+      //    Fix race condition qui redirigeait les nouveaux coachs sur /app.
+      invalidateRoleCache()
 
       // Vérifier si la confirmation email est requise par Supabase
       // Si session présente → auto-confirmé, sinon → email envoyé

@@ -6,6 +6,24 @@ import { useAuth } from './useAuth'
 // à chaque composant qui appelle useRole()
 const roleCache = { userId: null, role: null }
 
+// Listeners pour notifier les composants utilisant useRole() quand
+// on force une invalidation (ex: après signup coach, on doit refetch
+// le rôle qui vient juste d'être UPDATE en DB).
+const listeners = new Set()
+
+/**
+ * Force un refetch du rôle — à appeler après toute mutation de `profiles.role`
+ * (ex: signup coach où on crée un profil puis UPDATE role='coach').
+ *
+ * Sinon le cache contient encore l'ancien rôle et la redirection part sur
+ * la mauvaise section (/app au lieu de /coach).
+ */
+export function invalidateRoleCache() {
+  roleCache.userId = null
+  roleCache.role = null
+  listeners.forEach(cb => cb())
+}
+
 // Détecte le rôle de l'utilisateur connecté
 // Cascade : admins → profiles.role
 export function useRole() {
@@ -21,6 +39,14 @@ export function useRole() {
     return true
   })
   const fetchIdRef = useRef(0)
+  const [refetchCounter, setRefetchCounter] = useState(0)
+
+  // Abonne ce composant aux invalidations globales du cache
+  useEffect(() => {
+    const cb = () => setRefetchCounter(c => c + 1)
+    listeners.add(cb)
+    return () => { listeners.delete(cb) }
+  }, [])
 
   useEffect(() => {
     if (!user) {
@@ -77,7 +103,7 @@ export function useRole() {
     }
 
     detecterRole()
-  }, [user?.id])
+  }, [user?.id, refetchCounter])
 
   return { role, loading }
 }
