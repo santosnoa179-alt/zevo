@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { supabase } from '../lib/supabase'
+import { identifyUser, clearUser } from '../lib/sentry'
 
 // Contexte d'authentification partagé dans toute l'app
 const AuthContext = createContext(null)
@@ -11,13 +12,19 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Récupère la session active au chargement
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+      const u = session?.user ?? null
+      setUser(u)
+      // Attache le user à Sentry pour lier les erreurs à un user id
+      if (u) identifyUser(u)
       setLoading(false)
     })
 
     // Écoute les changements de session (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+      const u = session?.user ?? null
+      setUser(u)
+      if (u) identifyUser(u)
+      else clearUser()
     })
 
     return () => subscription.unsubscribe()
