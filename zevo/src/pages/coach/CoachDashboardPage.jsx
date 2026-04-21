@@ -599,7 +599,7 @@ export default function CoachDashboardPage() {
                   </span>
                 )}
                 <button
-                  onClick={() => navigate(hasFeature('statistiques') ? '/coach/statistiques' : '/pricing')}
+                  onClick={() => navigate(hasFeature('statistiques') ? '/coach/statistiques' : '/coach/pricing')}
                   className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   {hasFeature('statistiques') ? <BarChart3 size={14} /> : <Lock size={14} />}
@@ -780,7 +780,7 @@ export default function CoachDashboardPage() {
                 { label: 'Nouveau client', icon: UserPlus, action: () => navigate('/coach/client-hub') },
                 { label: 'Creer un programme', icon: Dumbbell, action: () => navigate('/coach/sport') },
                 { label: 'Envoyer un formulaire', icon: FileText, action: () => navigate('/coach/formulaires') },
-                { label: hasFeature('statistiques') ? 'Voir les stats' : 'Stats (Pro)', icon: hasFeature('statistiques') ? TrendingUp : Lock, action: () => navigate(hasFeature('statistiques') ? '/coach/statistiques' : '/pricing'), locked: !hasFeature('statistiques') },
+                { label: hasFeature('statistiques') ? 'Voir les stats' : 'Stats (Pro)', icon: hasFeature('statistiques') ? TrendingUp : Lock, action: () => navigate(hasFeature('statistiques') ? '/coach/statistiques' : '/coach/pricing'), locked: !hasFeature('statistiques') },
               ].map((a, i) => (
                 <button
                   key={i}

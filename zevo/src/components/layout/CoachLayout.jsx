@@ -520,7 +520,7 @@ export function CoachLayout() {
           <div className="flex items-center gap-2">
             {/* Bouton upgrade */}
             <button
-              onClick={() => navigate('/pricing')}
+              onClick={() => navigate('/coach/pricing')}
               className="px-3.5 py-1.5 rounded-lg bg-[var(--text-primary)] text-[var(--bg-elevated)] text-xs font-semibold hover:opacity-80 transition-colors"
             >
               Mettre à niveau
@@ -678,7 +678,7 @@ export function CoachLayout() {
                 </div>
               </div>
               <button
-                onClick={() => navigate('/pricing')}
+                onClick={() => navigate('/coach/pricing')}
                 className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-lg shadow-[#FF6B2B]/20"
               >
                 Choisir un plan

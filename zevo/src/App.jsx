@@ -79,6 +79,7 @@ const CoachParametresPage = lazy(() => import('./pages/coach/CoachParametresPage
 const CoachProspectsPage = lazy(() => import('./pages/coach/CoachProspectsPage'))
 const CoachClientHub = lazy(() => import('./pages/coach/CoachClientHub'))
 const CoachOnboarding = lazy(() => import('./pages/coach/CoachOnboarding'))
+const CoachPricingPage = lazy(() => import('./pages/coach/CoachPricingPage'))
 // CoachDrivePage supprimée — fusionnée dans Bibliothèque
 const CoachGlobalCalendarPage = lazy(() => import('./pages/coach/CoachGlobalCalendarPage'))
 
@@ -140,6 +141,16 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={['coach']}>
                   <CoachOnboarding />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ── Pricing coach (hors CoachGuard pour accessible même sans abo) ── */}
+            <Route
+              path="/coach/pricing"
+              element={
+                <ProtectedRoute allowedRoles={['coach']}>
+                  <CoachPricingPage />
                 </ProtectedRoute>
               }
             />

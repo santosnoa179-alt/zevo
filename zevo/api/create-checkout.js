@@ -71,7 +71,12 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Configuration prix manquante' })
     }
 
-    const siteUrl = 'https://zevo-one.vercel.app'
+    // Récupère l'origin de la requête pour rediriger vers le bon domaine
+    // (app.zevo-one.com, zevo-one.vercel.app, ou localhost selon l'env)
+    const origin = req.headers.origin
+    const siteUrl = origin && /^https?:\/\/(.*\.)?(zevo-one\.com|zevo-one\.vercel\.app|localhost(:\d+)?)$/.test(origin)
+      ? origin
+      : 'https://app.zevo-one.com'
 
     const sessionParams = {
       mode: 'subscription',
@@ -85,7 +90,7 @@ export default async function handler(req, res) {
       metadata: { plan, billing, supabase_user_id: userId },
       client_reference_id: userId,
       success_url: `${siteUrl}/coach/parametres?checkout=success&plan=${plan}`,
-      cancel_url: `${siteUrl}/pricing`,
+      cancel_url: `${siteUrl}/coach/pricing`,
       allow_promotion_codes: true,
     }
 

@@ -6865,7 +6865,7 @@ export default function CoachClientHub() {
               </button>
             ) : (
               <button
-                onClick={() => navigate('/pricing')}
+                onClick={() => navigate('/coach/pricing')}
                 className="w-8 h-8 rounded-xl bg-[var(--bg-surface)] text-[var(--text-muted)] flex items-center justify-center hover:text-[#FF6B2B] transition-colors"
                 title={`Limite de ${maxClients} clients atteinte`}
               >

@@ -27,7 +27,7 @@ export function UpgradeGate({ feature, minPlan, children }) {
             Passez au niveau supérieur pour débloquer cette fonctionnalité.
           </p>
           <button
-            onClick={() => navigate('/pricing')}
+            onClick={() => navigate('/coach/pricing')}
             className="inline-flex items-center gap-2 bg-[#FF6B2B] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-colors"
           >
             <ArrowUpRight size={16} />

@@ -196,7 +196,7 @@ export function CoachGuard({ children }) {
         setPortalLoading(false)
       }
     } else {
-      navigate('/pricing')
+      navigate('/coach/pricing')
     }
   }
 

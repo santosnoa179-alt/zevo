@@ -183,7 +183,7 @@ export default function CoachClientsPage() {
           </Button>
         ) : (
           <button
-            onClick={() => navigate('/pricing')}
+            onClick={() => navigate('/coach/pricing')}
             className="flex items-center gap-2 bg-[var(--bg-surface)] border border-[var(--border-base)] text-[var(--text-secondary)] px-4 py-2.5 rounded-xl text-sm font-medium hover:border-[#FF6B2B]/50 transition-colors"
           >
             <Lock size={14} className="text-[#FF6B2B]" />
