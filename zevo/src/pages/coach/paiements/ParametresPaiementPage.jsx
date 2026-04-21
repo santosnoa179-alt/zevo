@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
-import { CreditCard, Bell, Shield, Globe, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react'
+import { CreditCard, Bell, Shield, Globe, ExternalLink, CheckCircle, AlertCircle, Loader2, Link2 } from 'lucide-react'
 
 export default function ParametresPaiementPage() {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [stripeAccount, setStripeAccount] = useState(null)
   const [stripeOnboarded, setStripeOnboarded] = useState(false)
+  const [connectLoading, setConnectLoading] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -25,6 +26,29 @@ export default function ParametresPaiementPage() {
     setStripeAccount(coach?.stripe_account_id || null)
     setStripeOnboarded(coach?.stripe_onboarding_complete || false)
     setLoading(false)
+  }
+
+  // Lancer l'onboarding Stripe Connect — appelle /api/connect-onboarding
+  // pour créer un compte Connect standard et générer un account link.
+  const handleConnectStripe = async () => {
+    setConnectLoading(true)
+    try {
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      const res = await fetch('/api/connect-onboarding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authSession?.access_token}`,
+        },
+        body: JSON.stringify({ coachId: user.id }),
+      })
+      const { url, error } = await res.json()
+      if (error) throw new Error(error)
+      window.location.href = url
+    } catch (err) {
+      console.error('Erreur Stripe Connect:', err)
+      setConnectLoading(false)
+    }
   }
 
   if (loading) {
@@ -87,14 +111,18 @@ export default function ParametresPaiementPage() {
             </div>
           </div>
         ) : (
-          <a
-            href="https://dashboard.stripe.com/register"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full text-center px-4 py-3 rounded-xl text-sm font-semibold text-white bg-[#635BFF] hover:bg-[#635BFF]/90 transition-colors"
+          <button
+            onClick={handleConnectStripe}
+            disabled={connectLoading}
+            className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-sm font-semibold text-white bg-[#635BFF] hover:bg-[#635BFF]/90 transition-colors disabled:opacity-50"
           >
-            Connecter Stripe
-          </a>
+            {connectLoading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Link2 size={16} />
+            )}
+            {connectLoading ? 'Redirection...' : 'Connecter Stripe'}
+          </button>
         )}
       </div>
 
