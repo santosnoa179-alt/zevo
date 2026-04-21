@@ -61,7 +61,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Zevo <onboarding@resend.dev>',
+        from: 'Zevo <invites@zevo-one.com>',
         to: [email],
         subject: `${displayCoachName} t'invite sur Zevo`,
         html: buildEmailHtml({ clientPrenom, displayCoachName, inviteLink, email }),
