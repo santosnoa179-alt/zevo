@@ -58,11 +58,17 @@ export default async function handler(req, res) {
     }
 
     // Vérifier si le coach a déjà un compte Stripe Connect
-    const { data: coach } = await supabase
+    // maybeSingle() évite de crash si la row coach n'existe pas encore
+    const { data: coach, error: coachFetchError } = await supabase
       .from('coaches')
       .select('stripe_account_id')
       .eq('id', coachId)
-      .single()
+      .maybeSingle()
+
+    if (coachFetchError) {
+      console.error('[connect-onboarding] fetch coach error:', coachFetchError)
+      return res.status(500).json({ error: 'Impossible de lire la fiche coach' })
+    }
 
     let accountId = coach?.stripe_account_id
 
@@ -71,13 +77,31 @@ export default async function handler(req, res) {
       const account = await stripe.accounts.create({ type: 'standard' })
       accountId = account.id
 
-      await supabase
+      // upsert au lieu d'update : si la row coaches n'existe pas encore
+      // (cas rare où le signup n'a pas fini de l'insérer), on la crée.
+      const { error: upsertError } = await supabase
         .from('coaches')
-        .update({ stripe_account_id: accountId })
-        .eq('id', coachId)
+        .upsert(
+          { id: coachId, stripe_account_id: accountId },
+          { onConflict: 'id' }
+        )
+
+      if (upsertError) {
+        console.error('[connect-onboarding] upsert coach error:', upsertError)
+        // Critical : si on ne peut pas sauver l'account_id, on annule l'account
+        // Stripe pour pas laisser un account orphelin en prod.
+        try { await stripe.accounts.del(accountId) } catch {}
+        return res.status(500).json({ error: 'Impossible de sauvegarder le compte Stripe' })
+      }
     }
 
-    const siteUrl = ALLOWED_ORIGINS[0] || 'https://zevo-one.vercel.app'
+    // URL de retour : utilise l'origin de la requête (app.zevo-one.com en prod,
+    // localhost:5173 en dev, etc.) au lieu d'une valeur hardcodée qui pointait
+    // sur l'ancien domaine zevo-one.vercel.app.
+    const origin = req.headers.origin
+    const siteUrl = origin && /^https?:\/\/(.*\.)?(zevo-one\.com|zevo-one\.vercel\.app|localhost(:\d+)?)$/.test(origin)
+      ? origin
+      : 'https://app.zevo-one.com'
 
     const accountLink = await stripe.accountLinks.create({
       account: accountId,

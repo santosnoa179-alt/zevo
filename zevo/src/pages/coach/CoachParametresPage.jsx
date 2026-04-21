@@ -144,19 +144,37 @@ export default function CoachParametresPage() {
   }
 
   // Vérifie le retour d'onboarding Stripe Connect
+  // On appelle /api/connect-sync qui vérifie en temps réel avec Stripe
+  // que le compte est prêt, puis met à jour onboarding_complete en DB.
+  // Plus fiable que de marquer true aveuglément (Stripe peut refuser
+  // un compte pour défaut d'infos, KYC en attente, etc).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('stripe_connect') === 'success' && user) {
-      setStripeOnboardingComplete(true)
-      // Persister en base
-      supabase
-        .from('coaches')
-        .update({ stripe_onboarding_complete: true })
-        .eq('id', user.id)
-        .then(() => console.log('Stripe onboarding complete saved'))
+      const syncConnect = async () => {
+        try {
+          const { data: { session: authSession } } = await supabase.auth.getSession()
+          const res = await fetch('/api/connect-sync', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authSession?.access_token}`,
+            },
+          })
+          const data = await res.json()
+          if (data.connected) {
+            setStripeOnboardingComplete(true)
+          } else {
+            console.warn('[connect-sync] compte Stripe incomplet:', data.requirements)
+          }
+        } catch (err) {
+          console.error('[connect-sync] erreur:', err)
+        }
+      }
+      syncConnect()
       window.history.replaceState({}, '', '/coach/parametres')
     }
-  }, [])
+  }, [user])
 
   // Lancer l'onboarding Stripe Connect
   const handleConnectStripe = async () => {
