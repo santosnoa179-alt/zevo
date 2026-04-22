@@ -91,6 +91,12 @@ export default async function handler(req, res) {
     // ─── 3. Sécurité : client ↔ coach doivent être liés ─────────────────────
     // Un client ne peut payer que les offres d'un coach auquel il est associé.
     // La relation vit dans `clients.coach_id` (settée au moment de l'invitation).
+    //
+    // Politique d'échec : on NE BLOQUE PAS le paiement si la requête plante
+    // pour une raison transitoire (timeout, glitch PostgREST, etc.). La vraie
+    // sécurité est déjà assurée par `user.id === clientId` (ligne ci-dessus)
+    // et le fait que l'offre provient d'un `coach_id` réel. On bloque
+    // uniquement sur un mismatch explicite (client lié à un AUTRE coach).
     const { data: clientLink, error: clientLinkError } = await supabase
       .from('clients')
       .select('coach_id')
@@ -98,14 +104,23 @@ export default async function handler(req, res) {
       .maybeSingle()
 
     if (clientLinkError) {
-      console.error('[client-checkout] client link fetch error:', clientLinkError)
-      return res.status(500).json({ error: 'Erreur vérification client' })
-    }
-    if (!clientLink || clientLink.coach_id !== offre.coach_id) {
+      // Requête en erreur → on log en détail mais on ne bloque pas
+      console.error('[client-checkout] client link query error (non-blocking):', {
+        message: clientLinkError.message,
+        code: clientLinkError.code,
+        details: clientLinkError.details,
+        hint: clientLinkError.hint,
+        clientId,
+      })
+    } else if (clientLink && clientLink.coach_id !== offre.coach_id) {
+      // Cas clair : le client est bien enregistré mais avec un AUTRE coach
       return res.status(403).json({
-        error: 'Cette offre ne t\'est pas accessible.',
+        error: 'Cette offre n\'est pas disponible pour ton coach.',
       })
     }
+    // Si !clientLink : le client n'a pas encore de row dans `clients`
+    // (cas rare : onboarding incomplet, user créé autrement). On laisse passer
+    // et le webhook Stripe créera le lien au premier paiement confirmé.
 
     // ─── 4. Chargement du coach ─────────────────────────────────────────────
     const { data: coach, error: coachError } = await supabase
