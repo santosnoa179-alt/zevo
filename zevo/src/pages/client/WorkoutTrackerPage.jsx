@@ -464,7 +464,7 @@ export default function WorkoutTrackerPage() {
     return (
       <div style={{ position: 'fixed', inset: 0, zIndex: 100, overflowY: 'auto', background: '#0D0D0D', color: '#F5F5F3' }}>
         {/* Header */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(13,13,13,0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(13,13,13,0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
             <button onClick={() => navigate(-1)}
               className="p-2 rounded-lg hover:bg-[var(--bg-surface)] transition-colors"
@@ -472,16 +472,16 @@ export default function WorkoutTrackerPage() {
               <ChevronLeft size={18} />
             </button>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mb-0.5">
                 <CheckCircle2 size={14} style={{ color: '#FF6B2B' }} />
                 <span style={{ color: '#FF6B2B', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Séance terminée</span>
               </div>
-              <h1 style={{ color: '#F5F5F3', fontSize: 16, fontWeight: 700 }} className="truncate">{seance?.titre || 'Séance'}</h1>
+              <h1 style={{ color: '#F5F5F3', fontSize: 16, fontWeight: 700, lineHeight: 1.2 }} className="truncate">{seance?.titre || 'Séance'}</h1>
             </div>
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
+        <div className="max-w-2xl mx-auto px-4 py-6 space-y-5" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
 
           {/* Stats globales */}
           <div className="grid grid-cols-3 gap-3">
