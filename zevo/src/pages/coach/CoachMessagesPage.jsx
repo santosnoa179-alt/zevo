@@ -690,7 +690,10 @@ export default function CoachMessagesPage() {
         {/* Sidebar header */}
         <div className="relative z-10">
           <div className="absolute inset-0 bg-gradient-to-b from-[#FF6B2B]/[0.03] to-transparent pointer-events-none" />
-          <div className="relative p-4 border-b border-[var(--border-base)]">
+          <div
+            className="relative px-4 pb-4 border-b border-[var(--border-base)]"
+            style={{ paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))' }}
+          >
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h1 className="text-[var(--text-primary)] font-bold text-lg tracking-tight">Messages</h1>
@@ -757,9 +760,13 @@ export default function CoachMessagesPage() {
                         </span>
                       )}
                     </div>
-                    {c.dernierMsg && (
+                    {c.dernierMsg ? (
                       <p className={`text-xs truncate mt-0.5 ${c.nonLus > 0 ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}`}>
                         {c.dernierMsg.expediteur === 'coach' ? 'Vous : ' : ''}{c.dernierMsg.audio_url ? '🎤 Note vocale' : c.dernierMsg.image_url ? '📷 Photo' : c.dernierMsg.file_url ? '📎 Fichier' : c.dernierMsg.contenu}
+                      </p>
+                    ) : (
+                      <p className="text-xs truncate mt-0.5 text-[var(--text-muted)] italic">
+                        Nouvelle conversation
                       </p>
                     )}
                   </div>
