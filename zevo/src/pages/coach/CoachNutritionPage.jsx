@@ -162,6 +162,21 @@ export default function CoachNutritionPage() {
     }
   }
 
+  // Delete programme Pro (table `nutrition_programmes`) — cascade via ON DELETE CASCADE
+  const handleDeleteProgrammePro = async (progId, e) => {
+    if (e) e.stopPropagation()
+    if (!window.confirm('Supprimer ce programme Pro ? Toutes les phases, journées et repas liés seront supprimés.')) return
+    try {
+      const { error } = await supabase.from('nutrition_programmes').delete().eq('id', progId)
+      if (error) throw error
+      toast.success('Programme supprimé !')
+      fetchPlans()
+    } catch (error) {
+      console.error('CRASH SUPPRESSION PRO:', error)
+      toast.error('Échec de la suppression. ' + (error.message || ''))
+    }
+  }
+
   // Assign plan to client (copy)
   // ── Assigner un programme Pro nutrition = clone complet pour le client ──
   const handleAssignProNutrition = async () => {
@@ -375,20 +390,24 @@ export default function CoachNutritionPage() {
   // Render
   // ═══════════════════════════════════════
 
-  // Stats overview
-  const totalAssigned = assignedPlans.length
-  const activeAssigned = assignedPlans.filter(p => p.is_active).length
+  // Stats overview — inclut legacy (client_nutrition_plans) + PRO (nutrition_programmes)
+  const assignedProgrammesPro = programmes.filter(p => p.client_id)
+  const totalAssigned = assignedPlans.length + assignedProgrammesPro.length
+  const activeAssigned =
+    assignedPlans.filter(p => p.is_active).length +
+    assignedProgrammesPro.filter(p => p.is_active).length
   const totalProgressPct = (() => {
-    if (assignedPlans.length === 0) return 0
+    const all = [...assignedPlans, ...assignedProgrammesPro]
+    if (all.length === 0) return 0
     let total = 0
-    assignedPlans.forEach(p => {
+    all.forEach(p => {
       const weeks = p.duree_semaines || 4
       const done = (suiviData[`${p.id}_${p.client_id}`] || []).length
       total += Math.min(100, Math.round((done / weeks) * 100))
     })
-    return Math.round(total / assignedPlans.length)
+    return Math.round(total / all.length)
   })()
-  const completedCount = assignedPlans.filter(p => {
+  const completedCount = [...assignedPlans, ...assignedProgrammesPro].filter(p => {
     const weeks = p.duree_semaines || 4
     const done = (suiviData[`${p.id}_${p.client_id}`] || []).length
     return done >= weeks
@@ -607,6 +626,12 @@ export default function CoachNutritionPage() {
                             )}
                           </div>
                         </div>
+
+                        <button onClick={e => handleDeleteProgrammePro(prog.id, e)}
+                          className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                          title="Supprimer le programme Pro assigné">
+                          <Trash2 size={13} />
+                        </button>
                       </div>
                     </div>
                   )
@@ -688,18 +713,25 @@ export default function CoachNutritionPage() {
                 .map(prog => (
                   <div key={`nutri-pro-${prog.id}`}
                     className="hero-card p-4 hover:border-[#FF6B2B]/30 transition-all group">
-                    <div className="flex items-start gap-3 mb-3 cursor-pointer"
-                      onClick={() => navigate(`/coach/nutrition/programme/${prog.id}`)}>
-                      <Layers size={16} className="text-[var(--text-muted)] shrink-0 mt-0.5" strokeWidth={1.75} />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-[var(--text-primary)] font-bold text-sm leading-tight truncate">{prog.nom || 'Programme'}</h3>
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer"
+                        onClick={() => navigate(`/coach/nutrition/programme/${prog.id}`)}>
+                        <Layers size={16} className="text-[var(--text-muted)] shrink-0 mt-0.5" strokeWidth={1.75} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-[var(--text-primary)] font-bold text-sm leading-tight truncate">{prog.nom || 'Programme'}</h3>
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                          </div>
+                          {prog.description && (
+                            <p className="text-[var(--text-muted)] text-[11px] mt-0.5 line-clamp-2">{prog.description}</p>
+                          )}
                         </div>
-                        {prog.description && (
-                          <p className="text-[var(--text-muted)] text-[11px] mt-0.5 line-clamp-2">{prog.description}</p>
-                        )}
                       </div>
+                      <button onClick={e => handleDeleteProgrammePro(prog.id, e)}
+                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                        title="Supprimer le modèle Pro">
+                        <Trash2 size={13} />
+                      </button>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap mb-3">
                       <span className="inline-flex items-center gap-1 bg-[var(--bg-base)] px-2 py-1 rounded-md text-[10px] text-[var(--text-muted)] font-semibold border border-[var(--border-subtle)] tabular-nums">

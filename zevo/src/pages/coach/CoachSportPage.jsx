@@ -223,7 +223,7 @@ export default function CoachSportPage() {
     setAssigning(false)
   }
 
-  // ── Delete programme ──
+  // ── Delete programme (legacy table `programmes`) ──
   const handleDeleteProgramme = async (progId) => {
     if (!confirm('Supprimer ce programme ? Les assignations et séances liées seront aussi supprimées.')) return
     try {
@@ -240,6 +240,20 @@ export default function CoachSportPage() {
       fetchProgrammes()
     } catch (err) {
       console.error('[CoachSportPage] Erreur suppression:', err)
+      toast.error('Erreur : ' + (err.message || 'Réessayez'))
+    }
+  }
+
+  // ── Delete programme Pro (table `sport_programmes`, cascade FK via ON DELETE CASCADE) ──
+  const handleDeleteProgrammePro = async (progId) => {
+    if (!confirm('Supprimer ce programme Pro ? Toutes les phases, séances types et exercices liés seront supprimés.')) return
+    try {
+      const { error } = await supabase.from('sport_programmes').delete().eq('id', progId)
+      if (error) throw error
+      toast.success('Programme supprimé !')
+      fetchProgrammes()
+    } catch (err) {
+      console.error('[CoachSportPage] Erreur suppression Pro:', err)
       toast.error('Erreur : ' + (err.message || 'Réessayez'))
     }
   }
@@ -516,28 +530,48 @@ export default function CoachSportPage() {
     )
   }
 
-  // Stats overview
+  // Stats overview — agrège legacy (`programmes`) + Pro (`sport_programmes`)
   const assignedProgrammes = programmes.filter(p => assignations[p.id])
-  const totalAssigned = assignedProgrammes.length
-  const enCoursCount = assignedProgrammes.filter(p => {
+  const assignedProgrammesPro = programmesPro.filter(p => p.client_id)
+
+  const totalAssigned = assignedProgrammes.length + assignedProgrammesPro.length
+
+  const enCoursCountLegacy = assignedProgrammes.filter(p => {
     const a = assignations[p.id]
     return a && a.statut !== 'termine'
   }).length
-  const termineCount = assignedProgrammes.filter(p => {
+  const enCoursCountPro = assignedProgrammesPro.filter(p => p.is_active).length
+  const enCoursCount = enCoursCountLegacy + enCoursCountPro
+
+  const termineCountLegacy = assignedProgrammes.filter(p => {
     const a = assignations[p.id]
     return a && a.statut === 'termine'
   }).length
+  const termineCountPro = assignedProgrammesPro.filter(p => !p.is_active).length
+  const termineCount = termineCountLegacy + termineCountPro
+
   const progressAvg = (() => {
-    if (assignedProgrammes.length === 0) return 0
-    let total = 0
+    const allProgresses = []
     assignedProgrammes.forEach(p => {
       const a = assignations[p.id]
       if (!a) return
       const weeks = p.duree_semaines || 4
       const done = (suiviData[`${p.id}_${a.client_id}`] || []).length
-      total += Math.min(100, Math.round((done / weeks) * 100))
+      allProgresses.push(Math.min(100, Math.round((done / weeks) * 100)))
     })
-    return Math.round(total / assignedProgrammes.length)
+    // Pour les programmes Pro : progression = semaines écoulées depuis date_debut / duree_semaines
+    assignedProgrammesPro.forEach(p => {
+      const totalWeeks = p.duree_semaines || 8
+      if (!p.date_debut) {
+        allProgresses.push(p.is_active ? 0 : 100)
+        return
+      }
+      const startMs = new Date(p.date_debut).getTime()
+      const weeksElapsed = Math.max(0, Math.floor((Date.now() - startMs) / (7 * 24 * 60 * 60 * 1000)))
+      allProgresses.push(Math.min(100, Math.round((weeksElapsed / totalWeeks) * 100)))
+    })
+    if (allProgresses.length === 0) return 0
+    return Math.round(allProgresses.reduce((a, b) => a + b, 0) / allProgresses.length)
   })()
 
   // ── Dashboard view ──
@@ -754,6 +788,12 @@ export default function CoachSportPage() {
                           )}
                         </div>
                       </div>
+
+                      <button onClick={e => { e.stopPropagation(); handleDeleteProgrammePro(pro.id) }}
+                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                        title="Supprimer le programme Pro assigné">
+                        <Trash2 size={13} />
+                      </button>
                     </div>
                   </div>
                 )
@@ -838,18 +878,25 @@ export default function CoachSportPage() {
               {filteredProgrammesPro.map(pro => (
                 <div key={`pro-${pro.id}`}
                   className="hero-card p-4 hover:border-[#FF6B2B]/30 transition-all group">
-                  <div className="flex items-start gap-3 mb-3 cursor-pointer"
-                    onClick={() => window.location.href = `/coach/sport/programme/${pro.id}`}>
-                    <Layers size={16} className="text-[var(--text-muted)] shrink-0 mt-0.5" strokeWidth={1.75} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-[var(--text-primary)] font-bold text-sm leading-tight truncate">{pro.nom}</h3>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer"
+                      onClick={() => window.location.href = `/coach/sport/programme/${pro.id}`}>
+                      <Layers size={16} className="text-[var(--text-muted)] shrink-0 mt-0.5" strokeWidth={1.75} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-[var(--text-primary)] font-bold text-sm leading-tight truncate">{pro.nom}</h3>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                        </div>
+                        {pro.description && (
+                          <p className="text-[var(--text-muted)] text-[11px] mt-0.5 line-clamp-2">{pro.description}</p>
+                        )}
                       </div>
-                      {pro.description && (
-                        <p className="text-[var(--text-muted)] text-[11px] mt-0.5 line-clamp-2">{pro.description}</p>
-                      )}
                     </div>
+                    <button onClick={e => { e.stopPropagation(); handleDeleteProgrammePro(pro.id) }}
+                      className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                      title="Supprimer le modèle Pro">
+                      <Trash2 size={13} />
+                    </button>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap mb-3">
                     <span className="inline-flex items-center gap-1 bg-[var(--bg-base)] px-2 py-1 rounded-md text-[10px] text-[var(--text-muted)] font-semibold border border-[var(--border-subtle)] tabular-nums">
