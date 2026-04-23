@@ -346,7 +346,7 @@ export default function TransactionsPage() {
                     <MoreHorizontal size={14} />
                   </button>
                   {menuOpen === t.id && (
-                    <div className="absolute right-0 bottom-full mb-1 z-50 w-44 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] shadow-xl shadow-black/30" onClick={e => e.stopPropagation()}>
+                    <div className="absolute right-0 top-full mt-1 z-50 w-44 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] shadow-xl shadow-black/30" onClick={e => e.stopPropagation()}>
                       <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Changer le statut</p>
                       {STATUTS_LIST.map(s => {
                         const sc = STATUT_CONFIG[s]
@@ -404,7 +404,7 @@ export default function TransactionsPage() {
                     <ChevronDown size={10} className="ml-0.5 opacity-50" />
                   </button>
                   {menuOpen === t.id && (
-                    <div className="absolute right-0 bottom-full mb-1 z-50 w-40 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] shadow-xl shadow-black/30" onClick={e => e.stopPropagation()}>
+                    <div className="absolute right-0 top-full mt-1 z-50 w-40 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] shadow-xl shadow-black/30" onClick={e => e.stopPropagation()}>
                       {STATUTS_LIST.map(s => {
                         const sc = STATUT_CONFIG[s]
                         const isActive = t.statut === s
