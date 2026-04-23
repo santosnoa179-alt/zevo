@@ -249,7 +249,7 @@ export default function AbonnementsListPage() {
                       <MoreHorizontal size={14} />
                     </button>
                     {menuOpen === a.id && (
-                      <div className="absolute right-0 bottom-full mb-1 z-[999] w-44 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] shadow-xl shadow-black/30" onClick={e => e.stopPropagation()}>
+                      <div className="absolute right-0 top-full mt-1 z-[999] w-44 py-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-base)] shadow-xl shadow-black/30" onClick={e => e.stopPropagation()}>
                         <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Changer le statut</p>
                         {STATUTS_LIST.map(s => {
                           const sc = STATUT_CONFIG[s]
