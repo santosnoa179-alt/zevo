@@ -776,7 +776,10 @@ export default function CoachMessagesPage() {
           {/* Header chat */}
           <header className="shrink-0 relative z-10">
             <div className="absolute inset-0 bg-gradient-to-b from-[#FF6B2B]/[0.03] to-transparent pointer-events-none" />
-            <div className="relative px-4 py-3 border-b border-[var(--border-base)] bg-[var(--bg-base)]/95 backdrop-blur-xl">
+            <div
+              className="relative px-4 py-3 border-b border-[var(--border-base)] bg-[var(--bg-base)]/95 backdrop-blur-xl"
+              style={{ paddingTop: 'calc(12px + env(safe-area-inset-top, 0px))' }}
+            >
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setClientSelectionne(null)}
@@ -883,16 +886,6 @@ export default function CoachMessagesPage() {
                 <ChevronDown size={18} className="text-[var(--text-secondary)]" />
               </button>
             )}
-          </div>
-
-          {/* Quick Replies */}
-          <div className="flex gap-2 px-4 pb-2 overflow-x-auto" style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-            {['Bravo cette semaine', 'Continue comme ca !', 'Tu es sur la bonne voie', 'N\'hesite pas a me contacter'].map((m) => (
-              <button key={m} onClick={() => setTexte(m)}
-                className="flex-shrink-0 text-[11px] bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[#FF6B2B] border border-[var(--border-subtle)] rounded-full px-3.5 py-1.5 transition-all hover:border-[#FF6B2B]/20 active:scale-95">
-                {m}
-              </button>
-            ))}
           </div>
 
           {/* Input zone */}
