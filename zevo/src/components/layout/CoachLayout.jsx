@@ -282,6 +282,10 @@ export function CoachLayout() {
   const showTrialBanner = coachProfile && !isSubscribed && !trialExpired && trialEndsAt
   const isOnAbonnementsPage = currentPath === '/coach/abonnements'
 
+  // Routes ou la bottom nav est masquee (mode immersif)
+  const HIDDEN_NAV_ROUTES = ['/coach/messages']
+  const hideBottomNav = HIDDEN_NAV_ROUTES.some(r => currentPath.startsWith(r))
+
   return (
     <div className="min-h-screen bg-[var(--bg-base)] flex flex-col md:flex-row">
 
@@ -660,7 +664,10 @@ export function CoachLayout() {
         </header>
 
         {/* Zone de contenu */}
-        <main className="flex-1 overflow-auto pb-20 md:pb-0 bg-[var(--bg-base)]" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}>
+        <main
+          className={`flex-1 overflow-auto bg-[var(--bg-base)] ${hideBottomNav ? '' : 'pb-20 md:pb-0'}`}
+          style={hideBottomNav ? undefined : { paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}
+        >
           {/* ── Banner essai gratuit ── */}
           {showTrialBanner && (
             <div className="mx-4 mt-4 md:mx-6 md:mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-[#FF6B2B]/25 bg-gradient-to-r from-[#FF6B2B]/10 via-[#FF6B2B]/5 to-transparent px-4 py-3">
@@ -740,6 +747,7 @@ export function CoachLayout() {
       {/* ══════════════════════════════════════ */}
       {/* BOTTOM NAV MOBILE                     */}
       {/* ══════════════════════════════════════ */}
+      {!hideBottomNav && (
       <nav className={`${menuOpen ? 'hidden' : 'md:hidden'} fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-elevated)]/95 backdrop-blur-lg border-t border-[var(--border-base)]`} style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <ul className="flex items-center justify-around h-14">
           {MOBILE_NAV.map(({ to, icon: Icon, label }) => {
@@ -770,6 +778,7 @@ export function CoachLayout() {
           })}
         </ul>
       </nav>
+      )}
     </div>
   )
 }
