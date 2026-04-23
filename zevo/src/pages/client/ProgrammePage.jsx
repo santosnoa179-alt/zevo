@@ -806,7 +806,20 @@ export default function ProgrammePage() {
                                 {phase.exercices.map((ex, ei) => (
                                   <div key={ei} className="flex items-center gap-3 bg-[var(--bg-base)] rounded-xl p-3 border border-[var(--border-subtle)]">
                                     {ex.image_url ? (
-                                      <img src={ex.image_url} alt={ex.name} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                                      <img
+                                        src={ex.image_url}
+                                        alt={ex.name}
+                                        className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
+                                        onError={(e) => {
+                                          e.currentTarget.onerror = null
+                                          e.currentTarget.replaceWith(
+                                            Object.assign(document.createElement('div'), {
+                                              className: 'w-14 h-14 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center flex-shrink-0',
+                                              innerHTML: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:rgba(245,245,243,0.4)"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>',
+                                            })
+                                          )
+                                        }}
+                                      />
                                     ) : (
                                       <div className="w-14 h-14 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center flex-shrink-0">
                                         <ImageIcon size={18} className="text-[var(--text-muted)]" />

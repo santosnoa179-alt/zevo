@@ -891,7 +891,7 @@ export default function CoachMessagesPage() {
             <form
               onSubmit={envoyerMessage}
               className="relative bg-[var(--bg-base)] border-t border-[var(--border-subtle)] px-3 py-2.5"
-              style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}
+              style={{ paddingBottom: 'calc(10px + env(safe-area-inset-bottom, 0px))' }}
             >
               {isRecording ? (
                 <VoiceRecorder onSend={envoyerVocal} disabled={envoi} />

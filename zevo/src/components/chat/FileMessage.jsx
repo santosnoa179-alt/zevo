@@ -8,6 +8,7 @@ import { FileText, Download, X, ZoomIn } from 'lucide-react'
 export function ImageBubble({ imageUrl, contenu, estMoi, createdAt }) {
   const [fullscreen, setFullscreen] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [errored, setErrored] = useState(false)
 
   const time = createdAt
     ? new Date(createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
@@ -20,20 +21,31 @@ export function ImageBubble({ imageUrl, contenu, estMoi, createdAt }) {
           className={`max-w-[75%] min-w-[180px] rounded-2xl overflow-hidden cursor-pointer group relative ${
             estMoi ? 'rounded-br-sm' : 'rounded-bl-sm'
           }`}
-          onClick={() => setFullscreen(true)}
+          onClick={() => !errored && setFullscreen(true)}
         >
-          {/* Placeholder skeleton */}
-          {!loaded && (
+          {/* Placeholder skeleton (tant que pas chargé ET pas d'erreur) */}
+          {!loaded && !errored && (
             <div className="w-full aspect-[4/3] bg-[var(--bg-surface)] animate-pulse rounded-2xl" />
           )}
 
-          <img
-            src={imageUrl}
-            alt="Image partagée"
-            className={`w-full max-h-[320px] object-cover transition-opacity duration-200 ${loaded ? 'opacity-100' : 'opacity-0 h-0'}`}
-            onLoad={() => setLoaded(true)}
-            loading="lazy"
-          />
+          {/* État d'erreur — image indisponible */}
+          {errored && (
+            <div className="w-full aspect-[4/3] bg-[var(--bg-surface)] rounded-2xl flex flex-col items-center justify-center gap-2 text-[var(--text-muted)]">
+              <FileText size={24} className="opacity-50" />
+              <p className="text-[11px]">Image indisponible</p>
+            </div>
+          )}
+
+          {!errored && (
+            <img
+              src={imageUrl}
+              alt="Image partagée"
+              className={`w-full max-h-[320px] object-cover transition-opacity duration-200 ${loaded ? 'opacity-100' : 'opacity-0 h-0'}`}
+              onLoad={() => setLoaded(true)}
+              onError={() => setErrored(true)}
+              loading="lazy"
+            />
+          )}
 
           {/* Overlay au hover */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">

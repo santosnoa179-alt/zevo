@@ -259,57 +259,32 @@ export default function DashboardPage() {
 
   const today = new Date().toISOString().split('T')[0]
 
-  // ── Charge les scores des 7 derniers jours + semaine précédente pour tendance ──
-  const chargerComparatif = useCallback(async (clientId, totalHab) => {
-    const il14jours = new Date()
-    il14jours.setDate(il14jours.getDate() - 13)
-    const dateMin14 = il14jours.toISOString().split('T')[0]
-
-    const [logRes, sommeilRes, humeurRes, sportRes] = await Promise.all([
-      supabase.from('habitudes_log').select('date').eq('client_id', clientId).gte('date', dateMin14),
-      supabase.from('sommeil_log').select('date, qualite').eq('client_id', clientId).gte('date', dateMin14),
-      supabase.from('humeur_log').select('date, score').eq('client_id', clientId).gte('date', dateMin14),
-      supabase.from('sport_log').select('date, intensite').eq('client_id', clientId).gte('date', dateMin14),
-    ])
-
-    const logs = logRes.data ?? []
-
-    const computeScore = (dateStr) => {
-      const cochees = logs.filter(l => l.date === dateStr).length
-      return calculerScoreBienEtre({
-        habitudes: { cochees, total: totalHab },
-        sommeil: (sommeilRes.data ?? []).find(s => s.date === dateStr) ?? null,
-        humeur: (humeurRes.data ?? []).find(h => h.date === dateStr) ?? null,
-        sport: (sportRes.data ?? []).find(s => s.date === dateStr) ?? null,
-      })
-    }
-
-    const data = []
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date()
-      d.setDate(d.getDate() - i)
-      const dateStr = d.toISOString().split('T')[0]
-      data.push({ jour: JOURS[d.getDay()], score: computeScore(dateStr) })
-    }
-    setWeekData(data)
-
-    const prevScores = []
-    for (let i = 13; i >= 7; i--) {
-      const d = new Date()
-      d.setDate(d.getDate() - i)
-      prevScores.push(computeScore(d.toISOString().split('T')[0]))
-    }
-    const prevActive = prevScores.filter(s => s > 0)
-    setPrevWeekAvg(prevActive.length > 0 ? Math.round(prevActive.reduce((a, b) => a + b, 0) / prevActive.length) : null)
-  }, [])
-
-  // ── Charge toutes les données du dashboard ──
+  // ── Charge toutes les données du dashboard (2 vagues parallèles) ──
   const chargerDonnees = useCallback(async () => {
     if (!user) return
     setLoading(true)
 
     try {
-      const [profilRes, clientRes, habsRes, logRes, sommeilRes, humeurRes, sportRes] = await Promise.all([
+      const demain = new Date()
+      demain.setDate(demain.getDate() + 1)
+      const demainStr = demain.toISOString().split('T')[0]
+
+      const il14jours = new Date()
+      il14jours.setDate(il14jours.getDate() - 13)
+      const dateMin14 = il14jours.toISOString().split('T')[0]
+      const dateMin120 = new Date(Date.now() - 120 * 86400000).toISOString().split('T')[0]
+
+      // ── Vague 1 : TOUTES les requêtes indépendantes en parallèle ─────────
+      const [
+        profilRes, clientRes, habsRes, logRes, sommeilRes, humeurRes, sportRes,
+        seancesAujRes, formsRes,
+        compLogRes, compSommeilRes, compHumeurRes, compSportRes,
+        streakLogsRes,
+        proSportRes, legacyProgrammeRes,
+        proNutriRes, legacyNutriRes,
+        seanceDemainRes, msgCountRes,
+      ] = await Promise.all([
+        // Profil & habitudes
         supabase.from('profiles').select('nom, avatar_url').eq('id', user.id).single(),
         supabase.from('clients').select('prenom').eq('id', user.id).maybeSingle(),
         supabase.from('habitudes').select('id, nom, couleur, assigned_by').eq('client_id', user.id).eq('actif', true).order('created_at'),
@@ -317,66 +292,102 @@ export default function DashboardPage() {
         supabase.from('sommeil_log').select('*').eq('client_id', user.id).eq('date', today).maybeSingle(),
         supabase.from('humeur_log').select('*').eq('client_id', user.id).eq('date', today).maybeSingle(),
         supabase.from('sport_log').select('*').eq('client_id', user.id).eq('date', today).maybeSingle(),
+        // Séance du jour
+        supabase.from('seances')
+          .select('id, titre, date_prevue, notes, is_completed, is_template')
+          .eq('client_id', user.id).eq('date_prevue', today).eq('is_template', false)
+          .order('is_completed', { ascending: true }).order('created_at', { ascending: true }).limit(1),
+        // Formulaires en attente
+        supabase.from('formulaire_reponses')
+          .select('id, created_at, formulaire_id, formulaires(titre, description, type)')
+          .eq('client_id', user.id).eq('complete', false),
+        // Données comparatif 14 jours (pour graphe bien-être)
+        supabase.from('habitudes_log').select('date').eq('client_id', user.id).gte('date', dateMin14),
+        supabase.from('sommeil_log').select('date, qualite').eq('client_id', user.id).gte('date', dateMin14),
+        supabase.from('humeur_log').select('date, score').eq('client_id', user.id).gte('date', dateMin14),
+        supabase.from('sport_log').select('date, intensite').eq('client_id', user.id).gte('date', dateMin14),
+        // Streak 120 jours
+        supabase.from('habitudes_log').select('date').eq('client_id', user.id).gte('date', dateMin120).order('date', { ascending: false }),
+        // Programmes sport (pro + legacy en parallèle)
+        supabase.from('sport_programmes')
+          .select('id, nom, duree_semaines, objectif, frequence_hebdo, description')
+          .eq('client_id', user.id).eq('is_active', true)
+          .order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('programme_assignations')
+          .select('*, programmes(id, titre, duree_semaines)')
+          .eq('client_id', user.id).eq('statut', 'en_cours').limit(1).maybeSingle(),
+        // Nutrition (pro + legacy en parallèle)
+        supabase.from('nutrition_programmes')
+          .select('id, nom, duree_semaines')
+          .eq('client_id', user.id).eq('is_active', true)
+          .order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('client_nutrition_plans')
+          .select('id, nom, duree_semaines')
+          .eq('client_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        // Séance demain + messages non lus
+        supabase.from('seances')
+          .select('id, titre, date_prevue').eq('client_id', user.id)
+          .eq('date_prevue', demainStr).eq('is_template', false).eq('is_completed', false)
+          .limit(1).maybeSingle(),
+        supabase.from('messages')
+          .select('id', { count: 'exact', head: true })
+          .eq('destinataire_id', user.id).eq('lu', false),
       ])
 
+      // ── Traitement vague 1 ────────────────────────────────────────────────
       const habs = habsRes.data ?? []
       setProfil({ ...profilRes.data, prenom: clientRes.data?.prenom ?? null })
       setHabitudes(habs)
       setLogAujourdhui((logRes.data ?? []).map(l => l.habitude_id))
+
       const sommeilData = sommeilRes.data ?? null
       const humeurData = humeurRes.data ?? null
       setSommeil(sommeilData)
       setHumeur(humeurData)
       setSport(sportRes.data ?? null)
-
       if (sommeilData) { setSommeilInput(sommeilData.heures || 7); setSommeilSaved(true) }
       if (humeurData) { setHumeurInput(humeurData.score || null); setHumeurSaved(true) }
 
-      const { data: seancesAuj, error: seancesErr } = await supabase
-        .from('seances')
-        .select('id, titre, date_prevue, notes, is_completed, is_template')
-        .eq('client_id', user.id)
-        .eq('date_prevue', today)
-        .eq('is_template', false)
-        .order('is_completed', { ascending: true })
-        .order('created_at', { ascending: true })
-        .limit(1)
-
-      if (seancesErr) console.error('[Dashboard] séances:', seancesErr.message)
-
-      const seance = seancesAuj?.[0] ?? null
+      const seance = seancesAujRes.data?.[0] ?? null
       setSeanceDuJour(seance)
+      setFormsPending(formsRes.data ?? [])
+      setSeanceDemain(seanceDemainRes.data ?? null)
+      setUnreadMessages(msgCountRes.count ?? 0)
 
-      if (seance) {
-        const { data: exos } = await supabase
-          .from('exercices')
-          .select('id, nom, series, repetitions, poids, ordre')
-          .eq('seance_id', seance.id)
-          .order('ordre')
-        setSeanceExos(exos ?? [])
-      } else {
-        setSeanceExos([])
+      // Comparatif bien-être (calcul local — pas de requête supplémentaire)
+      {
+        const compLogs = compLogRes.data ?? []
+        const computeScore = (dateStr) => {
+          const cochees = compLogs.filter(l => l.date === dateStr).length
+          return calculerScoreBienEtre({
+            habitudes: { cochees, total: habs.length },
+            sommeil: (compSommeilRes.data ?? []).find(s => s.date === dateStr) ?? null,
+            humeur: (compHumeurRes.data ?? []).find(h => h.date === dateStr) ?? null,
+            sport: (compSportRes.data ?? []).find(s => s.date === dateStr) ?? null,
+          })
+        }
+        const data = []
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date()
+          d.setDate(d.getDate() - i)
+          const dateStr = d.toISOString().split('T')[0]
+          data.push({ jour: JOURS[d.getDay()], score: computeScore(dateStr) })
+        }
+        setWeekData(data)
+
+        const prevScores = []
+        for (let i = 13; i >= 7; i--) {
+          const d = new Date()
+          d.setDate(d.getDate() - i)
+          prevScores.push(computeScore(d.toISOString().split('T')[0]))
+        }
+        const prevActive = prevScores.filter(s => s > 0)
+        setPrevWeekAvg(prevActive.length > 0 ? Math.round(prevActive.reduce((a, b) => a + b, 0) / prevActive.length) : null)
       }
 
-      const { data: formsData, error: formsErr } = await supabase
-        .from('formulaire_reponses')
-        .select('id, created_at, formulaire_id, formulaires(titre, description, type)')
-        .eq('client_id', user.id)
-        .eq('complete', false)
-
-      if (formsErr) console.error('[Dashboard] formulaires:', formsErr.message)
-      setFormsPending(formsData ?? [])
-
-      await chargerComparatif(user.id, habs.length)
-
+      // Streak (calcul local)
       if (habs.length > 0) {
-        const { data: streakLogs } = await supabase
-          .from('habitudes_log')
-          .select('date')
-          .eq('client_id', user.id)
-          .gte('date', new Date(Date.now() - 120 * 86400000).toISOString().split('T')[0])
-          .order('date', { ascending: false })
-        const dates = [...new Set((streakLogs || []).map(l => l.date))].sort().reverse()
+        const dates = [...new Set((streakLogsRes.data || []).map(l => l.date))].sort().reverse()
         let s = 0
         for (let i = 0; i < 120; i++) {
           const d = new Date()
@@ -389,119 +400,82 @@ export default function DashboardPage() {
         setStreak(s)
       }
 
-      // 1) Programme Pro V3 (sport_programmes) en priorité
-      try {
-        const { data: proSport } = await supabase
-          .from('sport_programmes')
-          .select('id, nom, duree_semaines, objectif, frequence_hebdo, description')
-          .eq('client_id', user.id)
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
-        if (proSport) {
-          // Format compatible avec le reste du code (champ programmes)
-          setProgramme({
-            programmes: { id: proSport.id, titre: proSport.nom, duree_semaines: proSport.duree_semaines },
-            phase_actuelle: 1,
-            __pro: true,
-          })
-          const { count: total } = await supabase
-            .from('seances')
-            .select('id', { count: 'exact', head: true })
-            .eq('sport_programme_id', proSport.id)
-          const { count: done } = await supabase
-            .from('seances')
-            .select('id', { count: 'exact', head: true })
-            .eq('sport_programme_id', proSport.id)
-            .eq('is_completed', true)
-          setProgSeances({ total: total || 0, done: done || 0 })
-        }
-      } catch (e) {
-        console.warn('[Dashboard] sport_programmes indisponible:', e?.message)
-      }
+      // Choix programme actif (pro prioritaire sur legacy)
+      const proSport = proSportRes.data ?? null
+      const assignData = !proSport ? (legacyProgrammeRes.data ?? null) : null
 
-      // 2) Legacy fallback
-      if (!programme) {
-        const { data: assignData } = await supabase
-          .from('programme_assignations')
-          .select('*, programmes(id, titre, duree_semaines)')
-          .eq('client_id', user.id)
-          .eq('statut', 'en_cours')
-          .limit(1)
-          .maybeSingle()
+      // Choix nutrition active (pro prioritaire sur legacy)
+      const proNutri = proNutriRes.data ?? null
+      const nutPlan = proNutri
+        ? { ...proNutri, __pro: true }
+        : (legacyNutriRes.data ?? null)
 
-        if (assignData) {
-          setProgramme(assignData)
-          const { data: phasesData } = await supabase
-            .from('programme_phases')
-            .select('id, titre, ordre')
-            .eq('programme_id', assignData.programme_id)
-            .order('ordre')
-          setProgrammePhases(phasesData || [])
+      // ── Vague 2 : requêtes dépendantes, toutes en parallèle ──────────────
+      const [
+        exosRes,
+        sportProgTotalRes, sportProgDoneRes,
+        phasesRes, progSeancesRes,
+        repasCountRes, suiviRes, repasDetailRes,
+      ] = await Promise.all([
+        // Exercices de la séance du jour (dépend de seance.id)
+        seance
+          ? supabase.from('exercices').select('id, nom, series, repetitions, poids, ordre').eq('seance_id', seance.id).order('ordre')
+          : Promise.resolve({ data: [] }),
+        // Compteurs séances sport_programme (dépend de proSport.id)
+        proSport
+          ? supabase.from('seances').select('id', { count: 'exact', head: true }).eq('sport_programme_id', proSport.id)
+          : Promise.resolve({ count: 0 }),
+        proSport
+          ? supabase.from('seances').select('id', { count: 'exact', head: true }).eq('sport_programme_id', proSport.id).eq('is_completed', true)
+          : Promise.resolve({ count: 0 }),
+        // Phases + séances programme legacy (dépend de assignData)
+        assignData
+          ? supabase.from('programme_phases').select('id, titre, ordre').eq('programme_id', assignData.programme_id).order('ordre')
+          : Promise.resolve({ data: [] }),
+        assignData
+          ? supabase.from('seances').select('id, is_completed').eq('client_id', user.id).eq('is_template', false)
+              .like('notes', `programme:${assignData.programmes?.id || assignData.programme_id}%`)
+          : Promise.resolve({ data: [] }),
+        // Repas nutrition legacy (dépend de nutPlan.id et !nutPlan.__pro)
+        nutPlan && !nutPlan.__pro
+          ? supabase.from('plan_repas').select('id', { count: 'exact', head: true }).eq('plan_id', nutPlan.id)
+          : Promise.resolve({ count: 0 }),
+        nutPlan && !nutPlan.__pro
+          ? supabase.from('suivi_nutrition').select('id').eq('plan_id', nutPlan.id).eq('client_id', user.id)
+          : Promise.resolve({ data: [] }),
+        nutPlan && !nutPlan.__pro
+          ? supabase.from('plan_repas')
+              .select('id, type, ordre, repas_aliments(quantite_g, aliments(nom, kcal_100g, proteines, glucides, lipides))')
+              .eq('plan_id', nutPlan.id).order('ordre')
+          : Promise.resolve({ data: [] }),
+      ])
 
-          const progId = assignData.programmes?.id || assignData.programme_id
-          const { data: progSeancesData } = await supabase
-            .from('seances')
-            .select('id, is_completed')
-            .eq('client_id', user.id)
-            .eq('is_template', false)
-            .like('notes', `programme:${progId}%`)
+      // ── Traitement vague 2 ────────────────────────────────────────────────
+      setSeanceExos(exosRes.data ?? [])
 
-          const total = progSeancesData?.length ?? 0
-          const done = progSeancesData?.filter(s => s.is_completed)?.length ?? 0
-          setProgSeances({ total, done })
-        }
-      }
-
-      // 3) Nutrition Pro V2 (nutrition_programmes) en priorité
-      let nutPlan = null
-      try {
-        const { data: proNutri } = await supabase
-          .from('nutrition_programmes')
-          .select('id, nom, duree_semaines')
-          .eq('client_id', user.id)
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
-        if (proNutri) {
-          nutPlan = { ...proNutri, __pro: true }
-        }
-      } catch (e) {
-        console.warn('[Dashboard] nutrition_programmes indisponible:', e?.message)
-      }
-
-      // 4) Legacy fallback
-      if (!nutPlan) {
-        const { data: legacyPlan } = await supabase
-          .from('client_nutrition_plans')
-          .select('id, nom, duree_semaines')
-          .eq('client_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
-        nutPlan = legacyPlan
+      if (proSport) {
+        setProgramme({
+          programmes: { id: proSport.id, titre: proSport.nom, duree_semaines: proSport.duree_semaines },
+          phase_actuelle: 1,
+          __pro: true,
+        })
+        setProgSeances({ total: sportProgTotalRes.count || 0, done: sportProgDoneRes.count || 0 })
+      } else if (assignData) {
+        setProgramme(assignData)
+        setProgrammePhases(phasesRes.data || [])
+        const total = progSeancesRes.data?.length ?? 0
+        const done = progSeancesRes.data?.filter(s => s.is_completed)?.length ?? 0
+        setProgSeances({ total, done })
       }
 
       if (nutPlan) {
         setNutritionPlan(nutPlan)
-        // Pro : pas de plan_repas legacy. On laisse les stats à 0, le détail
-        // sera récupéré via ProgrammePage / Hub si besoin.
         if (nutPlan.__pro) {
           setNutriRepasCount(0)
           setNutriWeeksDone(0)
           setNutriRepas([])
         } else {
-          const [repasRes, suiviRes, repasDetailRes] = await Promise.all([
-            supabase.from('plan_repas').select('id', { count: 'exact', head: true }).eq('plan_id', nutPlan.id),
-            supabase.from('suivi_nutrition').select('id').eq('plan_id', nutPlan.id).eq('client_id', user.id),
-            supabase.from('plan_repas')
-              .select('id, type, ordre, repas_aliments(quantite_g, aliments(nom, kcal_100g, proteines, glucides, lipides))')
-              .eq('plan_id', nutPlan.id)
-              .order('ordre'),
-          ])
-          setNutriRepasCount(repasRes.count ?? 0)
+          setNutriRepasCount(repasCountRes.count ?? 0)
           setNutriWeeksDone(suiviRes.data?.length ?? 0)
           setNutriRepas(repasDetailRes.data ?? [])
         }
@@ -510,33 +484,12 @@ export default function DashboardPage() {
         setNutriRepas([])
       }
 
-      const demain = new Date()
-      demain.setDate(demain.getDate() + 1)
-      const demainStr = demain.toISOString().split('T')[0]
-      const { data: seanceDemainData } = await supabase
-        .from('seances')
-        .select('id, titre, date_prevue')
-        .eq('client_id', user.id)
-        .eq('date_prevue', demainStr)
-        .eq('is_template', false)
-        .eq('is_completed', false)
-        .limit(1)
-        .maybeSingle()
-      setSeanceDemain(seanceDemainData ?? null)
-
-      const { count: msgCount } = await supabase
-        .from('messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('destinataire_id', user.id)
-        .eq('lu', false)
-      setUnreadMessages(msgCount ?? 0)
-
     } catch (err) {
       console.error('[Dashboard] erreur globale:', err)
     }
 
     setLoading(false)
-  }, [user, today, chargerComparatif])
+  }, [user, today])
 
   useEffect(() => { chargerDonnees() }, [chargerDonnees, location.key])
 
@@ -736,10 +689,26 @@ export default function DashboardPage() {
           onClick={() => navigate('/app/profil')}
           className="relative active:scale-95 transition-transform ml-3"
         >
-          <div className="w-11 h-11 rounded-full flex items-center justify-center ring-2 ring-offset-2 ring-offset-[var(--bg-base)]"
-            style={{ background: profil?.avatar_url ? 'transparent' : 'linear-gradient(135deg, #FF6B2B, #FF9A6C)', ringColor: 'rgba(255,107,43,0.2)' }}>
+          <div
+            className="w-11 h-11 rounded-full flex items-center justify-center ring-2 ring-offset-2 ring-offset-[var(--bg-base)] ring-[#FF6B2B]/20 overflow-hidden"
+            style={{ background: profil?.avatar_url ? 'transparent' : 'linear-gradient(135deg, #FF6B2B, #FF9A6C)' }}
+          >
             {profil?.avatar_url ? (
-              <img src={profil.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+              <img
+                src={profil.avatar_url}
+                alt=""
+                className="w-full h-full rounded-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.onerror = null
+                  const parent = e.currentTarget.parentElement
+                  if (parent) parent.style.background = 'linear-gradient(135deg, #FF6B2B, #FF9A6C)'
+                  e.currentTarget.replaceWith(
+                    Object.assign(document.createElement('div'), {
+                      innerHTML: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+                    })
+                  )
+                }}
+              />
             ) : (
               <User size={18} className="text-white" />
             )}

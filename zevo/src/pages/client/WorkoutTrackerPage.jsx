@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useOffline } from '../../hooks/useOffline'
 import { supabase } from '../../lib/supabase'
 import {
   X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Check, CheckCircle2, Play, Pause,
-  Dumbbell, Timer, Trophy, Loader2, AlertCircle, RotateCcw, StickyNote, Info
+  Dumbbell, Timer, Trophy, Loader2, AlertCircle, RotateCcw, StickyNote, Info, WifiOff,
 } from 'lucide-react'
+
+// Clé localStorage pour les séances terminées hors-ligne (sync différée)
+const PENDING_SEANCES_KEY = '_zevo_pending_seances'
 
 // ══════════════════════════════════════
 // MOCK DATA — Utilisé si aucune séance réelle n'est trouvée
@@ -68,12 +72,14 @@ export default function WorkoutTrackerPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { seanceId } = useParams()
+  const isOffline = useOffline()
 
   // ── Data ──
   const [seance, setSeance] = useState(null)
   const [exercices, setExercices] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [pendingSync, setPendingSync] = useState(false) // true quand finish hors-ligne en attente
 
   // ── Navigation exercice ──
   const [currentIdx, setCurrentIdx] = useState(0)
@@ -244,6 +250,31 @@ export default function WorkoutTrackerPage() {
     return () => clearInterval(restTimerRef.current)
   }, [isResting, restTime])
 
+  // ── Sync différée : rejoue les séances terminées hors-ligne dès reconnexion ──
+  useEffect(() => {
+    if (isOffline) return
+    const pending = JSON.parse(localStorage.getItem(PENDING_SEANCES_KEY) || '[]')
+    if (pending.length === 0) return
+
+    const syncPending = async () => {
+      const remaining = []
+      for (const id of pending) {
+        const { error } = await supabase
+          .from('seances')
+          .update({ is_completed: true })
+          .eq('id', id)
+        if (error) remaining.push(id) // garde en attente si ça échoue encore
+      }
+      if (remaining.length === 0) {
+        localStorage.removeItem(PENDING_SEANCES_KEY)
+        setPendingSync(false)
+      } else {
+        localStorage.setItem(PENDING_SEANCES_KEY, JSON.stringify(remaining))
+      }
+    }
+    syncPending()
+  }, [isOffline])
+
   // ── Current exercice ──
   const currentExo = exercices[currentIdx] || null
   const totalExos = exercices.length
@@ -298,6 +329,15 @@ export default function WorkoutTrackerPage() {
     }, 250)
   }, [currentIdx, totalExos, animating])
 
+  // ── Sauvegarder une séance en localStorage pour sync différée ──
+  const savePendingSeance = useCallback((id) => {
+    const pending = JSON.parse(localStorage.getItem(PENDING_SEANCES_KEY) || '[]')
+    if (!pending.includes(id)) {
+      localStorage.setItem(PENDING_SEANCES_KEY, JSON.stringify([...pending, id]))
+    }
+    setPendingSync(true)
+  }, [])
+
   // ── Terminer la séance ──
   const finishWorkout = async () => {
     setFinished(true)
@@ -307,11 +347,21 @@ export default function WorkoutTrackerPage() {
 
     // Marquer comme complétée en DB si c'est une vraie séance
     if (seanceId && seanceId !== 'demo' && seance?.id) {
+      // Hors ligne → sauvegarder localement, sync au reconnect
+      if (!navigator.onLine) {
+        savePendingSeance(seance.id)
+        return
+      }
+
       const { error } = await supabase
         .from('seances')
         .update({ is_completed: true })
         .eq('id', seance.id)
-      if (error) console.error('[Workout] Erreur update is_completed:', error.message)
+      if (error) {
+        console.error('[Workout] Erreur update is_completed:', error.message)
+        // Fallback : sauvegarder pour sync différée
+        savePendingSeance(seance.id)
+      }
 
       // ── Formulaires post-séance : créer automatiquement les réponses ──
       if (user?.id) {
@@ -526,7 +576,10 @@ export default function WorkoutTrackerPage() {
   // Erreur
   if (error) {
     return (
-      <div className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] flex items-center justify-center p-6">
+      <div
+        className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] flex items-center justify-center p-6"
+        style={{ paddingTop: 'calc(24px + env(safe-area-inset-top, 0px))', paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}
+      >
         <div className="text-center max-w-sm">
           <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-8 h-8 text-red-400" />
@@ -549,7 +602,10 @@ export default function WorkoutTrackerPage() {
   // ══════════════════════════════════════
   if (finished) {
     return (
-      <div className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] flex items-center justify-center p-6">
+      <div
+        className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] flex items-center justify-center p-6"
+        style={{ paddingTop: 'calc(24px + env(safe-area-inset-top, 0px))', paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}
+      >
         <div className="text-center max-w-sm w-full">
           {/* Celebration */}
           <div className="relative mb-8">
@@ -561,7 +617,14 @@ export default function WorkoutTrackerPage() {
           </div>
 
           <h1 className="text-[var(--text-primary)] text-3xl font-black mb-2">Bravo !</h1>
-          <p className="text-[var(--text-muted)] text-sm mb-8">Séance terminée avec succès</p>
+          {pendingSync ? (
+            <p className="text-[var(--text-muted)] text-sm mb-8 flex items-center justify-center gap-1.5">
+              <WifiOff size={12} className="opacity-60" />
+              Séance enregistrée — synchronisation en attente
+            </p>
+          ) : (
+            <p className="text-[var(--text-muted)] text-sm mb-8">Séance terminée avec succès</p>
+          )}
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mb-8">
@@ -640,8 +703,22 @@ export default function WorkoutTrackerPage() {
   return (
     <div className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] flex flex-col select-none overflow-hidden">
 
+      {/* ═══════ OFFLINE BANNER ═══════ */}
+      {isOffline && (
+        <div
+          className="flex-shrink-0 flex items-center justify-center gap-2 py-1.5 px-4 text-[11px] font-semibold"
+          style={{ background: 'rgba(20,20,20,0.98)', color: 'rgba(245,245,243,0.6)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          <WifiOff size={11} />
+          <span>Mode hors ligne — les séries cochées sont sauvegardées localement</span>
+        </div>
+      )}
+
       {/* ═══════ HEADER ═══════ */}
-      <div className="flex-shrink-0 px-4 pt-4 pb-3 space-y-3">
+      <div
+        className="flex-shrink-0 px-4 pb-3 space-y-3"
+        style={{ paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))' }}
+      >
         {/* Top row: Quit — Title — Timer */}
         <div className="flex items-center justify-between">
           <button
@@ -690,11 +767,12 @@ export default function WorkoutTrackerPage() {
               {/* Média : media_url (coach) > gif_url (library/custom) > video_url > image_url > placeholder */}
               {(() => {
                 const mediaUrl = currentExo.media_url?.trim()
-                const gifUrl = currentExo.exercices?.gif_url
+                const gifUrl   = currentExo.exercices?.gif_url
                 const videoUrl = currentExo.exercices?.video_url
                 const imageUrl = currentExo.exercices?.image_url
-                const url = mediaUrl || gifUrl || videoUrl || imageUrl || null
+                const url      = mediaUrl || gifUrl || videoUrl || imageUrl || null
 
+                // Placeholder si aucune URL
                 if (!url) {
                   return (
                     <div className="bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-2xl h-64 flex items-center justify-center mb-5">
@@ -706,22 +784,32 @@ export default function WorkoutTrackerPage() {
                   )
                 }
 
-                // Détection du type par extension (prioritaire sur l'origine du champ)
+                // Détection du type
                 const isImageFile = /\.(jpg|jpeg|png|gif|webp|svg|avif)(\?.*)?$/i.test(url)
                 const isVideoFile = /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url)
-
-                // YouTube / Vimeo embed detection
+                // CDNs d'images fitness sans extension dans l'URL (ExerciseDB, wger, etc.)
+                const isImageCdn  = url.includes('exercisedb.io') || url.includes('wger.de') || url.includes('fittrackee.org')
+                // YouTube / Vimeo
                 const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
-                const vimeoMatch = url.match(/vimeo\.com\/(\d+)/)
+                const vimeoMatch   = url.match(/vimeo\.com\/(\d+)/)
 
-                // 1. Image statique — PAS d'icône play, PAS de contrôles vidéo
-                if (isImageFile) {
+                // 1. Image (extension .gif, .jpg… ou CDN image connu ou champ image_url/gif_url)
+                if (isImageFile || isImageCdn || (!mediaUrl && !videoUrl && (url === gifUrl || url === imageUrl))) {
                   return (
                     <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)]">
                       <img
+                        key={url}
                         src={url}
-                        alt={currentExo.exercices?.nom}
+                        alt={currentExo.exercices?.nom || 'Démonstration'}
                         className="w-full h-64 object-contain bg-[var(--bg-surface)]"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                          e.currentTarget.parentElement.classList.add(
+                            'h-64', 'flex', 'items-center', 'justify-center'
+                          )
+                          e.currentTarget.parentElement.innerHTML =
+                            '<div class="text-center"><p class="text-white/20 text-xs">Démonstration non disponible</p></div>'
+                        }}
                       />
                     </div>
                   )
@@ -759,8 +847,8 @@ export default function WorkoutTrackerPage() {
                   )
                 }
 
-                // 4. Fichier vidéo direct (.mp4, .webm, .mov)
-                if (isVideoFile) {
+                // 4. Fichier vidéo direct (.mp4, .webm, .mov) ou champ video_url
+                if (isVideoFile || url === videoUrl) {
                   return (
                     <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)] bg-black">
                       <video
@@ -777,39 +865,7 @@ export default function WorkoutTrackerPage() {
                   )
                 }
 
-                // 5. URL sans extension claire — deviner par origine du champ
-                // Si ça vient de image_url → afficher comme image
-                if (url === imageUrl && url !== videoUrl) {
-                  return (
-                    <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)]">
-                      <img
-                        src={url}
-                        alt={currentExo.exercices?.nom}
-                        className="w-full h-64 object-contain bg-[var(--bg-surface)]"
-                      />
-                    </div>
-                  )
-                }
-
-                // Si ça vient de video_url → afficher comme vidéo
-                if (url === videoUrl) {
-                  return (
-                    <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)] bg-black">
-                      <video
-                        key={currentExo.id}
-                        src={url}
-                        className="w-full h-64 object-contain bg-black"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        controls
-                      />
-                    </div>
-                  )
-                }
-
-                // 6. URL générique (Google Drive, etc.) — iframe
+                // 5. URL générique (Google Drive, etc.) — iframe en dernier recours
                 return (
                   <div className="rounded-2xl overflow-hidden mb-5 border border-[var(--border-base)] bg-black aspect-video">
                     <iframe

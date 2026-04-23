@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useDebounce } from '../../hooks/useDebounce'
 import {
   Search, X, ChevronLeft, ChevronRight, Loader2,
   Dumbbell, Target, Layers, Info,
@@ -256,6 +257,7 @@ export default function ExerciseLibraryPage() {
 
   // Filters
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 300) // évite de re-filter 1000+ exos à chaque frappe
   const [bodyPartFilter, setBodyPartFilter] = useState('')
   const [equipmentFilter, setEquipmentFilter] = useState('')
   const [targetFilter, setTargetFilter] = useState('')
@@ -501,8 +503,8 @@ export default function ExerciseLibraryPage() {
   // ── Filtered + paginated ──
   const filtered = useMemo(() => {
     let result = exercises
-    if (search) {
-      const q = search.toLowerCase()
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase()
       result = result.filter(e =>
         e.name.toLowerCase().includes(q) ||
         (e.name_fr && e.name_fr.toLowerCase().includes(q))
@@ -512,7 +514,7 @@ export default function ExerciseLibraryPage() {
     if (equipmentFilter) result = result.filter(e => e.equipment === equipmentFilter)
     if (targetFilter) result = result.filter(e => e.target_muscle === targetFilter)
     return result
-  }, [exercises, search, bodyPartFilter, equipmentFilter, targetFilter])
+  }, [exercises, debouncedSearch, bodyPartFilter, equipmentFilter, targetFilter])
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE)
   const paginated = useMemo(() => {

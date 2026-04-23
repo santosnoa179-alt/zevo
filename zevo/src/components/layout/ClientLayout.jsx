@@ -4,11 +4,12 @@ import {
   LayoutDashboard, Target, MessageSquare, User, LogOut,
   BookOpen, ClipboardList, CreditCard, Layers, Dumbbell,
   Calendar, Bell, CheckCircle, TrendingDown, Menu, X,
-  ChevronDown,
+  ChevronDown, WifiOff,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useCoachTheme } from '../../hooks/useCoachTheme'
+import { useOffline } from '../../hooks/useOffline'
 import OnboardingFlow from '../OnboardingFlow'
 import AppTutorial from '../AppTutorial'
 import ThemeToggle from '../ui/ThemeToggle'
@@ -69,6 +70,7 @@ export function ClientLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const { nomApp, logoUrl } = useCoachTheme()
+  const isOffline = useOffline()
 
   const [showOnboarding, setShowOnboarding]   = useState(false)
   const [onboardingChecked, setOnboardingChecked] = useState(false)
@@ -187,7 +189,12 @@ export function ClientLayout() {
         <div className="flex items-center gap-2.5 px-5 py-4 border-b border-[var(--border-base)] h-[60px]">
           {logoUrl ? (
             <>
-              <img src={logoUrl} alt={nomApp} className="w-7 h-7 rounded-lg object-cover flex-shrink-0" />
+              <img
+                src={logoUrl}
+                alt={nomApp}
+                className="w-7 h-7 rounded-lg object-cover flex-shrink-0"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = 'none' }}
+              />
               <span className="font-bold tracking-tight text-[var(--text-primary)] text-sm truncate">{nomApp}</span>
             </>
           ) : (
@@ -241,7 +248,12 @@ export function ClientLayout() {
           <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
             <div className="w-7 h-7 rounded-full bg-[#FF6B2B]/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
               {clientProfile?.avatar_url
-                ? <img src={clientProfile.avatar_url} alt="" className="w-full h-full object-cover" />
+                ? <img
+                    src={clientProfile.avatar_url}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = 'none' }}
+                  />
                 : <User size={14} className="text-[#FF6B2B]" />
               }
             </div>
@@ -274,7 +286,12 @@ export function ClientLayout() {
           <div className="flex items-center gap-2.5 md:hidden">
             {logoUrl ? (
               <>
-                <img src={logoUrl} alt={nomApp} className="w-7 h-7 rounded-lg object-cover" />
+                <img
+                  src={logoUrl}
+                  alt={nomApp}
+                  className="w-7 h-7 rounded-lg object-cover"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = 'none' }}
+                />
                 <span className="font-bold tracking-tight text-[var(--text-primary)] text-base">{nomApp}</span>
               </>
             ) : (
@@ -509,6 +526,17 @@ export function ClientLayout() {
             </ul>
           </div>
         </nav>
+      )}
+
+      {/* ══════════ OFFLINE BANNER ══════════ */}
+      {isOffline && (
+        <div
+          className="fixed top-0 left-0 right-0 z-[200] flex items-center justify-center gap-2 py-2 px-4 text-xs font-semibold"
+          style={{ background: 'rgba(30,30,30,0.97)', color: 'rgba(245,245,243,0.75)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+        >
+          <WifiOff size={12} />
+          <span>Mode hors ligne — les données affichées sont les dernières chargées</span>
+        </div>
       )}
     </div>
   )
