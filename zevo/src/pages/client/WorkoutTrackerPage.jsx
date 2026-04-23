@@ -253,7 +253,14 @@ export default function WorkoutTrackerPage() {
   // ── Sync différée : rejoue les séances terminées hors-ligne dès reconnexion ──
   useEffect(() => {
     if (isOffline) return
-    const pending = JSON.parse(localStorage.getItem(PENDING_SEANCES_KEY) || '[]')
+    let pending = []
+    try {
+      pending = JSON.parse(localStorage.getItem(PENDING_SEANCES_KEY) || '[]')
+      if (!Array.isArray(pending)) pending = []
+    } catch {
+      localStorage.removeItem(PENDING_SEANCES_KEY)
+      return
+    }
     if (pending.length === 0) return
 
     const syncPending = async () => {
@@ -331,7 +338,13 @@ export default function WorkoutTrackerPage() {
 
   // ── Sauvegarder une séance en localStorage pour sync différée ──
   const savePendingSeance = useCallback((id) => {
-    const pending = JSON.parse(localStorage.getItem(PENDING_SEANCES_KEY) || '[]')
+    let pending = []
+    try {
+      pending = JSON.parse(localStorage.getItem(PENDING_SEANCES_KEY) || '[]')
+      if (!Array.isArray(pending)) pending = []
+    } catch {
+      pending = []
+    }
     if (!pending.includes(id)) {
       localStorage.setItem(PENDING_SEANCES_KEY, JSON.stringify([...pending, id]))
     }
@@ -384,7 +397,10 @@ export default function WorkoutTrackerPage() {
 
             // 3. Filtrer ceux qui ont intervalle === 'post_seance'
             const formsToSend = (postSeanceForms || []).filter(f => {
-              const rec = typeof f.recurrence === 'string' ? JSON.parse(f.recurrence) : f.recurrence
+              let rec = f.recurrence
+              if (typeof rec === 'string') {
+                try { rec = JSON.parse(rec) } catch { return false }
+              }
               return rec?.intervalle === 'post_seance' && rec?.actif === true
             })
 

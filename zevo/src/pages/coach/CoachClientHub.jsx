@@ -4325,7 +4325,10 @@ function SuiviTab({ coachId, clientId }) {
 
         // Enrichir chaque formulaire avec son type effectif (post_seance si recurrence)
         const enrichedForms = allFormulaires.map(f => {
-          const rec = typeof f.recurrence === 'string' ? JSON.parse(f.recurrence) : f.recurrence
+          let rec = f.recurrence
+          if (typeof rec === 'string') {
+            try { rec = JSON.parse(rec) } catch { rec = null }
+          }
           const isPostSeance = rec?.intervalle === 'post_seance' && rec?.actif === true
           return { ...f, effectiveType: isPostSeance ? 'post_seance' : (f.type || 'custom') }
         })

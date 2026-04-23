@@ -6,6 +6,9 @@
 import { createClient } from '@supabase/supabase-js'
 
 const ALLOWED_ORIGINS = [
+  'https://zevo-one.com',
+  'https://app.zevo-one.com',
+  'https://www.zevo-one.com',
   'https://zevo-one.vercel.app',
   'https://www.zevo-one.vercel.app',
   process.env.NEXT_PUBLIC_SITE_URL,
@@ -22,6 +25,18 @@ function setCors(req, res) {
 
 const BUCKET = 'exercise-gifs'
 
+async function verifyAuth(req, sbUrl, sbKey) {
+  const authHeader = req.headers.authorization
+  if (!authHeader?.startsWith('Bearer ')) return null
+  const token = authHeader.replace('Bearer ', '')
+  const authClient = createClient(sbUrl, sbKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+  const { data: { user }, error } = await authClient.auth.getUser(token)
+  if (error || !user) return null
+  return user
+}
+
 export default async function handler(req, res) {
   setCors(req, res)
   if (req.method === 'OPTIONS') return res.status(200).end()
@@ -29,8 +44,14 @@ export default async function handler(req, res) {
 
   const sbUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
   const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  const rapidApiKey = process.env.VITE_RAPIDAPI_KEY || process.env.RAPIDAPI_KEY
-  const rapidApiHost = process.env.VITE_RAPIDAPI_HOST || process.env.RAPIDAPI_HOST || 'exercisedb.p.rapidapi.com'
+  const rapidApiKey = process.env.RAPIDAPI_KEY || process.env.VITE_RAPIDAPI_KEY
+  const rapidApiHost = process.env.RAPIDAPI_HOST || process.env.VITE_RAPIDAPI_HOST || 'exercisedb.p.rapidapi.com'
+
+  // SECURITY : restreindre aux users authentifies (evite les abus de quota RapidAPI)
+  if (sbUrl && sbKey) {
+    const user = await verifyAuth(req, sbUrl, sbKey)
+    if (!user) return res.status(401).json({ error: 'Non autorise' })
+  }
 
   console.log('[exercise-gif] ENV check', {
     hasSbUrl: !!sbUrl,

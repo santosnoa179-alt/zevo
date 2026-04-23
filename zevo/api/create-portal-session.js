@@ -30,13 +30,33 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Non autorisé' })
     }
 
-    const { customerId } = req.body
+    // SECURITY : ne JAMAIS accepter customerId depuis le body.
+    // On le charge depuis `coaches` via auth.uid() pour garantir que
+    // le coach accède uniquement à SON portail Stripe.
+    const { data: coach, error: coachErr } = await supabase
+      .from('coaches')
+      .select('stripe_customer_id')
+      .eq('id', user.id)
+      .maybeSingle()
 
-    if (!customerId) {
-      return res.status(400).json({ error: 'customerId requis' })
+    if (coachErr) {
+      console.error('[create-portal-session] Erreur fetch coach:', coachErr)
+      return res.status(500).json({ error: 'Erreur base de données' })
     }
 
-    const siteUrl = 'https://zevo-one.vercel.app'
+    const customerId = coach?.stripe_customer_id
+    if (!customerId) {
+      return res.status(404).json({ error: 'Aucun compte Stripe associé' })
+    }
+
+    const origin = req.headers.origin || ''
+    const allowedOrigins = [
+      'https://zevo-one.com',
+      'https://app.zevo-one.com',
+      'https://www.zevo-one.com',
+      'https://zevo-one.vercel.app',
+    ]
+    const siteUrl = allowedOrigins.includes(origin) ? origin : 'https://zevo-one.vercel.app'
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,

@@ -113,7 +113,10 @@ export default function SeancesPage() {
                 .not('recurrence', 'is', null)
 
               const formsToSend = (postSeanceForms || []).filter(f => {
-                const rec = typeof f.recurrence === 'string' ? JSON.parse(f.recurrence) : f.recurrence
+                let rec = f.recurrence
+                if (typeof rec === 'string') {
+                  try { rec = JSON.parse(rec) } catch { return false }
+                }
                 return rec?.intervalle === 'post_seance' && rec?.actif === true
               })
 

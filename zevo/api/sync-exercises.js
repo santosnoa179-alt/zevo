@@ -5,6 +5,9 @@
 import { createClient } from '@supabase/supabase-js'
 
 const ALLOWED_ORIGINS = [
+  'https://zevo-one.com',
+  'https://app.zevo-one.com',
+  'https://www.zevo-one.com',
   'https://zevo-one.vercel.app',
   'https://www.zevo-one.vercel.app',
   process.env.NEXT_PUBLIC_SITE_URL,
@@ -137,6 +140,26 @@ export default async function handler(req, res) {
   const supabase = createClient(sbUrl, sbKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
+
+  // SECURITY : verifier l'auth + role coach (sync / translate sont des actions
+  // couteuses qui consomment des quotas RapidAPI + OpenAI)
+  const authHeader = req.headers.authorization
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Non autorise' })
+  }
+  const token = authHeader.replace('Bearer ', '')
+  const { data: { user }, error: authErr } = await supabase.auth.getUser(token)
+  if (authErr || !user) {
+    return res.status(401).json({ error: 'Non autorise' })
+  }
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (!profile || (profile.role !== 'coach' && profile.role !== 'admin')) {
+    return res.status(403).json({ error: 'Acces reserve aux coaches/admins' })
+  }
 
   const { action = 'sync' } = req.body || {}
 

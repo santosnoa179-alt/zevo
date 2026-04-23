@@ -10,6 +10,9 @@ const supabase = createClient(
 )
 
 const ALLOWED_ORIGINS = [
+  'https://zevo-one.com',
+  'https://app.zevo-one.com',
+  'https://www.zevo-one.com',
   'https://zevo-one.vercel.app',
   'https://www.zevo-one.vercel.app',
   process.env.NEXT_PUBLIC_SITE_URL,

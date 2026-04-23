@@ -132,7 +132,7 @@ export default function CoachParametresPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authSession?.access_token}`,
         },
-        body: JSON.stringify({ customerId: stripeCustomerId }),
+        body: JSON.stringify({}),
       })
       const { url, error } = await res.json()
       if (error) throw new Error(error)

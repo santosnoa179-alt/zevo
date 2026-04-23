@@ -50,6 +50,7 @@ export default function CoachDisponibilites({ open, onClose }) {
         data.forEach(d => {
           const jour = d.jour_semaine
           if (!s[jour]) return
+          if (!d.heure_debut || !d.heure_fin) return
           s[jour].actif = d.est_actif
           s[jour].ranges.push({
             debut: d.heure_debut.slice(0, 5),

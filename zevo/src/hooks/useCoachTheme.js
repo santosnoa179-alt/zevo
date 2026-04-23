@@ -17,28 +17,31 @@ export function useCoachTheme() {
 
   useEffect(() => {
     if (!user) return
+    let cancelled = false
 
     const loadTheme = async () => {
       // Récupère le coach_id du client connecté
-      const { data: clientData } = await supabase
+      const { data: clientData, error: clientErr } = await supabase
         .from('clients')
         .select('coach_id')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
-      if (!clientData?.coach_id) {
+      if (cancelled) return
+      if (clientErr || !clientData?.coach_id) {
         setLoading(false)
         return
       }
 
       // Charge les paramètres visuels du coach
-      const { data: coachData } = await supabase
+      const { data: coachData, error: coachErr } = await supabase
         .from('coaches')
         .select('couleur_primaire, nom_app, logo_url, message_bienvenue, modules')
         .eq('id', clientData.coach_id)
-        .single()
+        .maybeSingle()
 
-      if (!coachData) {
+      if (cancelled) return
+      if (coachErr || !coachData) {
         setLoading(false)
         return
       }
@@ -63,6 +66,7 @@ export function useCoachTheme() {
     }
 
     loadTheme()
+    return () => { cancelled = true }
   }, [user])
 
   return { nomApp, logoUrl, couleur, messageBienvenue, modules, loading }

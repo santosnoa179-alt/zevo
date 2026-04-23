@@ -52,7 +52,7 @@ export default function InvitePage() {
           .from('coaches')
           .select('nom_app')
           .eq('id', data.coach_id)
-          .single()
+          .maybeSingle()
         setInvitation({ ...data, coach_nom_app: coach?.nom_app || 'Zevo' })
       }
       setLoading(false)
@@ -80,24 +80,36 @@ export default function InvitePage() {
       const authData = await signup(invitation.email, password, { prenom })
 
       // Met à jour le profil avec le prénom
-      await supabase
+      const { error: profileErr } = await supabase
         .from('profiles')
         .update({ nom: prenom, role: 'client' })
         .eq('id', authData.user.id)
+      if (profileErr) {
+        console.error('[InvitePage] update profile error:', profileErr)
+        throw new Error('Impossible de finaliser le profil. Contacte ton coach.')
+      }
 
       // Crée l'entrée dans la table clients (inactif tant qu'il n'a pas payé)
-      await supabase.from('clients').insert({
+      const { error: clientErr } = await supabase.from('clients').insert({
         id: authData.user.id,
         coach_id: invitation.coach_id,
         actif: false,
         onboarding_complete: true,
       })
+      if (clientErr) {
+        console.error('[InvitePage] insert client error:', clientErr)
+        throw new Error('Impossible de créer le profil client. Contacte ton coach.')
+      }
 
       // Marque l'invitation comme acceptée
-      await supabase
+      const { error: inviteErr } = await supabase
         .from('invitations')
         .update({ acceptee: true })
         .eq('token', token)
+      if (inviteErr) {
+        // Non bloquant : le compte est créé, on log juste
+        console.warn('[InvitePage] update invitation error:', inviteErr)
+      }
 
       // Redirige vers l'app client
       navigate('/app', { replace: true })
@@ -110,7 +122,7 @@ export default function InvitePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center">
+      <div className="min-h-dvh bg-[var(--bg-base)] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -118,7 +130,7 @@ export default function InvitePage() {
 
   if (error && !invitation) {
     return (
-      <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center px-4 relative overflow-hidden">
+      <div className="min-h-dvh bg-[var(--bg-base)] flex items-center justify-center px-4 relative overflow-hidden">
         {/* Glow ambiant */}
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,107,43,0.08),transparent_55%)]" />
         <div className="relative z-10 w-full max-w-sm text-center">
@@ -135,7 +147,7 @@ export default function InvitePage() {
   const coachAppName = invitation?.coach_nom_app ?? 'Zevo'
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] relative overflow-hidden">
+    <div className="min-h-dvh bg-[var(--bg-base)] relative overflow-hidden">
       {/* Glow ambiant orange en haut */}
       <div
         aria-hidden
@@ -152,7 +164,7 @@ export default function InvitePage() {
         }}
       />
 
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-10">
+      <div className="relative z-10 min-h-dvh flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-md">
 
           {/* ── HEADER ── */}

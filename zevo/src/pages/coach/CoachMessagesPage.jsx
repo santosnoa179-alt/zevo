@@ -666,14 +666,14 @@ export default function CoachMessagesPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-dvh items-center justify-center">
         <div className="w-7 h-7 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-dvh overflow-hidden">
 
       {/* ── Sidebar — liste clients ── */}
       <div className={`flex flex-col w-full md:w-80 md:border-r md:border-[var(--border-base)] flex-shrink-0 bg-[var(--bg-base)] ${clientSelectionne ? 'hidden md:flex' : 'flex'}`}>
