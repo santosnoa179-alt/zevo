@@ -1117,49 +1117,33 @@ export default function WorkoutTrackerPage() {
       </div>
 
       {/* ═══════ BOTTOM NAV — Exercices Prev / Next ═══════ */}
-      <div className="flex-shrink-0 px-4 pb-6 pt-3 border-t border-[var(--border-base)] bg-[var(--bg-elevated)]">
-        {/* Quick dots navigation */}
-        <div className="flex items-center justify-center gap-1.5 mb-4">
-          {exercices.map((_, i) => {
-            const exoCompleted = completedSeries[i] && completedSeries[i].size >= (exercices[i]?.series || 0)
-            return (
-              <button
-                key={i}
-                onClick={() => goToExercice(i)}
-                className={`rounded-full transition-all ${
-                  i === currentIdx
-                    ? 'w-8 h-2 bg-[#FF6B2B]'
-                    : exoCompleted
-                      ? 'w-2 h-2 bg-[#FF6B2B]/40'
-                      : 'w-2 h-2 bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)]'
-                }`}
-              />
-            )
-          })}
-        </div>
-
-        <div className="flex gap-3">
-          {/* Précédent */}
+      <div
+        className="flex-shrink-0 px-4 pt-2 border-t border-[var(--border-base)] bg-[var(--bg-elevated)]"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        <div className="flex gap-2.5">
+          {/* Précédent — compact icon button */}
           <button
             onClick={() => goToExercice(currentIdx - 1)}
             disabled={currentIdx === 0}
-            className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-[var(--bg-surface)] text-[var(--text-secondary)] text-sm font-bold hover:bg-[var(--bg-surface)] active:scale-[0.98] transition-all disabled:opacity-20 disabled:pointer-events-none"
+            aria-label="Exercice précédent"
+            className="flex-shrink-0 w-14 h-14 flex items-center justify-center rounded-2xl bg-[var(--bg-surface)] text-[var(--text-secondary)] active:scale-[0.95] transition-all disabled:opacity-20 disabled:pointer-events-none"
           >
-            <ChevronLeft className="w-5 h-5" /> Précédent
+            <ChevronLeft className="w-5 h-5" />
           </button>
 
-          {/* Suivant / Terminer */}
+          {/* Suivant / Terminer — main action */}
           {isLastExo ? (
             <button
               onClick={finishWorkout}
-              className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] text-white text-sm font-bold active:scale-[0.98] transition-all shadow-lg shadow-[#FF6B2B]/25"
+              className="flex-1 h-14 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] text-white text-[15px] font-bold active:scale-[0.98] transition-all shadow-lg shadow-[#FF6B2B]/30"
             >
-              <Trophy className="w-5 h-5" /> Terminer
+              <Trophy className="w-5 h-5" /> Terminer la séance
             </button>
           ) : (
             <button
               onClick={() => goToExercice(currentIdx + 1)}
-              className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#e55e24] active:scale-[0.98] transition-all shadow-lg shadow-[#FF6B2B]/25"
+              className="flex-1 h-14 flex items-center justify-center gap-2 rounded-2xl bg-[#FF6B2B] text-white text-[15px] font-bold hover:bg-[#e55e24] active:scale-[0.98] transition-all shadow-lg shadow-[#FF6B2B]/30"
             >
               Suivant <ChevronRight className="w-5 h-5" />
             </button>
