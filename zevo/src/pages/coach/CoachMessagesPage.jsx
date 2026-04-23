@@ -683,7 +683,7 @@ export default function CoachMessagesPage() {
   }
 
   return (
-    <div className="flex h-dvh overflow-hidden">
+    <div className="fixed inset-0 md:left-64 flex bg-[var(--bg-base)] z-50 overflow-hidden">
 
       {/* ── Sidebar — liste clients ── */}
       <div className={`flex flex-col w-full md:w-80 md:border-r md:border-[var(--border-base)] flex-shrink-0 bg-[var(--bg-base)] ${clientSelectionne ? 'hidden md:flex' : 'flex'}`}>

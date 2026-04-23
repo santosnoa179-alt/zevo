@@ -740,7 +740,7 @@ export function CoachLayout() {
       {/* ══════════════════════════════════════ */}
       {/* BOTTOM NAV MOBILE                     */}
       {/* ══════════════════════════════════════ */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-elevated)]/95 backdrop-blur-lg border-t border-[var(--border-base)]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <nav className={`${menuOpen ? 'hidden' : 'md:hidden'} fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-elevated)]/95 backdrop-blur-lg border-t border-[var(--border-base)]`} style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <ul className="flex items-center justify-around h-14">
           {MOBILE_NAV.map(({ to, icon: Icon, label }) => {
             const isMsgTab = to === '/coach/messages'
