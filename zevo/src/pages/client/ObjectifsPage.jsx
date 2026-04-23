@@ -259,7 +259,7 @@ export default function ObjectifsPage() {
 
   // ── Loading skeleton ──
   if (loading) return (
-    <div className="p-4 space-y-4 max-w-2xl">
+    <div className="p-4 space-y-4 max-w-4xl mx-auto">
       <div className="skel-block h-8 w-40" />
       <div className="skel-block h-52 w-full rounded-2xl" />
       <div className="skel-block h-16 w-full rounded-2xl" />
@@ -272,7 +272,7 @@ export default function ObjectifsPage() {
   const hasChartData = chartData.length >= 2
 
   return (
-    <div className={`p-4 pb-28 space-y-5 max-w-2xl ${pageTransition.className}`}>
+    <div className={`p-4 pb-28 md:pb-8 space-y-5 max-w-4xl mx-auto ${pageTransition.className}`}>
 
       {/* ═══════════════ HEADER ═══════════════ */}
       <div className="pt-2">

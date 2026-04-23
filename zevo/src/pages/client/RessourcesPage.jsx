@@ -60,7 +60,7 @@ export default function RessourcesPage() {
   }
 
   return (
-    <div className={`p-4 max-w-2xl space-y-4 ${pageTransition.className}`}>
+    <div className={`p-4 max-w-4xl mx-auto space-y-4 ${pageTransition.className}`}>
       <div className="pt-4">
         <h1 className="text-[var(--text-primary)] text-xl font-bold">Ressources</h1>
         <p className="text-[var(--text-muted)] text-sm mt-0.5">Fichiers et liens partagés par ton coach</p>

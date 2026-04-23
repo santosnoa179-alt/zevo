@@ -94,7 +94,7 @@ export default function ProfilPage() {
   }
 
   return (
-    <div className={`p-4 space-y-4 max-w-2xl ${pageTransition.className}`}>
+    <div className={`p-4 space-y-4 max-w-4xl mx-auto ${pageTransition.className}`}>
 
       {/* ── En-tête ── */}
       <div className="pt-4">

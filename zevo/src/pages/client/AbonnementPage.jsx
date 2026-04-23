@@ -262,7 +262,7 @@ export default function AbonnementPage() {
 
   if (loading) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
+      <div className="p-6 max-w-4xl mx-auto">
         <div className="h-8 w-48 bg-[var(--bg-card)] rounded-lg animate-pulse mb-8" />
         <div className="space-y-4">
           {[1, 2].map(i => <div key={i} className="h-32 bg-[var(--bg-card)] rounded-xl animate-pulse" />)}
@@ -272,7 +272,7 @@ export default function AbonnementPage() {
   }
 
   return (
-    <div className={`p-6 max-w-2xl mx-auto ${pageTransition.className}`}>
+    <div className={`p-6 max-w-4xl mx-auto ${pageTransition.className}`}>
       <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Mon abonnement</h1>
       <p className="text-[var(--text-muted)] text-sm mb-8">Offres de coaching et historique de paiements</p>
 

@@ -118,7 +118,7 @@ export default function HabitudesPage() {
 
   if (loading) {
     return (
-      <div className="p-4 space-y-3 max-w-2xl animate-pulse">
+      <div className="p-4 space-y-3 max-w-4xl mx-auto animate-pulse">
         <div className="pt-4 flex justify-between items-center">
           <div className="space-y-1"><div className="h-7 w-36 bg-[var(--bg-surface)] rounded" /><div className="h-4 w-44 bg-[var(--bg-surface)] rounded" /></div>
           <div className="h-9 w-24 bg-[var(--bg-surface)] rounded-lg" />
@@ -131,7 +131,7 @@ export default function HabitudesPage() {
   const cocheesCeJour = habitudes.filter(h => logAujourdhui.includes(h.id)).length
 
   return (
-    <div className={`p-4 space-y-4 max-w-2xl ${pageTransition.className}`}>
+    <div className={`p-4 space-y-4 max-w-4xl mx-auto ${pageTransition.className}`}>
 
       {/* ── En-tête ── */}
       <div className={`pt-4 flex items-center justify-between ${stagger[0].className}`} style={stagger[0].style}>

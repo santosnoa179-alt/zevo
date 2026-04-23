@@ -117,7 +117,7 @@ export default function FormulairesPage() {
     // Écran de succès après soumission
     if (submitted) {
       return (
-        <div className="p-6 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="p-6 max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[60vh]">
           <div className="w-16 h-16 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center mb-4">
             <Check size={32} className="text-[#FF6B2B]" />
           </div>
@@ -139,7 +139,7 @@ export default function FormulairesPage() {
     const progress = champs.length > 0 ? ((currentStep + 1) / champs.length) * 100 : 0
 
     return (
-      <div className="p-6 max-w-lg mx-auto">
+      <div className="p-6 max-w-4xl mx-auto">
         {/* Header */}
         <button
           onClick={retourListe}
@@ -321,7 +321,7 @@ export default function FormulairesPage() {
   const completes = formulaires.filter(f => f.complete)
 
   return (
-    <div className={`p-6 max-w-2xl mx-auto ${pageTransition.className}`}>
+    <div className={`p-6 max-w-4xl mx-auto ${pageTransition.className}`}>
       <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1">Formulaires</h1>
       <p className="text-[var(--text-muted)] text-sm mb-8">Questionnaires envoyés par votre coach</p>
 

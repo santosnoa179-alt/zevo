@@ -179,7 +179,7 @@ export default function SeancesPage() {
   }
 
   return (
-    <div className={`p-4 space-y-5 max-w-2xl ${pageTransition.className}`}>
+    <div className={`p-4 space-y-5 max-w-4xl mx-auto ${pageTransition.className}`}>
 
       {/* ── Header ── */}
       <div className={`pt-2 ${stagger[0].className}`} style={stagger[0].style}>

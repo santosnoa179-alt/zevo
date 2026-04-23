@@ -674,7 +674,7 @@ export default function DashboardPage() {
   // ══════════════════════════════════════════════════════════
   if (loading) {
     return (
-      <div className="p-5 pb-28 space-y-4 max-w-lg mx-auto">
+      <div className="p-5 pb-28 space-y-4 max-w-6xl mx-auto">
         {/* Header skeleton */}
         <div className="pt-2 flex items-center justify-between">
           <div className="space-y-2">
@@ -704,13 +704,13 @@ export default function DashboardPage() {
   //  RENDER
   // ══════════════════════════════════════════════════════════
   return (
-    <div className={`p-5 pb-28 space-y-4 max-w-lg mx-auto ${pageTransition.className}`} {...pullHandlers}>
+    <div className={`px-5 md:px-8 pb-28 md:pb-10 max-w-6xl mx-auto ${pageTransition.className}`} {...pullHandlers}>
       <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} />
       <Confetti active={showAllDoneConfetti} />
       <StreakMilestone streak={streak} />
 
       {/* ═══════════════ HEADER ═══════════════ */}
-      <div className={`pt-2 flex items-start justify-between ${stagger[0].className}`} style={stagger[0].style}>
+      <div className={`pt-5 flex items-start justify-between ${stagger[0].className}`} style={stagger[0].style}>
         <div className="flex-1 min-w-0">
           <h1 className="text-[var(--text-primary)] text-[26px] font-extrabold tracking-tight leading-tight flex items-center gap-2.5">
             <span className="truncate">{greeting.text}</span>
@@ -747,643 +747,651 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* ═══════════════ PROCHAINE ETAPE (CTA contextuel) ═══════════════ */}
-      {nextStep && (
-        <button
-          onClick={nextStep.action || undefined}
-          className={`group w-full rounded-2xl border p-3.5 text-left active:scale-[0.98] transition-all ${stagger[1].className}`}
-          style={{
-            ...stagger[1].style,
-            background: `linear-gradient(135deg, ${nextStep.color}0A, transparent)`,
-            borderColor: `${nextStep.color}15`,
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: `${nextStep.color}12` }}>
-              <nextStep.icon size={18} style={{ color: nextStep.color }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[9px] uppercase tracking-widest font-bold mb-0.5" style={{ color: `${nextStep.color}80` }}>
-                Prochaine action
-              </p>
-              <p className="text-[var(--text-primary)] text-sm font-bold leading-snug">{nextStep.label}</p>
-            </div>
-            <ChevronRight size={16} className="text-[var(--text-muted)] group-hover:translate-x-0.5 transition-transform" />
-          </div>
-        </button>
-      )}
+      {/* ═══════════════ GRILLE 2 COLONNES (desktop) ═══════════════ */}
+      <div className="md:grid md:grid-cols-2 md:gap-6 md:items-start space-y-4 md:space-y-0 mt-4">
 
-      {/* ═══════════════ STREAK ═══════════════ */}
-      {streak > 0 && (
-        <StreakBadge streak={streak} staggerClass={stagger[2].className} staggerStyle={stagger[2].style} />
-      )}
+        {/* ── COLONNE GAUCHE : prochaine action · streak · séance · habitudes · programmes ── */}
+        <div className="space-y-4">
 
-      {/* ═══════════════ CHECK-IN QUOTIDIEN ═══════════════ */}
-      {(!sommeilSaved || !humeurSaved) && (
-        <div className={`glass-card p-4 ${stagger[3].className}`} style={stagger[3].style}>
-          {/* Accent line */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
-            style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF9A6C, transparent)' }} />
-
-          <div className="relative">
-            <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold mb-3.5">
-              Check-in du jour
-            </p>
-
-            <div className="grid grid-cols-2 gap-3">
-              {/* ── Widget Sommeil ── */}
-              <div className={`rounded-xl p-3.5 transition-all duration-500 ${
-                sommeilSaved
-                  ? 'bg-[#FF9A6C]/[0.06] ring-1 ring-[#FF9A6C]/15'
-                  : 'bg-[var(--bg-surface)]/50'
-              }`}>
-                {sommeilSaved ? (
-                  <div className="text-center py-1">
-                    <div className="w-9 h-9 rounded-lg bg-[#FF9A6C]/10 flex items-center justify-center mx-auto mb-2">
-                      <Moon size={16} className="text-[#FF9A6C]" />
-                    </div>
-                    <p className="text-[#FF9A6C] text-lg font-black leading-none">{sommeilInput}h</p>
-                    <p className="text-[#FF9A6C]/40 text-[9px] mt-1 font-medium">Enregistré</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-1.5 mb-3">
-                      <Moon size={12} className="text-[#FF9A6C]" />
-                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-wider font-bold">Sommeil</p>
-                    </div>
-                    <div className="flex items-center justify-center gap-2.5 mb-3">
-                      <button
-                        onClick={() => setSommeilInput(v => Math.max(0, +(v - 0.5).toFixed(1)))}
-                        className="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[#FF9A6C] transition-all active:scale-90"
-                      >
-                        <Minus size={14} />
-                      </button>
-                      <div className="text-center min-w-[44px]">
-                        <p className="text-[var(--text-primary)] text-2xl font-black leading-none tabular-nums">{sommeilInput}</p>
-                        <p className="text-[var(--text-muted)] text-[8px] mt-0.5 font-medium">heures</p>
-                      </div>
-                      <button
-                        onClick={() => setSommeilInput(v => Math.min(14, +(v + 0.5).toFixed(1)))}
-                        className="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[#FF9A6C] transition-all active:scale-90"
-                      >
-                        <Plus size={14} />
-                      </button>
-                    </div>
-                    <button
-                      onClick={saveSommeil}
-                      disabled={sommeilSaving}
-                      className="w-full py-2 rounded-lg bg-[#FF9A6C]/15 text-[#FF9A6C] text-[11px] font-bold hover:bg-[#FF9A6C]/25 transition-all active:scale-95 disabled:opacity-50"
-                    >
-                      {sommeilSaving ? '...' : 'Valider'}
-                    </button>
-                  </>
-                )}
+          {/* ═══════════════ PROCHAINE ETAPE (CTA contextuel) ═══════════════ */}
+          {nextStep && (
+            <button
+              onClick={nextStep.action || undefined}
+              className={`group w-full rounded-2xl border p-3.5 text-left active:scale-[0.98] transition-all ${stagger[1].className}`}
+              style={{
+                ...stagger[1].style,
+                background: `linear-gradient(135deg, ${nextStep.color}0A, transparent)`,
+                borderColor: `${nextStep.color}15`,
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${nextStep.color}12` }}>
+                  <nextStep.icon size={18} style={{ color: nextStep.color }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[9px] uppercase tracking-widest font-bold mb-0.5" style={{ color: `${nextStep.color}80` }}>
+                    Prochaine action
+                  </p>
+                  <p className="text-[var(--text-primary)] text-sm font-bold leading-snug">{nextStep.label}</p>
+                </div>
+                <ChevronRight size={16} className="text-[var(--text-muted)] group-hover:translate-x-0.5 transition-transform" />
               </div>
+            </button>
+          )}
 
-              {/* ── Widget Humeur ── */}
-              <div className={`rounded-xl p-3.5 transition-all duration-500 ${
-                humeurSaved
-                  ? 'bg-[#FF6B2B]/[0.06] ring-1 ring-[#FF6B2B]/15'
-                  : 'bg-[var(--bg-surface)]/50'
-              }`}>
-                {humeurSaved ? (
-                  <div className="text-center py-1">
-                    <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-2">
-                      <Smile size={16} className="text-[#FF6B2B]" />
-                    </div>
-                    <p className="text-[#FF6B2B] text-sm font-black leading-none">
-                      {['Mal', 'Bof', 'Ok', 'Bien', 'Top'][Math.min(4, Math.max(0, Math.round((humeurInput || 5) / 2) - 1))]}
+          {/* ═══════════════ STREAK ═══════════════ */}
+          {streak > 0 && (
+            <StreakBadge streak={streak} staggerClass={stagger[2].className} staggerStyle={stagger[2].style} />
+          )}
+
+          {/* ═══════════════ SÉANCE DU JOUR ═══════════════ */}
+          {seanceDuJour ? (
+            <div className={`relative overflow-hidden rounded-2xl border ${
+              seanceDuJour.is_completed
+                ? 'border-[#FF9A6C]/12'
+                : 'border-[var(--color-primary,#FF6B2B)]/15'
+            } ${stagger[5].className}`}
+              style={{
+                ...stagger[5].style,
+                background: seanceDuJour.is_completed
+                  ? 'linear-gradient(135deg, rgba(255,154,108,0.06), var(--bg-card) 60%)'
+                  : 'linear-gradient(135deg, rgba(255,107,43,0.08), var(--bg-card) 60%)',
+              }}
+            >
+              <div className={`absolute top-0 right-0 w-36 h-36 rounded-full -translate-y-10 translate-x-10 blur-3xl pointer-events-none ${
+                seanceDuJour.is_completed ? 'bg-[#FF9A6C]/4' : 'bg-[var(--color-primary,#FF6B2B)]/4'
+              }`} />
+
+              <div className="relative p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Dumbbell size={13} className={seanceDuJour.is_completed ? 'text-[#FF9A6C]' : 'text-[var(--color-primary,#FF6B2B)]'} />
+                    <p className={`text-[10px] uppercase tracking-widest font-bold ${
+                      seanceDuJour.is_completed ? 'text-[#FF9A6C]/70' : 'text-[var(--color-primary,#FF6B2B)]/70'
+                    }`}>
+                      Séance du jour
                     </p>
-                    <p className="text-[#FF6B2B]/40 text-[9px] mt-1 font-medium">Enregistré</p>
                   </div>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-1.5 mb-3">
-                      <Smile size={12} className="text-[#FF6B2B]" />
-                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-wider font-bold">Humeur</p>
-                    </div>
-                    <div className="flex items-center justify-between mb-1">
-                      {[
-                        { icon: Frown, score: 2, label: 'Mal', color: '#7A7A78' },
-                        { icon: Meh, score: 4, label: 'Bof', color: '#C94A15' },
-                        { icon: Minus, score: 6, label: 'Ok', color: '#E85A1F' },
-                        { icon: Smile, score: 8, label: 'Bien', color: '#FF6B2B' },
-                        { icon: Sparkles, score: 10, label: 'Top', color: '#FF9A6C' },
-                      ].map(({ icon: MoodIcon, score, label, color }) => (
-                        <button
-                          key={score}
-                          onClick={() => saveHumeur(score)}
-                          disabled={humeurSaving}
-                          className={`flex flex-col items-center gap-0.5 transition-all active:scale-90 ${
-                            humeurInput === score ? '' : ''
-                          }`}
-                        >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all`}
-                            style={{
-                              background: humeurInput === score ? `${color}18` : 'var(--bg-card)',
-                              border: humeurInput === score ? `1.5px solid ${color}35` : '1.5px solid var(--border-base)',
-                              transform: humeurInput === score ? 'scale(1.1)' : 'scale(1)',
-                            }}
-                          >
-                            <MoodIcon size={13} style={{ color: humeurInput === score ? color : 'var(--text-muted)' }} />
-                          </div>
-                          <span className="text-[7px] font-bold leading-none mt-0.5" style={{ color: humeurInput === score ? color : 'var(--text-muted)' }}>
-                            {label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════ FORMULAIRES EN ATTENTE ═══════════════ */}
-      {formsPending.length > 0 && formsPending.map((form, idx) => {
-        const formInfo = form.formulaires || {}
-        const typeIcons = { bilan: ClipboardList, satisfaction: Star, evaluation: TrendingUp, feedback: MessageCircle }
-        const typeLabels = { bilan: 'Bilan', satisfaction: 'Satisfaction', evaluation: 'Évaluation', feedback: 'Feedback' }
-        const FormIcon = typeIcons[formInfo.type] || ClipboardList
-        const typeLabel = typeLabels[formInfo.type] || 'Formulaire'
-        const daysAgo = Math.floor((Date.now() - new Date(form.created_at).getTime()) / 86400000)
-        const dateLabel = daysAgo === 0 ? "Aujourd'hui" : daysAgo === 1 ? 'Hier' : `Il y a ${daysAgo}j`
-
-        return (
-          <button
-            key={form.id}
-            onClick={() => navigate('/app/formulaires')}
-            className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border border-[#FF9A6C]/12 active:scale-[0.98] transition-all ${stagger[4].className}`}
-            style={{
-              ...stagger[4].style,
-              animationDelay: `${(stagger[4].style?.animationDelay ? parseInt(stagger[4].style.animationDelay) : 0) + idx * 60}ms`,
-              background: 'linear-gradient(135deg, rgba(255,154,108,0.06), transparent)',
-            }}
-          >
-            <div className="w-10 h-10 rounded-xl bg-[#FF9A6C]/10 flex items-center justify-center flex-shrink-0 relative">
-              <FormIcon size={18} className="text-[#FF9A6C]" />
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#FF6B2B] rounded-full ring-2 ring-[var(--bg-card)]" />
-            </div>
-            <div className="flex-1 text-left min-w-0">
-              <p className="text-[var(--text-primary)] font-semibold text-sm truncate">
-                {formInfo.titre || 'Formulaire à remplir'}
-              </p>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[#FF9A6C]/60 text-[11px] font-medium">{typeLabel}</span>
-                <span className="text-[var(--text-muted)] text-[11px]">{dateLabel}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1 bg-[#FF9A6C]/10 px-2.5 py-1.5 rounded-lg flex-shrink-0">
-              <span className="text-[#FF9A6C] text-[11px] font-semibold">Remplir</span>
-              <ChevronRight size={12} className="text-[#FF9A6C]/50" />
-            </div>
-          </button>
-        )
-      })}
-
-      {/* ═══════════════ SÉANCE DU JOUR ═══════════════ */}
-      {seanceDuJour ? (
-        <div className={`relative overflow-hidden rounded-2xl border ${
-          seanceDuJour.is_completed
-            ? 'border-[#FF9A6C]/12'
-            : 'border-[var(--color-primary,#FF6B2B)]/15'
-        } ${stagger[5].className}`}
-          style={{
-            ...stagger[5].style,
-            background: seanceDuJour.is_completed
-              ? 'linear-gradient(135deg, rgba(255,154,108,0.06), var(--bg-card) 60%)'
-              : 'linear-gradient(135deg, rgba(255,107,43,0.08), var(--bg-card) 60%)',
-          }}
-        >
-          {/* Background decoration */}
-          <div className={`absolute top-0 right-0 w-36 h-36 rounded-full -translate-y-10 translate-x-10 blur-3xl pointer-events-none ${
-            seanceDuJour.is_completed ? 'bg-[#FF9A6C]/4' : 'bg-[var(--color-primary,#FF6B2B)]/4'
-          }`} />
-
-          <div className="relative p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Dumbbell size={13} className={seanceDuJour.is_completed ? 'text-[#FF9A6C]' : 'text-[var(--color-primary,#FF6B2B)]'} />
-                <p className={`text-[10px] uppercase tracking-widest font-bold ${
-                  seanceDuJour.is_completed ? 'text-[#FF9A6C]/70' : 'text-[var(--color-primary,#FF6B2B)]/70'
-                }`}>
-                  Séance du jour
-                </p>
-              </div>
-              {seanceDuJour.is_completed && (
-                <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FF9A6C]/10 text-[#FF9A6C] text-[10px] font-bold">
-                  <Check size={10} strokeWidth={3} />
-                  Terminée
-                </span>
-              )}
-            </div>
-
-            <h2 className="text-[var(--text-primary)] text-lg font-bold mb-1 leading-snug">{seanceDuJour.titre}</h2>
-
-            {seanceExos.length > 0 && (
-              <p className="text-[var(--text-muted)] text-xs mb-4">
-                {seanceExos.length} exercice{seanceExos.length > 1 ? 's' : ''}
-              </p>
-            )}
-
-            {seanceExos.length > 0 && !seanceDuJour.is_completed && (
-              <div className="space-y-1.5 mb-5">
-                {seanceExos.slice(0, 3).map((exo) => (
-                  <div key={exo.id} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)]/60 border border-[var(--border-subtle)]">
-                    <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,#FF6B2B)]/8 flex items-center justify-center flex-shrink-0">
-                      <Dumbbell size={13} className="text-[var(--color-primary,#FF6B2B)]/70" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[var(--text-primary)] text-[13px] font-medium truncate">{exo.nom}</p>
-                      <p className="text-[var(--text-muted)] text-[10px]">
-                        {exo.series && `${exo.series}x`}{exo.repetitions && `${exo.repetitions}`}
-                        {exo.poids ? ` · ${exo.poids}kg` : ''}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                {seanceExos.length > 3 && (
-                  <p className="text-[var(--text-muted)] text-[11px] text-center pt-1">
-                    +{seanceExos.length - 3} autre{seanceExos.length - 3 > 1 ? 's' : ''}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {seanceDuJour.is_completed ? (
-              <button
-                onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
-                className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-[13px] tracking-wide text-[#FF9A6C] bg-[#FF9A6C]/8 border border-[#FF9A6C]/12 hover:bg-[#FF9A6C]/12 active:scale-[0.98] transition-all"
-              >
-                <CheckCircle2 size={15} />
-                VOIR LE RÉSUMÉ
-              </button>
-            ) : (
-              <button
-                onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
-                className="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-bold text-[13px] tracking-wide text-white active:scale-95 transition-all"
-                style={{
-                  background: 'linear-gradient(135deg, var(--color-primary, #FF6B2B), #FF9A6C)',
-                  boxShadow: '0 4px 24px rgba(255,107,43,0.3), 0 1px 3px rgba(0,0,0,0.2)',
-                }}
-              >
-                <Play size={15} className="fill-white" />
-                COMMENCER L'ENTRAÎNEMENT
-              </button>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className={`rounded-2xl bg-[var(--bg-card)] border border-dashed border-[var(--border-base)] p-5 ${stagger[5].className}`} style={stagger[5].style}>
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center flex-shrink-0">
-              <Dumbbell size={20} className="text-[var(--text-muted)]" />
-            </div>
-            <div>
-              <p className="text-[var(--text-secondary)] text-sm font-medium">Pas de séance aujourd'hui</p>
-              <p className="text-[var(--text-muted)] text-xs mt-0.5">Profite de ta journée de repos</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════ SCORE BIEN-ÊTRE ═══════════════ */}
-      <div className={`glass-card p-5 ${stagger[6].className}`} style={stagger[6].style}>
-        {/* Subtle ambient glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ background: couleur }} />
-
-        <div className="relative">
-          <SectionLabel icon={Activity} label="Bien-être" color={couleur}>
-            {trendDiff !== null && trendDiff !== 0 && (
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold ${
-                trendDiff > 0
-                  ? 'bg-[#FF6B2B]/8 text-[#FF6B2B]'
-                  : 'bg-red-500/8 text-red-400'
-              }`}>
-                {trendDiff > 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
-                {trendDiff > 0 ? '+' : ''}{trendDiff}
-              </div>
-            )}
-          </SectionLabel>
-
-          <div className="flex items-center gap-5">
-            <ScoreGauge score={score} couleur={couleur} size={110} />
-            <div className="flex-1 min-w-0 space-y-1">
-              <p className="text-xl font-extrabold leading-none mb-3" style={{ color: couleur }}>{label}</p>
-              {[
-                { icon: Moon, color: '#FF9A6C', text: sommeil ? `${sommeil.heures}h de sommeil` : 'Sommeil non renseigné' },
-                { icon: Smile, color: '#FF6B2B', text: humeur ? `Humeur ${humeur.score}/10` : 'Humeur non renseignée' },
-                { icon: Zap, color: '#FF6B2B', text: sport ? `Intensité ${sport.intensite}/5` : 'Pas d\'activité' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <item.icon size={12} style={{ color: item.color }} className="flex-shrink-0 opacity-70" />
-                  <span className="text-[var(--text-muted)] text-[11px] leading-snug">{item.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════════════ HABITUDES DU JOUR ═══════════════ */}
-      <div className={`glass-card p-5 ${stagger[7].className}`} style={stagger[7].style}>
-        <div className="relative">
-          <SectionLabel icon={Sparkles} label="Habitudes du jour">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-surface)]">
-              {allHabsDone && <Flame size={11} className="text-[var(--color-primary,#FF6B2B)]" />}
-              <span className="text-[var(--color-primary,#FF6B2B)] text-[11px] font-bold tabular-nums">
-                <AnimatedNumber value={cochees} duration={400} />/{totalHab}
-              </span>
-            </div>
-          </SectionLabel>
-
-          {habitudes.length === 0 ? (
-            <p className="text-[var(--text-muted)] text-sm text-center py-6">Aucune habitude assignée pour l'instant.</p>
-          ) : (
-            <div className="space-y-2">
-              {habitudes.map((h) => {
-                const fait = logAujourdhui.includes(h.id)
-                const accentColor = h.couleur ?? 'var(--color-primary, #FF6B2B)'
-                return (
-                  <button
-                    key={h.id}
-                    onClick={() => toggleHabitude(h.id)}
-                    disabled={toggling === h.id}
-                    className={`flex items-center gap-3 w-full text-left py-3 px-3.5 rounded-xl transition-all duration-200 active:scale-[0.97] disabled:opacity-50 ${
-                      fait
-                        ? 'bg-[var(--bg-surface)]/50'
-                        : 'bg-[var(--bg-surface)]/80 hover:bg-[var(--bg-surface)]'
-                    }`}
-                    style={fait ? { borderLeft: `2px solid ${accentColor}30` } : { borderLeft: '2px solid transparent' }}
-                  >
-                    {fait ? (
-                      <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
-                           style={{ backgroundColor: `${accentColor}15` }}>
-                        <CheckCircle2 size={16} style={{ color: accentColor }} />
-                      </div>
-                    ) : (
-                      <div className="w-6 h-6 rounded-md bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center flex-shrink-0">
-                        <Circle size={14} className="text-[var(--text-muted)]" />
-                      </div>
-                    )}
-                    <span className={`text-[13px] font-medium flex-1 transition-colors ${fait ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
-                      {h.nom}
+                  {seanceDuJour.is_completed && (
+                    <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FF9A6C]/10 text-[#FF9A6C] text-[10px] font-bold">
+                      <Check size={10} strokeWidth={3} />
+                      Terminée
                     </span>
-                    {h.assigned_by && (
-                      <span className="text-[8px] text-[var(--color-primary,#FF6B2B)]/60 bg-[var(--color-primary,#FF6B2B)]/8 px-2 py-0.5 rounded-md flex-shrink-0 font-bold uppercase tracking-wider">
-                        Coach
-                      </span>
+                  )}
+                </div>
+
+                <h2 className="text-[var(--text-primary)] text-lg font-bold mb-1 leading-snug">{seanceDuJour.titre}</h2>
+
+                {seanceExos.length > 0 && (
+                  <p className="text-[var(--text-muted)] text-xs mb-4">
+                    {seanceExos.length} exercice{seanceExos.length > 1 ? 's' : ''}
+                  </p>
+                )}
+
+                {seanceExos.length > 0 && !seanceDuJour.is_completed && (
+                  <div className="space-y-1.5 mb-5">
+                    {seanceExos.slice(0, 3).map((exo) => (
+                      <div key={exo.id} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)]/60 border border-[var(--border-subtle)]">
+                        <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,#FF6B2B)]/8 flex items-center justify-center flex-shrink-0">
+                          <Dumbbell size={13} className="text-[var(--color-primary,#FF6B2B)]/70" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[var(--text-primary)] text-[13px] font-medium truncate">{exo.nom}</p>
+                          <p className="text-[var(--text-muted)] text-[10px]">
+                            {exo.series && `${exo.series}x`}{exo.repetitions && `${exo.repetitions}`}
+                            {exo.poids ? ` · ${exo.poids}kg` : ''}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {seanceExos.length > 3 && (
+                      <p className="text-[var(--text-muted)] text-[11px] text-center pt-1">
+                        +{seanceExos.length - 3} autre{seanceExos.length - 3 > 1 ? 's' : ''}
+                      </p>
                     )}
+                  </div>
+                )}
+
+                {seanceDuJour.is_completed ? (
+                  <button
+                    onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-[13px] tracking-wide text-[#FF9A6C] bg-[#FF9A6C]/8 border border-[#FF9A6C]/12 hover:bg-[#FF9A6C]/12 active:scale-[0.98] transition-all"
+                  >
+                    <CheckCircle2 size={15} />
+                    VOIR LE RÉSUMÉ
                   </button>
-                )
-              })}
+                ) : (
+                  <button
+                    onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
+                    className="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-bold text-[13px] tracking-wide text-white active:scale-95 transition-all"
+                    style={{
+                      background: 'linear-gradient(135deg, var(--color-primary, #FF6B2B), #FF9A6C)',
+                      boxShadow: '0 4px 24px rgba(255,107,43,0.3), 0 1px 3px rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    <Play size={15} className="fill-white" />
+                    COMMENCER L'ENTRAÎNEMENT
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className={`rounded-2xl bg-[var(--bg-card)] border border-dashed border-[var(--border-base)] p-5 ${stagger[5].className}`} style={stagger[5].style}>
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[var(--bg-surface)] flex items-center justify-center flex-shrink-0">
+                  <Dumbbell size={20} className="text-[var(--text-muted)]" />
+                </div>
+                <div>
+                  <p className="text-[var(--text-secondary)] text-sm font-medium">Pas de séance aujourd'hui</p>
+                  <p className="text-[var(--text-muted)] text-xs mt-0.5">Profite de ta journée de repos</p>
+                </div>
+              </div>
             </div>
           )}
 
-          {totalHab > 0 && (
-            <div className="mt-3.5 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700 ease-out"
-                style={{
-                  width: `${Math.round((cochees / totalHab) * 100)}%`,
-                  background: allHabsDone
-                    ? 'linear-gradient(90deg, #FF6B2B, #FF9A6C)'
-                    : `linear-gradient(90deg, var(--color-primary, #FF6B2B), #FF9A6C)`,
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ═══════════════ MES PROGRAMMES ═══════════════ */}
-      {(programme || nutritionPlan) && (
-        <div className={`space-y-3 ${stagger[8].className}`} style={stagger[8].style}>
-          <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold px-1">Mes programmes</p>
-
-          <div className={`grid gap-3 ${programme && nutritionPlan ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            {/* ── Programme Sport ── */}
-            {programme && (
-              <button
-                onClick={() => navigate('/app/programme')}
-                className="glass-card p-4 text-left active:scale-[0.98] transition-transform"
-              >
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[var(--color-primary,#FF6B2B)] via-[#FF9A6C]/50 to-transparent" />
-
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,#FF6B2B)]/10 flex items-center justify-center">
-                      <Trophy size={14} className="text-[var(--color-primary,#FF6B2B)]" />
-                    </div>
-                    <ChevronRight size={14} className="text-[var(--text-muted)]" />
-                  </div>
-
-                  <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold mb-1">Sport</p>
-                  <p className="text-[var(--text-primary)] font-bold text-sm mb-1 truncate">{programme.programmes?.titre}</p>
-                  <p className="text-[var(--text-muted)] text-[11px] mb-3">
-                    Phase {programme.phase_actuelle}/{programmePhases.length}
-                  </p>
-
-                  {programmePhases.length > 0 && (
-                    <div className="flex gap-1 mb-2.5">
-                      {programmePhases.map((ph, i) => (
-                        <div
-                          key={ph.id}
-                          className="h-1.5 rounded-full flex-1 transition-all"
-                          style={{
-                            backgroundColor: i < programme.phase_actuelle
-                              ? 'var(--color-primary, #FF6B2B)'
-                              : 'var(--border-base)',
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  {progSeances.total > 0 && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${Math.round((progSeances.done / progSeances.total) * 100)}%`,
-                            background: 'linear-gradient(90deg, var(--color-primary, #FF6B2B), #FF9A6C)',
-                          }}
-                        />
-                      </div>
-                      <span className="text-[var(--text-muted)] text-[9px] font-medium flex-shrink-0 tabular-nums">
-                        {progSeances.done}/{progSeances.total}
-                      </span>
-                    </div>
-                  )}
+          {/* ═══════════════ HABITUDES DU JOUR ═══════════════ */}
+          <div className={`glass-card p-5 ${stagger[7].className}`} style={stagger[7].style}>
+            <div className="relative">
+              <SectionLabel icon={Sparkles} label="Habitudes du jour">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-surface)]">
+                  {allHabsDone && <Flame size={11} className="text-[var(--color-primary,#FF6B2B)]" />}
+                  <span className="text-[var(--color-primary,#FF6B2B)] text-[11px] font-bold tabular-nums">
+                    <AnimatedNumber value={cochees} duration={400} />/{totalHab}
+                  </span>
                 </div>
-              </button>
-            )}
+              </SectionLabel>
 
-            {/* ── Plan Nutrition ── */}
-            {nutritionPlan && (
-              <button
-                onClick={() => navigate('/app/programme?tab=nutrition')}
-                className="glass-card p-4 text-left active:scale-[0.98] transition-transform"
-              >
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF9A6C] via-[#FFB894]/50 to-transparent" />
-
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-[#FF9A6C]/10 flex items-center justify-center">
-                      <UtensilsCrossed size={14} className="text-[#FF9A6C]" />
-                    </div>
-                    <ChevronRight size={14} className="text-[var(--text-muted)]" />
-                  </div>
-
-                  <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold mb-1">Nutrition</p>
-                  <p className="text-[var(--text-primary)] font-bold text-sm mb-1 truncate">{nutritionPlan.nom}</p>
-                  <p className="text-[var(--text-muted)] text-[11px] mb-3">
-                    {nutriRepasCount} repas{nutritionPlan.duree_semaines ? ` · ${nutritionPlan.duree_semaines} sem.` : ''}
-                  </p>
-
-                  {nutritionPlan.duree_semaines > 0 && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${Math.round((nutriWeeksDone / nutritionPlan.duree_semaines) * 100)}%`,
-                            background: 'linear-gradient(90deg, #FF9A6C, #FFB894)',
-                          }}
-                        />
-                      </div>
-                      <span className="text-[var(--text-muted)] text-[9px] font-medium flex-shrink-0 tabular-nums">
-                        {nutriWeeksDone}/{nutritionPlan.duree_semaines}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════ NUTRITION DU JOUR ═══════════════ */}
-      {nutriMacros && nutriRepas.length > 0 && (
-        <div className={`glass-card p-5 ${stagger[9].className}`} style={stagger[9].style}>
-          <div className="relative">
-            <SectionLabel icon={UtensilsCrossed} label="Nutrition du jour" color="#FF9A6C">
-              <button
-                onClick={() => navigate('/app/programme')}
-                className="text-[#FF9A6C]/50 text-[10px] font-semibold hover:text-[#FF9A6C] transition-colors"
-              >
-                Voir le plan
-              </button>
-            </SectionLabel>
-
-            {/* Macros */}
-            <div className="grid grid-cols-4 gap-2 mb-4">
-              {[
-                { label: 'Calories', value: nutriMacros.kcal, unit: 'kcal', color: '#FF6B2B' },
-                { label: 'Protéines', value: nutriMacros.prot, unit: 'g', color: '#FF6B2B' },
-                { label: 'Glucides', value: nutriMacros.gluc, unit: 'g', color: '#FF9A6C' },
-                { label: 'Lipides', value: nutriMacros.lip, unit: 'g', color: '#FFB894' },
-              ].map((m, i) => (
-                <div key={i} className="text-center py-2.5 px-1 rounded-xl bg-[var(--bg-surface)]/60" style={{ borderTop: `2px solid ${m.color}25` }}>
-                  <p className="text-[var(--text-primary)] text-sm font-bold leading-none tabular-nums">{m.value}</p>
-                  <p className="text-[9px] font-medium mt-0.5" style={{ color: `${m.color}70` }}>{m.unit}</p>
-                  <p className="text-[var(--text-muted)] text-[8px] mt-0.5">{m.label}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Repas list */}
-            <div className="space-y-1.5">
-              {(() => {
-                const typeLabels = { petit_dej: 'Petit-déjeuner', dejeuner: 'Déjeuner', diner: 'Dîner', collation: 'Collation' }
-                const typeIcons = { petit_dej: Sunrise, dejeuner: Sun, diner: Moon, collation: Coffee }
-                const typeColors = { petit_dej: '#FF9A6C', dejeuner: '#FF6B2B', diner: '#7A7A78', collation: '#FFB894' }
-                return nutriRepas.map((repas, i) => {
-                  const nbAliments = repas.repas_aliments?.length || 0
-                  const RepasIcon = typeIcons[repas.type] || UtensilsCrossed
-                  const repasColor = typeColors[repas.type] || '#FF6B2B'
-                  return (
-                    <div key={repas.id || i} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)]/50"
-                      style={{ borderLeft: `2px solid ${repasColor}30` }}>
-                      <RepasIcon size={15} style={{ color: repasColor }} className="flex-shrink-0 opacity-70" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[var(--text-primary)] text-[13px] font-medium">{typeLabels[repas.type] || repas.type}</p>
-                        <p className="text-[var(--text-muted)] text-[10px]">{nbAliments} aliment{nbAliments > 1 ? 's' : ''}</p>
-                      </div>
-                    </div>
-                  )
-                })
-              })()}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════ GRAPHIQUE 7 JOURS ═══════════════ */}
-      <div className={`glass-card p-5 ${stagger[10].className}`} style={stagger[10].style}>
-        <div className="relative">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <TrendingUp size={13} className="text-[var(--color-primary,#FF6B2B)]" />
-              <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Score 7 jours</p>
-            </div>
-            {currentWeekAvg !== null && (
-              <span className="text-[var(--text-muted)] text-[10px] font-bold tabular-nums">
-                Moy. {currentWeekAvg}
-              </span>
-            )}
-          </div>
-
-          <p className="text-[var(--text-muted)] text-[11px] mb-4">
-            Évolution de ton bien-être sur la semaine
-          </p>
-
-          {weekData.some(d => d.score > 0) ? (
-            <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={weekData} margin={{ top: 5, right: 0, left: -28, bottom: 0 }}>
-                <XAxis
-                  dataKey="jour"
-                  tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 600 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  domain={[0, 100]}
-                  tick={{ fill: 'var(--text-muted)', fontSize: 9 }}
-                  axisLine={false}
-                  tickLine={false}
-                  ticks={[0, 50, 100]}
-                />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--border-base)', radius: 8 }} />
-                <Bar dataKey="score" radius={[6, 6, 2, 2]} maxBarSize={30}>
-                  {weekData.map((entry, index) => {
-                    const isToday = index === weekData.length - 1
+              {habitudes.length === 0 ? (
+                <p className="text-[var(--text-muted)] text-sm text-center py-6">Aucune habitude assignée pour l'instant.</p>
+              ) : (
+                <div className="space-y-2">
+                  {habitudes.map((h) => {
+                    const fait = logAujourdhui.includes(h.id)
+                    const accentColor = h.couleur ?? 'var(--color-primary, #FF6B2B)'
                     return (
-                      <Cell
-                        key={index}
-                        fill="var(--color-primary, #FF6B2B)"
-                        fillOpacity={isToday ? 1 : 0.35}
-                      />
+                      <button
+                        key={h.id}
+                        onClick={() => toggleHabitude(h.id)}
+                        disabled={toggling === h.id}
+                        className={`flex items-center gap-3 w-full text-left py-3 px-3.5 rounded-xl transition-all duration-200 active:scale-[0.97] disabled:opacity-50 ${
+                          fait
+                            ? 'bg-[var(--bg-surface)]/50'
+                            : 'bg-[var(--bg-surface)]/80 hover:bg-[var(--bg-surface)]'
+                        }`}
+                        style={fait ? { borderLeft: `2px solid ${accentColor}30` } : { borderLeft: '2px solid transparent' }}
+                      >
+                        {fait ? (
+                          <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+                               style={{ backgroundColor: `${accentColor}15` }}>
+                            <CheckCircle2 size={16} style={{ color: accentColor }} />
+                          </div>
+                        ) : (
+                          <div className="w-6 h-6 rounded-md bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center flex-shrink-0">
+                            <Circle size={14} className="text-[var(--text-muted)]" />
+                          </div>
+                        )}
+                        <span className={`text-[13px] font-medium flex-1 transition-colors ${fait ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'}`}>
+                          {h.nom}
+                        </span>
+                        {h.assigned_by && (
+                          <span className="text-[8px] text-[var(--color-primary,#FF6B2B)]/60 bg-[var(--color-primary,#FF6B2B)]/8 px-2 py-0.5 rounded-md flex-shrink-0 font-bold uppercase tracking-wider">
+                            Coach
+                          </span>
+                        )}
+                      </button>
                     )
                   })}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="py-8 text-center">
-              <Sparkles size={22} className="text-[var(--text-muted)] mx-auto mb-2 opacity-50" />
-              <p className="text-[var(--text-muted)] text-sm">
-                Commence à renseigner tes données pour voir l'évolution
-              </p>
+                </div>
+              )}
+
+              {totalHab > 0 && (
+                <div className="mt-3.5 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700 ease-out"
+                    style={{
+                      width: `${Math.round((cochees / totalHab) * 100)}%`,
+                      background: allHabsDone
+                        ? 'linear-gradient(90deg, #FF6B2B, #FF9A6C)'
+                        : `linear-gradient(90deg, var(--color-primary, #FF6B2B), #FF9A6C)`,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ═══════════════ MES PROGRAMMES ═══════════════ */}
+          {(programme || nutritionPlan) && (
+            <div className={`space-y-3 ${stagger[8].className}`} style={stagger[8].style}>
+              <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold px-1">Mes programmes</p>
+
+              <div className={`grid gap-3 ${programme && nutritionPlan ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                {/* ── Programme Sport ── */}
+                {programme && (
+                  <button
+                    onClick={() => navigate('/app/programme')}
+                    className="glass-card p-4 text-left active:scale-[0.98] transition-transform"
+                  >
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[var(--color-primary,#FF6B2B)] via-[#FF9A6C]/50 to-transparent" />
+
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,#FF6B2B)]/10 flex items-center justify-center">
+                          <Trophy size={14} className="text-[var(--color-primary,#FF6B2B)]" />
+                        </div>
+                        <ChevronRight size={14} className="text-[var(--text-muted)]" />
+                      </div>
+
+                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold mb-1">Sport</p>
+                      <p className="text-[var(--text-primary)] font-bold text-sm mb-1 truncate">{programme.programmes?.titre}</p>
+                      <p className="text-[var(--text-muted)] text-[11px] mb-3">
+                        Phase {programme.phase_actuelle}/{programmePhases.length}
+                      </p>
+
+                      {programmePhases.length > 0 && (
+                        <div className="flex gap-1 mb-2.5">
+                          {programmePhases.map((ph, i) => (
+                            <div
+                              key={ph.id}
+                              className="h-1.5 rounded-full flex-1 transition-all"
+                              style={{
+                                backgroundColor: i < programme.phase_actuelle
+                                  ? 'var(--color-primary, #FF6B2B)'
+                                  : 'var(--border-base)',
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {progSeances.total > 0 && (
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${Math.round((progSeances.done / progSeances.total) * 100)}%`,
+                                background: 'linear-gradient(90deg, var(--color-primary, #FF6B2B), #FF9A6C)',
+                              }}
+                            />
+                          </div>
+                          <span className="text-[var(--text-muted)] text-[9px] font-medium flex-shrink-0 tabular-nums">
+                            {progSeances.done}/{progSeances.total}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                )}
+
+                {/* ── Plan Nutrition ── */}
+                {nutritionPlan && (
+                  <button
+                    onClick={() => navigate('/app/programme?tab=nutrition')}
+                    className="glass-card p-4 text-left active:scale-[0.98] transition-transform"
+                  >
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF9A6C] via-[#FFB894]/50 to-transparent" />
+
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-[#FF9A6C]/10 flex items-center justify-center">
+                          <UtensilsCrossed size={14} className="text-[#FF9A6C]" />
+                        </div>
+                        <ChevronRight size={14} className="text-[var(--text-muted)]" />
+                      </div>
+
+                      <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold mb-1">Nutrition</p>
+                      <p className="text-[var(--text-primary)] font-bold text-sm mb-1 truncate">{nutritionPlan.nom}</p>
+                      <p className="text-[var(--text-muted)] text-[11px] mb-3">
+                        {nutriRepasCount} repas{nutritionPlan.duree_semaines ? ` · ${nutritionPlan.duree_semaines} sem.` : ''}
+                      </p>
+
+                      {nutritionPlan.duree_semaines > 0 && (
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${Math.round((nutriWeeksDone / nutritionPlan.duree_semaines) * 100)}%`,
+                                background: 'linear-gradient(90deg, #FF9A6C, #FFB894)',
+                              }}
+                            />
+                          </div>
+                          <span className="text-[var(--text-muted)] text-[9px] font-medium flex-shrink-0 tabular-nums">
+                            {nutriWeeksDone}/{nutritionPlan.duree_semaines}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                )}
+              </div>
             </div>
           )}
-        </div>
-      </div>
+
+        </div>{/* fin colonne gauche */}
+
+        {/* ── COLONNE DROITE : check-in · formulaires · score · nutrition · chart ── */}
+        <div className="space-y-4">
+
+          {/* ═══════════════ CHECK-IN QUOTIDIEN ═══════════════ */}
+          {(!sommeilSaved || !humeurSaved) && (
+            <div className={`glass-card p-4 ${stagger[3].className}`} style={stagger[3].style}>
+              <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
+                style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF9A6C, transparent)' }} />
+
+              <div className="relative">
+                <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold mb-3.5">
+                  Check-in du jour
+                </p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* ── Widget Sommeil ── */}
+                  <div className={`rounded-xl p-3.5 transition-all duration-500 ${
+                    sommeilSaved
+                      ? 'bg-[#FF9A6C]/[0.06] ring-1 ring-[#FF9A6C]/15'
+                      : 'bg-[var(--bg-surface)]/50'
+                  }`}>
+                    {sommeilSaved ? (
+                      <div className="text-center py-1">
+                        <div className="w-9 h-9 rounded-lg bg-[#FF9A6C]/10 flex items-center justify-center mx-auto mb-2">
+                          <Moon size={16} className="text-[#FF9A6C]" />
+                        </div>
+                        <p className="text-[#FF9A6C] text-lg font-black leading-none">{sommeilInput}h</p>
+                        <p className="text-[#FF9A6C]/40 text-[9px] mt-1 font-medium">Enregistré</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-1.5 mb-3">
+                          <Moon size={12} className="text-[#FF9A6C]" />
+                          <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-wider font-bold">Sommeil</p>
+                        </div>
+                        <div className="flex items-center justify-center gap-2.5 mb-3">
+                          <button
+                            onClick={() => setSommeilInput(v => Math.max(0, +(v - 0.5).toFixed(1)))}
+                            className="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[#FF9A6C] transition-all active:scale-90"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <div className="text-center min-w-[44px]">
+                            <p className="text-[var(--text-primary)] text-2xl font-black leading-none tabular-nums">{sommeilInput}</p>
+                            <p className="text-[var(--text-muted)] text-[8px] mt-0.5 font-medium">heures</p>
+                          </div>
+                          <button
+                            onClick={() => setSommeilInput(v => Math.min(14, +(v + 0.5).toFixed(1)))}
+                            className="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[#FF9A6C] transition-all active:scale-90"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+                        <button
+                          onClick={saveSommeil}
+                          disabled={sommeilSaving}
+                          className="w-full py-2 rounded-lg bg-[#FF9A6C]/15 text-[#FF9A6C] text-[11px] font-bold hover:bg-[#FF9A6C]/25 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          {sommeilSaving ? '...' : 'Valider'}
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* ── Widget Humeur ── */}
+                  <div className={`rounded-xl p-3.5 transition-all duration-500 ${
+                    humeurSaved
+                      ? 'bg-[#FF6B2B]/[0.06] ring-1 ring-[#FF6B2B]/15'
+                      : 'bg-[var(--bg-surface)]/50'
+                  }`}>
+                    {humeurSaved ? (
+                      <div className="text-center py-1">
+                        <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-2">
+                          <Smile size={16} className="text-[#FF6B2B]" />
+                        </div>
+                        <p className="text-[#FF6B2B] text-sm font-black leading-none">
+                          {['Mal', 'Bof', 'Ok', 'Bien', 'Top'][Math.min(4, Math.max(0, Math.round((humeurInput || 5) / 2) - 1))]}
+                        </p>
+                        <p className="text-[#FF6B2B]/40 text-[9px] mt-1 font-medium">Enregistré</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-1.5 mb-3">
+                          <Smile size={12} className="text-[#FF6B2B]" />
+                          <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-wider font-bold">Humeur</p>
+                        </div>
+                        <div className="flex items-center justify-between mb-1">
+                          {[
+                            { icon: Frown, score: 2, label: 'Mal', color: '#7A7A78' },
+                            { icon: Meh, score: 4, label: 'Bof', color: '#C94A15' },
+                            { icon: Minus, score: 6, label: 'Ok', color: '#E85A1F' },
+                            { icon: Smile, score: 8, label: 'Bien', color: '#FF6B2B' },
+                            { icon: Sparkles, score: 10, label: 'Top', color: '#FF9A6C' },
+                          ].map(({ icon: MoodIcon, score, label, color }) => (
+                            <button
+                              key={score}
+                              onClick={() => saveHumeur(score)}
+                              disabled={humeurSaving}
+                              className="flex flex-col items-center gap-0.5 transition-all active:scale-90"
+                            >
+                              <div className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+                                style={{
+                                  background: humeurInput === score ? `${color}18` : 'var(--bg-card)',
+                                  border: humeurInput === score ? `1.5px solid ${color}35` : '1.5px solid var(--border-base)',
+                                  transform: humeurInput === score ? 'scale(1.1)' : 'scale(1)',
+                                }}
+                              >
+                                <MoodIcon size={13} style={{ color: humeurInput === score ? color : 'var(--text-muted)' }} />
+                              </div>
+                              <span className="text-[7px] font-bold leading-none mt-0.5" style={{ color: humeurInput === score ? color : 'var(--text-muted)' }}>
+                                {label}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════════ FORMULAIRES EN ATTENTE ═══════════════ */}
+          {formsPending.length > 0 && formsPending.map((form, idx) => {
+            const formInfo = form.formulaires || {}
+            const typeIcons = { bilan: ClipboardList, satisfaction: Star, evaluation: TrendingUp, feedback: MessageCircle }
+            const typeLabels = { bilan: 'Bilan', satisfaction: 'Satisfaction', evaluation: 'Évaluation', feedback: 'Feedback' }
+            const FormIcon = typeIcons[formInfo.type] || ClipboardList
+            const typeLabel = typeLabels[formInfo.type] || 'Formulaire'
+            const daysAgo = Math.floor((Date.now() - new Date(form.created_at).getTime()) / 86400000)
+            const dateLabel = daysAgo === 0 ? "Aujourd'hui" : daysAgo === 1 ? 'Hier' : `Il y a ${daysAgo}j`
+
+            return (
+              <button
+                key={form.id}
+                onClick={() => navigate('/app/formulaires')}
+                className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border border-[#FF9A6C]/12 active:scale-[0.98] transition-all ${stagger[4].className}`}
+                style={{
+                  ...stagger[4].style,
+                  animationDelay: `${(stagger[4].style?.animationDelay ? parseInt(stagger[4].style.animationDelay) : 0) + idx * 60}ms`,
+                  background: 'linear-gradient(135deg, rgba(255,154,108,0.06), transparent)',
+                }}
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#FF9A6C]/10 flex items-center justify-center flex-shrink-0 relative">
+                  <FormIcon size={18} className="text-[#FF9A6C]" />
+                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#FF6B2B] rounded-full ring-2 ring-[var(--bg-card)]" />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="text-[var(--text-primary)] font-semibold text-sm truncate">
+                    {formInfo.titre || 'Formulaire à remplir'}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[#FF9A6C]/60 text-[11px] font-medium">{typeLabel}</span>
+                    <span className="text-[var(--text-muted)] text-[11px]">{dateLabel}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 bg-[#FF9A6C]/10 px-2.5 py-1.5 rounded-lg flex-shrink-0">
+                  <span className="text-[#FF9A6C] text-[11px] font-semibold">Remplir</span>
+                  <ChevronRight size={12} className="text-[#FF9A6C]/50" />
+                </div>
+              </button>
+            )
+          })}
+
+          {/* ═══════════════ SCORE BIEN-ÊTRE ═══════════════ */}
+          <div className={`glass-card p-5 ${stagger[6].className}`} style={stagger[6].style}>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ background: couleur }} />
+
+            <div className="relative">
+              <SectionLabel icon={Activity} label="Bien-être" color={couleur}>
+                {trendDiff !== null && trendDiff !== 0 && (
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold ${
+                    trendDiff > 0
+                      ? 'bg-[#FF6B2B]/8 text-[#FF6B2B]'
+                      : 'bg-red-500/8 text-red-400'
+                  }`}>
+                    {trendDiff > 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
+                    {trendDiff > 0 ? '+' : ''}{trendDiff}
+                  </div>
+                )}
+              </SectionLabel>
+
+              <div className="flex items-center gap-5">
+                <ScoreGauge score={score} couleur={couleur} size={110} />
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="text-xl font-extrabold leading-none mb-3" style={{ color: couleur }}>{label}</p>
+                  {[
+                    { icon: Moon, color: '#FF9A6C', text: sommeil ? `${sommeil.heures}h de sommeil` : 'Sommeil non renseigné' },
+                    { icon: Smile, color: '#FF6B2B', text: humeur ? `Humeur ${humeur.score}/10` : 'Humeur non renseignée' },
+                    { icon: Zap, color: '#FF6B2B', text: sport ? `Intensité ${sport.intensite}/5` : 'Pas d\'activité' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <item.icon size={12} style={{ color: item.color }} className="flex-shrink-0 opacity-70" />
+                      <span className="text-[var(--text-muted)] text-[11px] leading-snug">{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════════ NUTRITION DU JOUR ═══════════════ */}
+          {nutriMacros && nutriRepas.length > 0 && (
+            <div className={`glass-card p-5 ${stagger[9].className}`} style={stagger[9].style}>
+              <div className="relative">
+                <SectionLabel icon={UtensilsCrossed} label="Nutrition du jour" color="#FF9A6C">
+                  <button
+                    onClick={() => navigate('/app/programme')}
+                    className="text-[#FF9A6C]/50 text-[10px] font-semibold hover:text-[#FF9A6C] transition-colors"
+                  >
+                    Voir le plan
+                  </button>
+                </SectionLabel>
+
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                  {[
+                    { label: 'Calories', value: nutriMacros.kcal, unit: 'kcal', color: '#FF6B2B' },
+                    { label: 'Protéines', value: nutriMacros.prot, unit: 'g', color: '#FF6B2B' },
+                    { label: 'Glucides', value: nutriMacros.gluc, unit: 'g', color: '#FF9A6C' },
+                    { label: 'Lipides', value: nutriMacros.lip, unit: 'g', color: '#FFB894' },
+                  ].map((m, i) => (
+                    <div key={i} className="text-center py-2.5 px-1 rounded-xl bg-[var(--bg-surface)]/60" style={{ borderTop: `2px solid ${m.color}25` }}>
+                      <p className="text-[var(--text-primary)] text-sm font-bold leading-none tabular-nums">{m.value}</p>
+                      <p className="text-[9px] font-medium mt-0.5" style={{ color: `${m.color}70` }}>{m.unit}</p>
+                      <p className="text-[var(--text-muted)] text-[8px] mt-0.5">{m.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-1.5">
+                  {(() => {
+                    const typeLabels = { petit_dej: 'Petit-déjeuner', dejeuner: 'Déjeuner', diner: 'Dîner', collation: 'Collation' }
+                    const typeIcons = { petit_dej: Sunrise, dejeuner: Sun, diner: Moon, collation: Coffee }
+                    const typeColors = { petit_dej: '#FF9A6C', dejeuner: '#FF6B2B', diner: '#7A7A78', collation: '#FFB894' }
+                    return nutriRepas.map((repas, i) => {
+                      const nbAliments = repas.repas_aliments?.length || 0
+                      const RepasIcon = typeIcons[repas.type] || UtensilsCrossed
+                      const repasColor = typeColors[repas.type] || '#FF6B2B'
+                      return (
+                        <div key={repas.id || i} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)]/50"
+                          style={{ borderLeft: `2px solid ${repasColor}30` }}>
+                          <RepasIcon size={15} style={{ color: repasColor }} className="flex-shrink-0 opacity-70" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[var(--text-primary)] text-[13px] font-medium">{typeLabels[repas.type] || repas.type}</p>
+                            <p className="text-[var(--text-muted)] text-[10px]">{nbAliments} aliment{nbAliments > 1 ? 's' : ''}</p>
+                          </div>
+                        </div>
+                      )
+                    })
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════════ GRAPHIQUE 7 JOURS ═══════════════ */}
+          <div className={`glass-card p-5 ${stagger[10].className}`} style={stagger[10].style}>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={13} className="text-[var(--color-primary,#FF6B2B)]" />
+                  <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Score 7 jours</p>
+                </div>
+                {currentWeekAvg !== null && (
+                  <span className="text-[var(--text-muted)] text-[10px] font-bold tabular-nums">
+                    Moy. {currentWeekAvg}
+                  </span>
+                )}
+              </div>
+
+              <p className="text-[var(--text-muted)] text-[11px] mb-4">
+                Évolution de ton bien-être sur la semaine
+              </p>
+
+              {weekData.some(d => d.score > 0) ? (
+                <ResponsiveContainer width="100%" height={140}>
+                  <BarChart data={weekData} margin={{ top: 5, right: 0, left: -28, bottom: 0 }}>
+                    <XAxis
+                      dataKey="jour"
+                      tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 600 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      tick={{ fill: 'var(--text-muted)', fontSize: 9 }}
+                      axisLine={false}
+                      tickLine={false}
+                      ticks={[0, 50, 100]}
+                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--border-base)', radius: 8 }} />
+                    <Bar dataKey="score" radius={[6, 6, 2, 2]} maxBarSize={30}>
+                      {weekData.map((entry, index) => {
+                        const isToday = index === weekData.length - 1
+                        return (
+                          <Cell
+                            key={index}
+                            fill="var(--color-primary, #FF6B2B)"
+                            fillOpacity={isToday ? 1 : 0.35}
+                          />
+                        )
+                      })}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="py-8 text-center">
+                  <Sparkles size={22} className="text-[var(--text-muted)] mx-auto mb-2 opacity-50" />
+                  <p className="text-[var(--text-muted)] text-sm">
+                    Commence à renseigner tes données pour voir l'évolution
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>{/* fin colonne droite */}
+
+      </div>{/* fin grille */}
 
     </div>
   )

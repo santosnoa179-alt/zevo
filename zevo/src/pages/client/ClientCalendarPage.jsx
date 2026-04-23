@@ -767,7 +767,7 @@ export default function ClientCalendarPage() {
   // ══════════ MAIN RENDER ══════════
   if (loading) {
     return (
-      <div className="p-5 space-y-4 max-w-3xl mx-auto">
+      <div className="p-5 space-y-4 max-w-4xl mx-auto">
         {/* Header skeleton */}
         <div className="pt-2 space-y-2">
           <div className="h-7 w-40 skel-block rounded-lg" />
@@ -784,7 +784,7 @@ export default function ClientCalendarPage() {
   }
 
   return (
-    <div className={`p-5 pb-28 space-y-4 max-w-3xl mx-auto ${pageTransition.className}`}>
+    <div className={`p-5 pb-28 space-y-4 max-w-4xl mx-auto ${pageTransition.className}`}>
 
       {/* ── Header ── */}
       <div className="pt-2 flex items-end justify-between">

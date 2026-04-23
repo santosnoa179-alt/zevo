@@ -432,7 +432,7 @@ export default function ProgrammePage() {
   // ── Loading skeleton ──
   if (loading) {
     return (
-      <div className="p-4 max-w-2xl space-y-4">
+      <div className="p-4 max-w-4xl mx-auto space-y-4">
         <div className="skel-block h-8 w-40" />
         <div className="skel-block h-12 w-full rounded-xl" />
         <div className="skel-block h-48 w-full rounded-2xl" />
@@ -467,7 +467,7 @@ export default function ProgrammePage() {
   }, {})
 
   return (
-    <div className={`p-4 max-w-2xl space-y-5 ${pageTransition.className}`}>
+    <div className={`p-4 max-w-4xl mx-auto space-y-5 ${pageTransition.className}`}>
 
       {/* ═══════════ HEADER ═══════════ */}
       <div className="pt-2">
