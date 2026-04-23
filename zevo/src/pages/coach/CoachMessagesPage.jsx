@@ -708,7 +708,7 @@ export default function CoachMessagesPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
           {clients.length === 0 ? (
             <div className="p-8 text-center">
               <div className="relative inline-flex items-center justify-center mb-4">
@@ -829,7 +829,7 @@ export default function CoachMessagesPage() {
           </header>
 
           {/* Messages area */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain relative">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain relative">
             {/* Subtle pattern overlay */}
             <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{
               backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 0.5px, transparent 0.5px)',

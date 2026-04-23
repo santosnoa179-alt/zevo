@@ -277,7 +277,7 @@ export function ClientLayout() {
       </aside>
 
       {/* ══════════ ZONE PRINCIPALE ══════════ */}
-      <div className="flex-1 flex flex-col md:ml-64 min-h-screen">
+      <div className="flex-1 flex flex-col md:ml-64 min-h-screen overflow-hidden">
 
         {/* Header */}
         <header
