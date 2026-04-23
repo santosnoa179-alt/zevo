@@ -70,10 +70,43 @@ function FatalErrorFallback() {
   )
 }
 
+// Détecte si une erreur est due à un chunk lazy obsolète post-déploiement
+function isChunkError(error) {
+  const msg = error?.message || ''
+  return (
+    msg.includes('Failed to fetch dynamically imported module') ||
+    msg.includes('Importing a module script failed') ||
+    msg.includes('Unable to preload CSS')
+  )
+}
+
+// Auto-reload silencieux avec protection anti-boucle (max 1 reload / 10s)
+function reloadOnce() {
+  const lastReload = sessionStorage.getItem('_chunk_reload_at')
+  const now = Date.now()
+  if (!lastReload || now - parseInt(lastReload) > 10_000) {
+    sessionStorage.setItem('_chunk_reload_at', String(now))
+    window.location.reload()
+    return true
+  }
+  return false
+}
+
 // Point d'entrée de l'application Zevo
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <Sentry.ErrorBoundary fallback={<FatalErrorFallback />} showDialog={false}>
+    <Sentry.ErrorBoundary
+      // fallback reçoit l'erreur en prop — si chunk error → reload auto,
+      // sinon → écran d'erreur classique avec bouton "Recharger"
+      fallback={({ error }) => {
+        if (isChunkError(error)) {
+          reloadOnce()
+          return null
+        }
+        return <FatalErrorFallback />
+      }}
+      showDialog={false}
+    >
       <ThemeProvider>
         <ToastProvider>
           <App />
