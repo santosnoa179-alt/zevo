@@ -9,6 +9,29 @@ import { initSentry, Sentry } from './lib/sentry'
 // Init Sentry AVANT tout (pour capturer aussi les erreurs au boot)
 initSentry()
 
+// ── Auto-reload sur erreur de chunk lazy ────────────────────────────────
+// Après un déploiement Vite, les noms de chunks changent (hash dans le nom).
+// Les users qui avaient l'ancienne version chargée reçoivent un 404 quand
+// React Router tente de charger un chunk → "Failed to fetch dynamically
+// imported module". Fix : reload silencieux, avec protection anti-boucle
+// (on ne recharge pas plus d'une fois toutes les 10 secondes).
+window.addEventListener('unhandledrejection', (event) => {
+  const msg = event.reason?.message || ''
+  const isChunkError =
+    msg.includes('Failed to fetch dynamically imported module') ||
+    msg.includes('Importing a module script failed') ||
+    msg.includes('Unable to preload CSS')
+
+  if (isChunkError) {
+    const lastReload = sessionStorage.getItem('_chunk_reload_at')
+    const now = Date.now()
+    if (!lastReload || now - parseInt(lastReload) > 10_000) {
+      sessionStorage.setItem('_chunk_reload_at', String(now))
+      window.location.reload()
+    }
+  }
+})
+
 // Fallback UI si un crash fatal dépasse toutes les ErrorBoundary internes
 function FatalErrorFallback() {
   return (
