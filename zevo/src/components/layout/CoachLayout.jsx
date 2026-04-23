@@ -282,9 +282,12 @@ export function CoachLayout() {
   const showTrialBanner = coachProfile && !isSubscribed && !trialExpired && trialEndsAt
   const isOnAbonnementsPage = currentPath === '/coach/abonnements'
 
-  // Routes ou la bottom nav est masquee (mode immersif)
-  const HIDDEN_NAV_ROUTES = ['/coach/messages']
-  const hideBottomNav = HIDDEN_NAV_ROUTES.some(r => currentPath.startsWith(r))
+  // Bottom nav masquee uniquement quand on est DANS une conversation
+  // (detecte via le query param ?client=XXX). Sur la liste des clients,
+  // la bottom nav reste visible.
+  const hideBottomNav =
+    currentPath.startsWith('/coach/messages') &&
+    !!new URLSearchParams(location.search).get('client')
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)] flex flex-col md:flex-row">

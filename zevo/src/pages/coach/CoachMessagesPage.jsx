@@ -147,7 +147,7 @@ function Bulle({ message, estMoi, showTail, clientInitials, clientColor }) {
 export default function CoachMessagesPage() {
   const { user } = useAuth()
   const toast = useToast()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [clients, setClients] = useState([])
   const [clientSelectionne, setClientSelectionne] = useState(null)
   const clientSelectionneRef = useRef(null)
@@ -252,6 +252,7 @@ export default function CoachMessagesPage() {
   // ── Ouvre la conversation d'un client ──
   const ouvrirConversation = async (client) => {
     setClientSelectionne(client)
+    setSearchParams({ client: client.id }, { replace: true })
 
     // Pagination : on ne charge que les 50 derniers messages (desc + limit).
     // On reverse apres pour garder l'affichage chronologique (ancien -> recent).
@@ -789,7 +790,7 @@ export default function CoachMessagesPage() {
             >
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setClientSelectionne(null)}
+                  onClick={() => { setClientSelectionne(null); setSearchParams({}, { replace: true }) }}
                   className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-colors active:scale-90 flex-shrink-0 -ml-1"
                 >
                   <ArrowLeft size={20} />
