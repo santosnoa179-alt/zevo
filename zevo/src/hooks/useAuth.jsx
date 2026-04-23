@@ -45,6 +45,14 @@ export function AuthProvider({ children }) {
       options: { data: meta },
     })
     if (error) throw error
+    // Garde contre l'"obfuscated signup" Supabase :
+    // quand l'email existe deja + enumeration disabled, signUp renvoie
+    // { user: {..., identities: []}, session: null } sans erreur.
+    // On traite ca comme un echec explicite pour eviter les ecrasements
+    // silencieux de profil dans InvitePage.
+    if (data?.user && !data?.session && (data.user.identities?.length ?? 0) === 0) {
+      throw new Error('Un compte existe déjà avec cet email')
+    }
     return data
   }
 
