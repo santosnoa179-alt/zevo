@@ -458,7 +458,10 @@ export function ClientLayout() {
         </header>
 
         {/* Contenu principal */}
-        <main className={`flex-1 overflow-auto ${hideBottomNav ? '' : 'pb-28 md:pb-0'}`}>
+        <main
+          className={`flex-1 overflow-auto ${hideBottomNav ? '' : 'pb-20 md:pb-0'}`}
+          style={hideBottomNav ? undefined : { paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}
+        >
           {!clientActif && location.pathname !== '/app/abonnement' ? (
             <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
               <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mb-5">
@@ -482,52 +485,41 @@ export function ClientLayout() {
         </main>
       </div>
 
-      {/* ══════════ FLOATING BOTTOM NAV — mobile only ══════════ */}
+      {/* ══════════ BOTTOM NAV MOBILE — style coach (bar pleine largeur) ══════════ */}
       {!hideBottomNav && (
-        <nav className="fixed bottom-5 left-4 right-4 z-50 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-          <div className="bg-[var(--bg-elevated)]/95 backdrop-blur-md border border-[var(--border-base)] rounded-3xl shadow-2xl shadow-black/20 px-2 py-2">
-            <ul className="flex items-center justify-around">
-              {MAIN_NAV.map(({ to, icon: Icon, label }) => {
-                const isMsgTab   = to === '/app/messages'
-                const badgeCount = isMsgTab ? unreadMsgCount : 0
-                return (
-                  <li key={to}>
-                    <NavLink
-                      to={to}
-                      style={{ touchAction: 'manipulation' }}
-                      className={({ isActive }) =>
-                        'relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-200 active:scale-[0.92] ' +
-                        (isActive ? 'bg-[#FF6B2B]/10' : 'hover:bg-[var(--border-subtle)]')
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <div className="relative">
-                            <Icon
-                              size={22}
-                              className={`transition-all duration-200 ${isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}
-                              strokeWidth={isActive ? 2.3 : 1.8}
-                            />
-                            {badgeCount > 0 && (
-                              <span className="absolute -top-1.5 -right-2.5 min-w-[14px] h-3.5 px-1 rounded-full bg-[#FF6B2B] text-white text-[8px] font-bold flex items-center justify-center">
-                                {badgeCount > 9 ? '9+' : badgeCount}
-                              </span>
-                            )}
-                          </div>
-                          <span className={`text-[9px] font-semibold transition-colors duration-200 ${isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
-                            {label}
-                          </span>
-                          {isActive && (
-                            <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#FF6B2B]" />
-                          )}
-                        </>
+        <nav
+          className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-elevated)]/95 backdrop-blur-lg border-t border-[var(--border-base)]"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        >
+          <ul className="flex items-center justify-around h-14">
+            {MAIN_NAV.map(({ to, icon: Icon, label }) => {
+              const isMsgTab = to === '/app/messages'
+              const badgeCount = isMsgTab ? unreadMsgCount : 0
+              return (
+                <li key={to} className="flex-1">
+                  <NavLink
+                    to={to}
+                    style={{ touchAction: 'manipulation' }}
+                    className={({ isActive }) =>
+                      `flex flex-col items-center justify-center gap-0.5 py-2 transition-colors relative ${
+                        isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
+                      }`
+                    }
+                  >
+                    <div className="relative">
+                      <Icon size={20} />
+                      {badgeCount > 0 && (
+                        <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                          {badgeCount > 9 ? '9+' : badgeCount}
+                        </span>
                       )}
-                    </NavLink>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
+                    </div>
+                    <span className="text-[9px] font-medium">{label}</span>
+                  </NavLink>
+                </li>
+              )
+            })}
+          </ul>
         </nav>
       )}
 
