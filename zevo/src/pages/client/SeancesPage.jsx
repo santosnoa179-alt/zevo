@@ -409,6 +409,8 @@ export default function SeancesPage() {
                                           <img
                                             src={ex.exercices.gif_url}
                                             alt=""
+                                            loading="lazy"
+                                            decoding="async"
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
                                               e.currentTarget.onerror = null

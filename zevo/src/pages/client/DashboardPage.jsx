@@ -697,6 +697,7 @@ export default function DashboardPage() {
               <img
                 src={profil.avatar_url}
                 alt=""
+                decoding="async"
                 className="w-full h-full rounded-full object-cover"
                 onError={(e) => {
                   e.currentTarget.onerror = null

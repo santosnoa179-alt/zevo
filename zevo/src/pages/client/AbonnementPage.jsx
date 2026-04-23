@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { usePageTransition, useStagger } from '../../hooks/useAnimations'
 import { CreditCard, CheckCircle, Clock, ExternalLink, Package, Loader2, FileText, Download } from 'lucide-react'
-import jsPDF from 'jspdf'
+// jsPDF lazy-loaded dans telechargerFacture() — evite ~300KB dans le bundle initial
 
 const FREQ_LABELS = {
   unique: 'Paiement unique',
@@ -131,7 +131,9 @@ export default function AbonnementPage() {
     annulee: { label: 'Annulée', color: 'text-red-400', bg: 'bg-red-500/10' },
   }
 
-  const telechargerFacture = (f) => {
+  const telechargerFacture = async (f) => {
+    // Lazy-load : jsPDF n'est chargé qu'au premier clic sur "Télécharger"
+    const { default: jsPDF } = await import('jspdf')
     const doc = new jsPDF({ unit: 'mm', format: 'a4' })
     const pageW = 210
     const margin = 15

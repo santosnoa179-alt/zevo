@@ -192,6 +192,7 @@ export function ClientLayout() {
               <img
                 src={logoUrl}
                 alt={nomApp}
+                decoding="async"
                 className="w-7 h-7 rounded-lg object-cover flex-shrink-0"
                 onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = 'none' }}
               />
@@ -251,6 +252,7 @@ export function ClientLayout() {
                 ? <img
                     src={clientProfile.avatar_url}
                     alt=""
+                    decoding="async"
                     className="w-full h-full object-cover"
                     onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = 'none' }}
                   />
@@ -289,6 +291,7 @@ export function ClientLayout() {
                 <img
                   src={logoUrl}
                   alt={nomApp}
+                  decoding="async"
                   className="w-7 h-7 rounded-lg object-cover"
                   onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = 'none' }}
                 />
@@ -482,7 +485,7 @@ export function ClientLayout() {
       {/* ══════════ FLOATING BOTTOM NAV — mobile only ══════════ */}
       {!hideBottomNav && (
         <nav className="fixed bottom-5 left-4 right-4 z-50 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-          <div className="bg-[var(--bg-elevated)]/90 backdrop-blur-xl border border-[var(--border-base)] rounded-3xl shadow-2xl shadow-black/20 px-2 py-2">
+          <div className="bg-[var(--bg-elevated)]/95 backdrop-blur-md border border-[var(--border-base)] rounded-3xl shadow-2xl shadow-black/20 px-2 py-2">
             <ul className="flex items-center justify-around">
               {MAIN_NAV.map(({ to, icon: Icon, label }) => {
                 const isMsgTab   = to === '/app/messages'

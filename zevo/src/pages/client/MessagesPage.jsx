@@ -196,12 +196,16 @@ export default function MessagesClientPage() {
     setCoachId(resolvedCoachId)
 
     const [msgsRes, coachRes] = await Promise.all([
+      // Pagination : on ne charge que les 50 derniers messages (descendant + limit).
+      // On reverse apres pour garder l'affichage chronologique (ancien -> recent).
+      // Les nouveaux messages sont ajoutes en temps reel via la subscription.
       supabase
         .from('messages')
         .select('*')
         .eq('coach_id', resolvedCoachId)
         .eq('client_id', user.id)
-        .order('created_at', { ascending: true }),
+        .order('created_at', { ascending: false })
+        .limit(50),
       supabase
         .from('coaches')
         .select('prenom, nom, nom_app, telephone')
@@ -209,7 +213,7 @@ export default function MessagesClientPage() {
         .maybeSingle(),
     ])
 
-    setMessages(msgsRes.data ?? [])
+    setMessages((msgsRes.data ?? []).slice().reverse())
     if (coachRes.data) setCoachInfo(coachRes.data)
 
     await supabase

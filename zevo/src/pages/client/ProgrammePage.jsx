@@ -809,6 +809,8 @@ export default function ProgrammePage() {
                                       <img
                                         src={ex.image_url}
                                         alt={ex.name}
+                                        loading="lazy"
+                                        decoding="async"
                                         className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
                                         onError={(e) => {
                                           e.currentTarget.onerror = null

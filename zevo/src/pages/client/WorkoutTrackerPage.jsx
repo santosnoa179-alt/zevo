@@ -817,6 +817,7 @@ export default function WorkoutTrackerPage() {
                         key={url}
                         src={url}
                         alt={currentExo.exercices?.nom || 'Démonstration'}
+                        decoding="async"
                         className="w-full h-64 object-contain bg-[var(--bg-surface)]"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none'

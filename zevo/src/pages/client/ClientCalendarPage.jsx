@@ -144,11 +144,25 @@ export default function ClientCalendarPage() {
     if (!user) return
     if (!silent) setLoading(true)
 
+    // Fenetre de chargement : -180j / +365j autour d'aujourd'hui.
+    // Evite de rapatrier des annees d'historique sur mobile.
+    // Si un jour on veut permettre la nav au-dela, il faudra refetch
+    // dynamiquement en fonction de offset (pour l'instant c'est rare).
+    const now = new Date()
+    const sinceDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    const untilDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
     const [seancesRes, eventsRes, clientRes, reservRes] = await Promise.all([
-      supabase.from('seances').select('*').eq('client_id', user.id).eq('is_template', false).order('date_prevue', { ascending: true }),
-      supabase.from('coach_events').select('*').eq('client_id', user.id).order('event_date', { ascending: true }),
+      supabase.from('seances').select('*').eq('client_id', user.id).eq('is_template', false)
+        .gte('date_prevue', sinceDate).lte('date_prevue', untilDate)
+        .order('date_prevue', { ascending: true }),
+      supabase.from('coach_events').select('*').eq('client_id', user.id)
+        .gte('event_date', sinceDate).lte('event_date', untilDate)
+        .order('event_date', { ascending: true }),
       supabase.from('clients').select('coach_id').eq('id', user.id).maybeSingle(),
-      supabase.from('reservations').select('*').eq('client_id', user.id).eq('statut', 'confirmee').order('date_debut', { ascending: true }),
+      supabase.from('reservations').select('*').eq('client_id', user.id).eq('statut', 'confirmee')
+        .gte('date_debut', sinceDate + 'T00:00:00').lte('date_debut', untilDate + 'T23:59:59')
+        .order('date_debut', { ascending: true }),
     ])
 
     if (seancesRes.error) console.error('[ClientCalendar] Erreur séances:', seancesRes.error)
