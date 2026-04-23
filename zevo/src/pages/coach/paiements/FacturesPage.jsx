@@ -5,7 +5,7 @@ import {
   FileText, Search, Download, Plus, X, Loader2, Calendar, User, Package, Hash,
   Receipt, Euro, AlertCircle, Eye
 } from 'lucide-react'
-import jsPDF from 'jspdf'
+// jsPDF lazy-loaded dans generatePDF() — evite ~300KB dans le bundle initial
 
 const STATUT_CONFIG = {
   payee: { label: 'Payée', color: 'text-emerald-400', bg: 'bg-emerald-500/10', dot: 'bg-emerald-400' },
@@ -134,7 +134,9 @@ export default function FacturesPage() {
   }
 
   // ── PDF Generation ──
-  const generatePDF = (f) => {
+  const generatePDF = async (f) => {
+    // Lazy-load : jsPDF n'est chargé qu'au premier clic sur "Télécharger"
+    const { default: jsPDF } = await import('jspdf')
     const doc = new jsPDF({ unit: 'mm', format: 'a4' })
     const W = 210, M = 20
     const clientName = [f.clients?.profiles?.prenom, f.clients?.profiles?.nom].filter(Boolean).join(' ') || '—'

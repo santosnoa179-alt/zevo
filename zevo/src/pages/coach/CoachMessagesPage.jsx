@@ -207,12 +207,18 @@ export default function CoachMessagesPage() {
 
     const clientIds = clientsData.map(c => c.id)
 
+    // Limit : on ne charge que les 300 derniers messages tous clients confondus.
+    // Suffisant pour calculer "dernierMsg" (on prend [0] apres filter) et "nonLus"
+    // (les messages non lus sont par nature recents).
+    // Si un coach a des conversations tres anciennes non lues, elles n'apparaitront
+    // plus dans le compteur — cas rare.
     const { data: derniersMsgs } = await supabase
       .from('messages')
       .select('client_id, contenu, created_at, lu, expediteur, audio_url')
       .eq('coach_id', user.id)
       .in('client_id', clientIds)
       .order('created_at', { ascending: false })
+      .limit(300)
 
     const msgs = derniersMsgs ?? []
 
@@ -247,14 +253,18 @@ export default function CoachMessagesPage() {
   const ouvrirConversation = async (client) => {
     setClientSelectionne(client)
 
+    // Pagination : on ne charge que les 50 derniers messages (desc + limit).
+    // On reverse apres pour garder l'affichage chronologique (ancien -> recent).
+    // Les nouveaux messages sont ajoutes en temps reel via la subscription.
     const { data: msgs } = await supabase
       .from('messages')
       .select('*')
       .eq('coach_id', user.id)
       .eq('client_id', client.id)
-      .order('created_at')
+      .order('created_at', { ascending: false })
+      .limit(50)
 
-    setMessages(msgs ?? [])
+    setMessages((msgs ?? []).slice().reverse())
 
     // Auto-read : Marque les messages du client comme lus
     await supabase.from('messages')
