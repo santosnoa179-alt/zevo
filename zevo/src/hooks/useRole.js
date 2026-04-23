@@ -105,6 +105,34 @@ export function useRole() {
           resolvedRole = profileResult.data.role
         }
 
+        // ── Auto-guérison : profiles.role = 'client' mais row coaches existe ──
+        // Cas : le trigger handle_new_user() crée role='client', puis l'UPDATE
+        // role='coach' échoue silencieusement (RLS, lag réseau). Le cache cache
+        // le bug pendant la première session, mais au re-login on lit la DB et
+        // on tombe sur 'client' → redirection vers /app.
+        // Fix : si profiles dit 'client' mais qu'il y a une row coaches, c'est
+        // un coach. On corrige le DB en arrière-plan pour les prochains logins.
+        if (resolvedRole === 'client') {
+          const { data: coachRow } = await supabase
+            .from('coaches')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle()
+
+          if (coachRow) {
+            console.warn('useRole — auto-heal: profiles.role=client mais coaches existe → correction role=coach')
+            resolvedRole = 'coach'
+            // Heal silencieux — on ne bloque pas si ça échoue
+            supabase
+              .from('profiles')
+              .update({ role: 'coach' })
+              .eq('id', user.id)
+              .then(({ error }) => {
+                if (error) console.error('useRole — heal profiles.role échoué:', error)
+              })
+          }
+        }
+
         // Mettre en cache
         roleCache.userId = user.id
         roleCache.role = resolvedRole
