@@ -35,7 +35,7 @@ export default function RootRedirect() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        height: '100vh',
+        height: '100dvh',
         background: '#060606',
       }} />
     )
@@ -54,7 +54,7 @@ export default function RootRedirect() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      height: '100vh',
+      height: '100dvh',
       background: '#060606',
     }} />
   )

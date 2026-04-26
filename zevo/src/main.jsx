@@ -43,7 +43,7 @@ function FatalErrorFallback() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      minHeight: '100vh',
+      minHeight: '100dvh',
       background: '#060606',
       color: '#F5F5F3',
       padding: '24px',
