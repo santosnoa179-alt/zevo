@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { supabase } from '../lib/supabase'
 import { identifyUser, clearUser } from '../lib/sentry'
+import { phIdentify, phReset } from '../lib/posthog'
 
 // Contexte d'authentification partagé dans toute l'app
 const AuthContext = createContext(null)
@@ -14,8 +15,8 @@ export function AuthProvider({ children }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const u = session?.user ?? null
       setUser(u)
-      // Attache le user à Sentry pour lier les erreurs à un user id
-      if (u) identifyUser(u)
+      // Attache le user a Sentry + PostHog pour lier erreurs et analytics
+      if (u) { identifyUser(u); phIdentify(u) }
       setLoading(false)
     })
 
@@ -23,8 +24,8 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null
       setUser(u)
-      if (u) identifyUser(u)
-      else clearUser()
+      if (u) { identifyUser(u); phIdentify(u) }
+      else { clearUser(); phReset() }
     })
 
     return () => subscription.unsubscribe()

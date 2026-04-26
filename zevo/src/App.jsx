@@ -1,8 +1,19 @@
-import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './hooks/useAuth'
 import { ProtectedRoute } from './components/layout/ProtectedRoute'
 import { PlanGate } from './components/PlanGate'
+import { phPageview } from './lib/posthog'
+
+// Track les changements de route en pageviews PostHog (autocapture est off,
+// donc on doit emettre $pageview manuellement a chaque navigation react-router).
+function PostHogPageView() {
+  const location = useLocation()
+  useEffect(() => {
+    phPageview(window.location.origin + location.pathname + location.search)
+  }, [location.pathname, location.search])
+  return null
+}
 
 // Layouts — lazy-loaded (chargés uniquement quand on accède à la section)
 const ClientLayout = lazy(() => import('./components/layout/ClientLayout').then(m => ({ default: m.ClientLayout })))
@@ -92,6 +103,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <PostHogPageView />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Routes publiques minimales : auth + invite */}

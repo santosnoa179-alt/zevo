@@ -5,9 +5,12 @@ import App from './App.jsx'
 import { ToastProvider } from './components/ui/Toast'
 import { ThemeProvider } from './hooks/useTheme'
 import { initSentry, Sentry } from './lib/sentry'
+import { initPostHog } from './lib/posthog'
 
 // Init Sentry AVANT tout (pour capturer aussi les erreurs au boot)
 initSentry()
+// Init PostHog (no-op si VITE_POSTHOG_KEY est vide)
+initPostHog()
 
 // ── Auto-reload sur erreur de chunk lazy ────────────────────────────────
 // Après un déploiement Vite, les noms de chunks changent (hash dans le nom).
