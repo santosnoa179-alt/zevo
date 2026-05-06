@@ -6,7 +6,7 @@ import { useRole, setRoleCache } from '../../hooks/useRole'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { ZevoLogo } from '../../components/ui/ZevoLogo'
-import { CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { CheckCircle, AlertCircle, Eye, EyeOff, Mail, Check, RefreshCw } from 'lucide-react'
 
 // Page de connexion + inscription — design Zevo noir/orange
 export default function LoginPage() {
@@ -21,6 +21,8 @@ export default function LoginPage() {
   const [mode, setMode] = useState(location.pathname === '/register' ? 'register' : 'login') // 'login' | 'register' | 'forgot'
   const [resetSent, setResetSent] = useState(false)
   const [registerSuccess, setRegisterSuccess] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resent, setResent] = useState(false)
   const { user, loading: authLoading, login, signup, resetPassword } = useAuth()
   const { role, loading: roleLoading } = useRole()
   const navigate = useNavigate()
@@ -141,6 +143,26 @@ export default function LoginPage() {
         setError(err.message || 'Erreur lors de l\'inscription.')
       }
       setLoading(false)
+    }
+  }
+
+  // ── Renvoyer l'email de confirmation ──
+  const handleResendEmail = async () => {
+    if (resending || resent) return
+    setResending(true)
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+      })
+      if (resendError) throw resendError
+      setResent(true)
+      // Re-permettre un nouvel envoi apres 30s
+      setTimeout(() => setResent(false), 30000)
+    } catch (err) {
+      console.error('LoginPage — erreur resend:', err)
+    } finally {
+      setResending(false)
     }
   }
 
@@ -343,23 +365,138 @@ export default function LoginPage() {
 
         {/* ── Register success (confirmation email) ── */}
         {mode === 'register' && registerSuccess && (
-          <div className="text-center space-y-4">
-            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-5">
-              <CheckCircle size={28} className="text-green-400 mx-auto mb-3" />
-              <p className="text-green-400 text-sm font-medium">
-                Compte créé avec succès !
-              </p>
-              <p className="text-[var(--text-muted)] text-xs mt-2">
-                Un email de confirmation a été envoyé à <strong className="text-[var(--text-secondary)]">{email}</strong>.
-                Clique sur le lien pour activer ton compte.
-              </p>
+          <div className="space-y-5 animate-confirm-fade-in">
+            {/* Card premium avec halo orange */}
+            <div className="relative">
+              {/* Glow halo en arriere-plan */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -inset-2 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/25 via-[#FF9A6C]/15 to-transparent blur-xl opacity-70"
+              />
+
+              {/* Card content */}
+              <div className="relative bg-[var(--bg-card)] border border-[var(--border-base)] rounded-2xl p-6 overflow-hidden">
+                {/* Liseré gradient en haut */}
+                <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[#FF6B2B]/70 to-transparent" />
+
+                {/* Icone mail animee avec halo orange */}
+                <div className="flex justify-center mb-5">
+                  <div className="relative">
+                    <div
+                      aria-hidden
+                      className="absolute inset-0 -m-2 bg-[#FF6B2B]/30 rounded-full blur-xl animate-confirm-pulse"
+                    />
+                    <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C] flex items-center justify-center shadow-lg shadow-[#FF6B2B]/40">
+                      <Mail size={26} className="text-white" strokeWidth={2.2} />
+                    </div>
+                    {/* Petit badge check qui ressort */}
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[var(--bg-card)] border-2 border-[var(--bg-card)] flex items-center justify-center">
+                      <div className="w-full h-full rounded-full bg-green-500 flex items-center justify-center">
+                        <Check size={12} className="text-white" strokeWidth={3.5} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Titre + sous-titre */}
+                <div className="text-center mb-5">
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1.5">
+                    Vérifiez votre email
+                  </h2>
+                  <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                    Nous avons envoyé un lien de confirmation à
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 mt-2.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-base)]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] animate-pulse" />
+                    <span className="text-sm font-medium text-[var(--text-secondary)] truncate max-w-[200px]">
+                      {email}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Etapes */}
+                <div className="space-y-2.5 pt-4 border-t border-[var(--border-base)]">
+                  {[
+                    { num: 1, label: 'Email envoyé dans votre boîte', done: true },
+                    { num: 2, label: "Cliquez sur le lien pour confirmer", done: false },
+                    { num: 3, label: 'Accédez à votre espace coach', done: false },
+                  ].map((step) => (
+                    <div key={step.num} className="flex items-center gap-3 text-sm">
+                      <div
+                        className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold transition-colors ${
+                          step.done
+                            ? 'bg-[#FF6B2B]/15 text-[#FF6B2B] border border-[#FF6B2B]/40'
+                            : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-base)]'
+                        }`}
+                      >
+                        {step.done ? <Check size={12} strokeWidth={3} /> : step.num}
+                      </div>
+                      <span
+                        className={
+                          step.done
+                            ? 'text-[var(--text-secondary)]'
+                            : 'text-[var(--text-muted)]'
+                        }
+                      >
+                        {step.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <button
-              onClick={() => switchMode('login')}
-              className="text-sm text-[#FF6B2B] hover:underline transition-colors"
-            >
-              ← Retour à la connexion
-            </button>
+
+            {/* Hint spam + resend */}
+            <div className="text-center space-y-3">
+              <p className="text-xs text-[var(--text-muted)]">
+                Pas reçu ? Vérifiez votre dossier spam ou indésirables.
+              </p>
+
+              <button
+                type="button"
+                onClick={handleResendEmail}
+                disabled={resending || resent}
+                className="inline-flex items-center gap-2 text-sm font-medium text-[#FF6B2B] hover:text-[#FF9A6C] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <RefreshCw
+                  size={14}
+                  className={resending ? 'animate-spin' : ''}
+                />
+                {resent
+                  ? 'Email renvoyé ✓'
+                  : resending
+                  ? 'Envoi en cours…'
+                  : "Renvoyer l'email"}
+              </button>
+            </div>
+
+            {/* Retour connexion */}
+            <div className="pt-2 text-center">
+              <button
+                onClick={() => switchMode('login')}
+                className="text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
+              >
+                ← Retour à la connexion
+              </button>
+            </div>
+
+            {/* Animations inline (keyframes scopees au composant) */}
+            <style>{`
+              @keyframes confirm-fade-in {
+                from { opacity: 0; transform: translateY(8px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+              @keyframes confirm-pulse {
+                0%, 100% { opacity: 0.5; transform: scale(1); }
+                50% { opacity: 0.9; transform: scale(1.15); }
+              }
+              .animate-confirm-fade-in {
+                animation: confirm-fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+              }
+              .animate-confirm-pulse {
+                animation: confirm-pulse 2.4s ease-in-out infinite;
+              }
+            `}</style>
           </div>
         )}
 
