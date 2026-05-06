@@ -77,9 +77,14 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // 1. Créer le compte via Supabase Auth
-      //    Le trigger handle_new_user() crée automatiquement la row profiles(role='client')
-      const authData = await signup(email, password, { nom: nom.trim() })
+      // 1. Créer le compte via Supabase Auth en passant role + nom dans les metadata.
+      //    Le trigger handle_new_user() lit raw_user_meta_data->>'role' et crée
+      //    la row profiles avec le bon rôle directement (pas besoin d'UPDATE
+      //    après, qui est bloqué par RLS sur la colonne `role`).
+      const authData = await signup(email, password, {
+        nom: nom.trim(),
+        role: 'coach',
+      })
 
       if (!authData?.user) {
         throw new Error('Erreur lors de la création du compte.')
@@ -87,19 +92,7 @@ export default function LoginPage() {
 
       const userId = authData.user.id
 
-      // 2. Mettre à jour le profil : rôle coach + nom
-      //    ⚠️ Important : on AWAIT cette promise avant d'invalider le cache,
-      //    sinon useRole() refetch avant l'UPDATE et récupère encore 'client'.
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ role: 'coach', nom: nom.trim() })
-        .eq('id', userId)
-
-      if (profileError) {
-        console.error('Erreur update profiles:', profileError)
-      }
-
-      // 3. Créer la ligne coach avec plan par défaut + essai gratuit 14 jours
+      // 2. Créer la ligne coach avec plan par défaut + essai gratuit 14 jours
       const trialEnd = new Date()
       trialEnd.setDate(trialEnd.getDate() + 14)
 
@@ -117,7 +110,7 @@ export default function LoginPage() {
         console.error('Erreur insert coaches:', coachError)
       }
 
-      // 4. Set direct 'coach' dans le cache useRole.
+      // 3. Set direct 'coach' dans le cache useRole.
       //    On NE fait PAS invalidateRoleCache (qui forcerait un refetch Supabase) :
       //    il y a un replication lag entre UPDATE et SELECT — le refetch peut
       //    renvoyer 'client' pendant quelques ms et déclencher la redirection
