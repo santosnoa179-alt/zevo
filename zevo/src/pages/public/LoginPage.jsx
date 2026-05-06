@@ -134,13 +134,22 @@ export default function LoginPage() {
     } catch (err) {
       console.error('LoginPage — erreur register:', err)
 
-      // Messages d'erreur Supabase traduits
-      if (err.message?.includes('already registered')) {
+      // Messages d'erreur Supabase traduits en francais
+      const msg = (err.message || '').toLowerCase()
+      if (msg.includes('already registered') || msg.includes('compte existe')) {
         setError('Cet email est déjà associé à un compte. Connecte-toi.')
-      } else if (err.message?.includes('valid email')) {
+      } else if (msg.includes('valid email') || msg.includes('invalid email')) {
         setError('Vérifie le format de ton email.')
+      } else if (msg.includes('rate limit') || msg.includes('too many')) {
+        setError('Trop de tentatives. Réessaie dans quelques minutes.')
+      } else if (msg.includes('password') && msg.includes('short')) {
+        setError('Le mot de passe doit contenir au moins 6 caractères.')
+      } else if (msg.includes('weak password')) {
+        setError('Mot de passe trop faible. Utilise au moins 6 caractères, avec une majuscule et un chiffre.')
+      } else if (msg.includes('network') || msg.includes('fetch')) {
+        setError('Problème de connexion. Vérifie ton réseau et réessaie.')
       } else {
-        setError(err.message || 'Erreur lors de l\'inscription.')
+        setError("Erreur lors de l'inscription. Réessaie ou contacte le support.")
       }
       setLoading(false)
     }
