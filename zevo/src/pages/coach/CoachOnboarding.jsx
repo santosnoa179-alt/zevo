@@ -123,13 +123,20 @@ export default function CoachOnboarding() {
     // Derniere etape → sauvegarder
     setSaving(true)
     try {
-      // .select().single() force PostgREST a renvoyer la row updatee :
-      // on confirme cote serveur que onboarding_complete=true a bien ete persiste
-      // avant de rediriger (sinon le CoachGuard refetch peut hit le replication lag
-      // Supabase et nous renvoyer sur /coach/onboarding).
-      const { data: updatedCoach, error } = await supabase
+      // UPSERT (au lieu d'UPDATE) : si l'INSERT au signup a foire (RLS, lag,
+      // race condition...), on cree la row ici avec les valeurs par defaut
+      // Stripe + trial 14 jours. Si elle existe deja, on met juste a jour
+      // les champs onboarding sans toucher au Stripe/trial.
+      // .select() force PostgREST a renvoyer la row pour qu'on puisse confirmer
+      // que onboarding_complete=true a bien ete persiste cote serveur avant
+      // de rediriger (sinon CoachGuard refetch peut hit le replication lag).
+      const trialEnd = new Date()
+      trialEnd.setDate(trialEnd.getDate() + 14)
+
+      const { data: upserted, error } = await supabase
         .from('coaches')
-        .update({
+        .upsert({
+          id: user.id,
           prenom: prenom.trim(),
           nom: nom.trim(),
           telephone: telephone.trim() || null,
@@ -137,13 +144,20 @@ export default function CoachOnboarding() {
           nb_clients_moyen: nbClients,
           priorites,
           onboarding_complete: true,
+          // Defaults Stripe / trial — utilises uniquement si la row n'existait pas
+          plan: 'starter',
+          abonnement_actif: false,
+          trial_ends_at: trialEnd.toISOString(),
+          subscription_status: 'trialing',
+        }, {
+          onConflict: 'id',
+          ignoreDuplicates: false,
         })
-        .eq('id', user.id)
         .select('onboarding_complete')
         .single()
 
       if (error) throw error
-      if (!updatedCoach?.onboarding_complete) {
+      if (!upserted?.onboarding_complete) {
         throw new Error('La sauvegarde n\'a pas été persistée. Réessaie.')
       }
 
