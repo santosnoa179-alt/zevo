@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useNavigate, Navigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, Navigate, useSearchParams, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { ZevoLogo } from '../ui/ZevoLogo'
@@ -11,6 +11,14 @@ export function CoachGuard({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const location = useLocation()
+
+  // Skip onboarding check si on arrive juste de finir l'onboarding —
+  // l'UPDATE coaches.onboarding_complete=true est deja confirme cote serveur
+  // (via .select() dans CoachOnboarding) mais le SELECT initial du Guard peut
+  // hit le replication lag Supabase et renvoyer encore false → boucle infinie
+  // entre /coach/dashboard et /coach/onboarding.
+  const fromOnboarding = location.state?.fromOnboarding === true
 
   const [abonnementActif, setAbonnementActif] = useState(null) // null = chargement
   const [onboardingDone, setOnboardingDone] = useState(null)
@@ -61,12 +69,14 @@ export function CoachGuard({ children }) {
       const result = await checkCoachStatus()
       if (result) {
         setAbonnementActif(result.abonnementActif)
-        setOnboardingDone(result.onboardingDone)
+        // Force onboardingDone=true si on vient juste de l'onboarding
+        // (le SELECT peut lire une replica retardee sur Supabase).
+        setOnboardingDone(fromOnboarding ? true : result.onboardingDone)
         setStripeCustomerId(result.stripeCustomerId)
       }
     }
     check()
-  }, [user, isCheckoutReturn, checkCoachStatus])
+  }, [user, isCheckoutReturn, checkCoachStatus, fromOnboarding])
 
   // ── Polling post-checkout : attend que le webhook mette à jour Supabase ──
   useEffect(() => {

@@ -123,7 +123,11 @@ export default function CoachOnboarding() {
     // Derniere etape → sauvegarder
     setSaving(true)
     try {
-      const { error } = await supabase
+      // .select().single() force PostgREST a renvoyer la row updatee :
+      // on confirme cote serveur que onboarding_complete=true a bien ete persiste
+      // avant de rediriger (sinon le CoachGuard refetch peut hit le replication lag
+      // Supabase et nous renvoyer sur /coach/onboarding).
+      const { data: updatedCoach, error } = await supabase
         .from('coaches')
         .update({
           prenom: prenom.trim(),
@@ -135,8 +139,13 @@ export default function CoachOnboarding() {
           onboarding_complete: true,
         })
         .eq('id', user.id)
+        .select('onboarding_complete')
+        .single()
 
       if (error) throw error
+      if (!updatedCoach?.onboarding_complete) {
+        throw new Error('La sauvegarde n\'a pas été persistée. Réessaie.')
+      }
 
       await supabase
         .from('profiles')
@@ -147,10 +156,13 @@ export default function CoachOnboarding() {
         .eq('id', user.id)
 
       toast.success('Bienvenue sur Zevo ! Votre espace est prêt.')
-      navigate('/coach/dashboard')
+      // On passe `fromOnboarding: true` dans le state pour que CoachGuard
+      // saute son SELECT initial (replication lag) — l'UPDATE est deja
+      // confirme cote serveur grace au .select().single() ci-dessus.
+      navigate('/coach/dashboard', { state: { fromOnboarding: true } })
     } catch (err) {
       console.error('Erreur onboarding:', err)
-      toast.error('Erreur lors de la sauvegarde. Réessayez.')
+      toast.error(err.message || 'Erreur lors de la sauvegarde. Réessayez.')
     }
     setSaving(false)
   }
