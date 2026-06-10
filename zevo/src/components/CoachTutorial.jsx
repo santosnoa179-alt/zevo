@@ -180,6 +180,9 @@ export default function CoachTutorial({ onComplete, coachName }) {
   const [animState, setAnimState] = useState('in')
   const [visible, setVisible] = useState(true)
   const [targetRect, setTargetRect] = useState(null)
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  )
   const tooltipRef = useRef(null)
 
   // ── Invitation form state ──
@@ -209,6 +212,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
   // ── Recalc on resize ──
   useEffect(() => {
     const handle = () => {
+      setIsMobile(window.innerWidth < 768)
       const current = STEPS[step]
       if (!current.target) return
       const el = document.querySelector(current.target)
@@ -325,6 +329,28 @@ export default function CoachTutorial({ onComplete, coachName }) {
   const spotRadius = 12
 
   const getTooltipStyle = () => {
+    // ── Mobile : on ignore le positionnement lateral (right/bottom) qui
+    // deborde de l'ecran. La bulle est ancree en bas, pleine largeur (avec
+    // marges + safe-area iOS), facon bottom-sheet. Pour les etapes "center"
+    // on garde le centrage vertical.
+    if (isMobile) {
+      if (!hasTarget || current.position === 'center') {
+        return {
+          position: 'fixed',
+          left: 16,
+          right: 16,
+          top: '50%',
+          transform: 'translateY(-50%)',
+        }
+      }
+      return {
+        position: 'fixed',
+        left: 16,
+        right: 16,
+        bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
+      }
+    }
+
     if (!hasTarget || current.position === 'center') {
       return { position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
     }
@@ -391,11 +417,16 @@ export default function CoachTutorial({ onComplete, coachName }) {
         className={`z-[10001] ${animState === 'in' ? 'animate-[ctFadeIn_0.35s_cubic-bezier(0.22,1,0.36,1)_forwards]' : 'animate-[ctFadeOut_0.15s_ease-in_forwards]'}`}
         style={{
           ...getTooltipStyle(),
-          width: current.phase === 'invite' ? 460 : (hasTarget ? 370 : 440),
+          // Sur mobile la largeur est geree par left/right:16 (pleine largeur
+          // moins les marges). Sur desktop on garde les largeurs fixes.
+          ...(isMobile
+            ? { maxHeight: '85dvh', overflowY: 'auto' }
+            : { width: current.phase === 'invite' ? 460 : (hasTarget ? 370 : 440) }),
         }}
       >
-        {/* Arrow for sidebar tooltips */}
-        {hasTarget && current.position === 'right' && (
+        {/* Arrow for sidebar tooltips (desktop only — masqué sur mobile car
+            la bulle passe en bottom-sheet pleine largeur) */}
+        {!isMobile && hasTarget && current.position === 'right' && (
           <div className="absolute -left-2 top-6 w-0 h-0"
             style={{
               borderTop: '8px solid transparent',
