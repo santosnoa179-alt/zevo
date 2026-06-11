@@ -40,6 +40,7 @@ function PageLoader() {
 // la landing marketing officielle est sur zevo-one.com (zevo-marketing/),
 // l'app ne gère que l'authentification et les invitations.
 const LoginPage = lazy(() => import('./pages/public/LoginPage'))
+const ResetPasswordPage = lazy(() => import('./pages/public/ResetPasswordPage'))
 const InvitePage = lazy(() => import('./pages/public/InvitePage'))
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'))
 const RootRedirect = lazy(() => import('./components/RootRedirect'))
@@ -109,6 +110,7 @@ export default function App() {
             {/* Routes publiques minimales : auth + invite */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<LoginPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/invite/:token" element={<InvitePage />} />
 
             {/* Racine : redirige vers dashboard si connecté, sinon vers la
