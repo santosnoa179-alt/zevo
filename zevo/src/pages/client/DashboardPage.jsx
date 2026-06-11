@@ -329,9 +329,12 @@ export default function DashboardPage() {
           .select('id, titre, date_prevue').eq('client_id', user.id)
           .eq('date_prevue', demainStr).eq('is_template', false).eq('is_completed', false)
           .limit(1).maybeSingle(),
+        // Messages non lus envoyés par le coach à ce client.
+        // ⚠️ La table messages n'a PAS de colonne destinataire_id — le schéma
+        // utilise client_id + expediteur ('coach'|'client') + lu.
         supabase.from('messages')
           .select('id', { count: 'exact', head: true })
-          .eq('destinataire_id', user.id).eq('lu', false),
+          .eq('client_id', user.id).eq('expediteur', 'coach').eq('lu', false),
       ])
 
       // ── Traitement vague 1 ────────────────────────────────────────────────

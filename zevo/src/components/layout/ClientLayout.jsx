@@ -146,7 +146,9 @@ export function ClientLayout() {
   // ── Onboarding + Tutorial ────────────────────────────────────────────
   useEffect(() => {
     if (!user) return
-    supabase.from('clients').select('onboarding_complete, actif').eq('id', user.id).single()
+    // maybeSingle : un user sans row clients (ex: coach égaré sur /app)
+    // ne doit pas déclencher un 406 PostgREST.
+    supabase.from('clients').select('onboarding_complete, actif').eq('id', user.id).maybeSingle()
       .then(({ data }) => {
         if (data && !data.onboarding_complete) setShowOnboarding(true)
         if (data) setClientActif(data.actif === true)
@@ -156,7 +158,7 @@ export function ClientLayout() {
 
   useEffect(() => {
     if (!user || showOnboarding) return
-    supabase.from('profiles').select('tutorial_seen').eq('id', user.id).single()
+    supabase.from('profiles').select('tutorial_seen').eq('id', user.id).maybeSingle()
       .then(({ data }) => { if (data && !data.tutorial_seen) setShowTutorial(true) })
   }, [user, showOnboarding])
 

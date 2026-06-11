@@ -17,6 +17,7 @@ export default function InvitePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [confirmEmailSent, setConfirmEmailSent] = useState(false)
 
   const [prenom, setPrenom] = useState('')
   const [password, setPassword] = useState('')
@@ -76,43 +77,30 @@ export default function InvitePage() {
     setError('')
 
     try {
-      // Crée le compte via le hook useAuth
-      const authData = await signup(invitation.email, password, { prenom })
-
-      // Met à jour le profil avec le prénom
-      const { error: profileErr } = await supabase
-        .from('profiles')
-        .update({ nom: prenom, role: 'client' })
-        .eq('id', authData.user.id)
-      if (profileErr) {
-        console.error('[InvitePage] update profile error:', profileErr)
-        throw new Error('Impossible de finaliser le profil. Contacte ton coach.')
-      }
-
-      // Crée l'entrée dans la table clients (inactif tant qu'il n'a pas payé)
-      const { error: clientErr } = await supabase.from('clients').insert({
-        id: authData.user.id,
-        coach_id: invitation.coach_id,
-        actif: false,
-        onboarding_complete: true,
+      // Crée le compte en passant tout dans les metadata : le trigger
+      // handle_new_user() (SECURITY DEFINER, bypass RLS) crée la row profiles
+      // avec role='client', la row clients rattachée au coach (coach_id lu
+      // depuis l'invitation EN DB — pas falsifiable), et marque l'invitation
+      // acceptée. Les anciens UPDATE/INSERT côté client échouaient dès que
+      // "Confirm email" est activé (pas de session → requêtes anon → RLS).
+      const authData = await signup(invitation.email, password, {
+        prenom,
+        nom: prenom,
+        role: 'client',
+        invitation_token: token,
       })
-      if (clientErr) {
-        console.error('[InvitePage] insert client error:', clientErr)
-        throw new Error('Impossible de créer le profil client. Contacte ton coach.')
+
+      if (!authData?.user) {
+        throw new Error('Erreur lors de la création du compte. Réessaie.')
       }
 
-      // Marque l'invitation comme acceptée
-      const { error: inviteErr } = await supabase
-        .from('invitations')
-        .update({ acceptee: true })
-        .eq('token', token)
-      if (inviteErr) {
-        // Non bloquant : le compte est créé, on log juste
-        console.warn('[InvitePage] update invitation error:', inviteErr)
+      if (authData.session) {
+        // Auto-confirmé (Confirm email désactivé) → direct dans l'app
+        navigate('/app', { replace: true })
+      } else {
+        // Confirmation email requise → écran "vérifie tes emails"
+        setConfirmEmailSent(true)
       }
-
-      // Redirige vers l'app client
-      navigate('/app', { replace: true })
     } catch (err) {
       setError(err.message || 'Une erreur est survenue. Réessayez.')
     } finally {
@@ -139,6 +127,29 @@ export default function InvitePage() {
           </div>
           <h2 className="text-[var(--text-primary)] text-2xl font-bold mb-2">Lien invalide</h2>
           <p className="text-[var(--text-muted)] text-sm">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Compte créé, confirmation email requise → écran "vérifie tes emails"
+  if (confirmEmailSent) {
+    return (
+      <div className="min-h-dvh bg-[var(--bg-base)] flex items-center justify-center px-4 relative overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,107,43,0.10),transparent_55%)]" />
+        <div className="relative z-10 w-full max-w-sm text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C] shadow-lg shadow-[#FF6B2B]/30 mb-6">
+            <span className="text-2xl">📬</span>
+          </div>
+          <h2 className="text-[var(--text-primary)] text-2xl font-bold mb-3">Vérifie tes emails</h2>
+          <p className="text-[var(--text-muted)] text-sm leading-relaxed mb-2">
+            Ton compte est créé ! Un email de confirmation a été envoyé à
+          </p>
+          <p className="text-[var(--text-secondary)] text-sm font-semibold mb-5">{invitation?.email}</p>
+          <p className="text-[var(--text-muted)] text-xs leading-relaxed">
+            Clique sur le lien dans l'email pour activer ton compte et accéder à ton espace.
+            Pense à vérifier ton dossier spam.
+          </p>
         </div>
       </div>
     )

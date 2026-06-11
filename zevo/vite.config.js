@@ -34,9 +34,13 @@ export default defineConfig({
         },
       },
     },
-    // Terser pour une meilleure compression
     target: 'es2020',
-    // Supprime les console.log en prod
     minify: 'esbuild',
+  },
+  esbuild: {
+    // Supprime réellement les console.log/debug/info du bundle de prod
+    // (certains loggent des données clients). On garde console.error et
+    // console.warn pour le debugging prod + les breadcrumbs Sentry.
+    pure: ['console.log', 'console.debug', 'console.info'],
   },
 })
