@@ -48,13 +48,8 @@ export default function InvitePage() {
         console.error('[InvitePage] Token invalide:', error)
         setError('Ce lien d\'invitation est invalide ou expiré.')
       } else {
-        // Charger le nom de l'app du coach separement (non bloquant)
-        const { data: coach } = await supabase
-          .from('coaches')
-          .select('nom_app')
-          .eq('id', data.coach_id)
-          .maybeSingle()
-        setInvitation({ ...data, coach_nom_app: coach?.nom_app || 'Zevo' })
+        // coach_nom_app vient de la RPC (lecture directe de coaches impossible en anon)
+        setInvitation({ ...data, coach_nom_app: data.coach_nom_app || 'Zevo' })
       }
       setLoading(false)
     }
