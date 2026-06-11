@@ -239,7 +239,7 @@ export default function CoachPricingPage() {
                   className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden flex items-center justify-center gap-2 ${
                     plan.popular
                       ? 'bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white hover:shadow-lg hover:shadow-[#FF6B2B]/25'
-                      : 'bg-[var(--bg-elevated)] text-[var(--text-primary)] hover:bg-[var(--bg-surface)] border border-[var(--border)]'
+                      : 'bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-gradient-to-r hover:from-[#FF6B2B] hover:to-[#FF8F5E] hover:text-white hover:border-transparent hover:shadow-lg hover:shadow-[#FF6B2B]/25'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isLoading ? (
