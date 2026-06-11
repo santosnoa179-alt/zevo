@@ -70,7 +70,7 @@ export default function CoachAppBuilderPage() {
     const load = async () => {
       const { data } = await supabase
         .from('coaches')
-        .select('prenom, nom_app, logo_url, couleur_primaire, message_bienvenue, modules, plan')
+        .select('prenom, nom_app, logo_url, couleur_primaire, message_bienvenue, modules, plan, trial_ends_at, subscription_status')
         .eq('id', user.id)
         .single()
 
@@ -80,7 +80,16 @@ export default function CoachAppBuilderPage() {
         setLogoUrl(data.logo_url || '')
         setCouleur(data.couleur_primaire || '#FF6B2B')
         setMessageBienvenue(data.message_bienvenue || '')
-        setPlan(data.plan || 'starter')
+        // Pendant l'essai gratuit (trial actif sans abonnement), le coach a
+        // acces a TOUTES les fonctionnalites = plan 'unlimited' effectif.
+        // Meme logique que usePlanLimits — sinon l'App Builder reste verrouille
+        // alors que le badge affiche "UNLIMITED".
+        const trialActive = data.trial_ends_at && new Date(data.trial_ends_at) > new Date()
+        const hasSubscription = data.subscription_status === 'active'
+        const effectivePlan = (trialActive && !hasSubscription)
+          ? 'unlimited'
+          : (data.plan || 'starter')
+        setPlan(effectivePlan)
         if (data.modules) setModules(prev => ({ ...prev, ...data.modules }))
       }
       setLoading(false)
