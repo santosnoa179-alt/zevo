@@ -29,10 +29,13 @@ Reprise des tests `LAUNCH-CHECKLIST.md`. Sections 1 (Auth) et 2 (Stripe) validé
 
 **Bug 6 (client, RLS récursif — commit `4974d06` + migration DB) — IMPACT LARGE** : le tutoriel client revenait à **chaque** connexion. Cause : la policy UPDATE `profiles_update_own` faisait `role = (SELECT role FROM profiles ...)` dans son WITH CHECK → **récursion infinie 42P17** → **TOUT UPDATE de `profiles` par un user authenticated plantait en 500** (pas juste `tutorial_seen` : aussi modif profil client/coach, poids, objectifs…). `AppTutorial.markSeen` ignorait l'erreur → flag jamais persisté. Fix : policy récursive supprimée + protection du `role` déplacée dans un trigger `lock_profile_role` (BEFORE UPDATE, non-récursif) ; `markSeen` lit désormais l'erreur. Vérifié : client peut maj son profil, ne peut toujours pas s'auto-promouvoir admin.
 
+**Feature (commit `1a470e6`) : formulaires post-séance liés à la séance** — les formulaires récurrents `recurrence.intervalle = 'post_seance'` génèrent désormais un questionnaire PAR séance terminée (anti-doublon par `seance_id` dans WorkoutTrackerPage au lieu d'un seul global) ; chaque réponse est rattachée à sa séance ; CoachFormulairesPage affiche un badge « Séance : <titre> — <date> » sur chaque réponse. Brainstormé + validé avant implémentation. Vérifié en preview.
+
 **⚠️ Migrations DB hors code de cette session** (à rejouer si la DB est recréée — pas encore dans `supabase/migrations`) :
 1. `ALTER TABLE seance_exercices ADD COLUMN IF NOT EXISTS reps_cible text;` + `ALTER COLUMN exercice_id DROP NOT NULL;`
 2. Policy `clients_read_sport_exos_via_seances` (SELECT) sur `sport_seance_exercices` (cf. bug 5).
 3. `DROP POLICY profiles_update_own` + fonction/trigger `lock_profile_role` sur `profiles` (cf. bug 6) — SQL dans `/tmp/zevo_profiles_fix.sql` reproduit ci-dessus.
+4. `ALTER TABLE formulaire_reponses ADD COLUMN seance_id uuid REFERENCES seances(id) ON DELETE SET NULL;` + index `idx_formulaire_reponses_seance` (feature post-séance).
 
 **Nettoyage DB** : 44 séances orphelines supprimées (32 Pro + 12 legacy, toutes compte test, aucune complétée d'un vrai client).
 
