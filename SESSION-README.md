@@ -48,9 +48,12 @@ Reprise des tests `LAUNCH-CHECKLIST.md`. Sections 1 (Auth) et 2 (Stripe) validé
 - Requêtes DB prod + récupération service_role via API Management (token CLI keychain). Sessions coach en preview via `admin/generate_link` + `verify` magiclink → injection localStorage `sb-<ref>-auth-token`. Permet de tester les vues coach/client en preview sans mot de passe.
 
 ### ⏳ Reste à tester (section 3-9)
-- [ ] Messages (temps réel coach↔client, lu/non-lu, images) — **le plus à risque restant**
+- [x] Messages (temps réel coach↔client, lu/non-lu, images) — testé OK par Noa le 16 juin
 - [ ] Calendrier global, Bibliothèque, Formulaires
 - [ ] Sections 4-9 : côté client, admin, mobile, monitoring, légal
+
+### Note Sentry
+- Erreurs `Failed to fetch dynamically imported module` (chunk lazy obsolète post-déploiement) : bénin, auto-reload géré par `main.jsx`. Ajoutées à `ignoreErrors` Sentry (`73952e2`) pour ne plus polluer le dashboard. Astuce : hard refresh (Cmd+Shift+R) après un déploiement pendant le dev.
 
 ---
 
