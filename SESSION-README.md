@@ -25,6 +25,12 @@ Reprise des tests `LAUNCH-CHECKLIST.md`. Sections 1 (Auth) et 2 (Stripe) validé
 | `17554bc` | **Exercices Pro invisibles client/coach** : migration DB `seance_exercices` (ajout `reps_cible` text + `exercice_id` nullable) — l'insert échouait (PGRST204), séances déployées vides. + `reps:null` au déploiement (DEFAULT 12 masquait le range) + résolution nom/gif exos Pro via `sport_seance_exercices→exercises` dans 5 vues |
 | `933e17e` | **Séances orphelines après suppression programme** : FK `seances.sport_programme_id` est ON DELETE SET NULL → supprimer le prog laissait les séances dans le calendrier. Fix : delete seances AVANT le programme (seance_exercices cascade) |
 
+**Bug 5 (côté client, RLS — pas de commit, migration DB)** : dans le tracker (`/app/workout/:id`), pas de nom ni de GIF d'exercice. Cause : le join `sport_seance_exercices` renvoyait `null` car la policy SELECT n'autorisait le client que si le **programme** lui appartient — or `sport_seance_exercice_id` pointe vers les exos du **template** (client_id null). Fix = nouvelle policy RLS `clients_read_sport_exos_via_seances` sur `sport_seance_exercices` : le client peut lire un exo source dès qu'il est référencé par une de SES séances. Couvre l'existant + le futur. Vérifié en preview (nom + GIF OK).
+
+**⚠️ Migrations DB hors code de cette session** (à rejouer si la DB est recréée — pas encore dans `supabase/migrations`) :
+1. `ALTER TABLE seance_exercices ADD COLUMN IF NOT EXISTS reps_cible text;` + `ALTER COLUMN exercice_id DROP NOT NULL;`
+2. Policy `clients_read_sport_exos_via_seances` (SELECT) sur `sport_seance_exercices` (cf. bug 5).
+
 **Nettoyage DB** : 44 séances orphelines supprimées (32 Pro + 12 legacy, toutes compte test, aucune complétée d'un vrai client).
 
 **Cleanup repo** (`a61e17b`) : `zevo-marketing` (repo séparé, ajouté par erreur en submodule) + `zevo-video` retirés du tracking + `.gitignore` créé.
