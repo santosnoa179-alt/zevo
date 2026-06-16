@@ -27,9 +27,12 @@ Reprise des tests `LAUNCH-CHECKLIST.md`. Sections 1 (Auth) et 2 (Stripe) validé
 
 **Bug 5 (côté client, RLS — pas de commit, migration DB)** : dans le tracker (`/app/workout/:id`), pas de nom ni de GIF d'exercice. Cause : le join `sport_seance_exercices` renvoyait `null` car la policy SELECT n'autorisait le client que si le **programme** lui appartient — or `sport_seance_exercice_id` pointe vers les exos du **template** (client_id null). Fix = nouvelle policy RLS `clients_read_sport_exos_via_seances` sur `sport_seance_exercices` : le client peut lire un exo source dès qu'il est référencé par une de SES séances. Couvre l'existant + le futur. Vérifié en preview (nom + GIF OK).
 
+**Bug 6 (client, RLS récursif — commit `4974d06` + migration DB) — IMPACT LARGE** : le tutoriel client revenait à **chaque** connexion. Cause : la policy UPDATE `profiles_update_own` faisait `role = (SELECT role FROM profiles ...)` dans son WITH CHECK → **récursion infinie 42P17** → **TOUT UPDATE de `profiles` par un user authenticated plantait en 500** (pas juste `tutorial_seen` : aussi modif profil client/coach, poids, objectifs…). `AppTutorial.markSeen` ignorait l'erreur → flag jamais persisté. Fix : policy récursive supprimée + protection du `role` déplacée dans un trigger `lock_profile_role` (BEFORE UPDATE, non-récursif) ; `markSeen` lit désormais l'erreur. Vérifié : client peut maj son profil, ne peut toujours pas s'auto-promouvoir admin.
+
 **⚠️ Migrations DB hors code de cette session** (à rejouer si la DB est recréée — pas encore dans `supabase/migrations`) :
 1. `ALTER TABLE seance_exercices ADD COLUMN IF NOT EXISTS reps_cible text;` + `ALTER COLUMN exercice_id DROP NOT NULL;`
 2. Policy `clients_read_sport_exos_via_seances` (SELECT) sur `sport_seance_exercices` (cf. bug 5).
+3. `DROP POLICY profiles_update_own` + fonction/trigger `lock_profile_role` sur `profiles` (cf. bug 6) — SQL dans `/tmp/zevo_profiles_fix.sql` reproduit ci-dessus.
 
 **Nettoyage DB** : 44 séances orphelines supprimées (32 Pro + 12 legacy, toutes compte test, aucune complétée d'un vrai client).
 
