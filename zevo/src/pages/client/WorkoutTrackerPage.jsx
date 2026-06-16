@@ -405,23 +405,26 @@ export default function WorkoutTrackerPage() {
             })
 
             if (formsToSend.length > 0) {
-              // 4. Vérifier les formulaires déjà en attente (éviter les doublons)
+              // 4. Anti-doublon PAR SÉANCE : on ne recrée pas un formulaire déjà
+              //    rattaché à cette séance précise (ex. si le client rouvre le tracker).
+              //    Chaque séance terminée a donc son propre questionnaire post-séance.
               const { data: existing } = await supabase
                 .from('formulaire_reponses')
                 .select('formulaire_id')
                 .eq('client_id', user.id)
-                .eq('complete', false)
+                .eq('seance_id', seanceId)
                 .in('formulaire_id', formsToSend.map(f => f.id))
 
               const existingIds = new Set((existing || []).map(e => e.formulaire_id))
               const newForms = formsToSend.filter(f => !existingIds.has(f.id))
 
-              // 5. Insérer uniquement les formulaires sans doublon en attente
+              // 5. Insérer les formulaires manquants, rattachés à la séance terminée
               if (newForms.length > 0) {
                 await supabase.from('formulaire_reponses').insert(
                   newForms.map(f => ({
                     formulaire_id: f.id,
                     client_id: user.id,
+                    seance_id: seanceId,
                     reponses: {},
                     complete: false,
                   }))

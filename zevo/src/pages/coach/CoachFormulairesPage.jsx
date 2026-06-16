@@ -429,7 +429,7 @@ export default function CoachFormulairesPage() {
     setRepFormulaire(form)
     const [{ data: ch }, { data: rep }] = await Promise.all([
       supabase.from('formulaire_champs').select('*').eq('formulaire_id', form.id).order('ordre'),
-      supabase.from('formulaire_reponses').select('*, clients(profiles(prenom, nom, email))')
+      supabase.from('formulaire_reponses').select('*, clients(profiles(prenom, nom, email)), seances(titre, date_prevue)')
         .eq('formulaire_id', form.id).order('created_at', { ascending: false }),
     ])
     setRepChamps(ch || [])
@@ -906,6 +906,9 @@ export default function CoachFormulairesPage() {
             {reponses.map(r => {
               const nom = [r.clients?.profiles?.prenom, r.clients?.profiles?.nom].filter(Boolean).join(' ') || r.clients?.profiles?.email || 'Client'
               const score = r.complete ? computeScore(r.reponses, repChamps) : null
+              const seanceLabel = r.seances
+                ? `${r.seances.titre || 'Séance'}${r.seances.date_prevue ? ' — ' + new Date(r.seances.date_prevue).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : ''}`
+                : null
 
               return (
                 <div key={r.id} className="hero-card bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl overflow-hidden">
@@ -920,6 +923,11 @@ export default function CoachFormulairesPage() {
                       <p className="text-[var(--text-muted)] text-[11px]">
                         {new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </p>
+                      {seanceLabel && (
+                        <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20">
+                          <Dumbbell size={9} /> Séance : {seanceLabel}
+                        </span>
+                      )}
                     </div>
                     {score !== null && (() => {
                       const sc = scoreColor(score)
