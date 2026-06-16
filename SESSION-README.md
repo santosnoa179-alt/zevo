@@ -1,13 +1,38 @@
 # 📋 Session README — Reprise du travail Zevo
 
-> Dernière mise à jour : **11 juin 2026** — SQL pack vérifié ✅, invitation client re-testée ✅, templates email FR complets
+> Dernière mise à jour : **16 juin 2026** — section 3 (flow coach) : 8 bugs corrigés + 1 feature post-séance, nettoyage DB
 > Pour reprendre dans un nouveau chat Claude Code, **lis ce fichier en premier** puis attaque la todo.
 
 ---
 
-## 🆕 Session du 16 juin 2026 — tests flow coach : sport (4 bugs) + nutrition OK
+## 🆕 Session du 16 juin 2026 — tests flow coach : 8 bugs + feature post-séance
 
-Reprise des tests `LAUNCH-CHECKLIST.md`. Sections 1 (Auth) et 2 (Stripe) validées. Attaque section 3 (flow coach) → gros travail sur le **builder de programme sport** (plusieurs bugs trouvés en test live par Noa) + audit nutrition.
+Reprise des tests `LAUNCH-CHECKLIST.md`. Sections 1 (Auth) et 2 (Stripe) validées. Section 3 (flow coach) : gros travail sur sport/client/formulaires (bugs trouvés en test live par Noa) + audit nutrition + 1 feature.
+
+### 🎯 Commits de la session (du plus récent au plus ancien)
+
+| SHA | Description |
+|---|---|
+| `1a470e6` | feat(formulaires): réponses post-séance liées à la séance (badge coach) |
+| `6987dd8` | fix(coach-formulaires): afficher prénom + nom du client |
+| `73952e2` | chore(sentry): ignorer les erreurs de chunk lazy obsolète |
+| `19754a9` | fix(client): séances types sport invisibles (colonne objectif_seance) |
+| `4974d06` | fix(client): tuto à chaque login (récursion RLS profiles — impact large) |
+| `139a4ed` / `7e71820` | docs session (bugs 5 & 6) |
+| `1699ce9` | docs session 16 juin |
+| `933e17e` | fix(sport): séances orphelines après suppression programme |
+| `a61e17b` | chore: untrack zevo-marketing/zevo-video + gitignore |
+| `17554bc` | fix(sport): exercices Pro invisibles (migration seance_exercices) |
+| `10f947f` | fix(sport): builder 400 + Planifié + superset bouton |
+| `f294f3d` | ux(pricing): boutons gradient orange au survol |
+| `aa66754` | fix(invite): nom d'app coach via RPC |
+| `58ab810` | fix(auth): page /reset-password manquante |
+
+### 🔴 À FAIRE EN PRIORITÉ À LA REPRISE
+- [ ] **Vérifier sur la prod** (après déploiement Vercel) tous les fixes de code ci-dessus, surtout : tracker client (nom/GIF), programme client (séances types), tuto qui ne revient plus, profil client modifiable, formulaires post-séance.
+- [ ] **Reporter les 4 migrations DB dans `supabase/migrations`** (voir liste en bas de section) — elles sont en prod mais pas versionnées : risque si la DB est recréée.
+- [ ] Continuer section 3 : **Bibliothèque** (upload/partage fichiers) + **Calendrier global**.
+- [ ] Puis sections 4-9 : côté client complet, admin, mobile, monitoring, légal.
 
 ### ✅ Section 1 Auth — TERMINÉE
 - Reset password : page `/reset-password` créée (manquait totalement — le lien email ne menait nulle part) + flow email réel validé
