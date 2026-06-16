@@ -5,6 +5,46 @@
 
 ---
 
+## 🆕 Session du 16 juin 2026 — tests flow coach : sport (4 bugs) + nutrition OK
+
+Reprise des tests `LAUNCH-CHECKLIST.md`. Sections 1 (Auth) et 2 (Stripe) validées. Attaque section 3 (flow coach) → gros travail sur le **builder de programme sport** (plusieurs bugs trouvés en test live par Noa) + audit nutrition.
+
+### ✅ Section 1 Auth — TERMINÉE
+- Reset password : page `/reset-password` créée (manquait totalement — le lien email ne menait nulle part) + flow email réel validé
+- Login, sécurité routes, invitation client : tous OK
+
+### ✅ Section 2 Stripe — validée (l'essentiel)
+- Paiement réel + webhook + remboursement + Connect déjà validés le 21 avril (Noa confirme). Cas secondaires (upgrade, promo, 3DS, Connect client→commission) non testés mais non bloquants soft launch.
+
+### ✅ Section 3 — Builder programme SPORT : 4 bugs corrigés
+
+| Commit | Bug |
+|---|---|
+| `f294f3d` | UX pricing : boutons Starter/Unlimited en gradient orange au survol |
+| `10f947f` | 400 console (relation `exercices` FR inexistante → `exercises`) + label "Réalisé" trompeur → "Planifié" + superset cryptique (champ texte A/B) → bouton "Lier au précédent" |
+| `17554bc` | **Exercices Pro invisibles client/coach** : migration DB `seance_exercices` (ajout `reps_cible` text + `exercice_id` nullable) — l'insert échouait (PGRST204), séances déployées vides. + `reps:null` au déploiement (DEFAULT 12 masquait le range) + résolution nom/gif exos Pro via `sport_seance_exercices→exercises` dans 5 vues |
+| `933e17e` | **Séances orphelines après suppression programme** : FK `seances.sport_programme_id` est ON DELETE SET NULL → supprimer le prog laissait les séances dans le calendrier. Fix : delete seances AVANT le programme (seance_exercices cascade) |
+
+**Nettoyage DB** : 44 séances orphelines supprimées (32 Pro + 12 legacy, toutes compte test, aucune complétée d'un vrai client).
+
+**Cleanup repo** (`a61e17b`) : `zevo-marketing` (repo séparé, ajouté par erreur en submodule) + `zevo-video` retirés du tracking + `.gitignore` créé.
+
+### ✅ Nutrition Pro — auditée, structurellement saine (pas de fix nécessaire)
+- Colonnes des tables = payloads de déploiement (pas de mismatch type sport)
+- Suppression programme : toutes les FK en CASCADE → pas d'orphelins
+- Pas de déploiement de séances datées (le client lit le programme cloné directement) → pas le bug d'invisibilité
+- Test live Noa : OK
+
+### 💡 Note technique réutilisée
+- Requêtes DB prod + récupération service_role via API Management (token CLI keychain). Sessions coach en preview via `admin/generate_link` + `verify` magiclink → injection localStorage `sb-<ref>-auth-token`. Permet de tester les vues coach/client en preview sans mot de passe.
+
+### ⏳ Reste à tester (section 3-9)
+- [ ] Messages (temps réel coach↔client, lu/non-lu, images) — **le plus à risque restant**
+- [ ] Calendrier global, Bibliothèque, Formulaires
+- [ ] Sections 4-9 : côté client, admin, mobile, monitoring, légal
+
+---
+
 ## 🆕 Session du 11 juin 2026 — vérification SQL pack + invitation + templates email
 
 ### ✅ Vérifié (priorité 1 de la session précédente)
