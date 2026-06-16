@@ -246,8 +246,14 @@ export default function CoachSportPage() {
 
   // ── Delete programme Pro (table `sport_programmes`, cascade FK via ON DELETE CASCADE) ──
   const handleDeleteProgrammePro = async (progId) => {
-    if (!confirm('Supprimer ce programme Pro ? Toutes les phases, séances types et exercices liés seront supprimés.')) return
+    if (!confirm('Supprimer ce programme Pro ? Toutes les phases, séances types, exercices et séances déployées dans le calendrier seront supprimés.')) return
     try {
+      // Supprimer d'abord les séances déployées dans le calendrier client.
+      // La FK seances.sport_programme_id est ON DELETE SET NULL : si on supprime
+      // le programme avant, les séances resteraient orphelines dans le calendrier.
+      // (seance_exercices cascade automatiquement sur seance_id.)
+      const { error: seancesErr } = await supabase.from('seances').delete().eq('sport_programme_id', progId)
+      if (seancesErr) throw seancesErr
       const { error } = await supabase.from('sport_programmes').delete().eq('id', progId)
       if (error) throw error
       toast.success('Programme supprimé !')
