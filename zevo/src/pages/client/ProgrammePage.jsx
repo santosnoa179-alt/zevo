@@ -189,7 +189,7 @@ export default function ProgrammePage() {
         if (phaseIds.length > 0) {
           const { data: stData } = await supabase
             .from('sport_seance_types')
-            .select('id, phase_id, nom, duree_estimee_min, objectif_seance, ordre')
+            .select('id, phase_id, nom, duree_estimee_min, focus, ordre')
             .in('phase_id', phaseIds)
             .order('ordre')
           setSportProSeanceTypes(stData || [])
@@ -578,8 +578,8 @@ export default function ProgrammePage() {
                                         <Dumbbell size={12} className="text-[#FF6B2B] shrink-0" />
                                         <div className="flex-1 min-w-0">
                                           <p className="text-[var(--text-primary)] text-xs font-semibold truncate">{st.nom}</p>
-                                          {st.objectif_seance && (
-                                            <p className="text-[var(--text-muted)] text-[9px] truncate">{st.objectif_seance}</p>
+                                          {st.focus && (
+                                            <p className="text-[var(--text-muted)] text-[9px] truncate">{st.focus}</p>
                                           )}
                                         </div>
                                         {st.duree_estimee_min && (
