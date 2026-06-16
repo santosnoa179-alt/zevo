@@ -485,14 +485,13 @@ export default function AppTutorial({ onComplete }) {
   // Mark tutorial as seen in Supabase
   const markSeen = useCallback(async () => {
     if (!user) return
-    try {
-      await supabase
-        .from('profiles')
-        .update({ tutorial_seen: true })
-        .eq('id', user.id)
-    } catch (err) {
-      console.error('Erreur sauvegarde tutorial_seen:', err)
-    }
+    // supabase ne throw pas sur erreur RLS : il faut lire `error` explicitement,
+    // sinon un échec (ex. policy cassée) passe inaperçu et le tuto revient à chaque login.
+    const { error } = await supabase
+      .from('profiles')
+      .update({ tutorial_seen: true })
+      .eq('id', user.id)
+    if (error) console.error('Erreur sauvegarde tutorial_seen:', error)
   }, [user])
 
   const finish = useCallback(async () => {
