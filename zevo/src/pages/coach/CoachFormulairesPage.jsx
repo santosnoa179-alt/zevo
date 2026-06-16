@@ -362,7 +362,7 @@ export default function CoachFormulairesPage() {
     setModalEnvoi(true)
 
     const [{ data: cl }, { data: existingReps }] = await Promise.all([
-      supabase.from('clients').select('id, profiles(nom, email)').eq('coach_id', user.id).eq('actif', true),
+      supabase.from('clients').select('id, profiles(prenom, nom, email)').eq('coach_id', user.id).eq('actif', true),
       supabase.from('formulaire_reponses').select('client_id, complete').eq('formulaire_id', form.id),
     ])
 
@@ -429,7 +429,7 @@ export default function CoachFormulairesPage() {
     setRepFormulaire(form)
     const [{ data: ch }, { data: rep }] = await Promise.all([
       supabase.from('formulaire_champs').select('*').eq('formulaire_id', form.id).order('ordre'),
-      supabase.from('formulaire_reponses').select('*, clients(profiles(nom, email))')
+      supabase.from('formulaire_reponses').select('*, clients(profiles(prenom, nom, email))')
         .eq('formulaire_id', form.id).order('created_at', { ascending: false }),
     ])
     setRepChamps(ch || [])
@@ -710,7 +710,7 @@ export default function CoachFormulairesPage() {
                   ) : (
                     <div className="space-y-1.5">
                       {clients.map(c => {
-                        const nom = c.profiles?.nom || c.profiles?.email || 'Client'
+                        const nom = [c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || c.profiles?.email || 'Client'
                         return (
                           <div key={c.id}
                             className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--bg-surface)] transition-colors">
@@ -904,7 +904,7 @@ export default function CoachFormulairesPage() {
         ) : (
           <div className="space-y-3 md:space-y-4">
             {reponses.map(r => {
-              const nom = r.clients?.profiles?.nom || r.clients?.profiles?.email || 'Client'
+              const nom = [r.clients?.profiles?.prenom, r.clients?.profiles?.nom].filter(Boolean).join(' ') || r.clients?.profiles?.email || 'Client'
               const score = r.complete ? computeScore(r.reponses, repChamps) : null
 
               return (
