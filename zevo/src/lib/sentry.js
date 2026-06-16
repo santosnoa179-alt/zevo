@@ -55,6 +55,11 @@ export function initSentry() {
       // Network errors typiques (user offline)
       'NetworkError',
       'Load failed',
+      // Chunks lazy obsolètes après un déploiement : bénin, géré par
+      // l'auto-reload dans main.jsx (le user récupère la nouvelle version).
+      'Failed to fetch dynamically imported module',
+      'Importing a module script failed',
+      'Unable to preload CSS',
     ],
 
     beforeSend(event) {
