@@ -70,10 +70,24 @@ export default function SeancesPage() {
     if (exercicesMap[seanceId]) return // déjà chargé
     const { data } = await supabase
       .from('seance_exercices')
-      .select('*, exercices(nom, muscle_group, gif_url)')
+      .select('*, exercices(nom, muscle_group, gif_url), sport_seance_exercices(exercice_id, exercice_nom_custom)')
       .eq('seance_id', seanceId)
       .order('ordre')
-    setExercicesMap(prev => ({ ...prev, [seanceId]: data || [] }))
+    let rows = data || []
+    // Résout le nom/gif des exos Pro V3 (exercice_id legacy null) via la lib ExerciseDB
+    const libIds = [...new Set(rows.map(r => r.sport_seance_exercices?.exercice_id).filter(Boolean))]
+    if (libIds.length) {
+      const { data: lib } = await supabase
+        .from('exercises').select('id, name, name_fr, target_muscle, gif_url').in('id', libIds)
+      const libMap = Object.fromEntries((lib || []).map(e => [e.id, e]))
+      rows = rows.map(r => {
+        if (r.exercices?.nom) return r
+        const li = r.sport_seance_exercices?.exercice_id ? libMap[r.sport_seance_exercices.exercice_id] : null
+        const nom = r.sport_seance_exercices?.exercice_nom_custom || li?.name_fr || li?.name
+        return nom ? { ...r, exercices: { nom, muscle_group: li?.target_muscle, gif_url: li?.gif_url } } : r
+      })
+    }
+    setExercicesMap(prev => ({ ...prev, [seanceId]: rows }))
   }
 
   // ── Toggle complétion ──
@@ -431,7 +445,7 @@ export default function SeancesPage() {
                                       </div>
                                       <div className="flex items-center gap-2 text-[10px] shrink-0">
                                         {ex.series && <span className="text-[#FF6B2B] font-bold">{ex.series}×</span>}
-                                        {ex.reps && <span className="text-[var(--text-muted)]">{ex.reps} reps</span>}
+                                        {(ex.reps || ex.reps_cible) && <span className="text-[var(--text-muted)]">{ex.reps || ex.reps_cible} reps</span>}
                                         {ex.repos && (
                                           <span className="text-[var(--text-muted)] flex items-center gap-0.5">
                                             <Clock size={8} />{ex.repos}s

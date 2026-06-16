@@ -450,6 +450,9 @@ export default function CoachSportPage() {
               exercice_id: null,
               ordre: exo.ordre,
               series: exo.series,
+              // reps (integer) explicitement null : le range vit dans reps_cible (text).
+              // Sans ça la colonne prend son DEFAULT (12) et masque le vrai range côté client.
+              reps: null,
               reps_cible: exo.reps_cible,
               charge_kg: Math.round(chargeAtWeek * 10) / 10 || null,
               charge_unite: exo.charge_unite || 'kg',

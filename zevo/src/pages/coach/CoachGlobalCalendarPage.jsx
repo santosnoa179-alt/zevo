@@ -415,10 +415,24 @@ export default function CoachGlobalCalendarPage() {
     setLoadingExos(true)
     const { data } = await supabase
       .from('seance_exercices')
-      .select('id, series, reps, poids, repos, ordre, exercices(nom, muscle_group, equipment)')
+      .select('id, series, reps, reps_cible, poids, charge_kg, charge_unite, repos, rest_sec, ordre, exercices(nom, muscle_group, equipment), sport_seance_exercices(exercice_id, exercice_nom_custom)')
       .eq('seance_id', seance.id)
       .order('ordre')
-    setDetailExos(data || [])
+    let rows = data || []
+    // Résout le nom des exos Pro V3 (exercice_id legacy null) via la lib ExerciseDB
+    const libIds = [...new Set(rows.map(r => r.sport_seance_exercices?.exercice_id).filter(Boolean))]
+    if (libIds.length) {
+      const { data: lib } = await supabase
+        .from('exercises').select('id, name, name_fr, target_muscle, equipment').in('id', libIds)
+      const libMap = Object.fromEntries((lib || []).map(e => [e.id, e]))
+      rows = rows.map(r => {
+        if (r.exercices?.nom) return r
+        const li = r.sport_seance_exercices?.exercice_id ? libMap[r.sport_seance_exercices.exercice_id] : null
+        const nom = r.sport_seance_exercices?.exercice_nom_custom || li?.name_fr || li?.name
+        return nom ? { ...r, exercices: { nom, muscle_group: li?.target_muscle, equipment: li?.equipment } } : r
+      })
+    }
+    setDetailExos(rows)
     setLoadingExos(false)
   }
 
@@ -1149,8 +1163,8 @@ export default function CoachGlobalCalendarPage() {
                           </p>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="text-xs text-[var(--text-primary)] font-medium tabular-nums">{ex.series}x{ex.reps}</p>
-                          <p className="text-[10px] text-[var(--text-muted)] tabular-nums">{ex.poids ? `${ex.poids}kg` : ''}{ex.repos ? ` ${ex.repos}s` : ''}</p>
+                          <p className="text-xs text-[var(--text-primary)] font-medium tabular-nums">{ex.series}x{ex.reps || ex.reps_cible || ''}</p>
+                          <p className="text-[10px] text-[var(--text-muted)] tabular-nums">{(ex.charge_kg || ex.poids) ? `${ex.charge_kg || ex.poids}${ex.charge_unite || 'kg'}` : ''}{(ex.rest_sec || ex.repos) ? ` ${ex.rest_sec || ex.repos}s` : ''}</p>
                         </div>
                       </div>
                     ))}

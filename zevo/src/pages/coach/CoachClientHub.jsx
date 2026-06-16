@@ -757,6 +757,9 @@ function SportTab({ clientName, coachId, clientId, onOpenCalendar, onOpenProgram
             exercice_id: null,
             ordre: exo.ordre,
             series: exo.series,
+            // reps (integer) explicitement null : le range vit dans reps_cible (text).
+            // Sans ça la colonne prend son DEFAULT (12) et masque le vrai range côté client.
+            reps: null,
             reps_cible: exo.reps_cible,
             charge_kg: Math.round(chargeAtWeek * 10) / 10 || null,
             charge_unite: exo.charge_unite || 'kg',
@@ -1454,10 +1457,24 @@ function CalendarTab({ clientId, clientName, coachId }) {
     setLoadingDetail(true)
     const { data } = await supabase
       .from('seance_exercices')
-      .select('id, series, reps, poids, repos, ordre, note_coach, exercices(nom, muscle_group, equipment, gif_url)')
+      .select('id, series, reps, reps_cible, poids, charge_kg, charge_unite, repos, rest_sec, ordre, note_coach, notes_coach, exercices(nom, muscle_group, equipment, gif_url), sport_seance_exercices(exercice_id, exercice_nom_custom)')
       .eq('seance_id', seance.id)
       .order('ordre')
-    setDetailExercices(data || [])
+    let rows = data || []
+    // Résout le nom/gif des exos Pro V3 (exercice_id legacy null) via la lib ExerciseDB
+    const libIds = [...new Set(rows.map(r => r.sport_seance_exercices?.exercice_id).filter(Boolean))]
+    if (libIds.length) {
+      const { data: lib } = await supabase
+        .from('exercises').select('id, name, name_fr, target_muscle, equipment, gif_url').in('id', libIds)
+      const libMap = Object.fromEntries((lib || []).map(e => [e.id, e]))
+      rows = rows.map(r => {
+        if (r.exercices?.nom) return r
+        const li = r.sport_seance_exercices?.exercice_id ? libMap[r.sport_seance_exercices.exercice_id] : null
+        const nom = r.sport_seance_exercices?.exercice_nom_custom || li?.name_fr || li?.name
+        return nom ? { ...r, exercices: { nom, muscle_group: li?.target_muscle, equipment: li?.equipment, gif_url: li?.gif_url } } : r
+      })
+    }
+    setDetailExercices(rows)
     setLoadingDetail(false)
   }
 
@@ -2898,15 +2915,15 @@ function CalendarTab({ clientId, clientName, coachId }) {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-[var(--text-primary)] text-sm font-medium truncate">{ex.exercices?.nom || 'Exercice'}</p>
-                        <p className="text-[var(--text-muted)] text-[10px]">{ex.series}×{ex.reps} {ex.poids ? `· ${ex.poids}kg` : ''} {ex.repos ? `· ${ex.repos}s repos` : ''}</p>
+                        <p className="text-[var(--text-muted)] text-[10px]">{ex.series}×{ex.reps || ex.reps_cible || ''} {(ex.charge_kg || ex.poids) ? `· ${ex.charge_kg || ex.poids}${ex.charge_unite || 'kg'}` : ''} {(ex.rest_sec || ex.repos) ? `· ${ex.rest_sec || ex.repos}s repos` : ''}</p>
                       </div>
                       {ex.exercices?.muscle_group && (
                         <span className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400">{ex.exercices.muscle_group}</span>
                       )}
                     </div>
-                    {ex.note_coach && (
+                    {(ex.note_coach || ex.notes_coach) && (
                       <div className="mt-2 ml-8 px-3 py-1.5 rounded-lg bg-[#FF6B2B]/10 border border-[#FF6B2B]/20">
-                        <p className="text-[10px] text-[#FF9A6C] leading-snug whitespace-pre-wrap">{ex.note_coach}</p>
+                        <p className="text-[10px] text-[#FF9A6C] leading-snug whitespace-pre-wrap">{ex.note_coach || ex.notes_coach}</p>
                       </div>
                     )}
                   </div>

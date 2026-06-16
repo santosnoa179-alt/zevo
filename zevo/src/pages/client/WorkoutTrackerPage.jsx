@@ -139,7 +139,7 @@ export default function WorkoutTrackerPage() {
       // pour les séances déployées depuis un programme Pro (exercice_id uuid legacy est NULL).
       const { data: exosData, error: exosErr } = await supabase
         .from('seance_exercices')
-        .select(`id, series, reps, poids, repos, ordre, media_url, note_coach,
+        .select(`id, series, reps, reps_cible, poids, repos, ordre, media_url, note_coach,
                  charge_kg, charge_unite, rpe_cible, rir_cible, tempo, rest_sec,
                  superset_group, technique, notes_coach, sport_seance_exercice_id,
                  seance_exercice_logs(id, set_number, charge_kg_reel, reps_reel, rpe_percu, notes_client),

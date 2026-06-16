@@ -1,0 +1,27 @@
+{
+  "name": "zevo-video",
+  "version": "1.0.0",
+  "description": "Zevo promotional video - 30s - Remotion",
+  "scripts": {
+    "start": "remotion studio",
+    "build:16x9": "remotion render ZevoVideo16x9 out/zevo-16x9.mp4",
+    "build:9x16": "remotion render ZevoVideo9x16 out/zevo-9x16.mp4",
+    "build:all": "npm run build:16x9 && npm run build:9x16",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.200",
+    "@remotion/cli": "4.0.200",
+    "@remotion/fonts": "4.0.200",
+    "@remotion/google-fonts": "4.0.200",
+    "@remotion/renderer": "4.0.200",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.200"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.3",
+    "@types/web": "0.0.150",
+    "typescript": "5.5.3"
+  }
+}
