@@ -38,6 +38,9 @@ const OBJECTIF_FOCUS = [
   { id: 'peak',         label: 'Peaking' },
 ]
 
+// Lettres utilisées pour grouper les exercices en superset (A enchaîné avec A, etc.)
+const SUPERSET_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+
 const PROGRESSION_TYPES = [
   { id: 'fixe',        label: 'Fixe',         desc: 'Même charge toutes les semaines' },
   { id: 'lineaire',    label: 'Linéaire',     desc: '+X kg par semaine' },
@@ -476,6 +479,46 @@ export default function SportProgrammeBuilder() {
     }))
   }
 
+  // Lie / délie un exercice avec celui qui le précède (superset).
+  // Deux exos enchaînés partagent la même lettre de groupe.
+  const toggleSupersetLink = (exoIdx) => {
+    if (exoIdx === 0) return
+    setPhases(prev => prev.map((p, i) => {
+      if (i !== activePhaseIdx) return p
+      return {
+        ...p,
+        seance_types: p.seance_types.map((st, k) => {
+          if (k !== activeSeanceTypeIdx) return st
+          const exos = [...st.exercices]
+          const cur = exos[exoIdx]
+          const before = exos[exoIdx - 1]
+          const linked = cur.superset_group && cur.superset_group === before.superset_group
+          if (linked) {
+            // Délier l'exo courant ; si son ancien groupe ne contient plus qu'un
+            // seul exo, on nettoie aussi cette lettre orpheline.
+            const grp = cur.superset_group
+            exos[exoIdx] = { ...cur, superset_group: null }
+            const remaining = exos.filter(e => e.superset_group === grp)
+            if (remaining.length === 1) {
+              const orphan = exos.findIndex(e => e.superset_group === grp)
+              exos[orphan] = { ...exos[orphan], superset_group: null }
+            }
+          } else {
+            // Lier : rejoindre le groupe du précédent, ou en créer un nouveau.
+            let grp = before.superset_group
+            if (!grp) {
+              const used = new Set(exos.map(e => e.superset_group).filter(Boolean))
+              grp = SUPERSET_LETTERS.find(l => !used.has(l)) || 'A'
+              exos[exoIdx - 1] = { ...before, superset_group: grp }
+            }
+            exos[exoIdx] = { ...cur, superset_group: grp }
+          }
+          return { ...st, exercices: exos }
+        }),
+      }
+    }))
+  }
+
   const removeExo = (exoIdx) => {
     const exo = activeSeanceType.exercices[exoIdx]
     if (!exo.id.startsWith('new-')) setDeletedExoIds(ids => [...ids, exo.id])
@@ -540,7 +583,7 @@ export default function SportProgrammeBuilder() {
       toast.success(`Séance "${activeSeanceType.nom}" ajoutée à ta bibliothèque`)
       const { data: refreshed } = await supabase
         .from('sport_seances_biblio')
-        .select('*, sport_seances_biblio_exercices(*, exercices(*))')
+        .select('*, sport_seances_biblio_exercices(*, exercises(id, name, name_fr, target_muscle, body_part, equipment, gif_url))')
         .eq('coach_id', user.id)
         .order('created_at', { ascending: false })
       setBiblioRepas(refreshed || [])
@@ -982,7 +1025,7 @@ export default function SportProgrammeBuilder() {
                   </div>
                 </div>
                 <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl p-3">
-                  <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] block mb-1.5">Réalisé</label>
+                  <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)] block mb-1.5">Planifié</label>
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-[var(--text-primary)] text-lg font-black tabular-nums leading-none">{phaseSetsHebdo}<span className="text-[var(--text-muted)] text-xs font-semibold"> séries</span></p>
                     {activePhase.volume_cible_hebdo_sets > 0 && (
@@ -1239,16 +1282,31 @@ export default function SportProgrammeBuilder() {
 
                                   {/* Ligne 3 : superset + technique + notes */}
                                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                    <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-2 py-1.5">
-                                      <label className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] block flex items-center gap-1">
-                                        <LinkIcon size={9} /> Superset
-                                      </label>
-                                      <input type="text" value={exo.superset_group || ''}
-                                        onChange={e => updateExo(exoIdx, 'superset_group', e.target.value || null)}
-                                        placeholder="A / B / —"
-                                        maxLength={2}
-                                        className="w-full bg-transparent text-[var(--text-primary)] text-sm font-black text-center uppercase border-none focus:outline-none" />
-                                    </div>
+                                    {(() => {
+                                      const linkedToPrev = exoIdx > 0 && exo.superset_group && exo.superset_group === currentExos[exoIdx - 1]?.superset_group
+                                      const disabled = exoIdx === 0
+                                      return (
+                                        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-2 py-1.5">
+                                          <label className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] block flex items-center gap-1">
+                                            <LinkIcon size={9} /> Superset
+                                          </label>
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleSupersetLink(exoIdx)}
+                                            disabled={disabled}
+                                            title={disabled ? 'Le 1er exercice ne peut pas être lié au précédent' : 'Enchaîner cet exercice avec le précédent (superset)'}
+                                            className={`w-full text-center text-xs font-bold transition-colors ${
+                                              disabled
+                                                ? 'text-[var(--text-muted)] opacity-40 cursor-not-allowed'
+                                                : linkedToPrev
+                                                  ? 'text-[#FF6B2B]'
+                                                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                                            }`}>
+                                            {linkedToPrev ? `Lié ${exo.superset_group} ↑` : '+ Lier au précédent'}
+                                          </button>
+                                        </div>
+                                      )
+                                    })()}
                                     <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg px-2 py-1.5">
                                       <label className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] block">Technique</label>
                                       <select value={exo.technique || ''}
