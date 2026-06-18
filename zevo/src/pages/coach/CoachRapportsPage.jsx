@@ -58,7 +58,7 @@ export default function CoachRapportsPage() {
     if (!user) return
     const load = async () => {
       const [{ data: cl }, { data: coach }] = await Promise.all([
-        supabase.from('clients').select('id, actif, profiles(nom, email)').eq('coach_id', user.id).eq('actif', true),
+        supabase.from('clients').select('id, actif, profiles(prenom, nom, email)').eq('coach_id', user.id).eq('actif', true),
         supabase.from('coaches').select('nom_app, logo_url, couleur_primaire').eq('id', user.id).maybeSingle(),
       ])
       setClients(cl || [])
@@ -314,7 +314,7 @@ export default function CoachRapportsPage() {
       drawKPI(M, y, cw, 34, d.nbClients, 'Clients actifs'); drawKPI(M + cw + 8, y, cw, 34, `${d.caMois.toFixed(0)}`, 'CA du mois', '\u20AC'); y += 42
       drawKPI(M, y, cw, 34, d.nbPaiements, 'Paiements ce mois'); drawKPI(M + cw + 8, y, cw, 34, d.totalPaiements, 'Total paiements'); y += 42
     } else {
-      const nom = preview.client?.profiles?.nom || preview.client?.profiles?.email || 'Client'
+      const nom = [preview.client?.profiles?.prenom, preview.client?.profiles?.nom].filter(Boolean).join(' ') || preview.client?.profiles?.email || 'Client'
       const d = preview.data
 
       doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MED)
@@ -524,7 +524,7 @@ export default function CoachRapportsPage() {
 
     const nomFichier = preview.type === 'financier'
       ? `rapport-financier-${dateStr}.pdf`
-      : `rapport-${preview.type}-${preview.client?.profiles?.nom || 'client'}-${dateStr}.pdf`
+      : `rapport-${preview.type}-${[preview.client?.profiles?.prenom, preview.client?.profiles?.nom].filter(Boolean).join('-') || 'client'}-${dateStr}.pdf`
     doc.save(nomFichier.replace(/\s+/g, '-').toLowerCase())
   }
 
@@ -599,7 +599,7 @@ export default function CoachRapportsPage() {
                   className="w-full bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-xl px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/40 focus:outline-none transition-colors"
                 >
                   {clients.map(c => (
-                    <option key={c.id} value={c.id}>{c.profiles?.nom || c.profiles?.email || 'Client'}</option>
+                    <option key={c.id} value={c.id}>{[c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || c.profiles?.email || 'Client'}</option>
                   ))}
                 </select>
               )}
@@ -689,7 +689,7 @@ export default function CoachRapportsPage() {
                       {/* Client info */}
                       <div className="flex items-center gap-2 text-[#71717A] text-xs">
                         <User size={13} />
-                        <span className="text-[#18181B] font-medium">{preview.client?.profiles?.nom || preview.client?.profiles?.email}</span>
+                        <span className="text-[#18181B] font-medium">{[preview.client?.profiles?.prenom, preview.client?.profiles?.nom].filter(Boolean).join(' ') || preview.client?.profiles?.email}</span>
                         <span className="text-[#D4D4D8]">\u2014</span>
                         {preview.jours} derniers jours
                       </div>
