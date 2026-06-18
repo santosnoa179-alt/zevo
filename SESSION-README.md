@@ -13,6 +13,9 @@ Reprise des tests `LAUNCH-CHECKLIST.md`. Sections 1 (Auth) et 2 (Stripe) validé
 
 | SHA | Description |
 |---|---|
+| `3752047` | fix(coach-rapports): prénom + nom du client (sélecteur, aperçu, PDF, fichier) |
+| `46260d4` | fix(coach-fiche): prénom + nom du client dans le header |
+| `028cafa` | fix(coach-biblio): trad FR import + partage plus clair + prénom nom |
 | `1a470e6` | feat(formulaires): réponses post-séance liées à la séance (badge coach) |
 | `6987dd8` | fix(coach-formulaires): afficher prénom + nom du client |
 | `73952e2` | chore(sentry): ignorer les erreurs de chunk lazy obsolète |
@@ -28,11 +31,14 @@ Reprise des tests `LAUNCH-CHECKLIST.md`. Sections 1 (Auth) et 2 (Stripe) validé
 | `aa66754` | fix(invite): nom d'app coach via RPC |
 | `58ab810` | fix(auth): page /reset-password manquante |
 
+### ✅ Section 3 (flow coach) — TERMINÉE
+Tous les modules testés : Dashboard, Clients, Sport, Nutrition, Messages, Formulaires, Bibliothèque, Calendrier global. Le calendrier global a été vérifié : événement créé (coach_events) avec toutes ses infos (titre/date/heure/type/notes/client) → bien pris en compte dans le calendrier + détail + hub client. Aucune info perdue.
+
 ### 🔴 À FAIRE EN PRIORITÉ À LA REPRISE
-- [ ] **Vérifier sur la prod** (après déploiement Vercel) tous les fixes de code ci-dessus, surtout : tracker client (nom/GIF), programme client (séances types), tuto qui ne revient plus, profil client modifiable, formulaires post-séance.
+- [ ] **Vérifier sur la prod** (après déploiement Vercel) tous les fixes de code ci-dessus, surtout : tracker client (nom/GIF), programme client (séances types), tuto qui ne revient plus, profil client modifiable, formulaires post-séance, traductions biblio.
 - [ ] **Reporter les 4 migrations DB dans `supabase/migrations`** (voir liste en bas de section) — elles sont en prod mais pas versionnées : risque si la DB est recréée.
-- [ ] Continuer section 3 : **Bibliothèque** (upload/partage fichiers) + **Calendrier global**.
-- [ ] Puis sections 4-9 : côté client complet, admin, mobile, monitoring, légal.
+- [ ] **Passe prénom + nom client — écrans restants** : bug récurrent corrigé sur 5 écrans (messagerie, formulaires, biblio, fiche, rapports). Reste : CoachClientsPage, CoachAbonnementsPage, CoachProgrammesPage, CoachSportPage, CoachDashboardPage, CoachGlobalCalendarPage, CoachClientHub, paiements/AbonnementsListPage. Un chip de tâche de fond existe (lancer en 1 clic) avec la liste détaillée.
+- [ ] **Sections 4-9** : côté client complet, admin, mobile, monitoring, légal.
 
 ### ✅ Section 1 Auth — TERMINÉE
 - Reset password : page `/reset-password` créée (manquait totalement — le lien email ne menait nulle part) + flow email réel validé
