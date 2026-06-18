@@ -36,7 +36,7 @@ Tous les modules testés : Dashboard, Clients, Sport, Nutrition, Messages, Formu
 
 ### 🔴 À FAIRE EN PRIORITÉ À LA REPRISE
 - [ ] **Vérifier sur la prod** (après déploiement Vercel) tous les fixes de code ci-dessus, surtout : tracker client (nom/GIF), programme client (séances types), tuto qui ne revient plus, profil client modifiable, formulaires post-séance, traductions biblio.
-- [ ] **Reporter les 4 migrations DB dans `supabase/migrations`** (voir liste en bas de section) — elles sont en prod mais pas versionnées : risque si la DB est recréée.
+- [x] **4 migrations DB versionnées** (`aa2fd18`) dans `supabase/*.sql` (convention du projet, pas de dossier migrations/) : add-seance-exercices-reps-cible, fix-rls-sport-exos-client-read, fix-rls-profiles-recursion, add-formulaire-reponses-seance.
 - [ ] **Passe prénom + nom client — écrans restants** : bug récurrent corrigé sur 5 écrans (messagerie, formulaires, biblio, fiche, rapports). Reste : CoachClientsPage, CoachAbonnementsPage, CoachProgrammesPage, CoachSportPage, CoachDashboardPage, CoachGlobalCalendarPage, CoachClientHub, paiements/AbonnementsListPage. Un chip de tâche de fond existe (lancer en 1 clic) avec la liste détaillée.
 - [ ] **Sections 4-9** : côté client complet, admin, mobile, monitoring, légal.
 
