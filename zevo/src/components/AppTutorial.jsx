@@ -40,7 +40,7 @@ const styles = {
     width: active ? 28 : 8,
     height: 8,
     borderRadius: 4,
-    background: active ? '#FF6B2B' : passed ? 'rgba(255,107,43,0.5)' : 'var(--border-base)',
+    background: active ? 'var(--color-primary)' : passed ? 'rgba(255,107,43,0.5)' : 'var(--border-base)',
     transition: 'all 0.4s cubic-bezier(0.22,1,0.36,1)',
   }),
 
@@ -180,10 +180,10 @@ function DashboardPreview() {
           border: '1px solid rgba(255,107,43,0.15)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <Flame size={14} color="#FF6B2B" />
+            <Flame size={14} color="var(--color-primary)" />
             <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Streak</span>
           </div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: '#FF6B2B' }}>7j</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-primary)' }}>7j</div>
         </div>
         <div style={{
           flex: 1, borderRadius: 12, padding: '12px 14px',
@@ -241,7 +241,7 @@ function WorkoutPreview() {
         <div style={{
           padding: '4px 10px', borderRadius: 8,
           background: 'rgba(255,107,43,0.12)',
-          color: '#FF6B2B', fontSize: 11, fontWeight: 600,
+          color: 'var(--color-primary)', fontSize: 11, fontWeight: 600,
         }}>Aujourd'hui</div>
       </div>
       {/* Exercise rows */}
@@ -256,7 +256,7 @@ function WorkoutPreview() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{
                 width: 6, height: 6, borderRadius: 3,
-                background: ex.accent ? '#FF6B2B' : 'var(--text-muted)',
+                background: ex.accent ? 'var(--color-primary)' : 'var(--text-muted)',
               }} />
               <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{ex.name}</span>
             </div>
@@ -270,7 +270,7 @@ function WorkoutPreview() {
 
 function GoalsPreview() {
   const goals = [
-    { label: 'Poids', pct: 65, color: '#FF6B2B' },
+    { label: 'Poids', pct: 65, color: 'var(--color-primary)' },
     { label: 'Seances', pct: 80, color: '#4ADE80' },
     { label: 'Sommeil', pct: 45, color: '#60A5FA' },
   ]
@@ -366,7 +366,7 @@ function CelebrationPreview() {
           top: s.top, left: s.left, right: s.right,
           width: s.size, height: s.size,
           borderRadius: '50%',
-          background: '#FF6B2B',
+          background: 'var(--color-primary)',
           boxShadow: '0 0 8px #FF6B2B, 0 0 16px rgba(255,107,43,0.3)',
           animation: `tutorialSparkle 2s ${s.delay}s ease-in-out infinite`,
           pointerEvents: 'none',
@@ -379,7 +379,7 @@ function CelebrationPreview() {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: '0 0 40px rgba(255,107,43,0.15)',
       }}>
-        <Zap size={40} color="#FF6B2B" />
+        <Zap size={40} color="var(--color-primary)" />
       </div>
     </div>
   )
@@ -578,11 +578,11 @@ export default function AppTutorial({ onComplete }) {
               ...styles.iconCircle,
               animation: 'tutorialPulse 2.5s ease-in-out infinite',
             }}>
-              <LayoutDashboard size={32} color="#FF6B2B" />
+              <LayoutDashboard size={32} color="var(--color-primary)" />
             </div>
           ) : (
             <div style={styles.iconCircle}>
-              <Icon size={32} color="#FF6B2B" />
+              <Icon size={32} color="var(--color-primary)" />
             </div>
           )}
 

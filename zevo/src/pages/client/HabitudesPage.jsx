@@ -37,7 +37,7 @@ function genererMensuel(logsDates) {
   })
 }
 
-const COULEURS = ['#FF6B2B', '#FF9A6C', '#FFB894', '#E85A1F', '#C94A15', '#7A7A78', '#F5F5F3']
+const COULEURS = ['var(--color-primary)', 'var(--color-primary-light)', '#FFB894', '#E85A1F', '#C94A15', '#7A7A78', '#F5F5F3']
 
 export default function HabitudesPage() {
   const { user } = useAuth()
@@ -152,7 +152,7 @@ export default function HabitudesPage() {
           <CardBody className="text-center py-10">
             <p className="text-4xl mb-3">🎯</p>
             <p className="text-[var(--text-muted)] text-sm">Aucune habitude pour l'instant.</p>
-            <button onClick={() => setModalOuvert(true)} className="mt-3 text-[#FF6B2B] text-sm font-medium hover:underline">
+            <button onClick={() => setModalOuvert(true)} className="mt-3 text-primary text-sm font-medium hover:underline">
               + Créer ma première habitude
             </button>
           </CardBody>
@@ -168,7 +168,7 @@ export default function HabitudesPage() {
             const si = stagger[i + 1] || {}
 
             return (
-              <Card key={h.id} className={`${estDetail ? 'ring-1 ring-[#FF6B2B]/25' : ''} ${si.className || ''}`} style={si.style}>
+              <Card key={h.id} className={`${estDetail ? 'ring-1 ring-primary/25' : ''} ${si.className || ''}`} style={si.style}>
                 <CardBody>
                   {/* ── Ligne principale ── */}
                   <div className="flex items-center gap-3">
@@ -179,7 +179,7 @@ export default function HabitudesPage() {
                       className="flex-shrink-0 transition-transform active:scale-90 disabled:opacity-50"
                     >
                       {fait
-                        ? <CheckCircle2 size={22} style={{ color: h.couleur ?? '#FF6B2B' }} />
+                        ? <CheckCircle2 size={22} style={{ color: h.couleur ?? 'var(--color-primary)' }} />
                         : <Circle size={22} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors" />
                       }
                     </button>
@@ -194,7 +194,7 @@ export default function HabitudesPage() {
 
                     {/* Streak */}
                     {streak > 0 && (
-                      <div className="flex items-center gap-1 text-[#FF6B2B]">
+                      <div className="flex items-center gap-1 text-primary">
                         <Flame size={12} />
                         <span className="text-xs font-semibold">{streak}j</span>
                       </div>
@@ -216,7 +216,7 @@ export default function HabitudesPage() {
 
                     <button
                       onClick={() => setDetail(estDetail ? null : h.id)}
-                      className={`p-1 transition-colors flex-shrink-0 ${estDetail ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)] hover:text-[#FF6B2B]'}`}
+                      className={`p-1 transition-colors flex-shrink-0 ${estDetail ? 'text-primary' : 'text-[var(--text-muted)] hover:text-primary'}`}
                     >
                       <TrendingUp size={14} />
                     </button>
@@ -226,7 +226,7 @@ export default function HabitudesPage() {
                   <div className="mt-3 h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${pct}%`, backgroundColor: h.couleur ?? '#FF6B2B' }}
+                      style={{ width: `${pct}%`, backgroundColor: h.couleur ?? 'var(--color-primary)' }}
                     />
                   </div>
 
@@ -250,13 +250,13 @@ export default function HabitudesPage() {
                           />
                           <Bar dataKey="val" radius={[2, 2, 0, 0]}>
                             {mensuel.map((d, idx) => (
-                              <Cell key={idx} fill={d.fait ? (h.couleur ?? '#FF6B2B') : 'var(--bg-surface)'} />
+                              <Cell key={idx} fill={d.fait ? (h.couleur ?? 'var(--color-primary)') : 'var(--bg-surface)'} />
                             ))}
                           </Bar>
                         </BarChart>
                       </ResponsiveContainer>
                       {streak > 0 && (
-                        <p className="text-center text-xs mt-2 font-medium" style={{ color: h.couleur ?? '#FF6B2B' }}>
+                        <p className="text-center text-xs mt-2 font-medium" style={{ color: h.couleur ?? 'var(--color-primary)' }}>
                           🔥 {streak} jour{streak > 1 ? 's' : ''} d'affilée !
                         </p>
                       )}

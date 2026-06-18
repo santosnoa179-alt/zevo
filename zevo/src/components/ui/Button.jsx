@@ -10,7 +10,7 @@ export function Button({
   const base = 'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed'
 
   const variants = {
-    primary: 'bg-[#FF6B2B] text-white hover:bg-[#FF9A6C] active:scale-[0.98]',
+    primary: 'bg-primary text-white hover:bg-primary-light active:scale-[0.98]',
     secondary: 'bg-[var(--bg-surface)] text-[var(--text-primary)] hover:opacity-80 border border-[var(--border-base)]',
     ghost: 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-base)]',
     danger: 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20',

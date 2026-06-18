@@ -88,7 +88,7 @@ export default function ProfilPage() {
   if (loading) {
     return (
       <div className="p-4 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-[#FF6B2B]" size={28} />
+        <Loader2 className="animate-spin text-primary" size={28} />
       </div>
     )
   }
@@ -99,8 +99,8 @@ export default function ProfilPage() {
       {/* ── En-tête ── */}
       <div className="pt-4">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center">
-            <User size={24} className="text-[#FF6B2B]" />
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <User size={24} className="text-primary" />
           </div>
           <div>
             <h1 className="text-[var(--text-primary)] text-xl font-bold">Mon profil</h1>
@@ -168,7 +168,7 @@ export default function ProfilPage() {
                 onChange={(e) => setObjectifs(e.target.value)}
                 placeholder="Décris tes objectifs de coaching..."
                 rows={3}
-                className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/40 transition-all resize-none"
+                className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all resize-none"
               />
             </div>
 

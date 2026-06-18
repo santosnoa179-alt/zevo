@@ -17,8 +17,8 @@ import {
 const RESSOURCE_ICONS = {
   pdf: { icon: FileText, color: 'text-red-400', bg: 'bg-red-500/10', action: Download },
   video: { icon: Video, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]', action: ExternalLink },
-  lien: { icon: LinkIcon, color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10', action: ExternalLink },
-  image: { icon: ImageIcon, color: 'text-[#FF9A6C]', bg: 'bg-[#FF9A6C]/10', action: Download },
+  lien: { icon: LinkIcon, color: 'text-primary', bg: 'bg-primary/10', action: ExternalLink },
+  image: { icon: ImageIcon, color: 'text-primary-light', bg: 'bg-primary-light/10', action: Download },
   guide: { icon: BookOpen, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]', action: ExternalLink },
 }
 
@@ -30,15 +30,15 @@ const REPAS_LABELS = {
   diner: 'Diner',
 }
 const REPAS_ICON_MAP = {
-  petit_dej: { icon: Sun, color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10' },
-  dejeuner: { icon: Coffee, color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10' },
-  collation: { icon: Cookie, color: 'text-[#FF9A6C]', bg: 'bg-[#FF9A6C]/10' },
+  petit_dej: { icon: Sun, color: 'text-primary', bg: 'bg-primary/10' },
+  dejeuner: { icon: Coffee, color: 'text-primary', bg: 'bg-primary/10' },
+  collation: { icon: Cookie, color: 'text-primary-light', bg: 'bg-primary-light/10' },
   diner: { icon: Moon, color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]' },
 }
 
 // ── Shared sub-components ──
 
-function SectionLabel({ children, icon: Icon, iconColor = 'text-[#FF6B2B]' }) {
+function SectionLabel({ children, icon: Icon, iconColor = 'text-primary' }) {
   return (
     <div className="flex items-center gap-2 mb-3">
       {Icon && <Icon size={14} className={iconColor} />}
@@ -47,7 +47,7 @@ function SectionLabel({ children, icon: Icon, iconColor = 'text-[#FF6B2B]' }) {
   )
 }
 
-function ProgressRing({ percent, size = 44, stroke = 3.5, color = '#FF6B2B' }) {
+function ProgressRing({ percent, size = 44, stroke = 3.5, color = 'var(--color-primary)' }) {
   const r = (size - stroke) / 2
   const circ = 2 * Math.PI * r
   const offset = circ - (percent / 100) * circ
@@ -61,7 +61,7 @@ function ProgressRing({ percent, size = 44, stroke = 3.5, color = '#FF6B2B' }) {
   )
 }
 
-function WeekTracker({ totalWeeks, completedWeeks, isWeekCompleted, validateWeek, validatingWeek, progress, accentColor = '#FF6B2B', label = 'Suivi de progression' }) {
+function WeekTracker({ totalWeeks, completedWeeks, isWeekCompleted, validateWeek, validatingWeek, progress, accentColor = 'var(--color-primary)', label = 'Suivi de progression' }) {
   return (
     <div className="glass-card overflow-hidden">
       {/* Header with ring */}
@@ -93,7 +93,7 @@ function WeekTracker({ totalWeeks, completedWeeks, isWeekCompleted, validateWeek
                 disabled={done || !unlocked || isValidating}
                 className={`relative flex flex-col items-center justify-center py-3 rounded-xl border transition-all ${
                   done
-                    ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/20'
+                    ? 'bg-primary/10 border-primary/20'
                     : unlocked
                       ? 'border-[var(--border-base)] hover:border-[color:var(--accent)] active:scale-95 bg-[var(--bg-card)]'
                       : 'bg-[var(--bg-surface)]/50 border-transparent opacity-40'
@@ -101,7 +101,7 @@ function WeekTracker({ totalWeeks, completedWeeks, isWeekCompleted, validateWeek
                 style={{ '--accent': accentColor }}
               >
                 {done ? (
-                  <CheckCircle2 size={18} className="text-[#FF6B2B] mb-0.5" />
+                  <CheckCircle2 size={18} className="text-primary mb-0.5" />
                 ) : isValidating ? (
                   <Loader2 size={16} className="animate-spin mb-0.5" style={{ color: accentColor }} />
                 ) : unlocked ? (
@@ -109,7 +109,7 @@ function WeekTracker({ totalWeeks, completedWeeks, isWeekCompleted, validateWeek
                 ) : (
                   <Lock size={13} className="text-[var(--text-muted)] mb-0.5" />
                 )}
-                <span className={`text-[9px] font-medium ${done ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
+                <span className={`text-[9px] font-medium ${done ? 'text-primary' : 'text-[var(--text-muted)]'}`}>
                   Sem. {weekNum}
                 </span>
               </button>
@@ -472,7 +472,7 @@ export default function ProgrammePage() {
       {/* ═══════════ HEADER ═══════════ */}
       <div className="pt-2">
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center shadow-lg shadow-[#FF6B2B]/20">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-[#FF8F5E] flex items-center justify-center shadow-lg shadow-primary/20">
             <Layers size={18} className="text-white" />
           </div>
           <div>
@@ -485,8 +485,8 @@ export default function ProgrammePage() {
       {/* ═══════════ TABS ═══════════ */}
       <div className="glass-card p-1.5 flex gap-1.5">
         {[
-          { key: 'sport', label: 'Sport', icon: Dumbbell, color: '#FF6B2B' },
-          { key: 'nutrition', label: 'Nutrition', icon: UtensilsCrossed, color: '#FF9A6C' },
+          { key: 'sport', label: 'Sport', icon: Dumbbell, color: 'var(--color-primary)' },
+          { key: 'nutrition', label: 'Nutrition', icon: UtensilsCrossed, color: 'var(--color-primary-light)' },
         ].map(t => (
           <button
             key={t.key}
@@ -518,16 +518,16 @@ export default function ProgrammePage() {
           {sportProAssigne && (
             <div className="space-y-4 mb-5">
               <div className="glass-card overflow-hidden relative">
-                <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+                <div className="h-1 bg-gradient-to-r from-primary to-primary-light" />
                 <div className="p-5">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
-                      <Dumbbell size={22} className="text-[#FF6B2B]" />
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                      <Dumbbell size={22} className="text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h2 className="text-[var(--text-primary)] text-lg font-bold truncate">{sportProAssigne.nom}</h2>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">PRO</span>
                       </div>
                       <p className="text-[var(--text-muted)] text-xs mt-0.5">
                         {sportProAssigne.duree_semaines} semaines
@@ -554,8 +554,8 @@ export default function ProgrammePage() {
                               onClick={() => setExpandedSportPhase(isExpanded ? null : ph.id)}
                               className="w-full p-3 flex items-center gap-3 hover:bg-[var(--bg-surface)]/40 transition-colors"
                             >
-                              <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
-                                <span className="text-[#FF6B2B] text-xs font-black tabular-nums">{idx + 1}</span>
+                              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                                <span className="text-primary text-xs font-black tabular-nums">{idx + 1}</span>
                               </div>
                               <div className="flex-1 min-w-0 text-left">
                                 <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{ph.nom}</p>
@@ -575,7 +575,7 @@ export default function ProgrammePage() {
                                     <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-bold mb-1">Séances types</p>
                                     {phaseSeanceTypes.map(st => (
                                       <div key={st.id} className="flex items-center gap-2 bg-[var(--bg-surface)] rounded-md px-2.5 py-2 border border-[var(--border-base)]">
-                                        <Dumbbell size={12} className="text-[#FF6B2B] shrink-0" />
+                                        <Dumbbell size={12} className="text-primary shrink-0" />
                                         <div className="flex-1 min-w-0">
                                           <p className="text-[var(--text-primary)] text-xs font-semibold truncate">{st.nom}</p>
                                           {st.focus && (
@@ -600,7 +600,7 @@ export default function ProgrammePage() {
                   )}
 
                   {/* CTA vers mes séances */}
-                  <a href="/app/seances" className="mt-4 inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-bold hover:bg-[#FF6B2B]/90 transition-all active:scale-[0.98] shadow-lg shadow-[#FF6B2B]/20">
+                  <a href="/app/seances" className="mt-4 inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all active:scale-[0.98] shadow-lg shadow-primary/20">
                     <Calendar size={16} /> Voir mes séances
                   </a>
                 </div>
@@ -612,9 +612,9 @@ export default function ProgrammePage() {
             /* ── Empty state ── */
             <div className="glass-card p-12 text-center">
               <div className="relative inline-flex items-center justify-center mb-5">
-                <div className="absolute w-20 h-20 rounded-full bg-[#FF6B2B]/5 animate-breathe" />
-                <div className="relative w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center">
-                  <Dumbbell size={24} className="text-[#FF6B2B]" />
+                <div className="absolute w-20 h-20 rounded-full bg-primary/5 animate-breathe" />
+                <div className="relative w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Dumbbell size={24} className="text-primary" />
                 </div>
               </div>
               <h2 className="text-[var(--text-primary)] font-semibold text-lg mb-2">Aucun programme sportif</h2>
@@ -636,12 +636,12 @@ export default function ProgrammePage() {
               {/* PDF Card — hero style */}
               <div className="glass-card overflow-hidden">
                 {/* Gradient accent bar */}
-                <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+                <div className="h-1 bg-gradient-to-r from-primary to-primary-light" />
                 <div className="p-8 text-center">
                   <div className="relative inline-flex items-center justify-center mb-5">
-                    <div className="absolute w-24 h-24 rounded-full bg-[#FF6B2B]/5 animate-breathe" />
-                    <div className="relative w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center">
-                      <FileText size={28} className="text-[#FF6B2B]" />
+                    <div className="absolute w-24 h-24 rounded-full bg-primary/5 animate-breathe" />
+                    <div className="relative w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                      <FileText size={28} className="text-primary" />
                     </div>
                   </div>
                   <h2 className="text-[var(--text-primary)] text-lg font-bold mb-1.5">Ton programme PDF</h2>
@@ -687,18 +687,18 @@ export default function ProgrammePage() {
 
               {/* Progress hero card */}
               <div className="glass-card overflow-hidden">
-                <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+                <div className="h-1 bg-gradient-to-r from-primary to-primary-light" />
                 <div className="p-5">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="relative flex items-center justify-center">
                       <ProgressRing percent={progressPercent} size={56} stroke={4} />
-                      <span className="absolute text-xs font-bold text-[#FF6B2B]">{progressPercent}%</span>
+                      <span className="absolute text-xs font-bold text-primary">{progressPercent}%</span>
                     </div>
                     <div className="flex-1">
                       <p className="text-[var(--text-primary)] text-sm font-semibold">Phase {assignation.phase_actuelle}/{phases.length}</p>
                       <div className="flex items-center gap-2 mt-1">
                         {prog?.categorie && (
-                          <span className="px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold">
+                          <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-semibold">
                             {prog.categorie}
                           </span>
                         )}
@@ -727,9 +727,9 @@ export default function ProgrammePage() {
               {/* Global document attached */}
               {prog?.document_url && (
                 <a href={prog.document_url} target="_blank" rel="noopener noreferrer"
-                  className="glass-card flex items-center gap-4 p-4 hover:border-[#FF6B2B]/30 transition-all group">
-                  <div className="w-12 h-12 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B]/20 transition-all">
-                    <FileText size={22} className="text-[#FF6B2B]" />
+                  className="glass-card flex items-center gap-4 p-4 hover:border-primary/30 transition-all group">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-all">
+                    <FileText size={22} className="text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[var(--text-primary)] text-sm font-semibold truncate">
@@ -737,8 +737,8 @@ export default function ProgrammePage() {
                     </p>
                     <p className="text-[var(--text-muted)] text-xs mt-0.5">Fichier joint par ton coach</p>
                   </div>
-                  <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF6B2B] transition-all">
-                    <Download size={16} className="text-[#FF6B2B] group-hover:text-white transition-all" />
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary transition-all">
+                    <Download size={16} className="text-primary group-hover:text-white transition-all" />
                   </div>
                 </a>
               )}
@@ -754,7 +754,7 @@ export default function ProgrammePage() {
                   return (
                     <div key={phase.id}
                       className={`glass-card overflow-hidden transition-all ${
-                        isCurrent ? '!border-[#FF6B2B]/25' : ''
+                        isCurrent ? '!border-primary/25' : ''
                       }`}
                       style={isCurrent ? { boxShadow: '0 0 24px rgba(255,107,43,0.08)' } : undefined}
                     >
@@ -762,12 +762,12 @@ export default function ProgrammePage() {
                       <button onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
                         className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-[var(--bg-surface)]/50 transition-colors">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
-                          isDone ? 'bg-[#FF6B2B]/15' : isCurrent ? 'bg-[#FF6B2B]/15' : 'bg-[var(--bg-surface)]'
+                          isDone ? 'bg-primary/15' : isCurrent ? 'bg-primary/15' : 'bg-[var(--bg-surface)]'
                         }`}>
                           {isDone ? (
-                            <CheckCircle2 size={16} className="text-[#FF6B2B]" />
+                            <CheckCircle2 size={16} className="text-primary" />
                           ) : (
-                            <span className={`text-xs font-bold ${isCurrent ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
+                            <span className={`text-xs font-bold ${isCurrent ? 'text-primary' : 'text-[var(--text-muted)]'}`}>
                               {index + 1}
                             </span>
                           )}
@@ -832,7 +832,7 @@ export default function ProgrammePage() {
                                       <p className="text-[var(--text-muted)] text-xs">{ex.muscle_group}</p>
                                     </div>
                                     <div className="text-right flex-shrink-0">
-                                      <p className="text-[#FF6B2B] text-sm font-bold">{ex.sets}x{ex.reps}</p>
+                                      <p className="text-primary text-sm font-bold">{ex.sets}x{ex.reps}</p>
                                       {ex.rest_seconds && <p className="text-[var(--text-muted)] text-[10px]">{ex.rest_seconds}s repos</p>}
                                     </div>
                                   </div>
@@ -844,7 +844,7 @@ export default function ProgrammePage() {
                           {/* Nutrition dans la phase */}
                           {(phase.calories_objectif || phase.proteines_g || phase.consignes_nutrition) && (
                             <div>
-                              <SectionLabel icon={Apple} iconColor="text-[#FF9A6C]">Nutrition</SectionLabel>
+                              <SectionLabel icon={Apple} iconColor="text-primary-light">Nutrition</SectionLabel>
                               {(phase.calories_objectif || phase.proteines_g) && (
                                 <div className="grid grid-cols-4 gap-2 mb-3">
                                   {phase.calories_objectif && (
@@ -855,13 +855,13 @@ export default function ProgrammePage() {
                                   )}
                                   {phase.proteines_g && (
                                     <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
-                                      <p className="text-[#FF6B2B] text-lg font-bold">{phase.proteines_g}g</p>
+                                      <p className="text-primary text-lg font-bold">{phase.proteines_g}g</p>
                                       <p className="text-[var(--text-muted)] text-[9px] uppercase">Prot.</p>
                                     </div>
                                   )}
                                   {phase.glucides_g && (
                                     <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
-                                      <p className="text-[#FF9A6C] text-lg font-bold">{phase.glucides_g}g</p>
+                                      <p className="text-primary-light text-lg font-bold">{phase.glucides_g}g</p>
                                       <p className="text-[var(--text-muted)] text-[9px] uppercase">Gluc.</p>
                                     </div>
                                   )}
@@ -884,11 +884,11 @@ export default function ProgrammePage() {
                           {/* Habitudes */}
                           {(phase.habitudes?.length || 0) > 0 && (
                             <div>
-                              <SectionLabel icon={Sparkles} iconColor="text-[#FF9A6C]">Habitudes</SectionLabel>
+                              <SectionLabel icon={Sparkles} iconColor="text-primary-light">Habitudes</SectionLabel>
                               <div className="flex flex-wrap gap-2">
                                 {phase.habitudes.map((h, hi) => (
                                   <span key={hi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)]">
-                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: h.couleur || '#FF6B2B' }} />
+                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: h.couleur || 'var(--color-primary)' }} />
                                     {h.nom}
                                   </span>
                                 ))}
@@ -899,11 +899,11 @@ export default function ProgrammePage() {
                           {/* Objectifs */}
                           {(phase.objectifs?.length || 0) > 0 && (
                             <div>
-                              <SectionLabel icon={Target} iconColor="text-[#FF6B2B]">Objectifs</SectionLabel>
+                              <SectionLabel icon={Target} iconColor="text-primary">Objectifs</SectionLabel>
                               <div className="flex flex-wrap gap-2">
                                 {phase.objectifs.map((o, oi) => (
                                   <span key={oi} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)]">
-                                    <Target size={11} className="text-[#FF6B2B]" />
+                                    <Target size={11} className="text-primary" />
                                     {o.titre}
                                   </span>
                                 ))}
@@ -914,7 +914,7 @@ export default function ProgrammePage() {
                           {/* Ressources */}
                           {(phase.ressources_attachees?.length || 0) > 0 && (
                             <div>
-                              <SectionLabel icon={BookOpen} iconColor="text-[#FF6B2B]">
+                              <SectionLabel icon={BookOpen} iconColor="text-primary">
                                 Ressources ({phase.ressources_attachees.length})
                               </SectionLabel>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -929,7 +929,7 @@ export default function ProgrammePage() {
                                         <Icon size={16} className={typeInfo.color} />
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                        <p className="text-[var(--text-primary)] text-sm font-medium truncate group-hover:text-[#FF6B2B] transition-colors">{res.titre}</p>
+                                        <p className="text-[var(--text-primary)] text-sm font-medium truncate group-hover:text-primary transition-colors">{res.titre}</p>
                                         <p className="text-[var(--text-muted)] text-[10px] capitalize mt-0.5">{res.type}{res.categorie ? ` · ${res.categorie}` : ''}</p>
                                       </div>
                                       <ActionIcon size={14} className="text-[var(--text-muted)] flex-shrink-0" />
@@ -974,16 +974,16 @@ export default function ProgrammePage() {
           {nutriProAssigne && (
             <div className="space-y-4 mb-5">
               <div className="glass-card overflow-hidden relative">
-                <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+                <div className="h-1 bg-gradient-to-r from-primary to-primary-light" />
                 <div className="p-5">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
-                      <UtensilsCrossed size={22} className="text-[#FF6B2B]" />
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                      <UtensilsCrossed size={22} className="text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h2 className="text-[var(--text-primary)] text-lg font-bold truncate">{nutriProAssigne.nom}</h2>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/20 shrink-0">PRO</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">PRO</span>
                       </div>
                       <p className="text-[var(--text-muted)] text-xs mt-0.5">
                         {nutriProAssigne.duree_semaines} semaines
@@ -1009,8 +1009,8 @@ export default function ProgrammePage() {
                               onClick={() => setExpandedNutriPhase(isExpanded ? null : ph.id)}
                               className="w-full p-3 flex items-center gap-3 hover:bg-[var(--bg-surface)]/40 transition-colors"
                             >
-                              <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 border border-[#FF6B2B]/20">
-                                <span className="text-[#FF6B2B] text-xs font-black tabular-nums">{idx + 1}</span>
+                              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                                <span className="text-primary text-xs font-black tabular-nums">{idx + 1}</span>
                               </div>
                               <div className="flex-1 min-w-0 text-left">
                                 <p className="text-[var(--text-primary)] text-sm font-semibold truncate">{ph.nom}</p>
@@ -1030,7 +1030,7 @@ export default function ProgrammePage() {
                                     <div className="grid grid-cols-4 gap-1.5">
                                       {ph.kcal_cible && (
                                         <div className="bg-[var(--bg-surface)] rounded-lg px-2 py-1.5 text-center border border-[var(--border-base)]">
-                                          <p className="text-[#FF6B2B] text-xs font-black tabular-nums">{ph.kcal_cible}</p>
+                                          <p className="text-primary text-xs font-black tabular-nums">{ph.kcal_cible}</p>
                                           <p className="text-[var(--text-muted)] text-[8px] uppercase">kcal</p>
                                         </div>
                                       )}
@@ -1081,7 +1081,7 @@ export default function ProgrammePage() {
                                                     )}
                                                   </div>
                                                   {kcal > 0 && (
-                                                    <span className="text-[#FF6B2B] text-[10px] font-bold tabular-nums shrink-0">{kcal} kcal</span>
+                                                    <span className="text-primary text-[10px] font-bold tabular-nums shrink-0">{kcal} kcal</span>
                                                   )}
                                                 </div>
                                               )
@@ -1118,9 +1118,9 @@ export default function ProgrammePage() {
             /* ── Empty state ── */
             <div className="glass-card p-12 text-center">
               <div className="relative inline-flex items-center justify-center mb-5">
-                <div className="absolute w-20 h-20 rounded-full bg-[#FF9A6C]/5 animate-breathe" />
-                <div className="relative w-14 h-14 rounded-2xl bg-[#FF9A6C]/10 flex items-center justify-center">
-                  <UtensilsCrossed size={24} className="text-[#FF9A6C]" />
+                <div className="absolute w-20 h-20 rounded-full bg-primary-light/5 animate-breathe" />
+                <div className="relative w-14 h-14 rounded-2xl bg-primary-light/10 flex items-center justify-center">
+                  <UtensilsCrossed size={24} className="text-primary-light" />
                 </div>
               </div>
               <h2 className="text-[var(--text-primary)] font-semibold text-lg mb-2">Aucun plan nutritionnel</h2>
@@ -1138,9 +1138,9 @@ export default function ProgrammePage() {
               {/* PDF card */}
               {nutritionPlan.document_url && (
                 <a href={nutritionPlan.document_url} target="_blank" rel="noopener noreferrer"
-                  className="glass-card flex items-center gap-4 p-4 hover:border-[#FF9A6C]/30 transition-all group">
-                  <div className="w-12 h-12 rounded-xl bg-[#FF9A6C]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF9A6C]/20 transition-all">
-                    <FileText size={22} className="text-[#FF9A6C]" />
+                  className="glass-card flex items-center gap-4 p-4 hover:border-primary-light/30 transition-all group">
+                  <div className="w-12 h-12 rounded-xl bg-primary-light/10 flex items-center justify-center shrink-0 group-hover:bg-primary-light/20 transition-all">
+                    <FileText size={22} className="text-primary-light" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[var(--text-primary)] text-sm font-semibold truncate">
@@ -1148,8 +1148,8 @@ export default function ProgrammePage() {
                     </p>
                     <p className="text-[var(--text-muted)] text-xs mt-0.5">Fichier joint par ton coach</p>
                   </div>
-                  <div className="w-9 h-9 rounded-lg bg-[#FF9A6C]/10 flex items-center justify-center shrink-0 group-hover:bg-[#FF9A6C] transition-all">
-                    <Download size={16} className="text-[#FF9A6C] group-hover:text-white transition-all" />
+                  <div className="w-9 h-9 rounded-lg bg-primary-light/10 flex items-center justify-center shrink-0 group-hover:bg-primary-light transition-all">
+                    <Download size={16} className="text-primary-light group-hover:text-white transition-all" />
                   </div>
                 </a>
               )}
@@ -1157,28 +1157,28 @@ export default function ProgrammePage() {
               {/* Macros card */}
               {(nutritionPlan.calories_cible || nutritionPlan.proteines_cible) && (
                 <div className="glass-card overflow-hidden">
-                  <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+                  <div className="h-1 bg-gradient-to-r from-primary to-primary-light" />
                   <div className="p-5">
                     <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-medium mb-4">Objectifs journaliers</p>
                     <div className="grid grid-cols-4 gap-2">
                       {nutritionPlan.calories_cible && (
                         <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
-                          <Flame size={14} className="text-[#FF6B2B] mx-auto mb-1.5" />
+                          <Flame size={14} className="text-primary mx-auto mb-1.5" />
                           <p className="text-[var(--text-primary)] text-base font-bold">{nutritionPlan.calories_cible}</p>
                           <p className="text-[var(--text-muted)] text-[9px] uppercase">kcal</p>
                         </div>
                       )}
                       {nutritionPlan.proteines_cible && (
                         <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
-                          <Droplets size={14} className="text-[#FF6B2B] mx-auto mb-1.5" />
-                          <p className="text-[#FF6B2B] text-base font-bold">{nutritionPlan.proteines_cible}g</p>
+                          <Droplets size={14} className="text-primary mx-auto mb-1.5" />
+                          <p className="text-primary text-base font-bold">{nutritionPlan.proteines_cible}g</p>
                           <p className="text-[var(--text-muted)] text-[9px] uppercase">Prot.</p>
                         </div>
                       )}
                       {nutritionPlan.glucides_cible && (
                         <div className="bg-[var(--bg-base)] rounded-xl p-3 text-center border border-[var(--border-subtle)]">
-                          <Wheat size={14} className="text-[#FF9A6C] mx-auto mb-1.5" />
-                          <p className="text-[#FF9A6C] text-base font-bold">{nutritionPlan.glucides_cible}g</p>
+                          <Wheat size={14} className="text-primary-light mx-auto mb-1.5" />
+                          <p className="text-primary-light text-base font-bold">{nutritionPlan.glucides_cible}g</p>
                           <p className="text-[var(--text-muted)] text-[9px] uppercase">Gluc.</p>
                         </div>
                       )}
@@ -1229,7 +1229,7 @@ export default function ProgrammePage() {
                                 </div>
                                 <div className="text-right flex-shrink-0">
                                   {totalKcal > 0 && (
-                                    <span className="text-[#FF6B2B] text-xs font-bold">{totalKcal} kcal</span>
+                                    <span className="text-primary text-xs font-bold">{totalKcal} kcal</span>
                                   )}
                                   {macros && (
                                     <p className="text-[var(--text-muted)] text-[9px] mt-0.5">
@@ -1275,9 +1275,9 @@ export default function ProgrammePage() {
               {/* Coach notes */}
               {nutritionPlan.notes && Object.keys(repasParJour).length > 0 && (
                 <div className="glass-card overflow-hidden">
-                  <div className="h-0.5 bg-gradient-to-r from-[#FF9A6C]/50 to-transparent" />
+                  <div className="h-0.5 bg-gradient-to-r from-primary-light/50 to-transparent" />
                   <div className="p-5">
-                    <SectionLabel icon={BookOpen} iconColor="text-[#FF9A6C]">Notes du coach</SectionLabel>
+                    <SectionLabel icon={BookOpen} iconColor="text-primary-light">Notes du coach</SectionLabel>
                     <p className="text-[var(--text-secondary)] text-sm whitespace-pre-wrap leading-relaxed">{nutritionPlan.notes}</p>
                   </div>
                 </div>
@@ -1292,7 +1292,7 @@ export default function ProgrammePage() {
                   validateWeek={validateNutriWeek}
                   validatingWeek={validatingNutriWeek}
                   progress={nutriWeekProgress}
-                  accentColor="#FF9A6C"
+                  accentColor="var(--color-primary-light)"
                   label="Suivi hebdomadaire"
                 />
               )}

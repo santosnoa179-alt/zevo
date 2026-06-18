@@ -126,7 +126,7 @@ export default function AbonnementPage() {
   }
 
   const STATUT_LABELS = {
-    payee: { label: 'Payée', color: 'text-[#FF6B2B]', bg: 'bg-[#FF6B2B]/10' },
+    payee: { label: 'Payée', color: 'text-primary', bg: 'bg-primary/10' },
     en_attente: { label: 'En attente', color: 'text-[var(--text-muted)]', bg: 'bg-[var(--bg-surface)]' },
     annulee: { label: 'Annulée', color: 'text-red-400', bg: 'bg-red-500/10' },
   }
@@ -280,9 +280,9 @@ export default function AbonnementPage() {
 
       {/* Message de succès */}
       {paiementSuccess && (
-        <div className="bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 rounded-xl p-4 mb-6 flex items-center gap-3">
-          <CheckCircle size={20} className="text-[#FF6B2B] flex-shrink-0" />
-          <p className="text-[#FF6B2B] text-sm">Paiement effectué avec succès ! Merci.</p>
+        <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 mb-6 flex items-center gap-3">
+          <CheckCircle size={20} className="text-primary flex-shrink-0" />
+          <p className="text-primary text-sm">Paiement effectué avec succès ! Merci.</p>
         </div>
       )}
 
@@ -304,7 +304,7 @@ export default function AbonnementPage() {
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
-                    <Package size={18} className="text-[#FF6B2B]" />
+                    <Package size={18} className="text-primary" />
                     <h3 className="text-[var(--text-primary)] font-semibold">{o.titre}</h3>
                   </div>
                   {o.description && (
@@ -320,7 +320,7 @@ export default function AbonnementPage() {
                   <button
                     onClick={() => payer(o)}
                     disabled={processing === o.id}
-                    className="flex items-center gap-2 bg-[#FF6B2B] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-50"
                   >
                     {processing === o.id ? (
                       <>
@@ -374,7 +374,7 @@ export default function AbonnementPage() {
               <div className="flex items-center gap-3">
                 <p className="text-[var(--text-primary)] font-bold">{(p.montant / 100).toFixed(2)} €</p>
                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                  p.statut === 'paye' ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
+                  p.statut === 'paye' ? 'bg-primary/10 text-primary'
                     : p.statut === 'en_attente' ? 'bg-[var(--bg-surface)] text-[var(--text-muted)]'
                     : p.statut === 'echoue' ? 'bg-red-500/10 text-red-400'
                     : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'
@@ -400,12 +400,12 @@ export default function AbonnementPage() {
                   key={f.id}
                   className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-4 flex items-center gap-3"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-                    <FileText size={17} className="text-[#FF6B2B]" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <FileText size={17} className="text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-[12px] font-mono text-[#FF6B2B]">{f.numero}</p>
+                      <p className="text-[12px] font-mono text-primary">{f.numero}</p>
                       <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${cfg.color} ${cfg.bg}`}>
                         {cfg.label}
                       </span>
@@ -422,7 +422,7 @@ export default function AbonnementPage() {
                   </div>
                   <button
                     onClick={() => telechargerFacture(f)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-[#FF6B2B] bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/15 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/15 transition-colors"
                     title="Télécharger le PDF"
                   >
                     <Download size={13} />

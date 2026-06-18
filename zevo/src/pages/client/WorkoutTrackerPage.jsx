@@ -456,7 +456,7 @@ export default function WorkoutTrackerPage() {
     return (
       <div className="fixed inset-0 bg-[var(--bg-elevated)] z-[100] flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 text-[#FF6B2B] animate-spin mx-auto mb-4" />
+          <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
           <p className="text-[var(--text-muted)] text-sm">Chargement de la séance...</p>
         </div>
       </div>
@@ -492,8 +492,8 @@ export default function WorkoutTrackerPage() {
             </button>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
-                <CheckCircle2 size={14} style={{ color: '#FF6B2B' }} />
-                <span style={{ color: '#FF6B2B', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Séance terminée</span>
+                <CheckCircle2 size={14} style={{ color: 'var(--color-primary)' }} />
+                <span style={{ color: 'var(--color-primary)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Séance terminée</span>
               </div>
               <h1 style={{ color: '#F5F5F3', fontSize: 16, fontWeight: 700, lineHeight: 1.2 }} className="truncate">{seance?.titre || 'Séance'}</h1>
             </div>
@@ -505,17 +505,17 @@ export default function WorkoutTrackerPage() {
           {/* Stats globales */}
           <div className="grid grid-cols-3 gap-3">
             <div style={{ background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 16, textAlign: 'center' }}>
-              <Dumbbell style={{ color: '#FF6B2B', margin: '0 auto 8px', width: 20, height: 20 }} />
+              <Dumbbell style={{ color: 'var(--color-primary)', margin: '0 auto 8px', width: 20, height: 20 }} />
               <p style={{ color: '#F5F5F3', fontSize: 18, fontWeight: 900 }} className="tabular-nums">{totalExosDone}</p>
               <p style={{ color: 'rgba(245,245,243,0.6)', fontSize: 10, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Exercices</p>
             </div>
             <div style={{ background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 16, textAlign: 'center' }}>
-              <Check style={{ color: '#FF6B2B', margin: '0 auto 8px', width: 20, height: 20 }} />
+              <Check style={{ color: 'var(--color-primary)', margin: '0 auto 8px', width: 20, height: 20 }} />
               <p style={{ color: '#F5F5F3', fontSize: 18, fontWeight: 900 }} className="tabular-nums">{totalLogs}</p>
               <p style={{ color: 'rgba(245,245,243,0.6)', fontSize: 10, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Séries</p>
             </div>
             <div style={{ background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 16, textAlign: 'center' }}>
-              <Trophy style={{ color: '#FF6B2B', margin: '0 auto 8px', width: 20, height: 20 }} />
+              <Trophy style={{ color: 'var(--color-primary)', margin: '0 auto 8px', width: 20, height: 20 }} />
               <p style={{ color: '#F5F5F3', fontSize: 18, fontWeight: 900 }} className="tabular-nums">{Math.round(totalKgTotal)}</p>
               <p style={{ color: 'rgba(245,245,243,0.6)', fontSize: 10, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.15em' }}>kg·reps</p>
             </div>
@@ -536,7 +536,7 @@ export default function WorkoutTrackerPage() {
                   <div key={ex?.id || idx} style={{ background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'hidden' }}>
                     <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                       <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,107,43,0.1)', border: '1px solid rgba(255,107,43,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <span style={{ color: '#FF6B2B', fontSize: 12, fontWeight: 900 }} className="tabular-nums">{idx + 1}</span>
+                        <span style={{ color: 'var(--color-primary)', fontSize: 12, fontWeight: 900 }} className="tabular-nums">{idx + 1}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p style={{ color: '#F5F5F3', fontSize: 14, fontWeight: 700 }} className="truncate">{ex?.exercices?.nom || 'Exercice'}</p>
@@ -607,7 +607,7 @@ export default function WorkoutTrackerPage() {
           <p className="text-[var(--text-muted)] text-sm mb-6">{error}</p>
           <button
             onClick={() => navigate(-1)}
-            className="px-6 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors"
+            className="px-6 py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors"
           >
             Retour
           </button>
@@ -628,11 +628,11 @@ export default function WorkoutTrackerPage() {
         <div className="text-center max-w-sm w-full">
           {/* Celebration */}
           <div className="relative mb-8">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C] flex items-center justify-center mx-auto shadow-2xl shadow-[#FF6B2B]/30">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center mx-auto shadow-2xl shadow-primary/30">
               <Trophy className="w-12 h-12 text-white" />
             </div>
             {/* Pulse ring */}
-            <div className="absolute inset-0 w-24 h-24 rounded-full mx-auto animate-ping bg-[#FF6B2B]/20" style={{ animationDuration: '2s' }} />
+            <div className="absolute inset-0 w-24 h-24 rounded-full mx-auto animate-ping bg-primary/20" style={{ animationDuration: '2s' }} />
           </div>
 
           <h1 className="text-[var(--text-primary)] text-3xl font-black mb-2">Bravo !</h1>
@@ -648,17 +648,17 @@ export default function WorkoutTrackerPage() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mb-8">
             <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4">
-              <Timer className="w-5 h-5 text-[#FF6B2B] mx-auto mb-2" />
+              <Timer className="w-5 h-5 text-primary mx-auto mb-2" />
               <p className="text-[var(--text-primary)] text-lg font-bold">{formatTime(globalTime)}</p>
               <p className="text-[var(--text-muted)] text-[10px] mt-1">Durée</p>
             </div>
             <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4">
-              <Dumbbell className="w-5 h-5 text-[#FF6B2B] mx-auto mb-2" />
+              <Dumbbell className="w-5 h-5 text-primary mx-auto mb-2" />
               <p className="text-[var(--text-primary)] text-lg font-bold">{totalExos}</p>
               <p className="text-[var(--text-muted)] text-[10px] mt-1">Exercices</p>
             </div>
             <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl p-4">
-              <Check className="w-5 h-5 text-[#FF6B2B] mx-auto mb-2" />
+              <Check className="w-5 h-5 text-primary mx-auto mb-2" />
               <p className="text-[var(--text-primary)] text-lg font-bold">{totalDone}/{totalSeries}</p>
               <p className="text-[var(--text-muted)] text-[10px] mt-1">Séries</p>
             </div>
@@ -666,7 +666,7 @@ export default function WorkoutTrackerPage() {
 
           <button
             onClick={() => navigate('/app/dashboard')}
-            className="w-full py-4 rounded-2xl bg-[#FF6B2B] text-white text-base font-bold hover:bg-[#e55e24] active:scale-[0.98] transition-all shadow-lg shadow-[#FF6B2B]/25"
+            className="w-full py-4 rounded-2xl bg-primary text-white text-base font-bold hover:bg-[#e55e24] active:scale-[0.98] transition-all shadow-lg shadow-primary/25"
           >
             Retour au Dashboard
           </button>
@@ -756,7 +756,7 @@ export default function WorkoutTrackerPage() {
             onClick={() => setIsRunning(r => !r)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-surface)] hover:bg-[var(--bg-surface)] active:scale-95 transition-all"
           >
-            {isRunning ? <Pause className="w-3.5 h-3.5 text-[#FF6B2B]" /> : <Play className="w-3.5 h-3.5 text-[#FF6B2B]" />}
+            {isRunning ? <Pause className="w-3.5 h-3.5 text-primary" /> : <Play className="w-3.5 h-3.5 text-primary" />}
             <span className="text-[var(--text-primary)] text-sm font-bold tabular-nums">{formatTime(globalTime)}</span>
           </button>
         </div>
@@ -764,7 +764,7 @@ export default function WorkoutTrackerPage() {
         {/* Progress bar */}
         <div className="w-full h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] rounded-full transition-all duration-500 ease-out"
+            className="h-full bg-gradient-to-r from-primary to-primary-light rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progressPct}%` }}
           />
         </div>
@@ -904,7 +904,7 @@ export default function WorkoutTrackerPage() {
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-1">
                   {currentExo.exercices?.muscle_group && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                       {currentExo.exercices.muscle_group}
                     </span>
                   )}
@@ -927,7 +927,7 @@ export default function WorkoutTrackerPage() {
                 {(currentExo.rpe_cible || currentExo.tempo || currentExo.rest_sec || currentExo.superset_group || currentExo.technique) && (
                   <div className="flex items-center gap-1.5 flex-wrap mt-2">
                     {currentExo.rpe_cible != null && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#FF6B2B] bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 px-2 py-0.5 rounded">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded">
                         RPE {currentExo.rpe_cible}
                       </span>
                     )}
@@ -942,7 +942,7 @@ export default function WorkoutTrackerPage() {
                       </span>
                     )}
                     {currentExo.superset_group && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B2B] bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 px-2 py-0.5 rounded">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded">
                         Superset {currentExo.superset_group}
                       </span>
                     )}
@@ -974,8 +974,8 @@ export default function WorkoutTrackerPage() {
                         onClick={() => setShowDescription(v => !v)}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-semibold transition-all active:scale-95 ${
                           showDescription
-                            ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/25 text-[#FF6B2B]'
-                            : 'bg-[var(--bg-surface)] border-[var(--border-base)] text-[var(--text-secondary)] hover:border-[#FF6B2B]/30 hover:text-[#FF6B2B]'
+                            ? 'bg-primary/10 border-primary/25 text-primary'
+                            : 'bg-[var(--bg-surface)] border-[var(--border-base)] text-[var(--text-secondary)] hover:border-primary/30 hover:text-primary'
                         }`}
                       >
                         <Info className="w-3 h-3" />
@@ -999,7 +999,7 @@ export default function WorkoutTrackerPage() {
                                   Étapes
                                 </p>
                               )}
-                              <ol className="list-decimal pl-5 space-y-1.5 marker:text-[#FF6B2B] marker:font-bold">
+                              <ol className="list-decimal pl-5 space-y-1.5 marker:text-primary marker:font-bold">
                                 {instr.filter(s => s && s.trim()).map((step, i) => (
                                   <li key={i} className="text-[var(--text-secondary)] text-sm leading-relaxed pl-1">
                                     {step}
@@ -1017,10 +1017,10 @@ export default function WorkoutTrackerPage() {
 
               {/* ═══════ NOTE COACH ═══════ */}
               {currentExo.note_coach && currentExo.note_coach.trim() && (
-                <div className="mb-5 p-4 rounded-2xl bg-[#FF6B2B]/[0.08] border border-[#FF6B2B]/20">
+                <div className="mb-5 p-4 rounded-2xl bg-primary/[0.08] border border-primary/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <StickyNote className="w-4 h-4 text-[#FF6B2B]" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B2B]">
+                    <StickyNote className="w-4 h-4 text-primary" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
                       Consigne coach
                     </span>
                   </div>
@@ -1032,12 +1032,12 @@ export default function WorkoutTrackerPage() {
 
               {/* ═══════ CHRONO REPOS (overlay) ═══════ */}
               {isResting && (
-                <div className="mb-5 bg-[#FF6B2B]/[0.08] border border-[#FF6B2B]/20 rounded-2xl p-5 text-center">
-                  <p className="text-[#FF6B2B] text-[10px] font-bold uppercase tracking-widest mb-2">Temps de repos</p>
+                <div className="mb-5 bg-primary/[0.08] border border-primary/20 rounded-2xl p-5 text-center">
+                  <p className="text-primary text-[10px] font-bold uppercase tracking-widest mb-2">Temps de repos</p>
                   <p className="text-[var(--text-primary)] text-5xl font-black tabular-nums mb-1">{formatRestTime(restTime)}</p>
                   <div className="w-full h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden mt-3 mb-4">
                     <div
-                      className="h-full bg-[#FF6B2B] rounded-full transition-all duration-1000 ease-linear"
+                      className="h-full bg-primary rounded-full transition-all duration-1000 ease-linear"
                       style={{ width: restTarget > 0 ? `${(restTime / restTarget) * 100}%` : '0%' }}
                     />
                   </div>
@@ -1063,14 +1063,14 @@ export default function WorkoutTrackerPage() {
                   const restDisplay = currentExo.rest_sec ?? currentExo.repos
                   return (
                     <div key={i} className={`rounded-2xl border transition-all ${
-                      done ? 'bg-[#FF6B2B]/[0.08] border-[#FF6B2B]/25' : 'bg-[var(--bg-surface)] border-[var(--border-base)]'
+                      done ? 'bg-primary/[0.08] border-primary/25' : 'bg-[var(--bg-surface)] border-[var(--border-base)]'
                     }`}>
                       <button
                         onClick={() => toggleSerie(i)}
                         className="w-full flex items-center gap-4 px-4 py-4 active:scale-[0.98] transition-all"
                       >
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                          done ? 'bg-[#FF6B2B] shadow-lg shadow-[#FF6B2B]/25' : 'bg-[var(--bg-surface)] border-2 border-[var(--border-base)]'
+                          done ? 'bg-primary shadow-lg shadow-primary/25' : 'bg-[var(--bg-surface)] border-2 border-[var(--border-base)]'
                         }`}>
                           {done ? <Check className="w-5 h-5 text-white" /> : <span className="text-[var(--text-muted)] text-sm font-bold">{setNum}</span>}
                         </div>
@@ -1089,7 +1089,7 @@ export default function WorkoutTrackerPage() {
                             <span className="text-[10px] font-medium">{restDisplay}s</span>
                           </div>
                         )}
-                        {done && <span className="text-[10px] font-bold text-[#FF6B2B] flex-shrink-0">FAIT</span>}
+                        {done && <span className="text-[10px] font-bold text-primary flex-shrink-0">FAIT</span>}
                       </button>
 
                       {/* Log inputs — apparaît quand la série est cochée (V3b) */}
@@ -1156,14 +1156,14 @@ export default function WorkoutTrackerPage() {
           {isLastExo ? (
             <button
               onClick={finishWorkout}
-              className="flex-1 h-14 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] text-white text-[15px] font-bold active:scale-[0.98] transition-all shadow-lg shadow-[#FF6B2B]/30"
+              className="flex-1 h-14 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-light text-white text-[15px] font-bold active:scale-[0.98] transition-all shadow-lg shadow-primary/30"
             >
               <Trophy className="w-5 h-5" /> Terminer la séance
             </button>
           ) : (
             <button
               onClick={() => goToExercice(currentIdx + 1)}
-              className="flex-1 h-14 flex items-center justify-center gap-2 rounded-2xl bg-[#FF6B2B] text-white text-[15px] font-bold hover:bg-[#e55e24] active:scale-[0.98] transition-all shadow-lg shadow-[#FF6B2B]/30"
+              className="flex-1 h-14 flex items-center justify-center gap-2 rounded-2xl bg-primary text-white text-[15px] font-bold hover:bg-[#e55e24] active:scale-[0.98] transition-all shadow-lg shadow-primary/30"
             >
               Suivant <ChevronRight className="w-5 h-5" />
             </button>

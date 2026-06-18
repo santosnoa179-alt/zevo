@@ -13,14 +13,14 @@ import ClientBookingModal from '../../components/ClientBookingModal'
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
 const EVENT_TYPES = {
-  seance:  { label: 'Séance',     icon: Dumbbell,    color: '#FF6B2B' },
-  bilan:   { label: 'Bilan',      icon: CheckSquare,  color: '#FF6B2B' },
-  appel:   { label: 'Appel',      icon: Phone,        color: '#FF9A6C' },
-  reunion: { label: 'Réunion',    icon: UsersIcon,    color: '#FF9A6C' },
+  seance:  { label: 'Séance',     icon: Dumbbell,    color: 'var(--color-primary)' },
+  bilan:   { label: 'Bilan',      icon: CheckSquare,  color: 'var(--color-primary)' },
+  appel:   { label: 'Appel',      icon: Phone,        color: 'var(--color-primary-light)' },
+  reunion: { label: 'Réunion',    icon: UsersIcon,    color: 'var(--color-primary-light)' },
   note:    { label: 'Note',       icon: FileText,     color: '#7A7A78' },
   perso:   { label: 'Personnel',  icon: Star,         color: '#7A7A78' },
   autre:   { label: 'Autre',      icon: Calendar,     color: '#7A7A78' },
-  reservation: { label: 'Réservation', icon: CalendarCheck, color: '#FF6B2B' },
+  reservation: { label: 'Réservation', icon: CalendarCheck, color: 'var(--color-primary)' },
 }
 
 // ── Date helpers ──
@@ -115,7 +115,7 @@ export default function ClientCalendarPage() {
       items.push({
         id: `s-${s.id}`, type: 'seance', dateStr,
         title: s.titre || 'Séance',
-        color: s.is_completed ? '#FF9A6C' : '#FF6B2B',
+        color: s.is_completed ? 'var(--color-primary-light)' : 'var(--color-primary)',
         isCompleted: !!s.is_completed, original: s,
       })
     })
@@ -133,7 +133,7 @@ export default function ClientCalendarPage() {
       items.push({
         id: `r-${r.id}`, type: 'event', dateStr,
         title: 'Réservation',
-        color: '#FF6B2B', isCompleted: false,
+        color: 'var(--color-primary)', isCompleted: false,
         original: { ...r, event_type: 'reservation', title: 'Réservation', event_date: r.date_debut },
       })
     })
@@ -243,7 +243,7 @@ export default function ClientCalendarPage() {
       <div className="text-center">
         <p className="text-[var(--text-primary)] text-sm font-bold capitalize tracking-tight">{label}</p>
         {offset !== 0 && (
-          <button onClick={goToday} className="text-[#FF6B2B] text-[10px] font-semibold hover:underline mt-0.5 transition-colors">
+          <button onClick={goToday} className="text-primary text-[10px] font-semibold hover:underline mt-0.5 transition-colors">
             Aujourd'hui
           </button>
         )}
@@ -297,7 +297,7 @@ export default function ClientCalendarPage() {
                 <div className="flex items-center justify-center">
                   <span className={`text-[11px] leading-none font-semibold tabular-nums ${
                     isToday
-                      ? 'w-6 h-6 rounded-full bg-[#FF6B2B] text-white flex items-center justify-center shadow-md shadow-[#FF6B2B]/25'
+                      ? 'w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center shadow-md shadow-primary/25'
                       : inMonth
                         ? 'text-[var(--text-secondary)]'
                         : 'text-[var(--text-muted)] opacity-40'
@@ -365,7 +365,7 @@ export default function ClientCalendarPage() {
                     <div className="flex-1 min-w-0 text-left">
                       <p className="text-[var(--text-primary)] text-[13px] font-semibold truncate">{item.title}</p>
                       {item.isCompleted && (
-                        <p className="text-[#FF6B2B]/60 text-[10px] font-medium">Terminée</p>
+                        <p className="text-primary/60 text-[10px] font-medium">Terminée</p>
                       )}
                     </div>
                     <ChevronRight size={14} className="text-[var(--text-muted)] flex-shrink-0" />
@@ -402,7 +402,7 @@ export default function ClientCalendarPage() {
                 key={i}
                 className={`rounded-xl overflow-hidden transition-all ${
                   isToday
-                    ? 'ring-1 ring-[#FF6B2B]/20'
+                    ? 'ring-1 ring-primary/20'
                     : ''
                 }`}
                 style={isToday ? { background: 'linear-gradient(135deg, rgba(255,107,43,0.04), var(--bg-card))' } : {}}
@@ -411,12 +411,12 @@ export default function ClientCalendarPage() {
                   {/* Date column */}
                   <div className={`flex flex-col items-center justify-start pt-0.5 w-12 flex-shrink-0 ${isPast ? 'opacity-40' : ''}`}>
                     <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                      isToday ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
+                      isToday ? 'text-primary' : 'text-[var(--text-muted)]'
                     }`}>
                       {dayLabel}
                     </span>
                     <span className={`text-xl font-black leading-none mt-0.5 tabular-nums ${
-                      isToday ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'
+                      isToday ? 'text-primary' : 'text-[var(--text-primary)]'
                     }`}>
                       {dayNum}
                     </span>
@@ -441,20 +441,20 @@ export default function ClientCalendarPage() {
                                 className="w-full text-left px-3 py-2.5 rounded-lg transition-all flex items-center gap-2.5 active:scale-[0.98]"
                                 style={{
                                   background: s.is_completed ? 'rgba(255,154,108,0.06)' : 'rgba(255,107,43,0.06)',
-                                  borderLeft: `2px solid ${s.is_completed ? '#FF9A6C' : '#FF6B2B'}`,
+                                  borderLeft: `2px solid ${s.is_completed ? 'var(--color-primary-light)' : 'var(--color-primary)'}`,
                                 }}
                               >
                                 <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${
-                                  s.is_completed ? 'bg-[#FF9A6C]/10' : 'bg-[#FF6B2B]/10'
+                                  s.is_completed ? 'bg-primary-light/10' : 'bg-primary/10'
                                 }`}>
                                   {s.is_completed
-                                    ? <CheckCircle2 size={14} className="text-[#FF9A6C]" />
-                                    : <Dumbbell size={14} className="text-[#FF6B2B]" />
+                                    ? <CheckCircle2 size={14} className="text-primary-light" />
+                                    : <Dumbbell size={14} className="text-primary" />
                                   }
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className={`text-[12px] font-semibold truncate ${
-                                    s.is_completed ? 'text-[#FF9A6C]/70' : 'text-[var(--text-primary)]'
+                                    s.is_completed ? 'text-primary-light/70' : 'text-[var(--text-primary)]'
                                   }`}>
                                     {s.titre}
                                   </p>
@@ -463,7 +463,7 @@ export default function ClientCalendarPage() {
                                   )}
                                 </div>
                                 {s.is_completed && (
-                                  <span className="text-[#FF9A6C]/60 text-[8px] font-bold shrink-0 uppercase tracking-wider">Done</span>
+                                  <span className="text-primary-light/60 text-[8px] font-bold shrink-0 uppercase tracking-wider">Done</span>
                                 )}
                               </button>
                             )
@@ -537,10 +537,10 @@ export default function ClientCalendarPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 {isDone
-                  ? <CheckCircle2 size={14} className="text-[#FF9A6C] flex-shrink-0" />
-                  : <Dumbbell size={14} className="text-[#FF6B2B] flex-shrink-0" />
+                  ? <CheckCircle2 size={14} className="text-primary-light flex-shrink-0" />
+                  : <Dumbbell size={14} className="text-primary flex-shrink-0" />
                 }
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${isDone ? 'text-[#FF9A6C]/60' : 'text-[#FF6B2B]/60'}`}>
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${isDone ? 'text-primary-light/60' : 'text-primary/60'}`}>
                   {isDone ? 'Séance terminée' : 'Séance prévue'}
                 </span>
               </div>
@@ -570,7 +570,7 @@ export default function ClientCalendarPage() {
               <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold mb-2.5">Exercices</p>
               {loadingExos ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="animate-spin text-[#FF6B2B]" size={20} />
+                  <Loader2 className="animate-spin text-primary" size={20} />
                 </div>
               ) : exercices.length === 0 ? (
                 <p className="text-[var(--text-muted)] text-xs text-center py-6">Aucun exercice détaillé</p>
@@ -579,8 +579,8 @@ export default function ClientCalendarPage() {
                   {exercices.map((ex, i) => (
                     <div key={i} className="flex items-center gap-3 bg-[var(--bg-surface)]/60 rounded-xl px-3.5 py-2.5"
                       style={{ borderLeft: '2px solid rgba(255,107,43,0.15)' }}>
-                      <div className="w-7 h-7 rounded-md bg-[#FF6B2B]/8 flex items-center justify-center shrink-0">
-                        <Dumbbell size={13} className="text-[#FF6B2B]/70" />
+                      <div className="w-7 h-7 rounded-md bg-primary/8 flex items-center justify-center shrink-0">
+                        <Dumbbell size={13} className="text-primary/70" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[var(--text-primary)] text-[12px] font-medium truncate">
@@ -591,7 +591,7 @@ export default function ClientCalendarPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-[9px] shrink-0 tabular-nums">
-                        {ex.series && <span className="text-[#FF6B2B] font-bold">{ex.series}x</span>}
+                        {ex.series && <span className="text-primary font-bold">{ex.series}x</span>}
                         {(ex.reps || ex.reps_cible) && <span className="text-[var(--text-muted)] font-medium">{ex.reps || ex.reps_cible} reps</span>}
                         {ex.repos && (
                           <span className="text-[var(--text-muted)] flex items-center gap-0.5">
@@ -609,7 +609,7 @@ export default function ClientCalendarPage() {
             {isDone ? (
               <button
                 onClick={() => navigate(`/app/workout/${selectedSeance.id}`)}
-                className="w-full py-3.5 rounded-xl text-[#FF6B2B] text-[13px] font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-2 bg-[#FF6B2B]/10 border border-[#FF6B2B]/20 hover:bg-[#FF6B2B]/15"
+                className="w-full py-3.5 rounded-xl text-primary text-[13px] font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-2 bg-primary/10 border border-primary/20 hover:bg-primary/15"
               >
                 <CheckCircle2 size={15} />
                 Voir le résumé
@@ -700,7 +700,7 @@ export default function ClientCalendarPage() {
         <div className="relative z-[106] w-full sm:w-[420px] sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto bg-[var(--bg-base)] border border-[var(--border-base)]"
           style={{ boxShadow: '0 -8px 40px rgba(0,0,0,0.4)' }}>
 
-          <div className="h-[3px] w-full rounded-t-2xl bg-gradient-to-r from-[#FF6B2B] via-[#FF9A6C] to-transparent" />
+          <div className="h-[3px] w-full rounded-t-2xl bg-gradient-to-r from-primary via-primary-light to-transparent" />
 
           <div className="flex justify-center pt-2 pb-1 sm:hidden">
             <div className="w-8 h-1 rounded-full bg-[var(--border-base)]" />
@@ -708,7 +708,7 @@ export default function ClientCalendarPage() {
 
           <div className="px-5 pt-3 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Calendar size={14} className="text-[#FF6B2B]" />
+              <Calendar size={14} className="text-primary" />
               <h3 className="text-[var(--text-primary)] font-bold text-sm capitalize">{dayLabel}</h3>
             </div>
             <button onClick={() => setSelectedDay(null)} className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors">
@@ -727,20 +727,20 @@ export default function ClientCalendarPage() {
                     className="w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 active:scale-[0.98]"
                     style={{
                       background: s.is_completed ? 'rgba(255,154,108,0.06)' : 'rgba(255,107,43,0.06)',
-                      borderLeft: `2px solid ${s.is_completed ? '#FF9A6C' : '#FF6B2B'}`,
+                      borderLeft: `2px solid ${s.is_completed ? 'var(--color-primary-light)' : 'var(--color-primary)'}`,
                     }}
                   >
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                      s.is_completed ? 'bg-[#FF9A6C]/10' : 'bg-[#FF6B2B]/10'
+                      s.is_completed ? 'bg-primary-light/10' : 'bg-primary/10'
                     }`}>
                       {s.is_completed
-                        ? <CheckCircle2 size={15} className="text-[#FF9A6C]" />
-                        : <Dumbbell size={15} className="text-[#FF6B2B]" />
+                        ? <CheckCircle2 size={15} className="text-primary-light" />
+                        : <Dumbbell size={15} className="text-primary" />
                       }
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-[12px] font-semibold truncate ${
-                        s.is_completed ? 'text-[#FF9A6C]/70' : 'text-[var(--text-primary)]'
+                        s.is_completed ? 'text-primary-light/70' : 'text-[var(--text-primary)]'
                       }`}>
                         {s.titre || 'Séance'}
                       </p>
@@ -749,7 +749,7 @@ export default function ClientCalendarPage() {
                       )}
                     </div>
                     {s.is_completed && (
-                      <span className="text-[#FF9A6C]/50 text-[8px] font-bold shrink-0 uppercase">Done</span>
+                      <span className="text-primary-light/50 text-[8px] font-bold shrink-0 uppercase">Done</span>
                     )}
                   </button>
                 )
@@ -818,7 +818,7 @@ export default function ClientCalendarPage() {
       <div className="pt-2 flex items-end justify-between">
         <div>
           <h1 className="text-[var(--text-primary)] text-xl font-bold tracking-tight flex items-center gap-2">
-            <Calendar size={18} className="text-[#FF6B2B]" />
+            <Calendar size={18} className="text-primary" />
             Calendrier
           </h1>
           <p className="text-[var(--text-muted)] text-[11px] mt-0.5">
@@ -840,7 +840,7 @@ export default function ClientCalendarPage() {
               onClick={() => { setView(v.id); setOffset(0) }}
               className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
                 view === v.id
-                  ? 'bg-[#FF6B2B] text-white shadow-sm shadow-[#FF6B2B]/20'
+                  ? 'bg-primary text-white shadow-sm shadow-primary/20'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >

@@ -12,8 +12,8 @@ import {
 const TYPE_CONFIG = {
   pdf:   { icon: FileText, color: '#EF4444', label: 'PDF' },
   video: { icon: Video,    color: '#7A7A78', label: 'Vidéo' },
-  lien:  { icon: Link2,    color: '#FF6B2B', label: 'Lien' },
-  image: { icon: Image,    color: '#FF9A6C', label: 'Image' },
+  lien:  { icon: Link2,    color: 'var(--color-primary)', label: 'Lien' },
+  image: { icon: Image,    color: 'var(--color-primary-light)', label: 'Image' },
   guide: { icon: BookOpen, color: '#FFB894', label: 'Guide' },
 }
 

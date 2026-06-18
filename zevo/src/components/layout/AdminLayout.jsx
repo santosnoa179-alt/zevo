@@ -28,7 +28,7 @@ export function AdminLayout() {
       <header className="md:hidden flex items-center justify-between px-4 py-3 bg-[var(--bg-card)] border-b border-[var(--border-base)]">
         <div className="flex items-center gap-3">
           <ZevoLogo size="sm" />
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-wider">
             <Shield size={12} />
             Super Admin
           </span>
@@ -54,7 +54,7 @@ export function AdminLayout() {
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                         isActive
-                          ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] border-l-2 border-[#FF6B2B]'
+                          ? 'bg-primary/10 text-primary border-l-2 border-primary'
                           : 'text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-surface)]'
                       }`
                     }
@@ -83,12 +83,12 @@ export function AdminLayout() {
 
         {/* Logo area with subtle gradient glow */}
         <div className="relative p-5 border-b border-[var(--border-base)]">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#FF6B2B]/5 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
           <div className="relative flex items-center gap-3">
             <ZevoLogo size="md" />
           </div>
           <div className="relative mt-3">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] text-[10px] font-semibold uppercase tracking-wider border border-[#FF6B2B]/20">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-wider border border-primary/20">
               <Shield size={12} />
               Super Admin
             </span>
@@ -108,7 +108,7 @@ export function AdminLayout() {
                   className={({ isActive }) =>
                     `group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
+                        ? 'bg-primary/10 text-primary'
                         : 'text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-surface)]'
                     }`
                   }
@@ -117,9 +117,9 @@ export function AdminLayout() {
                     <>
                       {/* Active gradient left border accent */}
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gradient-to-b from-[#FF6B2B] to-[#FF9A6C]" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gradient-to-b from-primary to-primary-light" />
                       )}
-                      <Icon size={18} className={isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)] group-hover:text-white transition-colors'} />
+                      <Icon size={18} className={isActive ? 'text-primary' : 'text-[var(--text-muted)] group-hover:text-white transition-colors'} />
                       <span>{label}</span>
                     </>
                   )}

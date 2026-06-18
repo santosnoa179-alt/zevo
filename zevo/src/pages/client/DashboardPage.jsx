@@ -126,18 +126,18 @@ function StreakBadge({ streak, staggerClass, staggerStyle }) {
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border border-[#FF6B2B]/12 ${staggerClass}`}
+    <div className={`relative overflow-hidden rounded-2xl border border-primary/12 ${staggerClass}`}
       style={{ ...staggerStyle, background: 'linear-gradient(135deg, rgba(255,107,43,0.06) 0%, var(--bg-card) 60%)' }}>
       {/* Ambient corner glow */}
-      <div className="absolute -top-10 -left-10 w-28 h-28 rounded-full bg-[#FF6B2B]/8 blur-2xl pointer-events-none animate-breathe" />
+      <div className="absolute -top-10 -left-10 w-28 h-28 rounded-full bg-primary/8 blur-2xl pointer-events-none animate-breathe" />
 
       <div className="relative px-4 pt-4 pb-3.5">
         {/* Row 1: Flame + Count + Milestone */}
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center gap-3">
-            <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C] flex items-center justify-center shadow-lg shadow-[#FF6B2B]/20">
+            <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-lg shadow-primary/20">
               <Flame size={20} className="text-white animate-streak-pulse" />
-              <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#FF9A6C] shadow-lg shadow-[#FF9A6C]/40 animate-streak-glow" />
+              <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-primary-light shadow-lg shadow-primary-light/40 animate-streak-glow" />
             </div>
             <div>
               <div className="flex items-baseline gap-1.5">
@@ -146,12 +146,12 @@ function StreakBadge({ streak, staggerClass, staggerStyle }) {
                 </span>
                 <span className="text-[var(--text-muted)] text-xs font-medium">jours</span>
               </div>
-              <p className="text-[#FF6B2B] text-[11px] font-semibold mt-0.5 tracking-tight">{msg}</p>
+              <p className="text-primary text-[11px] font-semibold mt-0.5 tracking-tight">{msg}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)]">
-            <Trophy size={11} className="text-[#FF6B2B]/70" />
+            <Trophy size={11} className="text-primary/70" />
             <span className="text-[var(--text-muted)] text-[10px] font-bold tabular-nums">{next.label}</span>
           </div>
         </div>
@@ -160,19 +160,19 @@ function StreakBadge({ streak, staggerClass, staggerStyle }) {
         <div className="flex items-center justify-between mb-3 px-0.5">
           {days7.map((d, i) => (
             <div key={i} className="flex flex-col items-center gap-1">
-              <span className={`text-[9px] font-semibold tracking-wide ${d.isToday ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
+              <span className={`text-[9px] font-semibold tracking-wide ${d.isToday ? 'text-primary' : 'text-[var(--text-muted)]'}`}>
                 {d.label}
               </span>
               <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300 ${
                 d.done
-                  ? 'bg-[#FF6B2B] shadow-sm shadow-[#FF6B2B]/20'
+                  ? 'bg-primary shadow-sm shadow-primary/20'
                   : d.isToday
-                    ? 'bg-[#FF6B2B]/10 ring-1.5 ring-[#FF6B2B]/30'
+                    ? 'bg-primary/10 ring-1.5 ring-primary/30'
                     : 'bg-[var(--bg-surface)]'
               }`}>
                 {d.done && <Check size={13} className="text-white" strokeWidth={2.5} />}
                 {!d.done && d.isToday && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] animate-pulse" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 )}
               </div>
             </div>
@@ -183,7 +183,7 @@ function StreakBadge({ streak, staggerClass, staggerStyle }) {
         <div className="flex items-center gap-2.5">
           <div className="flex-1 h-[5px] rounded-full bg-[var(--bg-surface)] overflow-hidden relative">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] transition-all duration-1000 ease-out relative"
+              className="h-full rounded-full bg-gradient-to-r from-primary to-primary-light transition-all duration-1000 ease-out relative"
               style={{ width: `${Math.min(100, progressInSegment)}%` }}
             >
               {/* Shimmer on progress */}
@@ -611,11 +611,11 @@ export default function DashboardPage() {
   const trendDiff = (currentWeekAvg !== null && prevWeekAvg !== null) ? currentWeekAvg - prevWeekAvg : null
 
   const getNextStep = () => {
-    if (seanceDuJour && !seanceFaite) return { type: 'seance', label: 'Lance ta séance', sub: seanceDuJour.titre, icon: Play, color: '#FF6B2B', action: () => navigate(`/app/workout/${seanceDuJour.id}`) }
-    if (!sommeilSaved || !humeurSaved) return { type: 'checkin', label: 'Fais ton check-in', sub: !sommeilSaved ? 'Sommeil non renseigné' : 'Humeur non renseignée', icon: Moon, color: '#FF9A6C' }
-    if (totalHab > 0 && !allHabsDone) return { type: 'habits', label: 'Habitudes en cours', sub: `${cochees}/${totalHab} complétées`, icon: Flame, color: '#FF6B2B' }
-    if (unreadMessages > 0) return { type: 'messages', label: 'Message non lu', sub: `${unreadMessages} message${unreadMessages > 1 ? 's' : ''} de ton coach`, icon: MessageCircle, color: '#FF6B2B', action: () => navigate('/app/messages') }
-    if (seanceDemain) return { type: 'demain', label: 'Demain', sub: seanceDemain.titre, icon: CalendarDays, color: '#FF9A6C' }
+    if (seanceDuJour && !seanceFaite) return { type: 'seance', label: 'Lance ta séance', sub: seanceDuJour.titre, icon: Play, color: 'var(--color-primary)', action: () => navigate(`/app/workout/${seanceDuJour.id}`) }
+    if (!sommeilSaved || !humeurSaved) return { type: 'checkin', label: 'Fais ton check-in', sub: !sommeilSaved ? 'Sommeil non renseigné' : 'Humeur non renseignée', icon: Moon, color: 'var(--color-primary-light)' }
+    if (totalHab > 0 && !allHabsDone) return { type: 'habits', label: 'Habitudes en cours', sub: `${cochees}/${totalHab} complétées`, icon: Flame, color: 'var(--color-primary)' }
+    if (unreadMessages > 0) return { type: 'messages', label: 'Message non lu', sub: `${unreadMessages} message${unreadMessages > 1 ? 's' : ''} de ton coach`, icon: MessageCircle, color: 'var(--color-primary)', action: () => navigate('/app/messages') }
+    if (seanceDemain) return { type: 'demain', label: 'Demain', sub: seanceDemain.titre, icon: CalendarDays, color: 'var(--color-primary-light)' }
     return null
   }
   const nextStep = getNextStep()
@@ -672,7 +672,7 @@ export default function DashboardPage() {
             <span className="truncate">{greeting.text}</span>
             <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl flex-shrink-0"
               style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.12), rgba(255,107,43,0.04))' }}>
-              <GreetingIcon size={18} className="text-[#FF6B2B]" />
+              <GreetingIcon size={18} className="text-primary" />
             </span>
           </h1>
           <div className="flex items-center gap-2 mt-1.5">
@@ -693,7 +693,7 @@ export default function DashboardPage() {
           className="relative active:scale-95 transition-transform ml-3"
         >
           <div
-            className="w-11 h-11 rounded-full flex items-center justify-center ring-2 ring-offset-2 ring-offset-[var(--bg-base)] ring-[#FF6B2B]/20 overflow-hidden"
+            className="w-11 h-11 rounded-full flex items-center justify-center ring-2 ring-offset-2 ring-offset-[var(--bg-base)] ring-primary/20 overflow-hidden"
             style={{ background: profil?.avatar_url ? 'transparent' : 'linear-gradient(135deg, #FF6B2B, #FF9A6C)' }}
           >
             {profil?.avatar_url ? (
@@ -762,7 +762,7 @@ export default function DashboardPage() {
           {seanceDuJour ? (
             <div className={`relative overflow-hidden rounded-2xl border ${
               seanceDuJour.is_completed
-                ? 'border-[#FF9A6C]/12'
+                ? 'border-primary-light/12'
                 : 'border-[var(--color-primary,#FF6B2B)]/15'
             } ${stagger[5].className}`}
               style={{
@@ -773,21 +773,21 @@ export default function DashboardPage() {
               }}
             >
               <div className={`absolute top-0 right-0 w-36 h-36 rounded-full -translate-y-10 translate-x-10 blur-3xl pointer-events-none ${
-                seanceDuJour.is_completed ? 'bg-[#FF9A6C]/4' : 'bg-[var(--color-primary,#FF6B2B)]/4'
+                seanceDuJour.is_completed ? 'bg-primary-light/4' : 'bg-[var(--color-primary,#FF6B2B)]/4'
               }`} />
 
               <div className="relative p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Dumbbell size={13} className={seanceDuJour.is_completed ? 'text-[#FF9A6C]' : 'text-[var(--color-primary,#FF6B2B)]'} />
+                    <Dumbbell size={13} className={seanceDuJour.is_completed ? 'text-primary-light' : 'text-[var(--color-primary,#FF6B2B)]'} />
                     <p className={`text-[10px] uppercase tracking-widest font-bold ${
-                      seanceDuJour.is_completed ? 'text-[#FF9A6C]/70' : 'text-[var(--color-primary,#FF6B2B)]/70'
+                      seanceDuJour.is_completed ? 'text-primary-light/70' : 'text-[var(--color-primary,#FF6B2B)]/70'
                     }`}>
                       Séance du jour
                     </p>
                   </div>
                   {seanceDuJour.is_completed && (
-                    <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FF9A6C]/10 text-[#FF9A6C] text-[10px] font-bold">
+                    <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary-light/10 text-primary-light text-[10px] font-bold">
                       <Check size={10} strokeWidth={3} />
                       Terminée
                     </span>
@@ -829,7 +829,7 @@ export default function DashboardPage() {
                 {seanceDuJour.is_completed ? (
                   <button
                     onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
-                    className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-[13px] tracking-wide text-[#FF9A6C] bg-[#FF9A6C]/8 border border-[#FF9A6C]/12 hover:bg-[#FF9A6C]/12 active:scale-[0.98] transition-all"
+                    className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-[13px] tracking-wide text-primary-light bg-primary-light/8 border border-primary-light/12 hover:bg-primary-light/12 active:scale-[0.98] transition-all"
                   >
                     <CheckCircle2 size={15} />
                     VOIR LE RÉSUMÉ
@@ -946,7 +946,7 @@ export default function DashboardPage() {
                     onClick={() => navigate('/app/programme')}
                     className="glass-card p-4 text-left active:scale-[0.98] transition-transform"
                   >
-                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[var(--color-primary,#FF6B2B)] via-[#FF9A6C]/50 to-transparent" />
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[var(--color-primary,#FF6B2B)] via-primary-light/50 to-transparent" />
 
                     <div className="relative">
                       <div className="flex items-center justify-between mb-2.5">
@@ -1004,12 +1004,12 @@ export default function DashboardPage() {
                     onClick={() => navigate('/app/programme?tab=nutrition')}
                     className="glass-card p-4 text-left active:scale-[0.98] transition-transform"
                   >
-                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#FF9A6C] via-[#FFB894]/50 to-transparent" />
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-primary-light via-[#FFB894]/50 to-transparent" />
 
                     <div className="relative">
                       <div className="flex items-center justify-between mb-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-[#FF9A6C]/10 flex items-center justify-center">
-                          <UtensilsCrossed size={14} className="text-[#FF9A6C]" />
+                        <div className="w-7 h-7 rounded-lg bg-primary-light/10 flex items-center justify-center">
+                          <UtensilsCrossed size={14} className="text-primary-light" />
                         </div>
                         <ChevronRight size={14} className="text-[var(--text-muted)]" />
                       </div>
@@ -1063,27 +1063,27 @@ export default function DashboardPage() {
                   {/* ── Widget Sommeil ── */}
                   <div className={`rounded-xl p-3.5 transition-all duration-500 ${
                     sommeilSaved
-                      ? 'bg-[#FF9A6C]/[0.06] ring-1 ring-[#FF9A6C]/15'
+                      ? 'bg-primary-light/[0.06] ring-1 ring-primary-light/15'
                       : 'bg-[var(--bg-surface)]/50'
                   }`}>
                     {sommeilSaved ? (
                       <div className="text-center py-1">
-                        <div className="w-9 h-9 rounded-lg bg-[#FF9A6C]/10 flex items-center justify-center mx-auto mb-2">
-                          <Moon size={16} className="text-[#FF9A6C]" />
+                        <div className="w-9 h-9 rounded-lg bg-primary-light/10 flex items-center justify-center mx-auto mb-2">
+                          <Moon size={16} className="text-primary-light" />
                         </div>
-                        <p className="text-[#FF9A6C] text-lg font-black leading-none">{sommeilInput}h</p>
-                        <p className="text-[#FF9A6C]/40 text-[9px] mt-1 font-medium">Enregistré</p>
+                        <p className="text-primary-light text-lg font-black leading-none">{sommeilInput}h</p>
+                        <p className="text-primary-light/40 text-[9px] mt-1 font-medium">Enregistré</p>
                       </div>
                     ) : (
                       <>
                         <div className="flex items-center gap-1.5 mb-3">
-                          <Moon size={12} className="text-[#FF9A6C]" />
+                          <Moon size={12} className="text-primary-light" />
                           <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-wider font-bold">Sommeil</p>
                         </div>
                         <div className="flex items-center justify-center gap-2.5 mb-3">
                           <button
                             onClick={() => setSommeilInput(v => Math.max(0, +(v - 0.5).toFixed(1)))}
-                            className="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[#FF9A6C] transition-all active:scale-90"
+                            className="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-primary-light transition-all active:scale-90"
                           >
                             <Minus size={14} />
                           </button>
@@ -1093,7 +1093,7 @@ export default function DashboardPage() {
                           </div>
                           <button
                             onClick={() => setSommeilInput(v => Math.min(14, +(v + 0.5).toFixed(1)))}
-                            className="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[#FF9A6C] transition-all active:scale-90"
+                            className="w-8 h-8 rounded-lg bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-primary-light transition-all active:scale-90"
                           >
                             <Plus size={14} />
                           </button>
@@ -1101,7 +1101,7 @@ export default function DashboardPage() {
                         <button
                           onClick={saveSommeil}
                           disabled={sommeilSaving}
-                          className="w-full py-2 rounded-lg bg-[#FF9A6C]/15 text-[#FF9A6C] text-[11px] font-bold hover:bg-[#FF9A6C]/25 transition-all active:scale-95 disabled:opacity-50"
+                          className="w-full py-2 rounded-lg bg-primary-light/15 text-primary-light text-[11px] font-bold hover:bg-primary-light/25 transition-all active:scale-95 disabled:opacity-50"
                         >
                           {sommeilSaving ? '...' : 'Valider'}
                         </button>
@@ -1112,23 +1112,23 @@ export default function DashboardPage() {
                   {/* ── Widget Humeur ── */}
                   <div className={`rounded-xl p-3.5 transition-all duration-500 ${
                     humeurSaved
-                      ? 'bg-[#FF6B2B]/[0.06] ring-1 ring-[#FF6B2B]/15'
+                      ? 'bg-primary/[0.06] ring-1 ring-primary/15'
                       : 'bg-[var(--bg-surface)]/50'
                   }`}>
                     {humeurSaved ? (
                       <div className="text-center py-1">
-                        <div className="w-9 h-9 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-2">
-                          <Smile size={16} className="text-[#FF6B2B]" />
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                          <Smile size={16} className="text-primary" />
                         </div>
-                        <p className="text-[#FF6B2B] text-sm font-black leading-none">
+                        <p className="text-primary text-sm font-black leading-none">
                           {['Mal', 'Bof', 'Ok', 'Bien', 'Top'][Math.min(4, Math.max(0, Math.round((humeurInput || 5) / 2) - 1))]}
                         </p>
-                        <p className="text-[#FF6B2B]/40 text-[9px] mt-1 font-medium">Enregistré</p>
+                        <p className="text-primary/40 text-[9px] mt-1 font-medium">Enregistré</p>
                       </div>
                     ) : (
                       <>
                         <div className="flex items-center gap-1.5 mb-3">
-                          <Smile size={12} className="text-[#FF6B2B]" />
+                          <Smile size={12} className="text-primary" />
                           <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-wider font-bold">Humeur</p>
                         </div>
                         <div className="flex items-center justify-between mb-1">
@@ -1136,8 +1136,8 @@ export default function DashboardPage() {
                             { icon: Frown, score: 2, label: 'Mal', color: '#7A7A78' },
                             { icon: Meh, score: 4, label: 'Bof', color: '#C94A15' },
                             { icon: Minus, score: 6, label: 'Ok', color: '#E85A1F' },
-                            { icon: Smile, score: 8, label: 'Bien', color: '#FF6B2B' },
-                            { icon: Sparkles, score: 10, label: 'Top', color: '#FF9A6C' },
+                            { icon: Smile, score: 8, label: 'Bien', color: 'var(--color-primary)' },
+                            { icon: Sparkles, score: 10, label: 'Top', color: 'var(--color-primary-light)' },
                           ].map(({ icon: MoodIcon, score, label, color }) => (
                             <button
                               key={score}
@@ -1182,29 +1182,29 @@ export default function DashboardPage() {
               <button
                 key={form.id}
                 onClick={() => navigate('/app/formulaires')}
-                className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border border-[#FF9A6C]/12 active:scale-[0.98] transition-all ${stagger[4].className}`}
+                className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border border-primary-light/12 active:scale-[0.98] transition-all ${stagger[4].className}`}
                 style={{
                   ...stagger[4].style,
                   animationDelay: `${(stagger[4].style?.animationDelay ? parseInt(stagger[4].style.animationDelay) : 0) + idx * 60}ms`,
                   background: 'linear-gradient(135deg, rgba(255,154,108,0.06), transparent)',
                 }}
               >
-                <div className="w-10 h-10 rounded-xl bg-[#FF9A6C]/10 flex items-center justify-center flex-shrink-0 relative">
-                  <FormIcon size={18} className="text-[#FF9A6C]" />
-                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#FF6B2B] rounded-full ring-2 ring-[var(--bg-card)]" />
+                <div className="w-10 h-10 rounded-xl bg-primary-light/10 flex items-center justify-center flex-shrink-0 relative">
+                  <FormIcon size={18} className="text-primary-light" />
+                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-primary rounded-full ring-2 ring-[var(--bg-card)]" />
                 </div>
                 <div className="flex-1 text-left min-w-0">
                   <p className="text-[var(--text-primary)] font-semibold text-sm truncate">
                     {formInfo.titre || 'Formulaire à remplir'}
                   </p>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[#FF9A6C]/60 text-[11px] font-medium">{typeLabel}</span>
+                    <span className="text-primary-light/60 text-[11px] font-medium">{typeLabel}</span>
                     <span className="text-[var(--text-muted)] text-[11px]">{dateLabel}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 bg-[#FF9A6C]/10 px-2.5 py-1.5 rounded-lg flex-shrink-0">
-                  <span className="text-[#FF9A6C] text-[11px] font-semibold">Remplir</span>
-                  <ChevronRight size={12} className="text-[#FF9A6C]/50" />
+                <div className="flex items-center gap-1 bg-primary-light/10 px-2.5 py-1.5 rounded-lg flex-shrink-0">
+                  <span className="text-primary-light text-[11px] font-semibold">Remplir</span>
+                  <ChevronRight size={12} className="text-primary-light/50" />
                 </div>
               </button>
             )
@@ -1219,7 +1219,7 @@ export default function DashboardPage() {
                 {trendDiff !== null && trendDiff !== 0 && (
                   <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold ${
                     trendDiff > 0
-                      ? 'bg-[#FF6B2B]/8 text-[#FF6B2B]'
+                      ? 'bg-primary/8 text-primary'
                       : 'bg-red-500/8 text-red-400'
                   }`}>
                     {trendDiff > 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
@@ -1233,9 +1233,9 @@ export default function DashboardPage() {
                 <div className="flex-1 min-w-0 space-y-1">
                   <p className="text-xl font-extrabold leading-none mb-3" style={{ color: couleur }}>{label}</p>
                   {[
-                    { icon: Moon, color: '#FF9A6C', text: sommeil ? `${sommeil.heures}h de sommeil` : 'Sommeil non renseigné' },
-                    { icon: Smile, color: '#FF6B2B', text: humeur ? `Humeur ${humeur.score}/10` : 'Humeur non renseignée' },
-                    { icon: Zap, color: '#FF6B2B', text: sport ? `Intensité ${sport.intensite}/5` : 'Pas d\'activité' },
+                    { icon: Moon, color: 'var(--color-primary-light)', text: sommeil ? `${sommeil.heures}h de sommeil` : 'Sommeil non renseigné' },
+                    { icon: Smile, color: 'var(--color-primary)', text: humeur ? `Humeur ${humeur.score}/10` : 'Humeur non renseignée' },
+                    { icon: Zap, color: 'var(--color-primary)', text: sport ? `Intensité ${sport.intensite}/5` : 'Pas d\'activité' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-2">
                       <item.icon size={12} style={{ color: item.color }} className="flex-shrink-0 opacity-70" />
@@ -1251,10 +1251,10 @@ export default function DashboardPage() {
           {nutriMacros && nutriRepas.length > 0 && (
             <div className={`glass-card p-5 ${stagger[9].className}`} style={stagger[9].style}>
               <div className="relative">
-                <SectionLabel icon={UtensilsCrossed} label="Nutrition du jour" color="#FF9A6C">
+                <SectionLabel icon={UtensilsCrossed} label="Nutrition du jour" color="var(--color-primary-light)">
                   <button
                     onClick={() => navigate('/app/programme')}
-                    className="text-[#FF9A6C]/50 text-[10px] font-semibold hover:text-[#FF9A6C] transition-colors"
+                    className="text-primary-light/50 text-[10px] font-semibold hover:text-primary-light transition-colors"
                   >
                     Voir le plan
                   </button>
@@ -1262,9 +1262,9 @@ export default function DashboardPage() {
 
                 <div className="grid grid-cols-4 gap-2 mb-4">
                   {[
-                    { label: 'Calories', value: nutriMacros.kcal, unit: 'kcal', color: '#FF6B2B' },
-                    { label: 'Protéines', value: nutriMacros.prot, unit: 'g', color: '#FF6B2B' },
-                    { label: 'Glucides', value: nutriMacros.gluc, unit: 'g', color: '#FF9A6C' },
+                    { label: 'Calories', value: nutriMacros.kcal, unit: 'kcal', color: 'var(--color-primary)' },
+                    { label: 'Protéines', value: nutriMacros.prot, unit: 'g', color: 'var(--color-primary)' },
+                    { label: 'Glucides', value: nutriMacros.gluc, unit: 'g', color: 'var(--color-primary-light)' },
                     { label: 'Lipides', value: nutriMacros.lip, unit: 'g', color: '#FFB894' },
                   ].map((m, i) => (
                     <div key={i} className="text-center py-2.5 px-1 rounded-xl bg-[var(--bg-surface)]/60" style={{ borderTop: `2px solid ${m.color}25` }}>
@@ -1279,11 +1279,11 @@ export default function DashboardPage() {
                   {(() => {
                     const typeLabels = { petit_dej: 'Petit-déjeuner', dejeuner: 'Déjeuner', diner: 'Dîner', collation: 'Collation' }
                     const typeIcons = { petit_dej: Sunrise, dejeuner: Sun, diner: Moon, collation: Coffee }
-                    const typeColors = { petit_dej: '#FF9A6C', dejeuner: '#FF6B2B', diner: '#7A7A78', collation: '#FFB894' }
+                    const typeColors = { petit_dej: 'var(--color-primary-light)', dejeuner: 'var(--color-primary)', diner: '#7A7A78', collation: '#FFB894' }
                     return nutriRepas.map((repas, i) => {
                       const nbAliments = repas.repas_aliments?.length || 0
                       const RepasIcon = typeIcons[repas.type] || UtensilsCrossed
-                      const repasColor = typeColors[repas.type] || '#FF6B2B'
+                      const repasColor = typeColors[repas.type] || 'var(--color-primary)'
                       return (
                         <div key={repas.id || i} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)]/50"
                           style={{ borderLeft: `2px solid ${repasColor}30` }}>

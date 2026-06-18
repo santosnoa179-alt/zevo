@@ -190,7 +190,7 @@ export default function CoachDisponibilites({ open, onClose }) {
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-6 h-6 animate-spin text-[#FF6B2B]" />
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : (
           <>
@@ -204,7 +204,7 @@ export default function CoachDisponibilites({ open, onClose }) {
                     onClick={() => setGlobalDuree(d.value)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                       globalDuree === d.value
-                        ? 'bg-[#FF6B2B] text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                     }`}
                   >
@@ -232,7 +232,7 @@ export default function CoachDisponibilites({ open, onClose }) {
                       className="flex-shrink-0"
                     >
                       {schedule[idx].actif ? (
-                        <ToggleRight size={24} className="text-[#FF6B2B]" />
+                        <ToggleRight size={24} className="text-primary" />
                       ) : (
                         <ToggleLeft size={24} className="text-[var(--text-muted)]" />
                       )}
@@ -245,7 +245,7 @@ export default function CoachDisponibilites({ open, onClose }) {
                     {schedule[idx].actif && (
                       <button
                         onClick={() => addRange(idx)}
-                        className="flex items-center gap-1 text-[10px] text-[#FF6B2B] font-semibold hover:bg-[#FF6B2B]/10 px-2 py-1 rounded-lg transition-colors"
+                        className="flex items-center gap-1 text-[10px] text-primary font-semibold hover:bg-primary/10 px-2 py-1 rounded-lg transition-colors"
                       >
                         <Plus size={12} /> Ajouter
                       </button>
@@ -261,14 +261,14 @@ export default function CoachDisponibilites({ open, onClose }) {
                             type="time"
                             value={range.debut}
                             onChange={e => updateRange(idx, ri, 'debut', e.target.value)}
-                            className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B] outline-none"
+                            className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:border-primary outline-none"
                           />
                           <span className="text-[var(--text-muted)] text-xs">→</span>
                           <input
                             type="time"
                             value={range.fin}
                             onChange={e => updateRange(idx, ri, 'fin', e.target.value)}
-                            className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B] outline-none"
+                            className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:border-primary outline-none"
                           />
                           {schedule[idx].ranges.length > 1 && (
                             <button

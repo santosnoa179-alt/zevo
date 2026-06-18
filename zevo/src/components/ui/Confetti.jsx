@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 
 // Couleurs des confettis
-const COLORS = ['#FF6B2B', '#FF9A6C', '#3B82F6', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', '#06B6D4']
+const COLORS = ['var(--color-primary)', 'var(--color-primary-light)', '#3B82F6', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', '#06B6D4']
 
 function randomBetween(a, b) {
   return Math.random() * (b - a) + a
@@ -97,7 +97,7 @@ export function StreakMilestone({ streak }) {
 
   useEffect(() => {
     const milestones = [
-      { days: 7, label: '1 semaine', sub: 'Première étape franchie', color: '#FF6B2B', icon: '7' },
+      { days: 7, label: '1 semaine', sub: 'Première étape franchie', color: 'var(--color-primary)', icon: '7' },
       { days: 14, label: '2 semaines', sub: 'L\'habitude se forme', color: '#F59E0B', icon: '14' },
       { days: 30, label: '1 mois', sub: 'Discipline remarquable', color: '#10B981', icon: '30' },
       { days: 60, label: '2 mois', sub: 'Transformation en cours', color: '#3B82F6', icon: '60' },

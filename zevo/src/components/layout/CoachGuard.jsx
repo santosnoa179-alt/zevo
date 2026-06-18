@@ -135,8 +135,8 @@ export function CoachGuard({ children }) {
 
           <div className="bg-[var(--bg-card)] rounded-2xl p-8 space-y-5">
             {/* Spinner animé */}
-            <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 mx-auto flex items-center justify-center">
-              <Loader2 size={28} className="text-[#FF6B2B] animate-spin" />
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 mx-auto flex items-center justify-center">
+              <Loader2 size={28} className="text-primary animate-spin" />
             </div>
 
             <div>
@@ -151,7 +151,7 @@ export function CoachGuard({ children }) {
             {/* Barre de progression subtile */}
             <div className="w-full bg-[var(--bg-surface)] rounded-full h-1.5 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] rounded-full transition-all duration-1000 ease-out"
+                className="h-full bg-gradient-to-r from-primary to-primary-light rounded-full transition-all duration-1000 ease-out"
                 style={{ width: `${Math.min((pollCount / 10) * 100, 95)}%` }}
               />
             </div>
@@ -169,7 +169,7 @@ export function CoachGuard({ children }) {
   if (abonnementActif === null || onboardingDone === null) {
     return (
       <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -222,8 +222,8 @@ export function CoachGuard({ children }) {
         <ZevoLogo size="lg" className="justify-center" />
 
         <div className="bg-[var(--bg-card)] rounded-2xl p-8 space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 mx-auto flex items-center justify-center">
-            <AlertTriangle size={32} className="text-[#FF6B2B]" />
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 mx-auto flex items-center justify-center">
+            <AlertTriangle size={32} className="text-primary" />
           </div>
 
           <div>
@@ -238,7 +238,7 @@ export function CoachGuard({ children }) {
           <button
             onClick={handleReactivate}
             disabled={portalLoading}
-            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#FF6B2B]/90 transition-colors disabled:opacity-50"
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
             {portalLoading ? (
               <Loader2 size={16} className="animate-spin" />

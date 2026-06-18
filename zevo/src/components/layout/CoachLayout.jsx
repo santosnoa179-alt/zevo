@@ -322,7 +322,7 @@ export function CoachLayout() {
                 <ul className="space-y-1">
                   {section.items.map(({ to, icon: Icon, label, planRequired, color }) => {
                     const isLocked = planRequired && (PLAN_RANK[coachPlan] || 1) < (PLAN_RANK[planRequired] || 1)
-                    const itemColor = color || '#FF6B2B'
+                    const itemColor = color || 'var(--color-primary)'
                     return (
                     <li key={to}>
                       <NavLink
@@ -383,12 +383,12 @@ export function CoachLayout() {
         <div className="px-5 pt-5 pb-4 relative">
           <div className="flex items-center justify-between">
             <ZevoLogo size="md" className="text-[var(--text-primary)]" />
-            <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md bg-[#FF6B2B]/10 text-[#FF6B2B] border border-[#FF6B2B]/15">
+            <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/15">
               {coachPlan || 'Starter'}
             </span>
           </div>
           {/* Gradient separator */}
-          <div className="absolute bottom-0 left-5 right-5 h-px bg-gradient-to-r from-[#FF6B2B]/30 via-[var(--border-base)] to-transparent" />
+          <div className="absolute bottom-0 left-5 right-5 h-px bg-gradient-to-r from-primary/30 via-[var(--border-base)] to-transparent" />
         </div>
 
         {/* Navigation par sections */}
@@ -406,7 +406,7 @@ export function CoachLayout() {
               <ul className="space-y-1">
                 {section.items.map(({ to, icon: Icon, label, badge, msgBadge, planRequired, color }) => {
                   const isLocked = planRequired && (PLAN_RANK[coachPlan] || 1) < (PLAN_RANK[planRequired] || 1)
-                  const itemColor = color || '#FF6B2B'
+                  const itemColor = color || 'var(--color-primary)'
                   return (
                   <li key={to}>
                     <NavLink
@@ -442,7 +442,7 @@ export function CoachLayout() {
                           </div>
                           <span className={`flex-1 ${isActive ? 'font-semibold' : ''}`}>{label}</span>
                           {msgBadge && unreadMsgCount > 0 && (
-                            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
+                            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
                               {unreadMsgCount > 9 ? '9+' : unreadMsgCount}
                             </span>
                           )}
@@ -452,7 +452,7 @@ export function CoachLayout() {
                             </span>
                           )}
                           {!isLocked && badge && (
-                            <span className="text-[8px] bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C] text-white px-2 py-0.5 rounded-full font-bold shadow-sm shadow-[#FF6B2B]/20">
+                            <span className="text-[8px] bg-gradient-to-r from-primary to-primary-light text-white px-2 py-0.5 rounded-full font-bold shadow-sm shadow-primary/20">
                               {badge}
                             </span>
                           )}
@@ -477,7 +477,7 @@ export function CoachLayout() {
             {coachProfile && !coachProfile.tutorial_coach_done && (
               <button
                 onClick={() => setShowTutorial(true)}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mb-2 rounded-xl bg-gradient-to-r from-[#FF6B2B]/10 to-[#FF9A6C]/10 text-[#FF6B2B] text-sm font-semibold hover:from-[#FF6B2B]/15 hover:to-[#FF9A6C]/15 transition-all border border-[#FF6B2B]/10"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mb-2 rounded-xl bg-gradient-to-r from-primary/10 to-primary-light/10 text-primary text-sm font-semibold hover:from-primary/15 hover:to-primary-light/15 transition-all border border-primary/10"
               >
                 <Rocket size={15} />
                 Démarrage
@@ -491,9 +491,9 @@ export function CoachLayout() {
             >
               {/* Avatar with gradient ring */}
               <div className="relative flex-shrink-0">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FF6B2B] to-[#FF9A6C] p-[2px]">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-light p-[2px]">
                   <div className="w-full h-full rounded-full bg-[var(--bg-elevated)] flex items-center justify-center">
-                    <span className="text-[#FF6B2B] text-[11px] font-bold">{coachInitials}</span>
+                    <span className="text-primary text-[11px] font-bold">{coachInitials}</span>
                   </div>
                 </div>
                 {/* Online indicator */}
@@ -541,12 +541,12 @@ export function CoachLayout() {
               <button
                 onClick={() => setNotifOpen(!notifOpen)}
                 className={`p-2 rounded-lg transition-colors relative ${
-                  notifOpen ? 'text-[#FF6B2B] bg-[var(--bg-surface)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
+                  notifOpen ? 'text-primary bg-[var(--bg-surface)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
                 }`}
               >
                 <Bell size={17} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -562,7 +562,7 @@ export function CoachLayout() {
                       <div className="flex items-center gap-2.5">
                         <h3 className="text-[var(--text-primary)] text-sm font-bold">Notifications</h3>
                         {unreadCount > 0 && (
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
                             {unreadCount} nouvelle{unreadCount > 1 ? 's' : ''}
                           </span>
                         )}
@@ -600,7 +600,7 @@ export function CoachLayout() {
                             validation_semaine: { icon: CheckCircle, iconColor: 'text-emerald-400', iconBg: 'bg-emerald-500/10' },
                             mensuration: { icon: TrendingDown, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/10' },
                             message: { icon: MessageCircle, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/10' },
-                            objectif: { icon: Flame, iconColor: 'text-[#FF6B2B]', iconBg: 'bg-[#FF6B2B]/10' },
+                            objectif: { icon: Flame, iconColor: 'text-primary', iconBg: 'bg-primary/10' },
                           }
                           const cfg = typeConfig[n.type] || { icon: Bell, iconColor: 'text-[var(--text-muted)]', iconBg: 'bg-[var(--border-base)]' }
                           const IconComp = cfg.icon
@@ -629,10 +629,10 @@ export function CoachLayout() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <p className="text-[var(--text-primary)] text-xs font-semibold">{n.titre}</p>
-                                  {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] flex-shrink-0" />}
+                                  {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />}
                                 </div>
                                 {senderName && (
-                                  <p className="text-[#FF6B2B] text-[10px] font-semibold mt-0.5">{senderName}</p>
+                                  <p className="text-primary text-[10px] font-semibold mt-0.5">{senderName}</p>
                                 )}
                                 <p className="text-[var(--text-secondary)] text-[11px] mt-0.5 leading-relaxed">{n.message}</p>
                                 <p className="text-[var(--text-muted)] text-[10px] mt-1 font-medium">{timeLabel}</p>
@@ -673,10 +673,10 @@ export function CoachLayout() {
         >
           {/* ── Banner essai gratuit ── */}
           {showTrialBanner && (
-            <div className="mx-4 mt-4 md:mx-6 md:mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-[#FF6B2B]/25 bg-gradient-to-r from-[#FF6B2B]/10 via-[#FF6B2B]/5 to-transparent px-4 py-3">
+            <div className="mx-4 mt-4 md:mx-6 md:mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-4 py-3">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/15 flex items-center justify-center flex-shrink-0">
-                  <Sparkles size={16} className="text-[#FF6B2B]" />
+                <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+                  <Sparkles size={16} className="text-primary" />
                 </div>
                 <div>
                   <p className="text-[var(--text-primary)] text-sm font-semibold">
@@ -689,7 +689,7 @@ export function CoachLayout() {
               </div>
               <button
                 onClick={() => navigate('/coach/pricing')}
-                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-lg shadow-[#FF6B2B]/20"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-[#FF8F5E] text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
               >
                 Choisir un plan
               </button>
@@ -701,11 +701,11 @@ export function CoachLayout() {
             <div className="flex items-center justify-center min-h-[calc(100vh-8rem)] px-4 py-10">
               <div className="glass-card relative w-full max-w-md rounded-3xl p-8 text-center overflow-hidden">
                 {/* Glow orange */}
-                <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-[#FF6B2B]/20 blur-3xl" />
+                <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-primary/20 blur-3xl" />
 
                 <div className="relative">
-                  <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF6B2B]/20 to-[#FF8F5E]/10 border border-[#FF6B2B]/30 flex items-center justify-center mb-5 animate-breathe">
-                    <Lock size={28} className="text-[#FF6B2B]" />
+                  <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-[#FF8F5E]/10 border border-primary/30 flex items-center justify-center mb-5 animate-breathe">
+                    <Lock size={28} className="text-primary" />
                   </div>
                   <h2 className="text-[var(--text-primary)] text-2xl font-bold mb-2">
                     Votre période d'essai est terminée
@@ -721,7 +721,7 @@ export function CoachLayout() {
 
                   <button
                     onClick={() => navigate('/coach/abonnements')}
-                    className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-[#FF6B2B]/30"
+                    className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-primary to-[#FF8F5E] text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-primary/30"
                   >
                     Choisir un plan
                   </button>
@@ -762,14 +762,14 @@ export function CoachLayout() {
                   to={to}
                   className={({ isActive }) =>
                     `flex flex-col items-center justify-center gap-0.5 py-2 transition-colors relative ${
-                      isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
+                      isActive ? 'text-primary' : 'text-[var(--text-muted)]'
                     }`
                   }
                 >
                   <div className="relative">
                     <Icon size={20} />
                     {badgeCount > 0 && (
-                      <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                      <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
                         {badgeCount > 9 ? '9+' : badgeCount}
                       </span>
                     )}

@@ -8,10 +8,10 @@
   --color-zevo-card: #1E1E1E;
   --color-zevo-surface: #2A2A2A;
   --color-zevo-text: #F5F5F3;
-}
-
-/* Variables CSS dynamiques — surchargées par le thème coach */
-:root {
+  /* Couleur primaire exposée comme couleur Tailwind (classes bg-primary,
+     text-primary, border-primary + opacités via color-mix). Sa valeur est
+     surchargée au runtime par le thème du coach (useCoachTheme) côté client,
+     ce qui white-label toute l'app cliente. Côté coach, reste l'orange Zevo. */
   --color-primary: #FF6B2B;
   --color-primary-light: #FF9A6C;
 }

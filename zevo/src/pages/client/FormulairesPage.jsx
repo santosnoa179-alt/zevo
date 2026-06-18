@@ -118,8 +118,8 @@ export default function FormulairesPage() {
     if (submitted) {
       return (
         <div className="p-6 max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[60vh]">
-          <div className="w-16 h-16 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center mb-4">
-            <Check size={32} className="text-[#FF6B2B]" />
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <Check size={32} className="text-primary" />
           </div>
           <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Formulaire envoyé !</h2>
           <p className="text-[var(--text-muted)] text-sm text-center mb-6">
@@ -127,7 +127,7 @@ export default function FormulairesPage() {
           </p>
           <button
             onClick={retourListe}
-            className="px-6 py-2.5 rounded-xl bg-[#FF6B2B] text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors"
+            className="px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-[#e55e24] transition-colors"
           >
             Retour aux formulaires
           </button>
@@ -162,7 +162,7 @@ export default function FormulairesPage() {
           </div>
           <div className="h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#FF6B2B] rounded-full transition-all duration-300"
+              className="h-full bg-primary rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -173,7 +173,7 @@ export default function FormulairesPage() {
           <div className="bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-6 mb-6">
             <p className="text-[var(--text-primary)] font-medium mb-1">
               {champ.label}
-              {champ.obligatoire && <span className="text-[#FF6B2B] ml-1">*</span>}
+              {champ.obligatoire && <span className="text-primary ml-1">*</span>}
             </p>
             <p className="text-[var(--text-muted)] text-xs mb-4">{TYPE_LABEL_CLIENT[champ.type_champ]}</p>
 
@@ -184,7 +184,7 @@ export default function FormulairesPage() {
                 onChange={(e) => setReponse(champ.id, e.target.value)}
                 placeholder="Votre réponse..."
                 rows={4}
-                className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors resize-none"
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-primary/50 focus:outline-none transition-colors resize-none"
               />
             )}
 
@@ -195,7 +195,7 @@ export default function FormulairesPage() {
                 value={reponses[champ.id] || ''}
                 onChange={(e) => setReponse(champ.id, e.target.value)}
                 placeholder="0"
-                className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-primary/50 focus:outline-none transition-colors"
               />
             )}
 
@@ -208,7 +208,7 @@ export default function FormulairesPage() {
                     onClick={() => setReponse(champ.id, n)}
                     className={`w-10 h-10 rounded-lg text-sm font-semibold transition-all ${
                       reponses[champ.id] === n
-                        ? 'bg-[#FF6B2B] text-white scale-110'
+                        ? 'bg-primary text-white scale-110'
                         : 'bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-surface)]/80'
                     }`}
                   >
@@ -230,7 +230,7 @@ export default function FormulairesPage() {
                     onClick={() => setReponse(champ.id, val)}
                     className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all ${
                       reponses[champ.id] === val
-                        ? 'bg-[#FF6B2B] text-white'
+                        ? 'bg-primary text-white'
                         : 'bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-white'
                     }`}
                   >
@@ -251,12 +251,12 @@ export default function FormulairesPage() {
                       onClick={() => toggleChoix(champ.id, opt)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-left transition-all ${
                         selected
-                          ? 'bg-[#FF6B2B]/10 border border-[#FF6B2B]/30 text-[var(--text-primary)]'
+                          ? 'bg-primary/10 border border-primary/30 text-[var(--text-primary)]'
                           : 'bg-[var(--bg-surface)] border border-[var(--border-base)] text-[var(--text-secondary)] hover:text-white'
                       }`}
                     >
                       <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center ${
-                        selected ? 'bg-[#FF6B2B]' : 'border border-white/20'
+                        selected ? 'bg-primary' : 'border border-white/20'
                       }`}>
                         {selected && <Check size={10} className="text-white" />}
                       </div>
@@ -273,7 +273,7 @@ export default function FormulairesPage() {
                 type="date"
                 value={reponses[champ.id] || ''}
                 onChange={(e) => setReponse(champ.id, e.target.value)}
-                className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-[#FF6B2B]/50 focus:outline-none transition-colors"
+                className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)] focus:border-primary/50 focus:outline-none transition-colors"
               />
             )}
           </div>
@@ -294,7 +294,7 @@ export default function FormulairesPage() {
             <button
               onClick={() => setCurrentStep(s => s + 1)}
               disabled={!champValide()}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-[#FF6B2B] text-white hover:bg-[#e55e24] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-[#e55e24] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Suivant
               <ArrowRight size={16} />
@@ -303,7 +303,7 @@ export default function FormulairesPage() {
             <button
               onClick={soumettre}
               disabled={submitting || !champValide()}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-[#FF6B2B] text-white hover:bg-[#e55e24] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-[#e55e24] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submitting ? 'Envoi...' : 'Envoyer'}
               <Check size={16} />
@@ -342,7 +342,7 @@ export default function FormulairesPage() {
             <div className="mb-8">
               <h2 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
                 À compléter
-                <span className="bg-[#FF6B2B] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                <span className="bg-primary text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
                   {enAttente.length}
                 </span>
               </h2>
@@ -351,7 +351,7 @@ export default function FormulairesPage() {
                   <button
                     key={f.id}
                     onClick={() => ouvrirFormulaire(f)}
-                    className="w-full bg-[var(--bg-card)] border border-[#FF6B2B]/20 rounded-xl p-4 text-left hover:border-[#FF6B2B]/40 transition-colors group"
+                    className="w-full bg-[var(--bg-card)] border border-primary/20 rounded-xl p-4 text-left hover:border-primary/40 transition-colors group"
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -363,7 +363,7 @@ export default function FormulairesPage() {
                           Reçu le {new Date(f.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
                         </p>
                       </div>
-                      <span className="text-[#FF6B2B] text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-primary text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                         Remplir →
                       </span>
                     </div>
@@ -392,7 +392,7 @@ export default function FormulairesPage() {
                           Complété le {new Date(f.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
                         </p>
                       </div>
-                      <span className="text-xs text-[#FF6B2B] font-medium flex items-center gap-1">
+                      <span className="text-xs text-primary font-medium flex items-center gap-1">
                         <Check size={12} />
                         Envoyé
                       </span>

@@ -25,7 +25,7 @@ export default function Ring({
   max = 100,
   size = 64,
   thickness,
-  color = '#FF6B2B',
+  color = 'var(--color-primary)',
   trackColor = 'var(--ring-track, rgba(255,255,255,0.06))',
   gradient = false,
   children,

@@ -12,7 +12,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 // ── Constants ──
-const COLORS = { poids: '#FF6B2B', tour_bras: '#FF9A6C', tour_poitrine: '#FFB894', tour_taille: '#E85A1F', tour_hanches: '#C94A15', tour_cuisses: '#7A7A78' }
+const COLORS = { poids: 'var(--color-primary)', tour_bras: 'var(--color-primary-light)', tour_poitrine: '#FFB894', tour_taille: '#E85A1F', tour_hanches: '#C94A15', tour_cuisses: '#7A7A78' }
 const LABELS = { poids: 'Poids', tour_bras: 'Bras', tour_poitrine: 'Poitrine', tour_taille: 'Taille', tour_hanches: 'Hanches', tour_cuisses: 'Cuisses' }
 const UNITS = { poids: 'kg', tour_bras: 'cm', tour_poitrine: 'cm', tour_taille: 'cm', tour_hanches: 'cm', tour_cuisses: 'cm' }
 
@@ -43,7 +43,7 @@ function isCounterObjectif(obj) {
 }
 
 // ── SVG Hero Ring ──
-function HeroRing({ pct, size = 120, stroke = 8, color = '#FF6B2B', children }) {
+function HeroRing({ pct, size = 120, stroke = 8, color = 'var(--color-primary)', children }) {
   const r = (size - stroke) / 2
   const circ = 2 * Math.PI * r
   const offset = circ - (Math.min(pct, 100) / 100) * circ
@@ -62,8 +62,8 @@ function HeroRing({ pct, size = 120, stroke = 8, color = '#FF6B2B', children }) 
             <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
           <linearGradient id="hero-ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FF6B2B" />
-            <stop offset="100%" stopColor="#FF9A6C" />
+            <stop offset="0%" stopColor="var(--color-primary)" />
+            <stop offset="100%" stopColor="var(--color-primary-light)" />
           </linearGradient>
         </defs>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--border-base)" strokeWidth={stroke} />
@@ -83,7 +83,7 @@ function HeroRing({ pct, size = 120, stroke = 8, color = '#FF6B2B', children }) 
 
 // ── Mini Ring (objectif cards) ──
 function MiniRing({ pct, size = 44, stroke = 3.5 }) {
-  const color = pct >= 100 ? '#FF6B2B' : pct >= 50 ? '#FF6B2B' : pct >= 25 ? '#FF9A6C' : '#ef4444'
+  const color = pct >= 100 ? 'var(--color-primary)' : pct >= 50 ? 'var(--color-primary)' : pct >= 25 ? 'var(--color-primary-light)' : '#ef4444'
   const r = (size - stroke) / 2
   const circ = 2 * Math.PI * r
   const offset = circ - (Math.min(pct, 100) / 100) * circ
@@ -107,7 +107,7 @@ function MiniRing({ pct, size = 44, stroke = 3.5 }) {
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         {pct >= 100
-          ? <Check size={14} className="text-[#FF6B2B]" strokeWidth={3} />
+          ? <Check size={14} className="text-primary" strokeWidth={3} />
           : <span className="text-[10px] font-bold text-[var(--text-primary)]">{pct}%</span>
         }
       </div>
@@ -132,7 +132,7 @@ function ChartTooltip({ active, payload }) {
 }
 
 // ── Section Label ──
-function SectionLabel({ children, icon: Icon, iconColor = 'text-[#FF6B2B]', right }) {
+function SectionLabel({ children, icon: Icon, iconColor = 'text-primary', right }) {
   return (
     <div className="flex items-center justify-between px-0.5">
       <div className="flex items-center gap-2">
@@ -277,7 +277,7 @@ export default function ObjectifsPage() {
       {/* ═══════════════ HEADER ═══════════════ */}
       <div className="pt-2">
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF6B2B] to-[#FF8F5E] flex items-center justify-center shadow-lg shadow-[#FF6B2B]/20">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-[#FF8F5E] flex items-center justify-center shadow-lg shadow-primary/20">
             <Target size={18} className="text-white" />
           </div>
           <div>
@@ -292,12 +292,12 @@ export default function ObjectifsPage() {
           ═══════════════════════════════════════════ */}
       <div className="glass-card overflow-hidden">
         {/* Top accent */}
-        <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+        <div className="h-1 bg-gradient-to-r from-primary to-primary-light" />
 
         {/* Ambient background */}
         <div className="relative">
-          <div className="absolute -top-20 -right-20 w-48 h-48 bg-[#FF6B2B]/[0.03] rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#FF6B2B]/[0.02] rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -top-20 -right-20 w-48 h-48 bg-primary/[0.03] rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/[0.02] rounded-full blur-2xl pointer-events-none" />
 
           <div className="relative px-5 pt-5 pb-5">
             {hasMens && dernierPoids != null ? (
@@ -321,20 +321,20 @@ export default function ObjectifsPage() {
                     {delta !== null && (
                       <div className="flex items-center gap-1.5">
                         <div className={`w-5 h-5 rounded-md flex items-center justify-center ${
-                          delta < 0 ? 'bg-[#FF6B2B]/15' : delta > 0 ? 'bg-red-500/15' : 'bg-[var(--bg-surface)]'
+                          delta < 0 ? 'bg-primary/15' : delta > 0 ? 'bg-red-500/15' : 'bg-[var(--bg-surface)]'
                         }`}>
-                          {delta < 0 ? <TrendingDown size={11} className="text-[#FF6B2B]" />
+                          {delta < 0 ? <TrendingDown size={11} className="text-primary" />
                             : delta > 0 ? <TrendingUp size={11} className="text-red-400" />
                             : null}
                         </div>
-                        <span className={`text-sm font-bold tabular-nums ${delta < 0 ? 'text-[#FF6B2B]' : delta > 0 ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>
+                        <span className={`text-sm font-bold tabular-nums ${delta < 0 ? 'text-primary' : delta > 0 ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>
                           {delta > 0 ? '+' : ''}{delta} kg
                         </span>
                       </div>
                     )}
                     {poidsCible && dernierPoids && (
                       <p className="text-[var(--text-muted)] text-[10px]">
-                        Reste <span className="text-[#FF6B2B] font-semibold">{Math.abs(+(dernierPoids - poidsCible).toFixed(1))} kg</span>
+                        Reste <span className="text-primary font-semibold">{Math.abs(+(dernierPoids - poidsCible).toFixed(1))} kg</span>
                       </p>
                     )}
                   </div>
@@ -343,7 +343,7 @@ export default function ObjectifsPage() {
                 {/* Measurement CTA */}
                 <button
                   onClick={() => { setNewValues({}); setShowAllFields(false); setShowSaisie(true) }}
-                  className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[var(--bg-surface)]/80 border border-[var(--border-base)] text-[var(--text-secondary)] text-xs font-semibold hover:border-[#FF6B2B]/20 active:scale-[0.98] transition-all"
+                  className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[var(--bg-surface)]/80 border border-[var(--border-base)] text-[var(--text-secondary)] text-xs font-semibold hover:border-primary/20 active:scale-[0.98] transition-all"
                 >
                   <Scale size={13} />
                   Enregistrer une pesee
@@ -353,9 +353,9 @@ export default function ObjectifsPage() {
               /* ── EMPTY STATE ── */
               <div className="text-center py-4">
                 <div className="relative inline-flex items-center justify-center mb-5">
-                  <div className="absolute w-20 h-20 rounded-full bg-[#FF6B2B]/5 animate-breathe" />
-                  <div className="relative w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 border border-[#FF6B2B]/10 flex items-center justify-center">
-                    <Scale size={28} className="text-[#FF6B2B]" />
+                  <div className="absolute w-20 h-20 rounded-full bg-primary/5 animate-breathe" />
+                  <div className="relative w-16 h-16 rounded-2xl bg-primary/10 border border-primary/10 flex items-center justify-center">
+                    <Scale size={28} className="text-primary" />
                   </div>
                 </div>
                 <h3 className="text-[var(--text-primary)] text-base font-bold mb-1">Commence ton suivi</h3>
@@ -389,8 +389,8 @@ export default function ObjectifsPage() {
             className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-[var(--bg-surface)]/50 transition-colors"
           >
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center">
-                <Activity size={14} className="text-[#FF6B2B]" />
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Activity size={14} className="text-primary" />
               </div>
               <span className="text-[var(--text-primary)] text-sm font-semibold">Courbes d'evolution</span>
             </div>
@@ -437,8 +437,8 @@ export default function ObjectifsPage() {
       {/* Hint for single measurement */}
       {hasMens && !hasChartData && (
         <div className="glass-card px-4 py-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center flex-shrink-0">
-            <Activity size={14} className="text-[#FF6B2B]" />
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Activity size={14} className="text-primary" />
           </div>
           <p className="text-[var(--text-muted)] text-[11px] leading-relaxed">Encore 1 pesee pour debloquer tes courbes d'evolution</p>
         </div>
@@ -454,7 +454,7 @@ export default function ObjectifsPage() {
             right={
               totalObjProgress > 0 && (
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
-                  <Zap size={10} className="text-[#FF6B2B]" />
+                  <Zap size={10} className="text-primary" />
                   <span className="text-[var(--text-muted)] text-[10px] font-semibold tabular-nums">
                     <AnimatedNumber value={totalObjProgress} />% global
                   </span>
@@ -478,7 +478,7 @@ export default function ObjectifsPage() {
             return (
               <div key={o.id}
                 className={`glass-card overflow-hidden transition-all ${
-                  done ? '!border-[#FF6B2B]/20' : ''
+                  done ? '!border-primary/20' : ''
                 }`}
                 style={done ? { boxShadow: '0 0 20px rgba(255,107,43,0.06)' } : undefined}
               >
@@ -490,7 +490,7 @@ export default function ObjectifsPage() {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <p className={`text-sm font-semibold truncate ${done ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{o.titre}</p>
+                        <p className={`text-sm font-semibold truncate ${done ? 'text-primary' : 'text-[var(--text-primary)]'}`}>{o.titre}</p>
                         {o.date_cible && (
                           <span className="text-[var(--text-muted)] text-[9px] flex items-center gap-0.5 flex-shrink-0 bg-[var(--bg-surface)] px-1.5 py-0.5 rounded-md">
                             <Calendar size={8} />
@@ -505,7 +505,7 @@ export default function ObjectifsPage() {
                           <span className="text-[11px]">
                             <span className="text-[var(--text-primary)] font-bold tabular-nums">{actuel}</span>
                             <span className="text-[var(--text-muted)] mx-1">/</span>
-                            <span className="text-[#FF6B2B] font-bold tabular-nums">{o.valeur_cible}</span>
+                            <span className="text-primary font-bold tabular-nums">{o.valeur_cible}</span>
                             {unite && <span className="text-[var(--text-muted)] ml-0.5">{unite}</span>}
                           </span>
                         ) : actuel != null ? (
@@ -518,7 +518,7 @@ export default function ObjectifsPage() {
                         )}
 
                         {done && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-[#FF6B2B] bg-[#FF6B2B]/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
                             <Check size={9} strokeWidth={3} /> Atteint
                           </span>
                         )}
@@ -531,14 +531,14 @@ export default function ObjectifsPage() {
                         <button
                           onClick={() => incrementerObjectif(o)}
                           disabled={savingInline}
-                          className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-[#FF6B2B]/20 active:scale-90 transition-all disabled:opacity-40 flex-shrink-0"
+                          className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary/10 text-primary hover:bg-primary/20 active:scale-90 transition-all disabled:opacity-40 flex-shrink-0"
                         >
                           {savingInline && inlineEditing === o.id ? <Loader2 size={14} className="animate-spin" /> : <Plus size={16} strokeWidth={3} />}
                         </button>
                       ) : (
                         <button
                           onClick={() => { setInlineEditing(o.id); setInlineValue(actuel != null ? String(actuel) : '') }}
-                          className="px-3 py-1.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-muted)] text-[10px] font-semibold hover:border-[#FF6B2B]/20 hover:text-[#FF6B2B] transition-all flex-shrink-0"
+                          className="px-3 py-1.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-muted)] text-[10px] font-semibold hover:border-primary/20 hover:text-primary transition-all flex-shrink-0"
                         >
                           Modifier
                         </button>
@@ -558,7 +558,7 @@ export default function ObjectifsPage() {
                       <div className="flex-1 relative">
                         <input type="number" step="0.1" value={inlineValue} onChange={(e) => setInlineValue(e.target.value)}
                           placeholder={actuel != null ? String(actuel) : '0'} autoFocus
-                          className="w-full bg-[var(--bg-base)] text-[var(--text-primary)] text-sm font-semibold rounded-xl px-3 py-2 pr-10 placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[#FF6B2B]/30 border border-[var(--border-base)] transition-all" />
+                          className="w-full bg-[var(--bg-base)] text-[var(--text-primary)] text-sm font-semibold rounded-xl px-3 py-2 pr-10 placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-primary/30 border border-[var(--border-base)] transition-all" />
                         {unite && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[10px]">{unite}</span>}
                       </div>
                       <button type="submit" disabled={savingInline || !inlineValue}
@@ -579,11 +579,11 @@ export default function ObjectifsPage() {
                   <div className="h-0.5 bg-[var(--border-subtle)]">
                     <div className="h-full rounded-full transition-all duration-700" style={{
                       width: `${pct}%`,
-                      background: pct >= 50 ? 'linear-gradient(90deg, #FF6B2B, #FF9A6C)' : pct >= 25 ? '#FF9A6C' : '#ef4444',
+                      background: pct >= 50 ? 'linear-gradient(90deg, #FF6B2B, #FF9A6C)' : pct >= 25 ? 'var(--color-primary-light)' : '#ef4444',
                     }} />
                   </div>
                 )}
-                {done && <div className="h-0.5 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />}
+                {done && <div className="h-0.5 bg-gradient-to-r from-primary to-primary-light" />}
               </div>
             )
           })}
@@ -599,7 +599,7 @@ export default function ObjectifsPage() {
           <div className="relative z-[101] bg-[var(--bg-base)] border border-[var(--border-base)] w-full sm:w-[400px] sm:rounded-2xl rounded-t-2xl overflow-hidden">
 
             {/* Accent bar */}
-            <div className="h-1 bg-gradient-to-r from-[#FF6B2B] to-[#FF9A6C]" />
+            <div className="h-1 bg-gradient-to-r from-primary to-primary-light" />
 
             {/* Handle bar (mobile) */}
             <div className="flex justify-center pt-3 pb-0 sm:hidden">
@@ -609,8 +609,8 @@ export default function ObjectifsPage() {
             {/* Header */}
             <div className="px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#FF6B2B]/10 flex items-center justify-center">
-                  <Scale size={16} className="text-[#FF6B2B]" />
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Scale size={16} className="text-primary" />
                 </div>
                 <div>
                   <h3 className="text-[var(--text-primary)] font-bold text-[15px]">Nouvelle mesure</h3>
@@ -628,13 +628,13 @@ export default function ObjectifsPage() {
               {fields.includes('poids') && (
                 <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border-subtle)] p-6 text-center">
                   <p className="text-[var(--text-muted)] text-[9px] uppercase tracking-widest font-medium mb-3 flex items-center justify-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" /> Poids du jour
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary" /> Poids du jour
                   </p>
                   <div className="flex items-end justify-center gap-1.5">
                     <input type="number" step="0.1" min="20" max="300" value={newValues.poids || ''}
                       onChange={(e) => setNewValues(prev => ({ ...prev, poids: e.target.value }))}
                       placeholder={lastEntry?.poids ? String(lastEntry.poids) : '--'} autoFocus
-                      className="w-24 bg-transparent text-center text-[var(--text-primary)] text-4xl font-extrabold placeholder:text-[var(--text-muted)] focus:outline-none border-b-2 border-[#FF6B2B]/20 focus:border-[#FF6B2B] transition-colors pb-0.5 tabular-nums" />
+                      className="w-24 bg-transparent text-center text-[var(--text-primary)] text-4xl font-extrabold placeholder:text-[var(--text-muted)] focus:outline-none border-b-2 border-primary/20 focus:border-primary transition-colors pb-0.5 tabular-nums" />
                     <span className="text-[var(--text-muted)] text-base font-semibold pb-1.5">kg</span>
                   </div>
                   {newValues.poids && lastEntry?.poids && (() => {
@@ -642,7 +642,7 @@ export default function ObjectifsPage() {
                     if (isNaN(diff) || diff === 0) return null
                     return (
                       <span className={`inline-block mt-3 text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
-                        diff < 0 ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]' : 'bg-red-500/10 text-red-400'
+                        diff < 0 ? 'bg-primary/10 text-primary' : 'bg-red-500/10 text-red-400'
                       }`}>{diff > 0 ? '+' : ''}{diff} kg vs derniere pesee</span>
                     )
                   })()}
@@ -669,7 +669,7 @@ export default function ObjectifsPage() {
                         <span className="text-[var(--text-secondary)] text-[11px] font-semibold">{LABELS[field]}</span>
                       </div>
                       {diff !== null && !isNaN(diff) && diff !== 0 && (
-                        <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${diff < 0 ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]' : 'bg-red-500/10 text-red-400'}`}>
+                        <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${diff < 0 ? 'bg-primary/10 text-primary' : 'bg-red-500/10 text-red-400'}`}>
                           {diff > 0 ? '+' : ''}{diff} {UNITS[field]}
                         </span>
                       )}

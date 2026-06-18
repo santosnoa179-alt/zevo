@@ -190,7 +190,7 @@ export default function SeancesPage() {
   if (loading) {
     return (
       <div className="p-4 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-[#FF6B2B]" size={32} />
+        <Loader2 className="animate-spin text-primary" size={32} />
       </div>
     )
   }
@@ -201,7 +201,7 @@ export default function SeancesPage() {
       {/* ── Header ── */}
       <div className={`pt-2 ${stagger[0].className}`} style={stagger[0].style}>
         <h1 className="text-[var(--text-primary)] text-xl font-bold flex items-center gap-2">
-          <Dumbbell size={20} className="text-[#FF6B2B]" />
+          <Dumbbell size={20} className="text-primary" />
           Mes Séances
         </h1>
         <p className="text-[var(--text-muted)] text-sm mt-0.5">Suis ta progression cette semaine</p>
@@ -216,12 +216,12 @@ export default function SeancesPage() {
           </div>
           <div className="flex items-center gap-1">
             {done === total && total > 0 ? (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FF6B2B]/15">
-                <Trophy size={13} className="text-[#FF6B2B]" />
-                <span className="text-[#FF6B2B] text-xs font-bold">Semaine complète !</span>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/15">
+                <Trophy size={13} className="text-primary" />
+                <span className="text-primary text-xs font-bold">Semaine complète !</span>
               </div>
             ) : (
-              <span className="text-2xl font-black" style={{ color: '#FF6B2B' }}>
+              <span className="text-2xl font-black" style={{ color: 'var(--color-primary)' }}>
                 {pct}%
               </span>
             )}
@@ -243,7 +243,7 @@ export default function SeancesPage() {
           {seances.map(s => (
             <div key={s.id} className={`w-3 h-3 rounded-full transition-all ${
               s.is_completed
-                ? 'bg-[#FF6B2B] shadow-[0_0_6px_rgba(255,107,43,0.4)]'
+                ? 'bg-primary shadow-[0_0_6px_rgba(255,107,43,0.4)]'
                 : 'bg-white/10'
             }`} />
           ))}
@@ -262,7 +262,7 @@ export default function SeancesPage() {
         <div className="text-center">
           <p className="text-[var(--text-primary)] text-sm font-semibold">{weekLabel}</p>
           {weekOffset !== 0 && (
-            <button onClick={() => setWeekOffset(0)} className="text-[#FF6B2B] text-[10px] font-medium hover:underline mt-0.5">
+            <button onClick={() => setWeekOffset(0)} className="text-primary text-[10px] font-medium hover:underline mt-0.5">
               Revenir à cette semaine
             </button>
           )}
@@ -278,8 +278,8 @@ export default function SeancesPage() {
       {/* ── Liste des séances par jour ── */}
       {total === 0 ? (
         <div className="bg-[var(--bg-base)] border border-[var(--border-base)] rounded-2xl py-16 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-4">
-            <Calendar size={24} className="text-[#FF6B2B]" />
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Calendar size={24} className="text-primary" />
           </div>
           <p className="text-[var(--text-muted)] text-sm">Aucune séance prévue cette semaine</p>
           <p className="text-[var(--text-muted)] text-xs mt-1">Ton coach n'a pas encore planifié de séance</p>
@@ -301,12 +301,12 @@ export default function SeancesPage() {
                 {/* Label jour */}
                 <div className="flex items-center gap-2 mb-1.5 px-1">
                   <span className={`text-[10px] uppercase tracking-wider font-bold ${
-                    isToday ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
+                    isToday ? 'text-primary' : 'text-[var(--text-muted)]'
                   }`}>
                     {jour} {dayDate.getDate()}
                   </span>
                   {isToday && (
-                    <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-[#FF6B2B]/15 text-[#FF6B2B] font-bold">
+                    <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold">
                       Aujourd'hui
                     </span>
                   )}
@@ -324,18 +324,18 @@ export default function SeancesPage() {
                       key={seance.id}
                       className={`relative bg-[var(--bg-base)] border rounded-2xl overflow-hidden transition-all mb-2 ${
                         seance.is_completed
-                          ? 'border-[#FF6B2B]/20'
+                          ? 'border-primary/20'
                           : isToday
-                            ? 'border-[#FF6B2B]/20'
+                            ? 'border-primary/20'
                             : 'border-[var(--border-base)]'
-                      } ${isCelebrating ? 'animate-pulse ring-2 ring-[#FF6B2B]/30' : ''} ${si.className || ''}`}
+                      } ${isCelebrating ? 'animate-pulse ring-2 ring-primary/30' : ''} ${si.className || ''}`}
                       style={si.style}
                     >
                       {/* Bandeau complété */}
                       {seance.is_completed && (
-                        <div className="bg-[#FF6B2B]/10 px-4 py-1.5 flex items-center gap-1.5">
-                          <CheckCircle2 size={11} className="text-[#FF6B2B]" />
-                          <span className="text-[#FF6B2B] text-[10px] font-bold">Terminée</span>
+                        <div className="bg-primary/10 px-4 py-1.5 flex items-center gap-1.5">
+                          <CheckCircle2 size={11} className="text-primary" />
+                          <span className="text-primary text-[10px] font-bold">Terminée</span>
                         </div>
                       )}
 
@@ -345,12 +345,12 @@ export default function SeancesPage() {
                           {/* Icône */}
                           <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all ${
                             seance.is_completed
-                              ? 'bg-[#FF6B2B]/15'
-                              : 'bg-[#FF6B2B]/10'
+                              ? 'bg-primary/15'
+                              : 'bg-primary/10'
                           }`}>
                             {seance.is_completed
-                              ? <CheckCircle2 size={22} className="text-[#FF6B2B]" />
-                              : <Dumbbell size={22} className="text-[#FF6B2B]" />
+                              ? <CheckCircle2 size={22} className="text-primary" />
+                              : <Dumbbell size={22} className="text-primary" />
                             }
                           </div>
 
@@ -367,7 +367,7 @@ export default function SeancesPage() {
                             }}
                           >
                             <p className={`text-sm font-semibold truncate ${
-                              seance.is_completed ? 'text-[#FF9A6C]/80 line-through' : 'text-[var(--text-primary)]'
+                              seance.is_completed ? 'text-primary-light/80 line-through' : 'text-[var(--text-primary)]'
                             }`}>
                               {seance.titre}
                             </p>
@@ -388,8 +388,8 @@ export default function SeancesPage() {
                             disabled={toggling === seance.id}
                             className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5 ${
                               seance.is_completed
-                                ? 'bg-[#FF6B2B]/10 text-[#FF6B2B] hover:bg-red-500/10 hover:text-red-400'
-                                : 'bg-[#FF6B2B] text-white hover:bg-[#e55a1b] shadow-lg shadow-[#FF6B2B]/20'
+                                ? 'bg-primary/10 text-primary hover:bg-red-500/10 hover:text-red-400'
+                                : 'bg-primary text-white hover:bg-[#e55a1b] shadow-lg shadow-primary/20'
                             }`}
                           >
                             {toggling === seance.id ? (
@@ -418,7 +418,7 @@ export default function SeancesPage() {
                                 {exos.map((ex, ei) => (
                                   <div key={ei} className="bg-[var(--bg-elevated)] rounded-xl px-3.5 py-2.5">
                                     <div className="flex items-center gap-3">
-                                      <div className="w-8 h-8 rounded-lg bg-[#FF6B2B]/10 flex items-center justify-center shrink-0 overflow-hidden">
+                                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
                                         {ex.exercices?.gif_url ? (
                                           <img
                                             src={ex.exercices.gif_url}
@@ -432,7 +432,7 @@ export default function SeancesPage() {
                                             }}
                                           />
                                         ) : (
-                                          <Dumbbell size={14} className="text-[#FF6B2B]" />
+                                          <Dumbbell size={14} className="text-primary" />
                                         )}
                                       </div>
                                       <div className="flex-1 min-w-0">
@@ -444,7 +444,7 @@ export default function SeancesPage() {
                                         </p>
                                       </div>
                                       <div className="flex items-center gap-2 text-[10px] shrink-0">
-                                        {ex.series && <span className="text-[#FF6B2B] font-bold">{ex.series}×</span>}
+                                        {ex.series && <span className="text-primary font-bold">{ex.series}×</span>}
                                         {(ex.reps || ex.reps_cible) && <span className="text-[var(--text-muted)]">{ex.reps || ex.reps_cible} reps</span>}
                                         {ex.repos && (
                                           <span className="text-[var(--text-muted)] flex items-center gap-0.5">
@@ -454,8 +454,8 @@ export default function SeancesPage() {
                                       </div>
                                     </div>
                                     {ex.note_coach && ex.note_coach.trim() && (
-                                      <div className="mt-2 flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-[#FF6B2B]/[0.08] border border-[#FF6B2B]/15">
-                                        <StickyNote size={10} className="text-[#FF6B2B] mt-0.5 shrink-0" />
+                                      <div className="mt-2 flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-primary/[0.08] border border-primary/15">
+                                        <StickyNote size={10} className="text-primary mt-0.5 shrink-0" />
                                         <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed">
                                           {ex.note_coach}
                                         </p>
@@ -473,9 +473,9 @@ export default function SeancesPage() {
                       {isCelebrating && (
                         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                           <div className="flex gap-1 animate-bounce">
-                            <Sparkles size={20} className="text-[#FF9A6C] animate-pulse" />
-                            <Trophy size={22} className="text-[#FF6B2B]" />
-                            <Sparkles size={20} className="text-[#FF9A6C] animate-pulse" />
+                            <Sparkles size={20} className="text-primary-light animate-pulse" />
+                            <Trophy size={22} className="text-primary" />
+                            <Sparkles size={20} className="text-primary-light animate-pulse" />
                           </div>
                         </div>
                       )}

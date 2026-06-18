@@ -175,7 +175,7 @@ export function VoiceRecorder({ onSend, disabled }) {
               return (
                 <div
                   key={i}
-                  className="w-[3px] rounded-full bg-[#FF6B2B]/60 transition-[height] duration-100"
+                  className="w-[3px] rounded-full bg-primary/60 transition-[height] duration-100"
                   style={{ height: `${h}px` }}
                 />
               )
@@ -193,7 +193,7 @@ export function VoiceRecorder({ onSend, disabled }) {
           type="button"
           onClick={stopAndSend}
           disabled={uploading || duration < 1}
-          className="w-10 h-10 rounded-xl bg-[#FF6B2B] flex items-center justify-center hover:bg-[#FF9A6C] transition-colors disabled:opacity-40"
+          className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center hover:bg-primary-light transition-colors disabled:opacity-40"
         >
           {uploading ? (
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -211,7 +211,7 @@ export function VoiceRecorder({ onSend, disabled }) {
       type="button"
       onClick={startRecording}
       disabled={disabled}
-      className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all disabled:opacity-40 flex-shrink-0"
+      className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] flex items-center justify-center text-[var(--text-muted)] hover:text-primary hover:border-primary/30 transition-all disabled:opacity-40 flex-shrink-0"
       title="Note vocale"
     >
       <Mic size={16} />
@@ -341,7 +341,7 @@ export function AudioBubble({ audioUrl, audioDuration, estMoi, createdAt }) {
     <div className={`flex ${estMoi ? 'justify-end' : 'justify-start'} mb-2`}>
       <div className={`max-w-[80%] min-w-[240px] sm:min-w-[280px] rounded-2xl overflow-hidden ${
         estMoi
-          ? 'bg-[#FF6B2B] rounded-br-sm'
+          ? 'bg-primary rounded-br-sm'
           : 'bg-[var(--bg-surface)] rounded-bl-sm'
       }`}>
         <audio ref={audioRef} src={audioUrl} preload="metadata" />
@@ -377,7 +377,7 @@ export function AudioBubble({ audioUrl, audioDuration, estMoi, createdAt }) {
                       minWidth: '2px',
                       backgroundColor: estMoi
                         ? isPlayed ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)'
-                        : isPlayed ? '#FF6B2B' : 'var(--border-base)',
+                        : isPlayed ? 'var(--color-primary)' : 'var(--border-base)',
                     }}
                   />
                 )

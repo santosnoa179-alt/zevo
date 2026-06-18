@@ -9,9 +9,9 @@ export function Input({ label, error, className = '', ...props }) {
         className={`
           bg-[var(--bg-input)] border rounded-lg px-3.5 py-2.5 text-[var(--text-primary)] text-sm
           placeholder:text-[var(--text-muted)]
-          focus:outline-none focus:ring-2 focus:ring-[#FF6B2B]/50
+          focus:outline-none focus:ring-2 focus:ring-primary/50
           transition-all duration-150
-          ${error ? 'border-red-500/50' : 'border-[var(--border-base)] focus:border-[#FF6B2B]/50'}
+          ${error ? 'border-red-500/50' : 'border-[var(--border-base)] focus:border-primary/50'}
           ${className}
         `}
         {...props}

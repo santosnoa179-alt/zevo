@@ -78,7 +78,7 @@ function Bulle({ message, estMoi, showTail, coachInitials, coachColor }) {
         <div className={`flex-shrink-0 ${showTail ? 'opacity-100' : 'opacity-0'}`}>
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white ring-2 ring-white/5"
-            style={{ backgroundColor: coachColor || '#FF6B2B' }}
+            style={{ backgroundColor: coachColor || 'var(--color-primary)' }}
           >
             {coachInitials || 'C'}
           </div>
@@ -105,7 +105,7 @@ function Bulle({ message, estMoi, showTail, coachInitials, coachColor }) {
             <span className="text-[var(--text-muted)] text-[10px] tabular-nums">{formatHeure(message.created_at)}</span>
             {estMoi && (
               message.lu
-                ? <CheckCheck size={12} className="text-[#FF6B2B]/70" />
+                ? <CheckCheck size={12} className="text-primary/70" />
                 : <Check size={12} className="text-[var(--text-muted)]" />
             )}
           </div>
@@ -477,7 +477,7 @@ export default function MessagesClientPage() {
       <div className="fixed inset-0 md:left-56 flex flex-col items-center justify-center bg-[var(--bg-base)] z-50">
         <div className="relative">
           <div className="w-10 h-10 rounded-full border-2 border-[var(--border-base)]" />
-          <div className="absolute inset-0 w-10 h-10 rounded-full border-2 border-transparent border-t-[#FF6B2B] animate-spin" />
+          <div className="absolute inset-0 w-10 h-10 rounded-full border-2 border-transparent border-t-primary animate-spin" />
         </div>
       </div>
     )
@@ -507,7 +507,7 @@ export default function MessagesClientPage() {
       {/* ═══════════════ HEADER ═══════════════ */}
       <header className="shrink-0 relative z-10">
         {/* Ambient glow behind header */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#FF6B2B]/[0.03] to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] to-transparent pointer-events-none" />
         <div
           className="relative px-4 py-3 border-b border-[var(--border-base)] bg-[var(--bg-base)]/95 backdrop-blur-xl"
           style={{ paddingTop: 'calc(12px + env(safe-area-inset-top, 0px))' }}
@@ -533,13 +533,13 @@ export default function MessagesClientPage() {
                 {coachInitials}
               </div>
               {/* Online dot */}
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#FF6B2B] border-2 border-[var(--bg-base)]" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-primary border-2 border-[var(--bg-base)]" />
             </div>
 
             {/* Coach name */}
             <div className="flex-1 min-w-0">
               <h1 className="text-[var(--text-primary)] font-semibold text-[15px] truncate leading-tight">{coachName}</h1>
-              <p className="text-[#FF6B2B]/70 text-[11px] font-medium mt-0.5">En ligne</p>
+              <p className="text-primary/70 text-[11px] font-medium mt-0.5">En ligne</p>
             </div>
 
             {/* Call button */}
@@ -547,7 +547,7 @@ export default function MessagesClientPage() {
               <a
                 href={`tel:${coachInfo.telephone}`}
                 title={`Appeler ${coachInfo.telephone}`}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-[#FF6B2B] bg-[#FF6B2B]/10 hover:bg-[#FF6B2B]/20 transition-all active:scale-90 flex-shrink-0"
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-primary bg-primary/10 hover:bg-primary/20 transition-all active:scale-90 flex-shrink-0"
               >
                 <Phone size={17} />
               </a>
@@ -579,9 +579,9 @@ export default function MessagesClientPage() {
           {messages.length === 0 ? (
             <div className="text-center py-20">
               <div className="relative inline-flex items-center justify-center mb-5">
-                <div className="absolute w-24 h-24 rounded-full bg-[#FF6B2B]/5 animate-breathe" />
+                <div className="absolute w-24 h-24 rounded-full bg-primary/5 animate-breathe" />
                 <div className="relative w-16 h-16 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center">
-                  <Send size={24} className="text-[#FF6B2B]" />
+                  <Send size={24} className="text-primary" />
                 </div>
               </div>
               <p className="text-[var(--text-primary)] font-semibold text-base mb-1">Demarre la conversation</p>
@@ -606,7 +606,7 @@ export default function MessagesClientPage() {
                     estMoi={item.msg.expediteur === 'client'}
                     showTail={item.showTail}
                     coachInitials={coachInitials}
-                    coachColor="#FF6B2B"
+                    coachColor="var(--color-primary)"
                   />
                 )
               })}
@@ -650,7 +650,7 @@ export default function MessagesClientPage() {
                   value={texte}
                   onChange={(e) => setTexte(e.target.value)}
                   placeholder="Ecrire un message..."
-                  className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-2xl px-4 py-2.5 pr-10 text-[16px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[#FF6B2B]/40 focus:ring-1 focus:ring-[#FF6B2B]/20 transition-all"
+                  className="w-full bg-[var(--bg-card)] border border-[var(--border-base)] rounded-2xl px-4 py-2.5 pr-10 text-[16px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 transition-all"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) envoyerMessage(e)
                   }}
@@ -661,7 +661,7 @@ export default function MessagesClientPage() {
                 <button
                   type="button"
                   onClick={() => setIsRecording(true)}
-                  className="w-11 h-11 rounded-full bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center flex-shrink-0 text-[var(--text-muted)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all active:scale-90"
+                  className="w-11 h-11 rounded-full bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center flex-shrink-0 text-[var(--text-muted)] hover:text-primary hover:border-primary/30 transition-all active:scale-90"
                 >
                   <Mic size={19} />
                 </button>

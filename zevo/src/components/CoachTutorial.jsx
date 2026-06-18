@@ -162,7 +162,7 @@ const TOTAL = STEPS.length
 const TOUR_STEPS = STEPS.filter(s => s.phase === 'tour').length
 
 const ACCENT_COLORS = {
-  orange: { bg: 'rgba(255,107,43,0.12)', border: 'rgba(255,107,43,0.20)', text: '#FF6B2B', glow: 'rgba(255,107,43,0.15)' },
+  orange: { bg: 'rgba(255,107,43,0.12)', border: 'rgba(255,107,43,0.20)', text: 'var(--color-primary)', glow: 'rgba(255,107,43,0.15)' },
   green:  { bg: 'rgba(74,222,128,0.10)', border: 'rgba(74,222,128,0.20)', text: '#4ADE80', glow: 'rgba(74,222,128,0.12)' },
   blue:   { bg: 'rgba(96,165,250,0.10)', border: 'rgba(96,165,250,0.20)', text: '#60A5FA', glow: 'rgba(96,165,250,0.12)' },
   purple: { bg: 'rgba(168,85,247,0.10)', border: 'rgba(168,85,247,0.20)', text: '#A855F7', glow: 'rgba(168,85,247,0.12)' },
@@ -506,8 +506,8 @@ export default function CoachTutorial({ onComplete, coachName }) {
               <div className="flex items-center gap-3 p-4 rounded-xl
                 bg-white/[0.03] border border-white/[0.06] mb-5">
                 <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center
-                  bg-gradient-to-br from-[#FF6B2B] to-[#e55a1b]
-                  text-white text-sm font-bold shadow-lg shadow-[#FF6B2B]/20">
+                  bg-gradient-to-br from-primary to-[#e55a1b]
+                  text-white text-sm font-bold shadow-lg shadow-primary/20">
                   {coachName.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -532,7 +532,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                     <div key={i} className={`w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center
                       text-xs font-bold border-2
                       ${i < 2
-                        ? 'bg-[#FF6B2B]/10 border-[#FF6B2B]/20 text-[#FF6B2B]'
+                        ? 'bg-primary/10 border-primary/20 text-primary'
                         : 'bg-white/[0.04] border-white/[0.08] border-dashed text-white/30'
                       }`}
                       style={{ zIndex: 3 - i }}
@@ -560,7 +560,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                   </label>
                   <div className="flex items-center gap-2.5 px-3.5 h-11 rounded-xl
                     bg-white/[0.04] border border-white/[0.08]
-                    focus-within:border-[#FF6B2B]/40 focus-within:bg-white/[0.06]
+                    focus-within:border-primary/40 focus-within:bg-white/[0.06]
                     transition-all duration-200">
                     <Users size={15} className="text-white/25 flex-shrink-0" />
                     <input
@@ -582,7 +582,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                   </label>
                   <div className="flex items-center gap-2.5 px-3.5 h-11 rounded-xl
                     bg-white/[0.04] border border-white/[0.08]
-                    focus-within:border-[#FF6B2B]/40 focus-within:bg-white/[0.06]
+                    focus-within:border-primary/40 focus-within:bg-white/[0.06]
                     transition-all duration-200">
                     <Mail size={15} className="text-white/25 flex-shrink-0" />
                     <input
@@ -656,7 +656,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                         flex-shrink-0 transition-all duration-200
                         ${copied
                           ? 'bg-emerald-500/12 text-emerald-400'
-                          : 'bg-[#FF6B2B]/12 text-[#FF6B2B] hover:bg-[#FF6B2B]/20'
+                          : 'bg-primary/12 text-primary hover:bg-primary/20'
                         }`}
                     >
                       {copied ? <><Check size={12} /> Copié</> : <><Copy size={12} /> Copier</>}
@@ -666,8 +666,8 @@ export default function CoachTutorial({ onComplete, coachName }) {
 
                 {/* Tip */}
                 <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl
-                  bg-[#FF6B2B]/[0.04] border border-[#FF6B2B]/[0.08]">
-                  <Send size={12} className="text-[#FF6B2B] flex-shrink-0 mt-0.5" />
+                  bg-primary/[0.04] border border-primary/[0.08]">
+                  <Send size={12} className="text-primary flex-shrink-0 mt-0.5" />
                   <span className="text-xs leading-relaxed text-white/40">
                     Envoyez ce lien à <strong className="text-white/70">{inviteResult.prenom}</strong> par email, SMS ou WhatsApp.
                   </span>
@@ -681,7 +681,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
             {current.isFinal && (
               <div className="grid grid-cols-3 gap-2 mb-5">
                 {[
-                  { icon: Trophy, label: 'Programme sport', color: '#FF6B2B' },
+                  { icon: Trophy, label: 'Programme sport', color: 'var(--color-primary)' },
                   { icon: UtensilsCrossed, label: 'Plan nutrition', color: '#4ADE80' },
                   { icon: CalendarDays, label: 'Planifier', color: '#60A5FA' },
                 ].map((action, i) => {
@@ -728,9 +728,9 @@ export default function CoachTutorial({ onComplete, coachName }) {
                   onClick={handleSendInvite}
                   disabled={inviteSending}
                   className="flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-xl
-                    bg-gradient-to-r from-[#FF6B2B] to-[#e55a1b]
+                    bg-gradient-to-r from-primary to-[#e55a1b]
                     text-white text-sm font-semibold
-                    hover:shadow-lg hover:shadow-[#FF6B2B]/25 hover:-translate-y-px
+                    hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-px
                     active:translate-y-0
                     disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none
                     transition-all duration-200"

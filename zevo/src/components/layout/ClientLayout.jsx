@@ -226,7 +226,7 @@ export function ClientLayout() {
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
                             isActive
-                              ? 'bg-[#FF6B2B]/10 text-[#FF6B2B]'
+                              ? 'bg-primary/10 text-primary'
                               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]'
                           }`
                         }
@@ -235,7 +235,7 @@ export function ClientLayout() {
                         <Icon size={17} className="flex-shrink-0" />
                         <span className="flex-1 truncate">{label}</span>
                         {badge > 0 && (
-                          <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                          <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
                             {badge > 9 ? '9+' : badge}
                           </span>
                         )}
@@ -251,7 +251,7 @@ export function ClientLayout() {
         {/* Profil + Déconnexion */}
         <div className="border-t border-[var(--border-base)] p-3 space-y-1">
           <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
-            <div className="w-7 h-7 rounded-full bg-[#FF6B2B]/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
               {clientProfile?.avatar_url
                 ? <img
                     src={clientProfile.avatar_url}
@@ -260,7 +260,7 @@ export function ClientLayout() {
                     className="w-full h-full object-cover"
                     onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = 'none' }}
                   />
-                : <User size={14} className="text-[#FF6B2B]" />
+                : <User size={14} className="text-primary" />
               }
             </div>
             <div className="flex-1 min-w-0">
@@ -320,12 +320,12 @@ export function ClientLayout() {
                 onClick={() => setNotifOpen(!notifOpen)}
                 style={{ touchAction: 'manipulation' }}
                 className={`p-2 rounded-lg transition-colors relative active:scale-95 ${
-                  notifOpen ? 'text-[#FF6B2B] bg-[var(--bg-surface)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  notifOpen ? 'text-primary bg-[var(--bg-surface)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                 }`}
               >
                 <Bell size={17} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center animate-pulse-glow">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center animate-pulse-glow">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -339,7 +339,7 @@ export function ClientLayout() {
                       <div className="flex items-center gap-2.5">
                         <h3 className="text-[var(--text-primary)] text-sm font-bold">Notifications</h3>
                         {unreadCount > 0 && (
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-bold">
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
                             {unreadCount} nouvelle{unreadCount > 1 ? 's' : ''}
                           </span>
                         )}
@@ -393,9 +393,9 @@ export function ClientLayout() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <p className="text-[var(--text-primary)] text-xs font-semibold">{n.titre}</p>
-                                  {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B] flex-shrink-0" />}
+                                  {!n.is_read && <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />}
                                 </div>
-                                {coachName && <p className="text-[#FF6B2B] text-[10px] font-semibold mt-0.5">{coachName}</p>}
+                                {coachName && <p className="text-primary text-[10px] font-semibold mt-0.5">{coachName}</p>}
                                 <p className="text-[var(--text-secondary)] text-[11px] mt-0.5 leading-relaxed truncate">{n.message}</p>
                                 <p className="text-[var(--text-muted)] text-[10px] mt-0.5 font-medium">{timeLabel}</p>
                               </div>
@@ -415,7 +415,7 @@ export function ClientLayout() {
                 onClick={() => { setMenuOpen(!menuOpen); setNotifOpen(false) }}
                 style={{ touchAction: 'manipulation' }}
                 className={`p-2 rounded-lg transition-colors active:scale-95 ${
-                  menuOpen ? 'text-[#FF6B2B] bg-[var(--bg-surface)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  menuOpen ? 'text-primary bg-[var(--bg-surface)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                 }`}
                 aria-label="Menu"
               >
@@ -436,7 +436,7 @@ export function ClientLayout() {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors active:bg-[var(--border-base)] ${
                               isActive
-                                ? 'text-[#FF6B2B] bg-[#FF6B2B]/5'
+                                ? 'text-primary bg-primary/5'
                                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]'
                             }`
                           }
@@ -470,8 +470,8 @@ export function ClientLayout() {
         >
           {!clientActif && location.pathname !== '/app/abonnement' ? (
             <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-[#FF6B2B]/10 flex items-center justify-center mb-5">
-                <CreditCard size={28} className="text-[#FF6B2B]" />
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                <CreditCard size={28} className="text-primary" />
               </div>
               <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Abonnement requis</h2>
               <p className="text-[var(--text-muted)] text-sm max-w-sm mb-6">
@@ -480,7 +480,7 @@ export function ClientLayout() {
               <button
                 onClick={() => navigate('/app/abonnement')}
                 style={{ touchAction: 'manipulation' }}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF6B2B] to-[#FF8F5E] text-white font-semibold text-sm hover:opacity-90 active:scale-[0.97] transition-all"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-[#FF8F5E] text-white font-semibold text-sm hover:opacity-90 active:scale-[0.97] transition-all"
               >
                 Voir les offres
               </button>
@@ -508,14 +508,14 @@ export function ClientLayout() {
                     style={{ touchAction: 'manipulation' }}
                     className={({ isActive }) =>
                       `flex flex-col items-center justify-center gap-0.5 py-2 transition-colors relative ${
-                        isActive ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'
+                        isActive ? 'text-primary' : 'text-[var(--text-muted)]'
                       }`
                     }
                   >
                     <div className="relative">
                       <Icon size={20} />
                       {badgeCount > 0 && (
-                        <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold flex items-center justify-center">
+                        <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
                           {badgeCount > 9 ? '9+' : badgeCount}
                         </span>
                       )}

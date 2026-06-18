@@ -20,7 +20,7 @@ export function ZevoLogo({ size = 'md', className = '' }) {
         </clipPath>
       </defs>
       {/* Icône fond orange + coin coupé */}
-      <rect width="88" height="88" rx="18" fill="#FF6B2B" clipPath="url(#zevo-clip)"/>
+      <rect width="88" height="88" rx="18" fill="var(--color-primary)" clipPath="url(#zevo-clip)"/>
       {/* Z miroir blanc */}
       <rect x="12" y="12" width="64" height="11" fill="white"/>
       <polygon points="71,23 76,12 17,44 12,44" fill="white"/>

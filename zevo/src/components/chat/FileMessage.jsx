@@ -53,7 +53,7 @@ export function ImageBubble({ imageUrl, contenu, estMoi, createdAt }) {
           </div>
 
           {/* Caption + time */}
-          <div className={`px-3 py-2 ${estMoi ? 'bg-[#FF6B2B]' : 'bg-[var(--bg-card)] border-t border-[var(--border-subtle)]'}`}>
+          <div className={`px-3 py-2 ${estMoi ? 'bg-primary' : 'bg-[var(--bg-card)] border-t border-[var(--border-subtle)]'}`}>
             {contenu && contenu !== 'Photo' && contenu !== 'Fichier' && (
               <p className={`text-[13px] mb-1 ${estMoi ? 'text-white' : 'text-[var(--text-primary)]'}`}>
                 {contenu}
@@ -119,7 +119,7 @@ export function FileBubble({ fileUrl, fileName, fileType, estMoi, createdAt }) {
       <div
         className={`max-w-[75%] min-w-[220px] rounded-2xl overflow-hidden ${
           estMoi
-            ? 'bg-[#FF6B2B] rounded-br-sm'
+            ? 'bg-primary rounded-br-sm'
             : 'bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-bl-sm'
         }`}
       >
@@ -189,11 +189,11 @@ export function FilePickerButton({ onFileSelected, uploading }) {
       type="button"
       onClick={handleClick}
       disabled={uploading}
-      className="w-11 h-11 rounded-full bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center flex-shrink-0 text-[var(--text-muted)] hover:text-[#FF6B2B] hover:border-[#FF6B2B]/30 transition-all active:scale-90 disabled:opacity-40"
+      className="w-11 h-11 rounded-full bg-[var(--bg-card)] border border-[var(--border-base)] flex items-center justify-center flex-shrink-0 text-[var(--text-muted)] hover:text-primary hover:border-primary/30 transition-all active:scale-90 disabled:opacity-40"
       title="Envoyer un fichier"
     >
       {uploading ? (
-        <div className="w-4 h-4 border-2 border-[#FF6B2B] border-t-transparent rounded-full animate-spin" />
+        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       ) : (
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
