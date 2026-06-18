@@ -196,14 +196,14 @@ export default function OnboardingFlow({ onComplete }) {
                 value={prenom}
                 onChange={(e) => setPrenom(e.target.value)}
                 placeholder="Prénom *"
-                className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#FF6B2B)]/50 transition-colors"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,var(--color-primary))]/50 transition-colors"
               />
               <input
                 type="text"
                 value={nom}
                 onChange={(e) => setNom(e.target.value)}
                 placeholder="Nom *"
-                className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#FF6B2B)]/50 transition-colors"
+                className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,var(--color-primary))]/50 transition-colors"
               />
               <div className="relative">
                 <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
@@ -212,7 +212,7 @@ export default function OnboardingFlow({ onComplete }) {
                   value={telephone}
                   onChange={(e) => setTelephone(e.target.value)}
                   placeholder="Téléphone * — +33 6 12 34 56 78"
-                  className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl pl-11 pr-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#FF6B2B)]/50 transition-colors"
+                  className="w-full bg-[var(--bg-base)] border border-[var(--border-base)] rounded-xl pl-11 pr-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,var(--color-primary))]/50 transition-colors"
                 />
               </div>
             </div>
@@ -337,7 +337,7 @@ export default function OnboardingFlow({ onComplete }) {
               value={objectifTitre}
               onChange={(e) => setObjectifTitre(e.target.value)}
               placeholder="Ex : Perdre 5 kg, Méditer chaque jour, Courir un 10 km..."
-              className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary,#FF6B2B)]/50 transition-colors"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border-base)] rounded-lg px-4 py-3 text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary,var(--color-primary))]/50 transition-colors"
             />
 
             <div className="flex gap-3">

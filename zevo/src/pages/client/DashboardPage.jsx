@@ -127,7 +127,7 @@ function StreakBadge({ streak, staggerClass, staggerStyle }) {
 
   return (
     <div className={`relative overflow-hidden rounded-2xl border border-primary/12 ${staggerClass}`}
-      style={{ ...staggerStyle, background: 'linear-gradient(135deg, rgba(255,107,43,0.06) 0%, var(--bg-card) 60%)' }}>
+      style={{ ...staggerStyle, background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.06) 0%, var(--bg-card) 60%)' }}>
       {/* Ambient corner glow */}
       <div className="absolute -top-10 -left-10 w-28 h-28 rounded-full bg-primary/8 blur-2xl pointer-events-none animate-breathe" />
 
@@ -200,7 +200,7 @@ function StreakBadge({ streak, staggerClass, staggerStyle }) {
 }
 
 // ── Section Header helper ──
-function SectionLabel({ icon: Icon, label, color = 'var(--color-primary, #FF6B2B)', children }) {
+function SectionLabel({ icon: Icon, label, color = 'var(--color-primary, var(--color-primary))', children }) {
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
@@ -671,7 +671,7 @@ export default function DashboardPage() {
           <h1 className="text-[var(--text-primary)] text-[26px] font-extrabold tracking-tight leading-tight flex items-center gap-2.5">
             <span className="truncate">{greeting.text}</span>
             <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, rgba(255,107,43,0.12), rgba(255,107,43,0.04))' }}>
+              style={{ background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.12), rgba(var(--color-primary-rgb),0.04))' }}>
               <GreetingIcon size={18} className="text-primary" />
             </span>
           </h1>
@@ -694,7 +694,7 @@ export default function DashboardPage() {
         >
           <div
             className="w-11 h-11 rounded-full flex items-center justify-center ring-2 ring-offset-2 ring-offset-[var(--bg-base)] ring-primary/20 overflow-hidden"
-            style={{ background: profil?.avatar_url ? 'transparent' : 'linear-gradient(135deg, #FF6B2B, #FF9A6C)' }}
+            style={{ background: profil?.avatar_url ? 'transparent' : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))' }}
           >
             {profil?.avatar_url ? (
               <img
@@ -705,7 +705,7 @@ export default function DashboardPage() {
                 onError={(e) => {
                   e.currentTarget.onerror = null
                   const parent = e.currentTarget.parentElement
-                  if (parent) parent.style.background = 'linear-gradient(135deg, #FF6B2B, #FF9A6C)'
+                  if (parent) parent.style.background = 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))'
                   e.currentTarget.replaceWith(
                     Object.assign(document.createElement('div'), {
                       innerHTML: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
@@ -763,25 +763,25 @@ export default function DashboardPage() {
             <div className={`relative overflow-hidden rounded-2xl border ${
               seanceDuJour.is_completed
                 ? 'border-primary-light/12'
-                : 'border-[var(--color-primary,#FF6B2B)]/15'
+                : 'border-[var(--color-primary,var(--color-primary))]/15'
             } ${stagger[5].className}`}
               style={{
                 ...stagger[5].style,
                 background: seanceDuJour.is_completed
                   ? 'linear-gradient(135deg, rgba(255,154,108,0.06), var(--bg-card) 60%)'
-                  : 'linear-gradient(135deg, rgba(255,107,43,0.08), var(--bg-card) 60%)',
+                  : 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.08), var(--bg-card) 60%)',
               }}
             >
               <div className={`absolute top-0 right-0 w-36 h-36 rounded-full -translate-y-10 translate-x-10 blur-3xl pointer-events-none ${
-                seanceDuJour.is_completed ? 'bg-primary-light/4' : 'bg-[var(--color-primary,#FF6B2B)]/4'
+                seanceDuJour.is_completed ? 'bg-primary-light/4' : 'bg-[var(--color-primary,var(--color-primary))]/4'
               }`} />
 
               <div className="relative p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Dumbbell size={13} className={seanceDuJour.is_completed ? 'text-primary-light' : 'text-[var(--color-primary,#FF6B2B)]'} />
+                    <Dumbbell size={13} className={seanceDuJour.is_completed ? 'text-primary-light' : 'text-[var(--color-primary,var(--color-primary))]'} />
                     <p className={`text-[10px] uppercase tracking-widest font-bold ${
-                      seanceDuJour.is_completed ? 'text-primary-light/70' : 'text-[var(--color-primary,#FF6B2B)]/70'
+                      seanceDuJour.is_completed ? 'text-primary-light/70' : 'text-[var(--color-primary,var(--color-primary))]/70'
                     }`}>
                       Séance du jour
                     </p>
@@ -806,8 +806,8 @@ export default function DashboardPage() {
                   <div className="space-y-1.5 mb-5">
                     {seanceExos.slice(0, 3).map((exo) => (
                       <div key={exo.id} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)]/60 border border-[var(--border-subtle)]">
-                        <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,#FF6B2B)]/8 flex items-center justify-center flex-shrink-0">
-                          <Dumbbell size={13} className="text-[var(--color-primary,#FF6B2B)]/70" />
+                        <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,var(--color-primary))]/8 flex items-center justify-center flex-shrink-0">
+                          <Dumbbell size={13} className="text-[var(--color-primary,var(--color-primary))]/70" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[var(--text-primary)] text-[13px] font-medium truncate">{exo.nom}</p>
@@ -839,8 +839,8 @@ export default function DashboardPage() {
                     onClick={() => navigate(`/app/workout/${seanceDuJour.id}`)}
                     className="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-bold text-[13px] tracking-wide text-white active:scale-95 transition-all"
                     style={{
-                      background: 'linear-gradient(135deg, var(--color-primary, #FF6B2B), #FF9A6C)',
-                      boxShadow: '0 4px 24px rgba(255,107,43,0.3), 0 1px 3px rgba(0,0,0,0.2)',
+                      background: 'linear-gradient(135deg, var(--color-primary, var(--color-primary)), var(--color-primary-light))',
+                      boxShadow: '0 4px 24px rgba(var(--color-primary-rgb),0.3), 0 1px 3px rgba(0,0,0,0.2)',
                     }}
                   >
                     <Play size={15} className="fill-white" />
@@ -868,8 +868,8 @@ export default function DashboardPage() {
             <div className="relative">
               <SectionLabel icon={Sparkles} label="Habitudes du jour">
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-surface)]">
-                  {allHabsDone && <Flame size={11} className="text-[var(--color-primary,#FF6B2B)]" />}
-                  <span className="text-[var(--color-primary,#FF6B2B)] text-[11px] font-bold tabular-nums">
+                  {allHabsDone && <Flame size={11} className="text-[var(--color-primary,var(--color-primary))]" />}
+                  <span className="text-[var(--color-primary,var(--color-primary))] text-[11px] font-bold tabular-nums">
                     <AnimatedNumber value={cochees} duration={400} />/{totalHab}
                   </span>
                 </div>
@@ -881,7 +881,7 @@ export default function DashboardPage() {
                 <div className="space-y-2">
                   {habitudes.map((h) => {
                     const fait = logAujourdhui.includes(h.id)
-                    const accentColor = h.couleur ?? 'var(--color-primary, #FF6B2B)'
+                    const accentColor = h.couleur ?? 'var(--color-primary, var(--color-primary))'
                     return (
                       <button
                         key={h.id}
@@ -908,7 +908,7 @@ export default function DashboardPage() {
                           {h.nom}
                         </span>
                         {h.assigned_by && (
-                          <span className="text-[8px] text-[var(--color-primary,#FF6B2B)]/60 bg-[var(--color-primary,#FF6B2B)]/8 px-2 py-0.5 rounded-md flex-shrink-0 font-bold uppercase tracking-wider">
+                          <span className="text-[8px] text-[var(--color-primary,var(--color-primary))]/60 bg-[var(--color-primary,var(--color-primary))]/8 px-2 py-0.5 rounded-md flex-shrink-0 font-bold uppercase tracking-wider">
                             Coach
                           </span>
                         )}
@@ -925,8 +925,8 @@ export default function DashboardPage() {
                     style={{
                       width: `${Math.round((cochees / totalHab) * 100)}%`,
                       background: allHabsDone
-                        ? 'linear-gradient(90deg, #FF6B2B, #FF9A6C)'
-                        : `linear-gradient(90deg, var(--color-primary, #FF6B2B), #FF9A6C)`,
+                        ? 'linear-gradient(90deg, var(--color-primary), var(--color-primary-light))'
+                        : `linear-gradient(90deg, var(--color-primary, var(--color-primary)), var(--color-primary-light))`,
                     }}
                   />
                 </div>
@@ -946,12 +946,12 @@ export default function DashboardPage() {
                     onClick={() => navigate('/app/programme')}
                     className="glass-card p-4 text-left active:scale-[0.98] transition-transform"
                   >
-                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[var(--color-primary,#FF6B2B)] via-primary-light/50 to-transparent" />
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[var(--color-primary,var(--color-primary))] via-primary-light/50 to-transparent" />
 
                     <div className="relative">
                       <div className="flex items-center justify-between mb-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,#FF6B2B)]/10 flex items-center justify-center">
-                          <Trophy size={14} className="text-[var(--color-primary,#FF6B2B)]" />
+                        <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,var(--color-primary))]/10 flex items-center justify-center">
+                          <Trophy size={14} className="text-[var(--color-primary,var(--color-primary))]" />
                         </div>
                         <ChevronRight size={14} className="text-[var(--text-muted)]" />
                       </div>
@@ -970,7 +970,7 @@ export default function DashboardPage() {
                               className="h-1.5 rounded-full flex-1 transition-all"
                               style={{
                                 backgroundColor: i < programme.phase_actuelle
-                                  ? 'var(--color-primary, #FF6B2B)'
+                                  ? 'var(--color-primary, var(--color-primary))'
                                   : 'var(--border-base)',
                               }}
                             />
@@ -985,7 +985,7 @@ export default function DashboardPage() {
                               className="h-full rounded-full transition-all"
                               style={{
                                 width: `${Math.round((progSeances.done / progSeances.total) * 100)}%`,
-                                background: 'linear-gradient(90deg, var(--color-primary, #FF6B2B), #FF9A6C)',
+                                background: 'linear-gradient(90deg, var(--color-primary, var(--color-primary)), var(--color-primary-light))',
                               }}
                             />
                           </div>
@@ -1027,7 +1027,7 @@ export default function DashboardPage() {
                               className="h-full rounded-full transition-all"
                               style={{
                                 width: `${Math.round((nutriWeeksDone / nutritionPlan.duree_semaines) * 100)}%`,
-                                background: 'linear-gradient(90deg, #FF9A6C, #FFB894)',
+                                background: 'linear-gradient(90deg, var(--color-primary-light), #FFB894)',
                               }}
                             />
                           </div>
@@ -1052,7 +1052,7 @@ export default function DashboardPage() {
           {(!sommeilSaved || !humeurSaved) && (
             <div className={`glass-card p-4 ${stagger[3].className}`} style={stagger[3].style}>
               <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
-                style={{ background: 'linear-gradient(90deg, #FF6B2B, #FF9A6C, transparent)' }} />
+                style={{ background: 'linear-gradient(90deg, var(--color-primary), var(--color-primary-light), transparent)' }} />
 
               <div className="relative">
                 <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold mb-3.5">
@@ -1306,7 +1306,7 @@ export default function DashboardPage() {
             <div className="relative">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                  <TrendingUp size={13} className="text-[var(--color-primary,#FF6B2B)]" />
+                  <TrendingUp size={13} className="text-[var(--color-primary,var(--color-primary))]" />
                   <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Score 7 jours</p>
                 </div>
                 {currentWeekAvg !== null && (
@@ -1343,7 +1343,7 @@ export default function DashboardPage() {
                         return (
                           <Cell
                             key={index}
-                            fill="var(--color-primary, #FF6B2B)"
+                            fill="var(--color-primary, var(--color-primary))"
                             fillOpacity={isToday ? 1 : 0.35}
                           />
                         )

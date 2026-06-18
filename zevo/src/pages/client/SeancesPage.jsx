@@ -232,7 +232,7 @@ export default function SeancesPage() {
             className="h-full rounded-full transition-all duration-700 relative"
             style={{
               width: `${total > 0 ? pct : 0}%`,
-              background: 'linear-gradient(90deg, #FF6B2B, #FF9A6C)',
+              background: 'linear-gradient(90deg, var(--color-primary), var(--color-primary-light))',
             }}
           >
             <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2) 50%, transparent)' }} />
@@ -243,7 +243,7 @@ export default function SeancesPage() {
           {seances.map(s => (
             <div key={s.id} className={`w-3 h-3 rounded-full transition-all ${
               s.is_completed
-                ? 'bg-primary shadow-[0_0_6px_rgba(255,107,43,0.4)]'
+                ? 'bg-primary shadow-[0_0_6px_rgba(var(--color-primary-rgb),0.4)]'
                 : 'bg-white/10'
             }`} />
           ))}
@@ -389,7 +389,7 @@ export default function SeancesPage() {
                             className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5 ${
                               seance.is_completed
                                 ? 'bg-primary/10 text-primary hover:bg-red-500/10 hover:text-red-400'
-                                : 'bg-primary text-white hover:bg-[#e55a1b] shadow-lg shadow-primary/20'
+                                : 'bg-primary text-white hover:bg-[var(--color-primary)] shadow-lg shadow-primary/20'
                             }`}
                           >
                             {toggling === seance.id ? (

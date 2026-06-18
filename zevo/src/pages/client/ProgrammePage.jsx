@@ -652,8 +652,8 @@ export default function ProgrammePage() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2.5 text-white font-bold px-7 py-3 rounded-xl transition-all active:scale-95 hover:shadow-xl"
                     style={{
-                      background: 'linear-gradient(135deg, #FF6B2B 0%, #FF8F5E 100%)',
-                      boxShadow: '0 4px 20px rgba(255,107,43,0.3)',
+                      background: 'linear-gradient(135deg, var(--color-primary) 0%, #FF8F5E 100%)',
+                      boxShadow: '0 4px 20px rgba(var(--color-primary-rgb),0.3)',
                     }}
                   >
                     Ouvrir le document
@@ -715,7 +715,7 @@ export default function ProgrammePage() {
                         className="h-2 rounded-full flex-1 transition-all duration-500"
                         style={{
                           background: i < assignation.phase_actuelle
-                            ? 'linear-gradient(135deg, #FF6B2B, #FF9A6C)'
+                            ? 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))'
                             : 'var(--border-base)',
                         }}
                       />
@@ -756,7 +756,7 @@ export default function ProgrammePage() {
                       className={`glass-card overflow-hidden transition-all ${
                         isCurrent ? '!border-primary/25' : ''
                       }`}
-                      style={isCurrent ? { boxShadow: '0 0 24px rgba(255,107,43,0.08)' } : undefined}
+                      style={isCurrent ? { boxShadow: '0 0 24px rgba(var(--color-primary-rgb),0.08)' } : undefined}
                     >
                       {/* Phase header */}
                       <button onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
@@ -779,7 +779,7 @@ export default function ProgrammePage() {
                             </span>
                             {isCurrent && (
                               <span className="text-[8px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                                style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)', color: 'white' }}>
+                                style={{ background: 'linear-gradient(135deg, var(--color-primary), #FF8F5E)', color: 'white' }}>
                                 En cours
                               </span>
                             )}

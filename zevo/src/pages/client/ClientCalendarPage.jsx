@@ -291,7 +291,7 @@ export default function ClientCalendarPage() {
                 {/* Today glow */}
                 {isToday && (
                   <div className="absolute inset-0 pointer-events-none"
-                    style={{ boxShadow: 'inset 0 0 12px rgba(255,107,43,0.08)' }} />
+                    style={{ boxShadow: 'inset 0 0 12px rgba(var(--color-primary-rgb),0.08)' }} />
                 )}
 
                 <div className="flex items-center justify-center">
@@ -405,7 +405,7 @@ export default function ClientCalendarPage() {
                     ? 'ring-1 ring-primary/20'
                     : ''
                 }`}
-                style={isToday ? { background: 'linear-gradient(135deg, rgba(255,107,43,0.04), var(--bg-card))' } : {}}
+                style={isToday ? { background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.04), var(--bg-card))' } : {}}
               >
                 <div className="flex gap-3 p-3">
                   {/* Date column */}
@@ -440,7 +440,7 @@ export default function ClientCalendarPage() {
                                 onClick={() => openSeanceDetail(s)}
                                 className="w-full text-left px-3 py-2.5 rounded-lg transition-all flex items-center gap-2.5 active:scale-[0.98]"
                                 style={{
-                                  background: s.is_completed ? 'rgba(255,154,108,0.06)' : 'rgba(255,107,43,0.06)',
+                                  background: s.is_completed ? 'rgba(255,154,108,0.06)' : 'rgba(var(--color-primary-rgb),0.06)',
                                   borderLeft: `2px solid ${s.is_completed ? 'var(--color-primary-light)' : 'var(--color-primary)'}`,
                                 }}
                               >
@@ -525,7 +525,7 @@ export default function ClientCalendarPage() {
           style={{ boxShadow: '0 -8px 40px rgba(0,0,0,0.4)' }}>
 
           {/* Accent bar */}
-          <div className="h-[3px] w-full rounded-t-2xl" style={{ background: isDone ? 'linear-gradient(90deg, #FF9A6C, #FFB894, transparent)' : 'linear-gradient(90deg, #FF6B2B, #FF9A6C, transparent)' }} />
+          <div className="h-[3px] w-full rounded-t-2xl" style={{ background: isDone ? 'linear-gradient(90deg, var(--color-primary-light), #FFB894, transparent)' : 'linear-gradient(90deg, var(--color-primary), var(--color-primary-light), transparent)' }} />
 
           {/* Handle bar (mobile) */}
           <div className="flex justify-center pt-2 pb-1 sm:hidden">
@@ -578,7 +578,7 @@ export default function ClientCalendarPage() {
                 <div className="space-y-1.5">
                   {exercices.map((ex, i) => (
                     <div key={i} className="flex items-center gap-3 bg-[var(--bg-surface)]/60 rounded-xl px-3.5 py-2.5"
-                      style={{ borderLeft: '2px solid rgba(255,107,43,0.15)' }}>
+                      style={{ borderLeft: '2px solid rgba(var(--color-primary-rgb),0.15)' }}>
                       <div className="w-7 h-7 rounded-md bg-primary/8 flex items-center justify-center shrink-0">
                         <Dumbbell size={13} className="text-primary/70" />
                       </div>
@@ -619,8 +619,8 @@ export default function ClientCalendarPage() {
                 onClick={() => navigate(`/app/workout/${selectedSeance.id}`)}
                 className="w-full py-3.5 rounded-xl text-white text-[13px] font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 style={{
-                  background: 'linear-gradient(135deg, #FF6B2B, #FF9A6C)',
-                  boxShadow: '0 4px 20px rgba(255,107,43,0.3)',
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))',
+                  boxShadow: '0 4px 20px rgba(var(--color-primary-rgb),0.3)',
                 }}
               >
                 <Play size={15} className="fill-white" />
@@ -726,7 +726,7 @@ export default function ClientCalendarPage() {
                     onClick={() => { setSelectedDay(null); openSeanceDetail(s) }}
                     className="w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 active:scale-[0.98]"
                     style={{
-                      background: s.is_completed ? 'rgba(255,154,108,0.06)' : 'rgba(255,107,43,0.06)',
+                      background: s.is_completed ? 'rgba(255,154,108,0.06)' : 'rgba(var(--color-primary-rgb),0.06)',
                       borderLeft: `2px solid ${s.is_completed ? 'var(--color-primary-light)' : 'var(--color-primary)'}`,
                     }}
                   >
@@ -863,7 +863,7 @@ export default function ClientCalendarPage() {
         <button
           onClick={() => setBookingOpen(true)}
           className="fixed bottom-24 right-5 z-30 flex items-center gap-2 px-5 py-3 rounded-2xl text-white text-sm font-semibold shadow-lg active:scale-[0.95] transition-all"
-          style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF9A6C)', boxShadow: '0 6px 20px rgba(255,107,43,0.35)' }}
+          style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))', boxShadow: '0 6px 20px rgba(var(--color-primary-rgb),0.35)' }}
         >
           <CalendarPlus size={18} /> Réserver
         </button>

@@ -535,7 +535,7 @@ export default function WorkoutTrackerPage() {
                 return (
                   <div key={ex?.id || idx} style={{ background: '#1E1E1E', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'hidden' }}>
                     <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,107,43,0.1)', border: '1px solid rgba(255,107,43,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(var(--color-primary-rgb),0.1)', border: '1px solid rgba(var(--color-primary-rgb),0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <span style={{ color: 'var(--color-primary)', fontSize: 12, fontWeight: 900 }} className="tabular-nums">{idx + 1}</span>
                       </div>
                       <div className="flex-1 min-w-0">

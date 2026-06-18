@@ -162,7 +162,7 @@ const TOTAL = STEPS.length
 const TOUR_STEPS = STEPS.filter(s => s.phase === 'tour').length
 
 const ACCENT_COLORS = {
-  orange: { bg: 'rgba(255,107,43,0.12)', border: 'rgba(255,107,43,0.20)', text: 'var(--color-primary)', glow: 'rgba(255,107,43,0.15)' },
+  orange: { bg: 'rgba(var(--color-primary-rgb),0.12)', border: 'rgba(var(--color-primary-rgb),0.20)', text: 'var(--color-primary)', glow: 'rgba(var(--color-primary-rgb),0.15)' },
   green:  { bg: 'rgba(74,222,128,0.10)', border: 'rgba(74,222,128,0.20)', text: '#4ADE80', glow: 'rgba(74,222,128,0.12)' },
   blue:   { bg: 'rgba(96,165,250,0.10)', border: 'rgba(96,165,250,0.20)', text: '#60A5FA', glow: 'rgba(96,165,250,0.12)' },
   purple: { bg: 'rgba(168,85,247,0.10)', border: 'rgba(168,85,247,0.20)', text: '#A855F7', glow: 'rgba(168,85,247,0.12)' },
@@ -437,7 +437,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
         )}
 
         <div className="relative overflow-hidden rounded-2xl border border-white/[0.08]
-          bg-[#141414] shadow-[0_24px_80px_rgba(0,0,0,0.6),0_0_40px_rgba(255,107,43,0.06)]">
+          bg-[#141414] shadow-[0_24px_80px_rgba(0,0,0,0.6),0_0_40px_rgba(var(--color-primary-rgb),0.06)]">
 
           {/* Top accent line */}
           <div className="absolute top-0 inset-x-0 h-[1px]"
@@ -506,7 +506,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
               <div className="flex items-center gap-3 p-4 rounded-xl
                 bg-white/[0.03] border border-white/[0.06] mb-5">
                 <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center
-                  bg-gradient-to-br from-primary to-[#e55a1b]
+                  bg-gradient-to-br from-primary to-[var(--color-primary)]
                   text-white text-sm font-bold shadow-lg shadow-primary/20">
                   {coachName.charAt(0).toUpperCase()}
                 </div>
@@ -728,7 +728,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                   onClick={handleSendInvite}
                   disabled={inviteSending}
                   className="flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-xl
-                    bg-gradient-to-r from-primary to-[#e55a1b]
+                    bg-gradient-to-r from-primary to-[var(--color-primary)]
                     text-white text-sm font-semibold
                     hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-px
                     active:translate-y-0

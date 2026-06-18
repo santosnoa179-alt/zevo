@@ -366,8 +366,8 @@ export default function ObjectifsPage() {
                   onClick={() => { setNewValues({}); setShowAllFields(false); setShowSaisie(true) }}
                   className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-bold active:scale-[0.97] transition-all"
                   style={{
-                    background: 'linear-gradient(135deg, #FF6B2B 0%, #FF8F5E 100%)',
-                    boxShadow: '0 4px 20px rgba(255,107,43,0.3)',
+                    background: 'linear-gradient(135deg, var(--color-primary) 0%, #FF8F5E 100%)',
+                    boxShadow: '0 4px 20px rgba(var(--color-primary-rgb),0.3)',
                   }}
                 >
                   <Scale size={15} />
@@ -480,7 +480,7 @@ export default function ObjectifsPage() {
                 className={`glass-card overflow-hidden transition-all ${
                   done ? '!border-primary/20' : ''
                 }`}
-                style={done ? { boxShadow: '0 0 20px rgba(255,107,43,0.06)' } : undefined}
+                style={done ? { boxShadow: '0 0 20px rgba(var(--color-primary-rgb),0.06)' } : undefined}
               >
                 <div className="p-4">
                   <div className="flex items-center gap-3">
@@ -563,7 +563,7 @@ export default function ObjectifsPage() {
                       </div>
                       <button type="submit" disabled={savingInline || !inlineValue}
                         className="w-9 h-9 flex items-center justify-center rounded-xl text-white active:scale-90 transition-all disabled:opacity-30 flex-shrink-0"
-                        style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+                        style={{ background: 'linear-gradient(135deg, var(--color-primary), #FF8F5E)' }}>
                         {savingInline ? <Loader2 size={12} className="animate-spin" /> : <Check size={13} strokeWidth={3} />}
                       </button>
                       <button type="button" onClick={() => { setInlineEditing(null); setInlineValue('') }}
@@ -579,7 +579,7 @@ export default function ObjectifsPage() {
                   <div className="h-0.5 bg-[var(--border-subtle)]">
                     <div className="h-full rounded-full transition-all duration-700" style={{
                       width: `${pct}%`,
-                      background: pct >= 50 ? 'linear-gradient(90deg, #FF6B2B, #FF9A6C)' : pct >= 25 ? 'var(--color-primary-light)' : '#ef4444',
+                      background: pct >= 50 ? 'linear-gradient(90deg, var(--color-primary), var(--color-primary-light))' : pct >= 25 ? 'var(--color-primary-light)' : '#ef4444',
                     }} />
                   </div>
                 )}
@@ -688,8 +688,8 @@ export default function ObjectifsPage() {
               <button type="submit" disabled={savingMens || !fields.some(f => newValues[f])}
                 className="w-full py-3.5 rounded-xl text-white text-sm font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]"
                 style={{
-                  background: 'linear-gradient(135deg, #FF6B2B 0%, #FF8F5E 100%)',
-                  boxShadow: '0 4px 20px rgba(255,107,43,0.25)',
+                  background: 'linear-gradient(135deg, var(--color-primary) 0%, #FF8F5E 100%)',
+                  boxShadow: '0 4px 20px rgba(var(--color-primary-rgb),0.25)',
                 }}
               >
                 {savingMens ? <><Loader2 size={14} className="animate-spin" /> Enregistrement...</> : <><Check size={14} strokeWidth={3} /> Enregistrer</>}

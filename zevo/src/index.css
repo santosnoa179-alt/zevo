@@ -16,6 +16,13 @@
   --color-primary-light: #FF9A6C;
 }
 
+/* Composantes RGB de la couleur primaire — pour les rgba() dynamiques (halos,
+   ombres, dégradés translucides). Surchargée par useCoachTheme côté client.
+   Usage : rgba(var(--color-primary-rgb), 0.1) */
+:root {
+  --color-primary-rgb: 255, 107, 43;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    THÈME SOMBRE (défaut)
    ═══════════════════════════════════════════════════════════════ */

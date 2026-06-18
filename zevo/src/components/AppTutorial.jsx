@@ -40,7 +40,7 @@ const styles = {
     width: active ? 28 : 8,
     height: 8,
     borderRadius: 4,
-    background: active ? 'var(--color-primary)' : passed ? 'rgba(255,107,43,0.5)' : 'var(--border-base)',
+    background: active ? 'var(--color-primary)' : passed ? 'rgba(var(--color-primary-rgb),0.5)' : 'var(--border-base)',
     transition: 'all 0.4s cubic-bezier(0.22,1,0.36,1)',
   }),
 
@@ -51,7 +51,7 @@ const styles = {
     padding: '40px 28px 32px',
     background: 'linear-gradient(145deg, var(--bg-card), var(--bg-base))',
     border: '1px solid var(--border-base)',
-    boxShadow: '0 0 80px rgba(255,107,43,0.06), 0 24px 48px rgba(0,0,0,0.5)',
+    boxShadow: '0 0 80px rgba(var(--color-primary-rgb),0.06), 0 24px 48px rgba(0,0,0,0.5)',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -62,7 +62,7 @@ const styles = {
     right: -1,
     bottom: -1,
     borderRadius: 25,
-    background: 'linear-gradient(135deg, rgba(255,107,43,0.25) 0%, transparent 40%, transparent 60%, rgba(255,107,43,0.1) 100%)',
+    background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.25) 0%, transparent 40%, transparent 60%, rgba(var(--color-primary-rgb),0.1) 100%)',
     zIndex: -1,
     pointerEvents: 'none',
   },
@@ -81,8 +81,8 @@ const styles = {
     width: 72,
     height: 72,
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, rgba(255,107,43,0.15), rgba(255,107,43,0.05))',
-    border: '1px solid rgba(255,107,43,0.2)',
+    background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.15), rgba(var(--color-primary-rgb),0.05))',
+    border: '1px solid rgba(var(--color-primary-rgb),0.2)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -129,13 +129,13 @@ const styles = {
     padding: '14px 24px',
     borderRadius: 14,
     border: 'none',
-    background: 'linear-gradient(135deg, #FF6B2B, #e55a1b)',
+    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary))',
     color: '#fff',
     fontSize: 16,
     fontWeight: 600,
     cursor: 'pointer',
     transition: 'all 0.25s ease',
-    boxShadow: '0 4px 20px rgba(255,107,43,0.3)',
+    boxShadow: '0 4px 20px rgba(var(--color-primary-rgb),0.3)',
     marginTop: 24,
   },
   skipBtn: {
@@ -176,8 +176,8 @@ function DashboardPreview() {
       <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
         <div style={{
           flex: 1, borderRadius: 12, padding: '12px 14px',
-          background: 'linear-gradient(135deg, rgba(255,107,43,0.12), rgba(255,107,43,0.04))',
-          border: '1px solid rgba(255,107,43,0.15)',
+          background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.12), rgba(var(--color-primary-rgb),0.04))',
+          border: '1px solid rgba(var(--color-primary-rgb),0.15)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <Flame size={14} color="var(--color-primary)" />
@@ -210,7 +210,7 @@ function DashboardPreview() {
         </div>
         <div style={{
           width: 32, height: 32, borderRadius: 8,
-          background: 'linear-gradient(135deg, #FF6B2B, #e55a1b)',
+          background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary))',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <ChevronRight size={16} color="#fff" />
@@ -240,7 +240,7 @@ function WorkoutPreview() {
         </div>
         <div style={{
           padding: '4px 10px', borderRadius: 8,
-          background: 'rgba(255,107,43,0.12)',
+          background: 'rgba(var(--color-primary-rgb),0.12)',
           color: 'var(--color-primary)', fontSize: 11, fontWeight: 600,
         }}>Aujourd'hui</div>
       </div>
@@ -250,8 +250,8 @@ function WorkoutPreview() {
           <div key={i} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '8px 10px', borderRadius: 10,
-            background: ex.accent ? 'rgba(255,107,43,0.06)' : 'transparent',
-            border: ex.accent ? '1px solid rgba(255,107,43,0.1)' : '1px solid transparent',
+            background: ex.accent ? 'rgba(var(--color-primary-rgb),0.06)' : 'transparent',
+            border: ex.accent ? '1px solid rgba(var(--color-primary-rgb),0.1)' : '1px solid transparent',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{
@@ -310,7 +310,7 @@ function ChatPreview() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
           <div style={{
             width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-            background: 'linear-gradient(135deg, #FF6B2B, #e55a1b)',
+            background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 11, fontWeight: 700, color: '#fff',
           }}>C</div>
@@ -330,8 +330,8 @@ function ChatPreview() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', justifyContent: 'flex-end' }}>
           <div style={{
             padding: '10px 14px', borderRadius: '14px 14px 4px 14px',
-            background: 'linear-gradient(135deg, rgba(255,107,43,0.15), rgba(255,107,43,0.08))',
-            border: '1px solid rgba(255,107,43,0.15)',
+            background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.15), rgba(var(--color-primary-rgb),0.08))',
+            border: '1px solid rgba(var(--color-primary-rgb),0.15)',
             maxWidth: '75%',
           }}>
             <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.5 }}>
@@ -367,17 +367,17 @@ function CelebrationPreview() {
           width: s.size, height: s.size,
           borderRadius: '50%',
           background: 'var(--color-primary)',
-          boxShadow: '0 0 8px #FF6B2B, 0 0 16px rgba(255,107,43,0.3)',
+          boxShadow: '0 0 8px var(--color-primary), 0 0 16px rgba(var(--color-primary-rgb),0.3)',
           animation: `tutorialSparkle 2s ${s.delay}s ease-in-out infinite`,
           pointerEvents: 'none',
         }} />
       ))}
       <div style={{
         width: 100, height: 100, borderRadius: '50%', margin: '0 auto',
-        background: 'linear-gradient(135deg, rgba(255,107,43,0.2), rgba(255,107,43,0.05))',
-        border: '2px solid rgba(255,107,43,0.25)',
+        background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.2), rgba(var(--color-primary-rgb),0.05))',
+        border: '2px solid rgba(var(--color-primary-rgb),0.25)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 0 40px rgba(255,107,43,0.15)',
+        boxShadow: '0 0 40px rgba(var(--color-primary-rgb),0.15)',
       }}>
         <Zap size={40} color="var(--color-primary)" />
       </div>
@@ -599,11 +599,11 @@ export default function AppTutorial({ onComplete }) {
             style={styles.nextBtn}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-1px)'
-              e.currentTarget.style.boxShadow = '0 6px 28px rgba(255,107,43,0.4)'
+              e.currentTarget.style.boxShadow = '0 6px 28px rgba(var(--color-primary-rgb),0.4)'
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = '0 4px 20px rgba(255,107,43,0.3)'
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(var(--color-primary-rgb),0.3)'
             }}
           >
             {step.isFinal ? 'Commencer' : 'Suivant'}

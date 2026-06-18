@@ -175,7 +175,7 @@ export default function CoachDisponibilites({ open, onClose }) {
         <div className="px-6 py-4 border-b border-[var(--border-base)] flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}>
+              style={{ background: 'linear-gradient(135deg, var(--color-primary), #FF8F5E)' }}>
               <Clock className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -298,7 +298,7 @@ export default function CoachDisponibilites({ open, onClose }) {
                 onClick={handleSave}
                 disabled={saving}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all active:scale-[0.97] disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg, #FF6B2B, #FF8F5E)' }}
+                style={{ background: 'linear-gradient(135deg, var(--color-primary), #FF8F5E)' }}
               >
                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                 Enregistrer

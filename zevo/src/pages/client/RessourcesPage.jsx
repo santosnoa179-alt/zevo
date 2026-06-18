@@ -54,7 +54,7 @@ export default function RessourcesPage() {
   if (loading) {
     return (
       <div className="p-4 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-[var(--color-primary,#FF6B2B)]" size={32} />
+        <Loader2 className="animate-spin text-[var(--color-primary,var(--color-primary))]" size={32} />
       </div>
     )
   }
@@ -75,7 +75,7 @@ export default function RessourcesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher..."
-            className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary,#FF6B2B)]/50"
+            className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl text-[var(--text-primary)] text-sm placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--color-primary,var(--color-primary))]/50"
           />
         </div>
       )}

@@ -10,7 +10,7 @@
 //   max        : valeur max (défaut 100)
 //   size       : diamètre total en px (défaut 64)
 //   thickness  : épaisseur du trait (défaut auto selon size)
-//   color      : couleur du ring actif (défaut #FF6B2B)
+//   color      : couleur du ring actif (défaut var(--color-primary))
 //   trackColor : couleur de la piste (défaut rgba blanc 6%)
 //   gradient   : activer un dégradé (défaut false)
 //   children   : contenu centre du ring (valeur, label, icône)
