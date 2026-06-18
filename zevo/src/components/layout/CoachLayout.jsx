@@ -689,7 +689,7 @@ export function CoachLayout() {
               </div>
               <button
                 onClick={() => navigate('/coach/pricing')}
-                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-[#FF8F5E] text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-primary-light text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
               >
                 Choisir un plan
               </button>
@@ -704,7 +704,7 @@ export function CoachLayout() {
                 <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-primary/20 blur-3xl" />
 
                 <div className="relative">
-                  <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-[#FF8F5E]/10 border border-primary/30 flex items-center justify-center mb-5 animate-breathe">
+                  <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-light/10 border border-primary/30 flex items-center justify-center mb-5 animate-breathe">
                     <Lock size={28} className="text-primary" />
                   </div>
                   <h2 className="text-[var(--text-primary)] text-2xl font-bold mb-2">
@@ -721,7 +721,7 @@ export function CoachLayout() {
 
                   <button
                     onClick={() => navigate('/coach/abonnements')}
-                    className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-primary to-[#FF8F5E] text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-primary/30"
+                    className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-primary to-primary-light text-white text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-primary/30"
                   >
                     Choisir un plan
                   </button>

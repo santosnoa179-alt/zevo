@@ -612,10 +612,10 @@ export default function DashboardPage() {
 
   const getNextStep = () => {
     if (seanceDuJour && !seanceFaite) return { type: 'seance', label: 'Lance ta séance', sub: seanceDuJour.titre, icon: Play, color: 'var(--color-primary)', action: () => navigate(`/app/workout/${seanceDuJour.id}`) }
-    if (!sommeilSaved || !humeurSaved) return { type: 'checkin', label: 'Fais ton check-in', sub: !sommeilSaved ? 'Sommeil non renseigné' : 'Humeur non renseignée', icon: Moon, color: 'var(--color-primary-light)' }
-    if (totalHab > 0 && !allHabsDone) return { type: 'habits', label: 'Habitudes en cours', sub: `${cochees}/${totalHab} complétées`, icon: Flame, color: 'var(--color-primary)' }
+    if (!sommeilSaved || !humeurSaved) return { type: 'checkin', label: 'Fais ton check-in', sub: !sommeilSaved ? 'Sommeil non renseigné' : 'Humeur non renseignée', icon: Moon, color: 'var(--color-primary-light)', action: () => document.getElementById('dash-checkin')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) }
+    if (totalHab > 0 && !allHabsDone) return { type: 'habits', label: 'Habitudes en cours', sub: `${cochees}/${totalHab} complétées`, icon: Flame, color: 'var(--color-primary)', action: () => navigate('/app/habitudes') }
     if (unreadMessages > 0) return { type: 'messages', label: 'Message non lu', sub: `${unreadMessages} message${unreadMessages > 1 ? 's' : ''} de ton coach`, icon: MessageCircle, color: 'var(--color-primary)', action: () => navigate('/app/messages') }
-    if (seanceDemain) return { type: 'demain', label: 'Demain', sub: seanceDemain.titre, icon: CalendarDays, color: 'var(--color-primary-light)' }
+    if (seanceDemain) return { type: 'demain', label: 'Demain', sub: seanceDemain.titre, icon: CalendarDays, color: 'var(--color-primary-light)', action: () => navigate('/app/seances') }
     return null
   }
   const nextStep = getNextStep()
@@ -763,25 +763,25 @@ export default function DashboardPage() {
             <div className={`relative overflow-hidden rounded-2xl border ${
               seanceDuJour.is_completed
                 ? 'border-primary-light/12'
-                : 'border-[var(--color-primary,var(--color-primary))]/15'
+                : 'border-[var(--color-primary)]/15'
             } ${stagger[5].className}`}
               style={{
                 ...stagger[5].style,
                 background: seanceDuJour.is_completed
-                  ? 'linear-gradient(135deg, rgba(255,154,108,0.06), var(--bg-card) 60%)'
+                  ? 'linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.08), var(--bg-card) 60%)'
                   : 'linear-gradient(135deg, rgba(var(--color-primary-rgb),0.08), var(--bg-card) 60%)',
               }}
             >
               <div className={`absolute top-0 right-0 w-36 h-36 rounded-full -translate-y-10 translate-x-10 blur-3xl pointer-events-none ${
-                seanceDuJour.is_completed ? 'bg-primary-light/4' : 'bg-[var(--color-primary,var(--color-primary))]/4'
+                seanceDuJour.is_completed ? 'bg-primary-light/4' : 'bg-[var(--color-primary)]/4'
               }`} />
 
               <div className="relative p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Dumbbell size={13} className={seanceDuJour.is_completed ? 'text-primary-light' : 'text-[var(--color-primary,var(--color-primary))]'} />
+                    <Dumbbell size={13} className={seanceDuJour.is_completed ? 'text-primary-light' : 'text-[var(--color-primary)]'} />
                     <p className={`text-[10px] uppercase tracking-widest font-bold ${
-                      seanceDuJour.is_completed ? 'text-primary-light/70' : 'text-[var(--color-primary,var(--color-primary))]/70'
+                      seanceDuJour.is_completed ? 'text-primary-light/70' : 'text-[var(--color-primary)]/70'
                     }`}>
                       Séance du jour
                     </p>
@@ -806,8 +806,8 @@ export default function DashboardPage() {
                   <div className="space-y-1.5 mb-5">
                     {seanceExos.slice(0, 3).map((exo) => (
                       <div key={exo.id} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)]/60 border border-[var(--border-subtle)]">
-                        <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,var(--color-primary))]/8 flex items-center justify-center flex-shrink-0">
-                          <Dumbbell size={13} className="text-[var(--color-primary,var(--color-primary))]/70" />
+                        <div className="w-7 h-7 rounded-lg bg-[var(--color-primary)]/8 flex items-center justify-center flex-shrink-0">
+                          <Dumbbell size={13} className="text-[var(--color-primary)]/70" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[var(--text-primary)] text-[13px] font-medium truncate">{exo.nom}</p>
@@ -868,8 +868,8 @@ export default function DashboardPage() {
             <div className="relative">
               <SectionLabel icon={Sparkles} label="Habitudes du jour">
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-surface)]">
-                  {allHabsDone && <Flame size={11} className="text-[var(--color-primary,var(--color-primary))]" />}
-                  <span className="text-[var(--color-primary,var(--color-primary))] text-[11px] font-bold tabular-nums">
+                  {allHabsDone && <Flame size={11} className="text-[var(--color-primary)]" />}
+                  <span className="text-[var(--color-primary)] text-[11px] font-bold tabular-nums">
                     <AnimatedNumber value={cochees} duration={400} />/{totalHab}
                   </span>
                 </div>
@@ -908,7 +908,7 @@ export default function DashboardPage() {
                           {h.nom}
                         </span>
                         {h.assigned_by && (
-                          <span className="text-[8px] text-[var(--color-primary,var(--color-primary))]/60 bg-[var(--color-primary,var(--color-primary))]/8 px-2 py-0.5 rounded-md flex-shrink-0 font-bold uppercase tracking-wider">
+                          <span className="text-[8px] text-[var(--color-primary)]/60 bg-[var(--color-primary)]/8 px-2 py-0.5 rounded-md flex-shrink-0 font-bold uppercase tracking-wider">
                             Coach
                           </span>
                         )}
@@ -946,12 +946,12 @@ export default function DashboardPage() {
                     onClick={() => navigate('/app/programme')}
                     className="glass-card p-4 text-left active:scale-[0.98] transition-transform"
                   >
-                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[var(--color-primary,var(--color-primary))] via-primary-light/50 to-transparent" />
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[var(--color-primary)] via-primary-light/50 to-transparent" />
 
                     <div className="relative">
                       <div className="flex items-center justify-between mb-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-[var(--color-primary,var(--color-primary))]/10 flex items-center justify-center">
-                          <Trophy size={14} className="text-[var(--color-primary,var(--color-primary))]" />
+                        <div className="w-7 h-7 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center">
+                          <Trophy size={14} className="text-[var(--color-primary)]" />
                         </div>
                         <ChevronRight size={14} className="text-[var(--text-muted)]" />
                       </div>
@@ -1004,7 +1004,7 @@ export default function DashboardPage() {
                     onClick={() => navigate('/app/programme?tab=nutrition')}
                     className="glass-card p-4 text-left active:scale-[0.98] transition-transform"
                   >
-                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-primary-light via-[#FFB894]/50 to-transparent" />
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-primary-light via-primary-light/50 to-transparent" />
 
                     <div className="relative">
                       <div className="flex items-center justify-between mb-2.5">
@@ -1027,7 +1027,7 @@ export default function DashboardPage() {
                               className="h-full rounded-full transition-all"
                               style={{
                                 width: `${Math.round((nutriWeeksDone / nutritionPlan.duree_semaines) * 100)}%`,
-                                background: 'linear-gradient(90deg, var(--color-primary-light), #FFB894)',
+                                background: 'linear-gradient(90deg, var(--color-primary-light), var(--color-primary-light))',
                               }}
                             />
                           </div>
@@ -1054,7 +1054,7 @@ export default function DashboardPage() {
               <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
                 style={{ background: 'linear-gradient(90deg, var(--color-primary), var(--color-primary-light), transparent)' }} />
 
-              <div className="relative">
+              <div id="dash-checkin" className="relative scroll-mt-20">
                 <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold mb-3.5">
                   Check-in du jour
                 </p>
@@ -1186,7 +1186,7 @@ export default function DashboardPage() {
                 style={{
                   ...stagger[4].style,
                   animationDelay: `${(stagger[4].style?.animationDelay ? parseInt(stagger[4].style.animationDelay) : 0) + idx * 60}ms`,
-                  background: 'linear-gradient(135deg, rgba(255,154,108,0.06), transparent)',
+                  background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.08), transparent)',
                 }}
               >
                 <div className="w-10 h-10 rounded-xl bg-primary-light/10 flex items-center justify-center flex-shrink-0 relative">
@@ -1265,7 +1265,7 @@ export default function DashboardPage() {
                     { label: 'Calories', value: nutriMacros.kcal, unit: 'kcal', color: 'var(--color-primary)' },
                     { label: 'Protéines', value: nutriMacros.prot, unit: 'g', color: 'var(--color-primary)' },
                     { label: 'Glucides', value: nutriMacros.gluc, unit: 'g', color: 'var(--color-primary-light)' },
-                    { label: 'Lipides', value: nutriMacros.lip, unit: 'g', color: '#FFB894' },
+                    { label: 'Lipides', value: nutriMacros.lip, unit: 'g', color: 'var(--color-primary-light)' },
                   ].map((m, i) => (
                     <div key={i} className="text-center py-2.5 px-1 rounded-xl bg-[var(--bg-surface)]/60" style={{ borderTop: `2px solid ${m.color}25` }}>
                       <p className="text-[var(--text-primary)] text-sm font-bold leading-none tabular-nums">{m.value}</p>
@@ -1279,7 +1279,7 @@ export default function DashboardPage() {
                   {(() => {
                     const typeLabels = { petit_dej: 'Petit-déjeuner', dejeuner: 'Déjeuner', diner: 'Dîner', collation: 'Collation' }
                     const typeIcons = { petit_dej: Sunrise, dejeuner: Sun, diner: Moon, collation: Coffee }
-                    const typeColors = { petit_dej: 'var(--color-primary-light)', dejeuner: 'var(--color-primary)', diner: '#7A7A78', collation: '#FFB894' }
+                    const typeColors = { petit_dej: 'var(--color-primary-light)', dejeuner: 'var(--color-primary)', diner: '#7A7A78', collation: 'var(--color-primary-light)' }
                     return nutriRepas.map((repas, i) => {
                       const nbAliments = repas.repas_aliments?.length || 0
                       const RepasIcon = typeIcons[repas.type] || UtensilsCrossed
@@ -1306,7 +1306,7 @@ export default function DashboardPage() {
             <div className="relative">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                  <TrendingUp size={13} className="text-[var(--color-primary,var(--color-primary))]" />
+                  <TrendingUp size={13} className="text-[var(--color-primary)]" />
                   <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Score 7 jours</p>
                 </div>
                 {currentWeekAvg !== null && (

@@ -480,7 +480,7 @@ export function ClientLayout() {
               <button
                 onClick={() => navigate('/app/abonnement')}
                 style={{ touchAction: 'manipulation' }}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-[#FF8F5E] text-white font-semibold text-sm hover:opacity-90 active:scale-[0.97] transition-all"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-light text-white font-semibold text-sm hover:opacity-90 active:scale-[0.97] transition-all"
               >
                 Voir les offres
               </button>

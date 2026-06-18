@@ -440,7 +440,7 @@ export default function ClientCalendarPage() {
                                 onClick={() => openSeanceDetail(s)}
                                 className="w-full text-left px-3 py-2.5 rounded-lg transition-all flex items-center gap-2.5 active:scale-[0.98]"
                                 style={{
-                                  background: s.is_completed ? 'rgba(255,154,108,0.06)' : 'rgba(var(--color-primary-rgb),0.06)',
+                                  background: s.is_completed ? 'rgba(var(--color-primary-rgb), 0.08)' : 'rgba(var(--color-primary-rgb),0.06)',
                                   borderLeft: `2px solid ${s.is_completed ? 'var(--color-primary-light)' : 'var(--color-primary)'}`,
                                 }}
                               >
@@ -525,7 +525,7 @@ export default function ClientCalendarPage() {
           style={{ boxShadow: '0 -8px 40px rgba(0,0,0,0.4)' }}>
 
           {/* Accent bar */}
-          <div className="h-[3px] w-full rounded-t-2xl" style={{ background: isDone ? 'linear-gradient(90deg, var(--color-primary-light), #FFB894, transparent)' : 'linear-gradient(90deg, var(--color-primary), var(--color-primary-light), transparent)' }} />
+          <div className="h-[3px] w-full rounded-t-2xl" style={{ background: isDone ? 'linear-gradient(90deg, var(--color-primary-light), var(--color-primary-light), transparent)' : 'linear-gradient(90deg, var(--color-primary), var(--color-primary-light), transparent)' }} />
 
           {/* Handle bar (mobile) */}
           <div className="flex justify-center pt-2 pb-1 sm:hidden">
@@ -726,7 +726,7 @@ export default function ClientCalendarPage() {
                     onClick={() => { setSelectedDay(null); openSeanceDetail(s) }}
                     className="w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 active:scale-[0.98]"
                     style={{
-                      background: s.is_completed ? 'rgba(255,154,108,0.06)' : 'rgba(var(--color-primary-rgb),0.06)',
+                      background: s.is_completed ? 'rgba(var(--color-primary-rgb), 0.08)' : 'rgba(var(--color-primary-rgb),0.06)',
                       borderLeft: `2px solid ${s.is_completed ? 'var(--color-primary-light)' : 'var(--color-primary)'}`,
                     }}
                   >

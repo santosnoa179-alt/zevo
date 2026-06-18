@@ -93,7 +93,7 @@ function Bulle({ message, estMoi, showTail, coachInitials, coachColor }) {
               : `bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)] ${showTail ? 'rounded-[20px] rounded-bl-[6px]' : 'rounded-[20px]'}`
           }`}
           style={estMoi ? {
-            background: 'linear-gradient(135deg, var(--color-primary) 0%, #FF8F5E 100%)',
+            background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)',
             boxShadow: '0 2px 12px rgba(var(--color-primary-rgb),0.2)',
           } : undefined}
         >
@@ -526,7 +526,7 @@ export default function MessagesClientPage() {
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
                 style={{
-                  background: 'linear-gradient(135deg, var(--color-primary) 0%, #FF8F5E 100%)',
+                  background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)',
                   boxShadow: '0 2px 12px rgba(var(--color-primary-rgb),0.25)',
                 }}
               >
@@ -671,7 +671,7 @@ export default function MessagesClientPage() {
                   disabled={!texte.trim() || envoi}
                   className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 disabled:opacity-40"
                   style={{
-                    background: 'linear-gradient(135deg, var(--color-primary) 0%, #FF8F5E 100%)',
+                    background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)',
                     boxShadow: '0 4px 16px rgba(var(--color-primary-rgb),0.35)',
                   }}
                 >

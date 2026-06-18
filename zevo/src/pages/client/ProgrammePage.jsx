@@ -472,7 +472,7 @@ export default function ProgrammePage() {
       {/* ═══════════ HEADER ═══════════ */}
       <div className="pt-2">
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-[#FF8F5E] flex items-center justify-center shadow-lg shadow-primary/20">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-lg shadow-primary/20">
             <Layers size={18} className="text-white" />
           </div>
           <div>
@@ -652,7 +652,7 @@ export default function ProgrammePage() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2.5 text-white font-bold px-7 py-3 rounded-xl transition-all active:scale-95 hover:shadow-xl"
                     style={{
-                      background: 'linear-gradient(135deg, var(--color-primary) 0%, #FF8F5E 100%)',
+                      background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)',
                       boxShadow: '0 4px 20px rgba(var(--color-primary-rgb),0.3)',
                     }}
                   >
@@ -779,7 +779,7 @@ export default function ProgrammePage() {
                             </span>
                             {isCurrent && (
                               <span className="text-[8px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                                style={{ background: 'linear-gradient(135deg, var(--color-primary), #FF8F5E)', color: 'white' }}>
+                                style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))', color: 'white' }}>
                                 En cours
                               </span>
                             )}

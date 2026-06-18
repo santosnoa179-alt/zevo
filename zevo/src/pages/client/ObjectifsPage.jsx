@@ -12,7 +12,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 // ── Constants ──
-const COLORS = { poids: 'var(--color-primary)', tour_bras: 'var(--color-primary-light)', tour_poitrine: '#FFB894', tour_taille: '#E85A1F', tour_hanches: '#C94A15', tour_cuisses: '#7A7A78' }
+const COLORS = { poids: 'var(--color-primary)', tour_bras: 'var(--color-primary-light)', tour_poitrine: 'var(--color-primary-light)', tour_taille: '#E85A1F', tour_hanches: '#C94A15', tour_cuisses: '#7A7A78' }
 const LABELS = { poids: 'Poids', tour_bras: 'Bras', tour_poitrine: 'Poitrine', tour_taille: 'Taille', tour_hanches: 'Hanches', tour_cuisses: 'Cuisses' }
 const UNITS = { poids: 'kg', tour_bras: 'cm', tour_poitrine: 'cm', tour_taille: 'cm', tour_hanches: 'cm', tour_cuisses: 'cm' }
 
@@ -277,7 +277,7 @@ export default function ObjectifsPage() {
       {/* ═══════════════ HEADER ═══════════════ */}
       <div className="pt-2">
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-[#FF8F5E] flex items-center justify-center shadow-lg shadow-primary/20">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-lg shadow-primary/20">
             <Target size={18} className="text-white" />
           </div>
           <div>
@@ -366,7 +366,7 @@ export default function ObjectifsPage() {
                   onClick={() => { setNewValues({}); setShowAllFields(false); setShowSaisie(true) }}
                   className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-bold active:scale-[0.97] transition-all"
                   style={{
-                    background: 'linear-gradient(135deg, var(--color-primary) 0%, #FF8F5E 100%)',
+                    background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)',
                     boxShadow: '0 4px 20px rgba(var(--color-primary-rgb),0.3)',
                   }}
                 >
@@ -563,7 +563,7 @@ export default function ObjectifsPage() {
                       </div>
                       <button type="submit" disabled={savingInline || !inlineValue}
                         className="w-9 h-9 flex items-center justify-center rounded-xl text-white active:scale-90 transition-all disabled:opacity-30 flex-shrink-0"
-                        style={{ background: 'linear-gradient(135deg, var(--color-primary), #FF8F5E)' }}>
+                        style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))' }}>
                         {savingInline ? <Loader2 size={12} className="animate-spin" /> : <Check size={13} strokeWidth={3} />}
                       </button>
                       <button type="button" onClick={() => { setInlineEditing(null); setInlineValue('') }}
@@ -688,7 +688,7 @@ export default function ObjectifsPage() {
               <button type="submit" disabled={savingMens || !fields.some(f => newValues[f])}
                 className="w-full py-3.5 rounded-xl text-white text-sm font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]"
                 style={{
-                  background: 'linear-gradient(135deg, var(--color-primary) 0%, #FF8F5E 100%)',
+                  background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)',
                   boxShadow: '0 4px 20px rgba(var(--color-primary-rgb),0.25)',
                 }}
               >
