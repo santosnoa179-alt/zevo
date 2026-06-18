@@ -77,7 +77,7 @@ export default function CoachClientFichePage() {
       profilRes, habsRes, objRes, logsRes,
       sommeilRes, humeurRes, sportRes, msgsRes
     ] = await Promise.all([
-      supabase.from('profiles').select('nom, email').eq('id', clientId).single(),
+      supabase.from('profiles').select('prenom, nom, email').eq('id', clientId).single(),
       supabase.from('habitudes').select('*').eq('client_id', clientId).eq('actif', true).order('created_at'),
       supabase.from('objectifs').select('*').eq('client_id', clientId).eq('archive', false).order('created_at', { ascending: false }),
       supabase.from('habitudes_log').select('habitude_id, date').eq('client_id', clientId).gte('date', dateMin),
@@ -447,7 +447,7 @@ export default function CoachClientFichePage() {
         </button>
         <div>
           <h1 className="text-[var(--text-primary)] text-xl font-bold">
-            {profil?.nom ?? profil?.email}
+            {[profil?.prenom, profil?.nom].filter(Boolean).join(' ') || profil?.email}
           </h1>
           <p className="text-[var(--text-muted)] text-sm">{profil?.email}</p>
         </div>
