@@ -200,6 +200,8 @@ export function ClientLayout() {
               />
               <span className="font-bold tracking-tight text-[var(--text-primary)] text-sm truncate">{nomApp}</span>
             </>
+          ) : nomApp && nomApp !== 'Zevo' ? (
+            <span className="font-bold tracking-tight text-[var(--text-primary)] text-sm truncate">{nomApp}</span>
           ) : (
             <ZevoLogo size="sm" className="text-[var(--text-primary)]" />
           )}
@@ -299,6 +301,8 @@ export function ClientLayout() {
                 />
                 <span className="font-bold tracking-tight text-[var(--text-primary)] text-base">{nomApp}</span>
               </>
+            ) : nomApp && nomApp !== 'Zevo' ? (
+              <span className="font-bold tracking-tight text-[var(--text-primary)] text-base">{nomApp}</span>
             ) : (
               <ZevoLogo size="sm" className="text-[var(--text-primary)]" />
             )}
