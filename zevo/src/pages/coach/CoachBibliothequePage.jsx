@@ -128,7 +128,7 @@ export default function CoachBibliothequePage() {
       activeSection === 'all' && !currentDossier
         ? ressQ
         : ressQ,
-      supabase.from('clients').select('id, profiles(nom, email)').eq('coach_id', user.id).eq('actif', true),
+      supabase.from('clients').select('id, profiles(prenom, nom, email)').eq('coach_id', user.id).eq('actif', true),
     ])
 
     const allRessources = ressRes.data || []
@@ -444,7 +444,7 @@ export default function CoachBibliothequePage() {
           </div>
           {/* Quick upload */}
           <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-base)] text-[var(--text-muted)] text-xs cursor-pointer hover:text-white hover:bg-[var(--bg-surface)] transition-colors">
-            <Upload size={14} /> Upload rapide
+            <Upload size={14} /> Import rapide
             <input type="file" className="hidden" onChange={(e) => { if (e.target.files?.[0]) quickUpload(e.target.files[0]); e.target.value = '' }} disabled={uploading} />
           </label>
         </div>
@@ -455,7 +455,7 @@ export default function CoachBibliothequePage() {
         <div className="bg-[var(--bg-elevated)] border border-[var(--border-base)] rounded-xl p-3 mb-4">
           <div className="flex items-center gap-3 mb-2">
             <Loader2 size={14} className="animate-spin text-[#FF6B2B]" />
-            <span className="text-[var(--text-primary)] text-xs font-medium">Upload en cours...</span>
+            <span className="text-[var(--text-primary)] text-xs font-medium">Import en cours...</span>
             <span className="text-[var(--text-muted)] text-xs ml-auto tabular-nums">{uploadProgress}%</span>
           </div>
           <div className="h-1 bg-[var(--bg-surface)] rounded-full overflow-hidden">
@@ -697,7 +697,7 @@ export default function CoachBibliothequePage() {
       <Modal isOpen={modalAdd} onClose={() => { setModalAdd(false); resetAddForm() }} title="Ajouter une ressource">
         <form onSubmit={handleAdd} className="space-y-4">
           <div className="flex gap-2">
-            {[{ id: 'lien', label: 'Lien / URL' }, { id: 'fichier', label: 'Upload fichier' }].map(m => (
+            {[{ id: 'lien', label: 'Lien / URL' }, { id: 'fichier', label: 'Importer un fichier' }].map(m => (
               <button key={m.id} type="button" onClick={() => setAddMode(m.id)}
                 className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${addMode === m.id ? 'bg-[#FF6B2B] text-white' : 'bg-[var(--bg-surface)] text-[var(--text-muted)]'}`}>
                 {m.label}
@@ -815,9 +815,12 @@ export default function CoachBibliothequePage() {
               <p className="text-[var(--text-muted)] text-xs">{clients.length} client{clients.length > 1 ? 's' : ''}</p>
               <p className="text-[#FF6B2B] text-xs font-medium">{partagesExistants.length} partagé{partagesExistants.length > 1 ? 's' : ''}</p>
             </div>
+            <p className="text-[var(--text-muted)] text-[11px] px-1">
+              Appuie sur un client pour lui partager cette ressource. Appuie à nouveau pour retirer le partage.
+            </p>
             <div className="space-y-1.5 max-h-[350px] overflow-y-auto">
               {clients.map(c => {
-                const nom = c.profiles?.nom || c.profiles?.email || 'Client'
+                const nom = [c.profiles?.prenom, c.profiles?.nom].filter(Boolean).join(' ') || c.profiles?.email || 'Client'
                 const email = c.profiles?.email || ''
                 const partage = partagesExistants.includes(c.id)
                 return (
@@ -832,7 +835,12 @@ export default function CoachBibliothequePage() {
                       <p className="text-[var(--text-primary)] text-sm truncate">{nom}</p>
                       {email && nom !== email && <p className="text-[var(--text-muted)] text-[10px] truncate">{email}</p>}
                     </div>
-                    {partage ? <CheckCircle2 size={18} className="text-[#FF6B2B] shrink-0" /> : <Circle size={18} className="text-[var(--text-muted)] shrink-0" />}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className={`text-[11px] font-medium ${partage ? 'text-[#FF6B2B]' : 'text-[var(--text-muted)]'}`}>
+                        {partage ? 'Partagé' : 'Partager'}
+                      </span>
+                      {partage ? <CheckCircle2 size={18} className="text-[#FF6B2B]" /> : <Circle size={18} className="text-[var(--text-muted)]" />}
+                    </div>
                   </button>
                 )
               })}
