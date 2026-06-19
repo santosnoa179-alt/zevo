@@ -53,6 +53,10 @@ export default function CoachClientFichePage() {
   const [titreObj, setTitreObj] = useState('')
   const [descObj, setDescObj] = useState('')
   const [dateCibleObj, setDateCibleObj] = useState('')
+  const [typeObj, setTypeObj] = useState('chiffre')      // 'chiffre' | 'simple'
+  const [valeurDepart, setValeurDepart] = useState('')
+  const [valeurCible, setValeurCible] = useState('')
+  const [uniteObj, setUniteObj] = useState('')
   const [savingHab, setSavingHab] = useState(false)
   const [savingObj, setSavingObj] = useState(false)
   const [assigningProg, setAssigningProg] = useState(null)
@@ -173,7 +177,14 @@ export default function CoachClientFichePage() {
   const assignerObjectif = async (e) => {
     e.preventDefault()
     if (!titreObj.trim()) return
+    const chiffre = typeObj === 'chiffre'
+    if (chiffre && (valeurCible === '' || isNaN(parseFloat(valeurCible)))) {
+      toast.error('Renseigne une valeur cible (ex : 75).')
+      return
+    }
     setSavingObj(true)
+    const depart = chiffre ? (valeurDepart === '' ? 0 : parseFloat(valeurDepart)) : null
+    const cible = chiffre ? parseFloat(valeurCible) : null
     const { data, error } = await supabase.from('objectifs').insert({
       client_id: clientId,
       assigned_by: user.id,
@@ -181,10 +192,21 @@ export default function CoachClientFichePage() {
       description: descObj.trim() || null,
       date_cible: dateCibleObj || null,
       peut_supprimer: false,
+      type_objectif: chiffre ? 'mesurable' : 'simple',
+      valeur_depart: depart,
+      valeur_cible: cible,
+      valeur_actuelle: depart,
+      unite: chiffre ? (uniteObj.trim() || null) : null,
+      score: 0,
+      statut: 'en_cours',
     }).select().single()
-    if (!error && data) {
+    if (error) {
+      toast.error(error.message || 'Erreur lors de la création.')
+    } else if (data) {
       setObjectifs(prev => [data, ...prev])
-      setTitreObj(''); setDescObj(''); setDateCibleObj(''); setModalObj(false)
+      setTitreObj(''); setDescObj(''); setDateCibleObj('')
+      setValeurDepart(''); setValeurCible(''); setUniteObj(''); setTypeObj('chiffre')
+      setModalObj(false)
     }
     setSavingObj(false)
   }
@@ -662,7 +684,15 @@ export default function CoachClientFichePage() {
             <Card><CardBody className="text-center py-8 text-[var(--text-muted)] text-sm">Aucun objectif.</CardBody></Card>
           ) : (
             objectifs.map((o) => {
-              const couleurO = couleurScore(o.score)
+              // Progression réelle : pour un objectif chiffré, calculée depuis
+              // les valeurs départ/actuelle/cible (gère croissant ET décroissant,
+              // ex. perte de poids). Sinon, on retombe sur le score stocké.
+              const chiffre = o.valeur_cible != null && o.valeur_depart != null && o.valeur_cible !== o.valeur_depart
+              const actuel = o.valeur_actuelle ?? o.valeur_depart
+              const pct = chiffre
+                ? Math.round(Math.min(100, Math.max(0, ((actuel - o.valeur_depart) / (o.valeur_cible - o.valeur_depart)) * 100)))
+                : (o.score || 0)
+              const couleurO = couleurScore(pct)
               return (
                 <Card key={o.id}>
                   <CardBody>
@@ -672,12 +702,18 @@ export default function CoachClientFichePage() {
                           <p className="text-[var(--text-primary)] text-sm font-medium truncate">{o.titre}</p>
                           {!o.peut_supprimer && <Lock size={11} className="text-[#FF6B2B]/50 flex-shrink-0" />}
                         </div>
-                        {o.description && <p className="text-[var(--text-muted)] text-xs mt-0.5 line-clamp-1">{o.description}</p>}
+                        {chiffre ? (
+                          <p className="text-[var(--text-muted)] text-xs mt-0.5 tabular-nums">
+                            {actuel ?? '—'} / <span className="text-[#FF6B2B] font-semibold">{o.valeur_cible}</span> {o.unite || ''}
+                          </p>
+                        ) : o.description ? (
+                          <p className="text-[var(--text-muted)] text-xs mt-0.5 line-clamp-1">{o.description}</p>
+                        ) : null}
                       </div>
-                      <p className="font-bold flex-shrink-0" style={{ color: couleurO }}>{o.score}%</p>
+                      <p className="font-bold flex-shrink-0" style={{ color: couleurO }}>{pct}%</p>
                     </div>
                     <div className="mt-2 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${o.score}%`, backgroundColor: couleurO }} />
+                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: couleurO }} />
                     </div>
                   </CardBody>
                 </Card>
@@ -840,7 +876,51 @@ export default function CoachClientFichePage() {
       {/* Modal assigner objectif */}
       <Modal isOpen={modalObj} onClose={() => setModalObj(false)} title="Assigner un objectif">
         <form onSubmit={assignerObjectif} className="space-y-4">
-          <Input label="Titre de l'objectif" placeholder="Ex : Perdre 5kg d'ici juin" value={titreObj} onChange={(e) => setTitreObj(e.target.value)} required autoFocus />
+          <Input label="Titre de l'objectif" placeholder="Ex : Perdre du poids, Courir 10 km…" value={titreObj} onChange={(e) => setTitreObj(e.target.value)} required autoFocus />
+
+          {/* Type d'objectif */}
+          <div>
+            <label className="text-sm text-[var(--text-secondary)] font-medium block mb-1.5">Type d'objectif</label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: 'chiffre', label: 'Chiffré', desc: 'Mesurable (kg, km…)' },
+                { id: 'simple', label: 'Simple', desc: 'À atteindre' },
+              ].map(t => (
+                <button key={t.id} type="button" onClick={() => setTypeObj(t.id)}
+                  className={`p-2.5 rounded-xl border text-left transition-all ${
+                    typeObj === t.id
+                      ? 'border-[#FF6B2B] bg-[#FF6B2B]/10'
+                      : 'border-[var(--border-base)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)]'
+                  }`}>
+                  <p className={`text-sm font-semibold ${typeObj === t.id ? 'text-[#FF6B2B]' : 'text-[var(--text-primary)]'}`}>{t.label}</p>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{t.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Cible chiffrée — flexible : n'importe quelle unité */}
+          {typeObj === 'chiffre' && (
+            <div className="space-y-2.5 rounded-xl border border-[var(--border-base)] bg-[var(--bg-surface)]/40 p-3">
+              <div className="grid grid-cols-3 gap-2">
+                <Input label="Départ" type="number" step="any" inputMode="decimal" placeholder="80" value={valeurDepart} onChange={(e) => setValeurDepart(e.target.value)} />
+                <Input label="Cible" type="number" step="any" inputMode="decimal" placeholder="75" value={valeurCible} onChange={(e) => setValeurCible(e.target.value)} required />
+                <Input label="Unité" placeholder="kg" value={uniteObj} onChange={(e) => setUniteObj(e.target.value)} />
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {['kg', 'km', 'm', 'cm', '%', 'reps', 'séances', 'min', 'L', 'pas'].map(u => (
+                  <button key={u} type="button" onClick={() => setUniteObj(u)}
+                    className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                      uniteObj === u ? 'border-[#FF6B2B] text-[#FF6B2B] bg-[#FF6B2B]/10' : 'border-[var(--border-base)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                    }`}>{u}</button>
+                ))}
+              </div>
+              <p className="text-[10px] text-[var(--text-muted)]">
+                Le client fera progresser sa valeur de <b>{valeurDepart || '…'}</b> vers <b>{valeurCible || '…'}</b> {uniteObj}. La barre de progression se calcule automatiquement.
+              </p>
+            </div>
+          )}
+
           <div>
             <label className="text-sm text-[var(--text-secondary)] font-medium block mb-1.5">Description (optionnel)</label>
             <textarea value={descObj} onChange={(e) => setDescObj(e.target.value)} placeholder="Contexte, étapes clés…" rows={2}
