@@ -21,6 +21,7 @@
    Usage : rgba(var(--color-primary-rgb), 0.1) */
 :root {
   --color-primary-rgb: 255, 107, 43;
+  --color-primary-light-rgb: 255, 154, 108;
 }
 
 /* ═══════════════════════════════════════════════════════════════
