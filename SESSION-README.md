@@ -1,7 +1,50 @@
 # 📋 Session README — Reprise du travail Zevo
 
-> Dernière mise à jour : **16 juin 2026** — section 3 (flow coach) : 8 bugs corrigés + 1 feature post-séance, nettoyage DB
+> Dernière mise à jour : **19 juin 2026** — white-label complet app client + objectifs chiffrés + flow client
 > Pour reprendre dans un nouveau chat Claude Code, **lis ce fichier en premier** puis attaque la todo.
+
+---
+
+## 🆕 Session du 19 juin 2026 — white-label app client + objectifs chiffrés + flow client
+
+Migrations DB versionnées, **white-label complet** de l'app client (toute l'app suit la couleur du coach), tests du flow client, et **objectifs chiffrés flexibles** côté coach.
+
+### 🎯 Commits de la session (du plus récent au plus ancien)
+
+| SHA | Description |
+|---|---|
+| `1295f3d` | feat(coach): objectifs chiffrés flexibles (départ/cible/unité libre) + progression réelle |
+| `f9ee578` | fix(white-label): texte invisible mode clair (opacités hex sur var → color-mix, 50 occ.) |
+| `62bdc90` | fix(white-label): dériver --color-primary-light de la couleur du coach (dégradés violet→violet clair) |
+| `839e394` | fix(client): derniers oranges résiduels + 'Prochaine action' cliquable (toujours une action) |
+| `6aa3690` | feat(white-label): finition vague 2 — halos rgba + dégradés (var --color-primary-rgb + hexToRgb) |
+| `ff0d96f` | feat(white-label): vague 1 — expose `primary` Tailwind + remplace orange hardcodé (660 occ, 33 fichiers) |
+| `d34e0f6` | fix(client): afficher le nom d'app du coach quand pas de logo (sinon ZEVO générique) |
+| `aa2fd18` | db: versionner les 4 migrations DB de la session 16 juin (convention supabase/*.sql) |
+
+### ✅ White-label app client — COMPLET
+Le coach choisit UNE couleur (`coaches.couleur_primaire`) → **toute l'app cliente** suit : boutons, nav, badges, dégradés, halos, graphiques. Mécanique :
+- `--color-primary` exposé comme couleur Tailwind (`@theme`), surchargé au runtime par `useCoachTheme` (côté client uniquement ; côté coach reste orange Zevo).
+- `--color-primary-light` **dérivé** de la couleur du coach (éclairci 35% via `hexToRgb`+`lighten`) → dégradés "couleur → couleur claire" cohérents.
+- `--color-primary-rgb` / `--color-primary-light-rgb` pour les rgba() dynamiques.
+- Opacités : `color-mix(in srgb, …)` partout (les `${color}+hex` cassaient avec une var CSS).
+- Couleurs sémantiques (vert succès / rouge erreur / ambre warning) **non** thémées (voulu).
+- S'applique au **chargement** de l'app client (pas de live-update sans refresh — acceptable).
+- Vérifié en preview avec violet ET cyan, mode clair ET sombre.
+
+### ✅ Tests flow client (section 4) — retours Noa
+- Habitudes : OK. Nutrition client : OK. Abonnement : redirection Stripe OK.
+- **Le client NE crée PAS d'objectifs** (c'est le coach) — il crée seulement des habitudes.
+- Dashboard : "Prochaine action" menait nulle part pour certains cas → corrigé (chaque cas a une action : séance/check-in scroll/habitudes/messages/calendrier).
+
+### ✅ Objectifs chiffrés flexibles (coach) — `1295f3d`
+Le modal "Assigner un objectif" expose maintenant : type Chiffré/Simple + Départ · Cible · **Unité libre** (chips kg/km/m/%/reps/séances… ou saisie libre). Insère type_objectif/valeur_depart/cible/actuelle/unite. La page client (saisie inline déjà existante) affiche la progression. Gère croissant ET décroissant.
+
+### ⏳ RESTE À FAIRE (prochaine session)
+- [ ] **Améliorer l'affichage des offres côté client** (page Abonnement `AbonnementPage` / cartes d'offres) — demandé par Noa, pas encore fait.
+- [ ] Vérifier sur la prod : white-label (toutes couleurs), modal objectif chiffré, prochaine action.
+- [ ] Lancer le chip de fond "prénom + nom client — écrans restants".
+- [ ] Sections 5-9 : admin, mobile, monitoring, légal.
 
 ---
 
