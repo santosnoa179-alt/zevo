@@ -293,48 +293,53 @@ export default function AbonnementPage() {
           <p className="text-[11px] text-[var(--text-muted)] mb-4">
             💡 Si votre coach vous a donné un code promo, vous pourrez le saisir sur la page de paiement Stripe.
           </p>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {offres.map((o, i) => {
               const si = stagger[i] || {}
+              const freq = FREQ_LABELS[o.frequence] || ''
               return (
               <div
                 key={o.id}
-                className={`bg-[var(--bg-card)] border border-[var(--border-base)] rounded-xl p-5 flex items-center justify-between ${si.className || ''}`}
+                className={`relative bg-[var(--bg-card)] border border-[var(--border-base)] rounded-2xl p-5 flex flex-col hover:border-primary/30 transition-colors ${si.className || ''}`}
                 style={si.style}
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
-                    <Package size={18} className="text-primary" />
-                    <h3 className="text-[var(--text-primary)] font-semibold">{o.titre}</h3>
+                {/* Header : icône + titre */}
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Package size={17} className="text-primary" />
                   </div>
-                  {o.description && (
-                    <p className="text-[var(--text-muted)] text-sm ml-[30px] mb-2">{o.description}</p>
+                  <h3 className="text-[var(--text-primary)] font-semibold text-[15px] leading-tight">{o.titre}</h3>
+                </div>
+
+                {/* Description (pousse le prix + CTA en bas) */}
+                {o.description
+                  ? <p className="text-[var(--text-muted)] text-[13px] leading-relaxed mb-4 flex-1">{o.description}</p>
+                  : <div className="flex-1 min-h-[8px]" />}
+
+                {/* Prix */}
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-[var(--text-primary)] text-3xl font-black tracking-tight">{(o.prix / 100).toFixed(0)}€</span>
+                  <span className="text-[var(--text-muted)] text-sm font-medium">{freq}</span>
+                </div>
+
+                {/* CTA pleine largeur */}
+                <button
+                  onClick={() => payer(o)}
+                  disabled={processing === o.id}
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-white px-5 py-3 rounded-xl text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
+                >
+                  {processing === o.id ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Paiement…
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard size={16} />
+                      Choisir cette offre
+                    </>
                   )}
-                  <p className="text-[var(--text-muted)] text-xs ml-[30px]">{FREQ_LABELS[o.frequence]}</p>
-                </div>
-                <div className="flex items-center gap-4 ml-4">
-                  <div className="text-right">
-                    <p className="text-[var(--text-primary)] text-2xl font-bold">{(o.prix / 100).toFixed(0)}€</p>
-                    <p className="text-[var(--text-muted)] text-xs">{FREQ_LABELS[o.frequence]}</p>
-                  </div>
-                  <button
-                    onClick={() => payer(o)}
-                    disabled={processing === o.id}
-                    className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55e24] transition-colors disabled:opacity-50"
-                  >
-                    {processing === o.id ? (
-                      <>
-                        <Loader2 size={16} className="animate-spin" />
-                        Paiement en cours...
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard size={16} />
-                        Payer
-                      </>
-                    )}
-                  </button>
-                </div>
+                </button>
               </div>
               )
             })}
