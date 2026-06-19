@@ -312,7 +312,7 @@ export default function ClientCalendarPage() {
                     <div
                       key={item.id}
                       className="truncate text-[7px] font-semibold px-1 py-[1px] rounded-sm leading-tight"
-                      style={{ backgroundColor: `${item.color}15`, color: item.color }}
+                      style={{ backgroundColor: `color-mix(in srgb, ${item.color} 8.2%, transparent)`, color: item.color }}
                       onClick={(ev) => { ev.stopPropagation(); handleItemClick(item) }}
                     >
                       {item.title}
@@ -356,10 +356,10 @@ export default function ClientCalendarPage() {
                     key={item.id}
                     onClick={() => handleItemClick(item)}
                     className="w-full flex items-center gap-3 p-3 rounded-xl transition-all active:scale-[0.98]"
-                    style={{ background: `linear-gradient(135deg, ${itemColor}08, transparent)`, border: `1px solid ${itemColor}12` }}
+                    style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${itemColor} 3.1%, transparent), transparent)`, border: `1px solid color-mix(in srgb, ${itemColor} 7.1%, transparent)` }}
                   >
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: `${itemColor}12` }}>
+                      style={{ backgroundColor: `color-mix(in srgb, ${itemColor} 7.1%, transparent)` }}>
                       <ItemIcon size={16} style={{ color: itemColor }} />
                     </div>
                     <div className="flex-1 min-w-0 text-left">
@@ -478,12 +478,12 @@ export default function ClientCalendarPage() {
                               onClick={() => openEventDetail(e)}
                               className="w-full text-left px-3 py-2.5 rounded-lg transition-all flex items-center gap-2.5 active:scale-[0.98]"
                               style={{
-                                background: `${evType.color}06`,
-                                borderLeft: `2px solid ${evType.color}40`,
+                                background: `color-mix(in srgb, ${evType.color} 2.4%, transparent)`,
+                                borderLeft: `2px solid color-mix(in srgb, ${evType.color} 25.1%, transparent)`,
                               }}
                             >
                               <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
-                                style={{ backgroundColor: `${evType.color}12` }}>
+                                style={{ backgroundColor: `color-mix(in srgb, ${evType.color} 7.1%, transparent)` }}>
                                 <EvIcon size={14} style={{ color: evType.color }} />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -646,7 +646,7 @@ export default function ClientCalendarPage() {
           style={{ boxShadow: '0 -8px 40px rgba(0,0,0,0.4)' }}>
 
           {/* Accent bar */}
-          <div className="h-[3px] w-full rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${evType.color}, ${evType.color}80, transparent)` }} />
+          <div className="h-[3px] w-full rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${evType.color}, color-mix(in srgb, ${evType.color} 50.2%, transparent), transparent)` }} />
 
           <div className="flex justify-center pt-2 pb-1 sm:hidden">
             <div className="w-8 h-1 rounded-full bg-[var(--border-base)]" />
@@ -656,7 +656,7 @@ export default function ClientCalendarPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <EvIcon size={14} style={{ color: evType.color }} className="flex-shrink-0" />
-                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: `${evType.color}80` }}>
+                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: `color-mix(in srgb, ${evType.color} 50.2%, transparent)` }}>
                   {evType.label}
                 </span>
               </div>
@@ -764,12 +764,12 @@ export default function ClientCalendarPage() {
                   onClick={() => { setSelectedDay(null); openEventDetail(e) }}
                   className="w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 active:scale-[0.98]"
                   style={{
-                    background: `${evType.color}06`,
-                    borderLeft: `2px solid ${evType.color}30`,
+                    background: `color-mix(in srgb, ${evType.color} 2.4%, transparent)`,
+                    borderLeft: `2px solid color-mix(in srgb, ${evType.color} 18.8%, transparent)`,
                   }}
                 >
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: `${evType.color}12` }}>
+                    style={{ backgroundColor: `color-mix(in srgb, ${evType.color} 7.1%, transparent)` }}>
                     <EvIcon size={15} style={{ color: evType.color }} />
                   </div>
                   <div className="flex-1 min-w-0">

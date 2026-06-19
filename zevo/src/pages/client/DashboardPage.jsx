@@ -44,7 +44,7 @@ function ScoreGauge({ score, couleur, size = 120 }) {
           transform={`rotate(-90 ${center} ${center})`}
           style={{
             transition: 'stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1)',
-            filter: `drop-shadow(0 0 6px ${couleur}50)`,
+            filter: `drop-shadow(0 0 6px color-mix(in srgb, ${couleur} 31.4%, transparent))`,
           }}
         />
         <text x={center} y={center - 4} textAnchor="middle" fill="var(--text-primary)" fontSize="28" fontWeight="800" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
@@ -733,17 +733,17 @@ export default function DashboardPage() {
               className={`group w-full rounded-2xl border p-3.5 text-left active:scale-[0.98] transition-all ${stagger[1].className}`}
               style={{
                 ...stagger[1].style,
-                background: `linear-gradient(135deg, ${nextStep.color}0A, transparent)`,
-                borderColor: `${nextStep.color}15`,
+                background: `linear-gradient(135deg, color-mix(in srgb, ${nextStep.color} 3.9%, transparent), transparent)`,
+                borderColor: `color-mix(in srgb, ${nextStep.color} 8.2%, transparent)`,
               }}
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: `${nextStep.color}12` }}>
+                  style={{ background: `color-mix(in srgb, ${nextStep.color} 7.1%, transparent)` }}>
                   <nextStep.icon size={18} style={{ color: nextStep.color }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[9px] uppercase tracking-widest font-bold mb-0.5" style={{ color: `${nextStep.color}80` }}>
+                  <p className="text-[9px] uppercase tracking-widest font-bold mb-0.5" style={{ color: `color-mix(in srgb, ${nextStep.color} 50.2%, transparent)` }}>
                     Prochaine action
                   </p>
                   <p className="text-[var(--text-primary)] text-sm font-bold leading-snug">{nextStep.label}</p>
@@ -892,11 +892,11 @@ export default function DashboardPage() {
                             ? 'bg-[var(--bg-surface)]/50'
                             : 'bg-[var(--bg-surface)]/80 hover:bg-[var(--bg-surface)]'
                         }`}
-                        style={fait ? { borderLeft: `2px solid ${accentColor}30` } : { borderLeft: '2px solid transparent' }}
+                        style={fait ? { borderLeft: `2px solid color-mix(in srgb, ${accentColor} 18.8%, transparent)` } : { borderLeft: '2px solid transparent' }}
                       >
                         {fait ? (
                           <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
-                               style={{ backgroundColor: `${accentColor}15` }}>
+                               style={{ backgroundColor: `color-mix(in srgb, ${accentColor} 8.2%, transparent)` }}>
                             <CheckCircle2 size={16} style={{ color: accentColor }} />
                           </div>
                         ) : (
@@ -1147,8 +1147,8 @@ export default function DashboardPage() {
                             >
                               <div className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
                                 style={{
-                                  background: humeurInput === score ? `${color}18` : 'var(--bg-card)',
-                                  border: humeurInput === score ? `1.5px solid ${color}35` : '1.5px solid var(--border-base)',
+                                  background: humeurInput === score ? `color-mix(in srgb, ${color} 9.4%, transparent)` : 'var(--bg-card)',
+                                  border: humeurInput === score ? `1.5px solid color-mix(in srgb, ${color} 20.8%, transparent)` : '1.5px solid var(--border-base)',
                                   transform: humeurInput === score ? 'scale(1.1)' : 'scale(1)',
                                 }}
                               >
@@ -1267,9 +1267,9 @@ export default function DashboardPage() {
                     { label: 'Glucides', value: nutriMacros.gluc, unit: 'g', color: 'var(--color-primary-light)' },
                     { label: 'Lipides', value: nutriMacros.lip, unit: 'g', color: 'var(--color-primary-light)' },
                   ].map((m, i) => (
-                    <div key={i} className="text-center py-2.5 px-1 rounded-xl bg-[var(--bg-surface)]/60" style={{ borderTop: `2px solid ${m.color}25` }}>
+                    <div key={i} className="text-center py-2.5 px-1 rounded-xl bg-[var(--bg-surface)]/60" style={{ borderTop: `2px solid color-mix(in srgb, ${m.color} 14.5%, transparent)` }}>
                       <p className="text-[var(--text-primary)] text-sm font-bold leading-none tabular-nums">{m.value}</p>
-                      <p className="text-[9px] font-medium mt-0.5" style={{ color: `${m.color}70` }}>{m.unit}</p>
+                      <p className="text-[9px] font-medium mt-0.5" style={{ color: `color-mix(in srgb, ${m.color} 43.9%, transparent)` }}>{m.unit}</p>
                       <p className="text-[var(--text-muted)] text-[8px] mt-0.5">{m.label}</p>
                     </div>
                   ))}
@@ -1286,7 +1286,7 @@ export default function DashboardPage() {
                       const repasColor = typeColors[repas.type] || 'var(--color-primary)'
                       return (
                         <div key={repas.id || i} className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-[var(--bg-surface)]/50"
-                          style={{ borderLeft: `2px solid ${repasColor}30` }}>
+                          style={{ borderLeft: `2px solid color-mix(in srgb, ${repasColor} 18.8%, transparent)` }}>
                           <RepasIcon size={15} style={{ color: repasColor }} className="flex-shrink-0 opacity-70" />
                           <div className="flex-1 min-w-0">
                             <p className="text-[var(--text-primary)] text-[13px] font-medium">{typeLabels[repas.type] || repas.type}</p>

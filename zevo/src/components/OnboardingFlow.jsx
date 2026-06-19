@@ -154,7 +154,7 @@ export default function OnboardingFlow({ onComplete }) {
             <div className="text-center">
               <div
                 className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-                style={{ backgroundColor: `${couleur}20` }}
+                style={{ backgroundColor: `color-mix(in srgb, ${couleur} 12.5%, transparent)` }}
               >
                 <User size={24} style={{ color: couleur }} />
               </div>
@@ -238,7 +238,7 @@ export default function OnboardingFlow({ onComplete }) {
           <div className="bg-[var(--bg-card)] rounded-2xl p-8 text-center space-y-6 animate-fade-in">
             <div
               className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center"
-              style={{ backgroundColor: `${couleur}20` }}
+              style={{ backgroundColor: `color-mix(in srgb, ${couleur} 12.5%, transparent)` }}
             >
               <Sparkles size={32} style={{ color: couleur }} />
             </div>
@@ -275,7 +275,7 @@ export default function OnboardingFlow({ onComplete }) {
             <div className="text-center">
               <div
                 className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-                style={{ backgroundColor: `${couleur}20` }}
+                style={{ backgroundColor: `color-mix(in srgb, ${couleur} 12.5%, transparent)` }}
               >
                 <CheckSquare size={24} style={{ color: couleur }} />
               </div>
@@ -322,7 +322,7 @@ export default function OnboardingFlow({ onComplete }) {
             <div className="text-center">
               <div
                 className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-                style={{ backgroundColor: `${couleur}20` }}
+                style={{ backgroundColor: `color-mix(in srgb, ${couleur} 12.5%, transparent)` }}
               >
                 <Target size={24} style={{ color: couleur }} />
               </div>

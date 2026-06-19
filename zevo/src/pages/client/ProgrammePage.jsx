@@ -497,8 +497,8 @@ export default function ProgrammePage() {
                 : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
             }`}
             style={tab === t.key ? {
-              background: `linear-gradient(135deg, ${t.color} 0%, ${t.color}cc 100%)`,
-              boxShadow: `0 4px 16px ${t.color}30`,
+              background: `linear-gradient(135deg, ${t.color} 0%, color-mix(in srgb, ${t.color} 80%, transparent) 100%)`,
+              boxShadow: `0 4px 16px color-mix(in srgb, ${t.color} 18.8%, transparent)`,
             } : undefined}
           >
             <t.icon size={15} />

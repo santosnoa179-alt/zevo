@@ -290,8 +290,8 @@ function GoalsPreview() {
             }}>
               <div style={{
                 width: `${g.pct}%`, height: '100%', borderRadius: 4,
-                background: `linear-gradient(90deg, ${g.color}, ${g.color}cc)`,
-                boxShadow: `0 0 12px ${g.color}40`,
+                background: `linear-gradient(90deg, ${g.color}, color-mix(in srgb, ${g.color} 80%, transparent))`,
+                boxShadow: `0 0 12px color-mix(in srgb, ${g.color} 25.1%, transparent)`,
                 transition: 'width 1s cubic-bezier(0.22,1,0.36,1)',
               }} />
             </div>

@@ -127,7 +127,7 @@ export function FileBubble({ fileUrl, fileName, fileType, estMoi, createdAt }) {
           {/* File icon */}
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: `${style.color}20` }}
+            style={{ backgroundColor: `color-mix(in srgb, ${style.color} 12.5%, transparent)` }}
           >
             <FileText size={18} style={{ color: style.color }} />
           </div>

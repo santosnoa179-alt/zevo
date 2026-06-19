@@ -23,7 +23,7 @@ export default function PullToRefreshIndicator({ pullDistance, isRefreshing, thr
     >
       <div
         className={`flex items-center justify-center transition-all duration-200 ${showReady && !isRefreshing ? 'text-primary' : 'text-[var(--text-muted)]'}`}
-        style={{ transform: `scale(${isRefreshing ? 1 : scale}) rotate(${isRefreshing ? 0 : rotation}deg)` }}
+        style={{ transform: `scale(${isRefreshing ? 1 : scale}) rotate(color-mix(in srgb, ${isRefreshing ? 0 : rotation} 87.1%, transparent)g)` }}
       >
         {isRefreshing ? (
           <div className="flex items-center gap-2">

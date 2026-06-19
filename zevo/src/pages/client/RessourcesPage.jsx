@@ -110,7 +110,7 @@ export default function RessourcesPage() {
               {/* Icône type */}
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                style={{ backgroundColor: `${config.color}15` }}
+                style={{ backgroundColor: `color-mix(in srgb, ${config.color} 8.2%, transparent)` }}
               >
                 <Icon size={18} style={{ color: config.color }} />
               </div>
@@ -121,7 +121,7 @@ export default function RessourcesPage() {
                 <div className="flex items-center gap-2 mt-0.5">
                   <span
                     className="text-[10px] px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: `${config.color}15`, color: config.color }}
+                    style={{ backgroundColor: `color-mix(in srgb, ${config.color} 8.2%, transparent)`, color: config.color }}
                   >
                     {config.label}
                   </span>

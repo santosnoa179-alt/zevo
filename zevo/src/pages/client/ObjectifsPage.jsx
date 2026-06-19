@@ -53,7 +53,7 @@ function HeroRing({ pct, size = 120, stroke = 8, color = 'var(--color-primary)',
       {/* Ambient glow */}
       {pct > 0 && (
         <div className="absolute inset-0 rounded-full animate-breathe"
-          style={{ background: `radial-gradient(circle, ${color}15 0%, transparent 70%)` }} />
+          style={{ background: `radial-gradient(circle, color-mix(in srgb, ${color} 8.2%, transparent) 0%, transparent 70%)` }} />
       )}
       <svg width={size} height={size} className="-rotate-90 relative z-10">
         <defs>

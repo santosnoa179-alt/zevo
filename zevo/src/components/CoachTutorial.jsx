@@ -441,7 +441,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
 
           {/* Top accent line */}
           <div className="absolute top-0 inset-x-0 h-[1px]"
-            style={{ background: `linear-gradient(90deg, transparent, ${accent.text}50, transparent)` }} />
+            style={{ background: `linear-gradient(90deg, transparent, color-mix(in srgb, ${accent.text} 31.4%, transparent), transparent)` }} />
 
           {/* Content padding */}
           <div className={`${hasTarget ? 'px-6 pt-5 pb-5' : 'px-7 pt-7 pb-6'}`}>
@@ -464,7 +464,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                 className="h-full rounded-full transition-all duration-700 ease-out"
                 style={{
                   width: `${progressPct}%`,
-                  background: `linear-gradient(90deg, ${accent.text}, ${accent.text}99)`,
+                  background: `linear-gradient(90deg, ${accent.text}, color-mix(in srgb, ${accent.text} 60%, transparent))`,
                 }}
               />
             </div>
@@ -693,7 +693,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                       transition-all duration-200 cursor-default"
                       style={{ animationDelay: `${i * 0.1}s` }}>
                       <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                        style={{ background: `${action.color}15` }}>
+                        style={{ background: `color-mix(in srgb, ${action.color} 8.2%, transparent)` }}>
                         <AIcon size={16} color={action.color} strokeWidth={1.8} />
                       </div>
                       <span className="text-[11px] font-medium text-white/60 text-center leading-tight">
@@ -750,7 +750,7 @@ export default function CoachTutorial({ onComplete, coachName }) {
                     active:translate-y-0
                     transition-all duration-200"
                   style={{
-                    background: `linear-gradient(135deg, ${accent.text}, ${accent.text}cc)`,
+                    background: `linear-gradient(135deg, ${accent.text}, color-mix(in srgb, ${accent.text} 80%, transparent))`,
                     boxShadow: `0 4px 20px ${accent.glow}`,
                   }}
                   onMouseEnter={e => e.currentTarget.style.boxShadow = `0 8px 30px ${accent.glow}`}

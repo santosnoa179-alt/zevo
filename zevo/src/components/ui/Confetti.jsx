@@ -42,7 +42,7 @@ export function Confetti({ active, duration = 3000, count = 50 }) {
       left: `${randomBetween(10, 90)}%`,
       animDelay: `${randomBetween(0, 0.5)}s`,
       animDuration: `${randomBetween(1.5, 3)}s`,
-      rotate: `${randomBetween(0, 360)}deg`,
+      rotate: `color-mix(in srgb, ${randomBetween(0, 360)} 87.1%, transparent)g`,
       translateY: `${randomBetween(200, 600)}px`,
       translateX: `${randomBetween(-150, 150)}px`,
       scale: randomBetween(0.5, 1.2),
@@ -132,7 +132,7 @@ export function StreakMilestone({ streak }) {
       <div className={`relative pointer-events-auto w-full max-w-[300px]
         ${exiting ? 'animate-[msCardOut_0.35s_ease-in_forwards]' : 'animate-[msCardIn_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]'}`}>
         <div className="relative overflow-hidden rounded-3xl bg-[var(--bg-card)] border border-[var(--border-base)]
-          shadow-2xl" style={{ boxShadow: `0 24px 60px ${milestone.color}20, 0 0 40px ${milestone.color}10` }}>
+          shadow-2xl" style={{ boxShadow: `0 24px 60px color-mix(in srgb, ${milestone.color} 12.5%, transparent), 0 0 40px color-mix(in srgb, ${milestone.color} 6.3%, transparent)` }}>
 
           {/* Top glow */}
           <div className="absolute top-0 inset-x-0 h-32 opacity-20 pointer-events-none"
@@ -147,8 +147,8 @@ export function StreakMilestone({ streak }) {
               <div className="absolute inset-0 rounded-2xl rotate-6 opacity-20"
                 style={{ background: milestone.color }} />
               <div className="relative w-full h-full rounded-2xl flex items-center justify-center"
-                style={{ background: `linear-gradient(135deg, ${milestone.color}, ${milestone.color}cc)`,
-                  boxShadow: `0 8px 24px ${milestone.color}40` }}>
+                style={{ background: `linear-gradient(135deg, ${milestone.color}, color-mix(in srgb, ${milestone.color} 80%, transparent))`,
+                  boxShadow: `0 8px 24px color-mix(in srgb, ${milestone.color} 25.1%, transparent)` }}>
                 <span className="text-white text-2xl font-black">{milestone.icon}</span>
               </div>
               {/* Sparkle */}
@@ -174,7 +174,7 @@ export function StreakMilestone({ streak }) {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl
               bg-[var(--bg-surface)] border border-[var(--border-base)]">
               <div className="w-5 h-5 rounded-md flex items-center justify-center"
-                style={{ background: `${milestone.color}20` }}>
+                style={{ background: `color-mix(in srgb, ${milestone.color} 12.5%, transparent)` }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill={milestone.color}>
                   <path d="M12 23c-3.6 0-8-3.1-8-9.3C4 7.5 11.4 1 11.7.7c.2-.2.4-.2.6 0C12.6 1 20 7.5 20 13.7c0 6.2-4.4 9.3-8 9.3z"/>
                 </svg>

@@ -342,7 +342,7 @@ export function CoachLayout() {
                           <>
                             <div
                               className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                              style={{ backgroundColor: isActive ? `${itemColor}18` : 'transparent' }}
+                              style={{ backgroundColor: isActive ? `color-mix(in srgb, ${itemColor} 9.4%, transparent)` : 'transparent' }}
                             >
                               <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} style={{ color: isActive ? itemColor : undefined }} className={isActive ? '' : 'text-[var(--text-muted)]'} />
                             </div>
@@ -429,8 +429,8 @@ export function CoachLayout() {
                               isActive ? '' : 'group-hover:scale-105'
                             }`}
                             style={{
-                              backgroundColor: isActive ? `${itemColor}18` : 'transparent',
-                              boxShadow: isActive ? `0 4px 12px ${itemColor}15` : 'none',
+                              backgroundColor: isActive ? `color-mix(in srgb, ${itemColor} 9.4%, transparent)` : 'transparent',
+                              boxShadow: isActive ? `0 4px 12px color-mix(in srgb, ${itemColor} 8.2%, transparent)` : 'none',
                             }}
                           >
                             <Icon
