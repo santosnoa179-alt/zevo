@@ -54,6 +54,10 @@ export default function AdminCoachsPage() {
 
   // -- Actions admin --
   const toggleAbonnement = async (coachId, actif) => {
+    // actif = état courant. Si le coach est actif, ce clic le DÉSACTIVE →
+    // action impactante (il perd l'accès, ses clients aussi) → on confirme.
+    // La réactivation (inactif → actif) est inoffensive, pas de confirmation.
+    if (actif && !window.confirm('Désactiver ce coach ? Il perdra l’accès à son espace (et ses clients au leur). Tu pourras le réactiver à tout moment.')) return
     setActionLoading(coachId)
     await supabase
       .from('coaches')
