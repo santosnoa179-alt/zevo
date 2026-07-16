@@ -31,16 +31,19 @@ const AVATAR_COLORS = ['#FF6B2B', '#64748b', '#475569', '#9ca3af', '#334155', '#
 
 // ── Onglets internes (affichés dans la barre) ──
 // Infos/Partage accessibles via icônes header. Suivi fusionne dans Vue d'ensemble.
+// Ordre Gymkee : Activité / Fitness / Nutrition / (Santé, Task 7) / Habitudes /
+// Objectifs / Calendrier / Infos / (Facturation, Task 5)
 const TABS = [
-  { id: 'overview', label: 'Vue d\'ensemble', icon: Eye },
-  { id: 'calendar', label: 'Calendrier', icon: Calendar },
-  { id: 'sport', label: 'Sport', icon: Dumbbell },
+  { id: 'overview', label: 'Activité', icon: Eye },
+  { id: 'sport', label: 'Fitness', icon: Dumbbell },
   { id: 'nutrition', label: 'Nutrition', icon: Apple },
   { id: 'habitudes', label: 'Habitudes', icon: Flame },
   { id: 'objectifs', label: 'Objectifs', icon: Target },
+  { id: 'calendar', label: 'Calendrier', icon: Calendar },
+  { id: 'infos', label: 'Infos personnelles', icon: User },
 ]
 // Onglets cachés mais handlers conservés (accès via icônes header / deep-link)
-const HIDDEN_TABS = ['infos', 'suivi', 'partage']
+const HIDDEN_TABS = ['suivi', 'partage']
 
 // ══════════════════════════════════════
 // STAT CARD — Carte réutilisable
