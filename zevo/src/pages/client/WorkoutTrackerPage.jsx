@@ -81,6 +81,9 @@ export default function WorkoutTrackerPage() {
   const [error, setError] = useState(null)
   const [pendingSync, setPendingSync] = useState(false) // true quand finish hors-ligne en attente
 
+  // Heure de lancement de la séance — sert au calcul de durée côté coach
+  const startedAtRef = useRef(new Date())
+
   // ── Navigation exercice ──
   const [currentIdx, setCurrentIdx] = useState(0)
   const [direction, setDirection] = useState(0) // -1 = left, 0 = none, 1 = right
@@ -123,7 +126,7 @@ export default function WorkoutTrackerPage() {
       // Charger la séance
       const { data: seanceData, error: seanceErr } = await supabase
         .from('seances')
-        .select('id, titre, notes, is_completed')
+        .select('id, titre, notes, is_completed, metadata')
         .eq('id', seanceId)
         .single()
 
@@ -366,9 +369,21 @@ export default function WorkoutTrackerPage() {
         return
       }
 
+      const completedAt = new Date()
+      const dureeMin = Math.max(1, Math.round((completedAt - startedAtRef.current) / 60000))
       const { error } = await supabase
         .from('seances')
-        .update({ is_completed: true })
+        .update({
+          is_completed: true,
+          started_at: startedAtRef.current.toISOString(),
+          completed_at: completedAt.toISOString(),
+          // ~7 kcal/min (musculation, intensité modérée) — estimation sans wearable
+          metadata: {
+            ...(seance?.metadata || {}),
+            duree_minutes: dureeMin,
+            calories_estimees: Math.round(dureeMin * 7),
+          },
+        })
         .eq('id', seance.id)
       if (error) {
         console.error('[Workout] Erreur update is_completed:', error.message)
