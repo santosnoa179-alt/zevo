@@ -1,7 +1,48 @@
 # 📋 Session README — Reprise du travail Zevo
 
-> Dernière mise à jour : **19 juin 2026** — white-label complet app client + objectifs chiffrés + flow client
+> Dernière mise à jour : **16 juillet 2026** — fiche client coach structure Gymkee (partie 1)
 > Pour reprendre dans un nouveau chat Claude Code, **lis ce fichier en premier** puis attaque la todo.
+
+---
+
+## 🆕 Session du 16 juillet 2026 — fiche client coach structure Gymkee (partie 1)
+
+Refonte de la fiche client coach sur le modèle Gymkee (captures fournies par Noa + gymkee.com). Spec : `docs/superpowers/specs/2026-07-16-fiche-client-coach-gymkee-design.md`. Plan : `docs/superpowers/plans/2026-07-16-fiche-client-gymkee-partie1.md`. Exécution subagent-driven (mode allégé : implémenteurs en sous-agents, revues inline, une revue finale).
+
+### 🎯 Commits de la session (du plus récent au plus ancien)
+
+| SHA | Description |
+|---|---|
+| `6145d0c` | fix(coach): correctifs revue finale — routes paiements, largeur/padding modals, durée pause-aware |
+| `f726c1f` | feat(coach): onglet Santé (poids, sommeil, humeur, activité) |
+| `af0b3d4` | feat(coach): deep-link fiche client vers création de paiement pré-rempli |
+| `9f7772b` | feat(coach): onglet Facturation par client (total, abonnements, transactions, factures) |
+| `005c3e9` | feat(coach): historique nutrition journalier avec détail repas (onglet Nutrition) |
+| `e79f0b0` | feat(coach): historique des séances avec détail objectif/résultat (onglet Fitness) |
+| `d832134` | fix(db): rattrapage completed_at manquante en prod (migration partiellement appliquée) |
+| `9715caa` | feat(client): tracking durée séance (started_at/completed_at + calories estimées) |
+| `25e7aac` | feat(coach): fiche client — onglets ordre Gymkee, Infos visible |
+
+### ✅ Livré
+- **Onglets fiche client** (ordre Gymkee) : Activité / Fitness / Nutrition / Santé / Habitudes / Objectifs / Calendrier / Infos personnelles / Facturation. Ids inchangés, `infos` dé-caché.
+- **Fitness — historique des séances** (`client-hub/FitnessHistorySection.jsx`) : tableau date (+heures début→fin)/durée/nom/programme/nb exos/statut (Complétée/Manquée/À venir), filtres+recherche+pagination, modal détail avec formulaire de fin de séance (réponses post-séance), exercices avec **objectif vs résultat par set** (`seance_exercice_logs`).
+- **Tracking durée côté client** : `seances.started_at` (nouvelle colonne, migration `add-seances-started-at.sql`) + `completed_at` + `metadata.duree_minutes` (chrono pause-aware `globalTime`) + `calories_estimees` (~7 kcal/min) écrits par le WorkoutTracker à la complétion. ⚠️ Découverte : `completed_at` n'avait jamais été appliquée en prod (migration partielle) — rattrapée.
+- **Nutrition — historique journalier** (`client-hub/NutritionHistorySection.jsx`) : barres kcal/macros réel vs cible du plan actif, nb repas, modal détail des repas (`nutrition_client_logs.repas_detail`) + ressenti/notes.
+- **Facturation par client** (`client-hub/FacturationTab.jsx`) : cartes Total dépensé / Abonnement actif / Prochain paiement, tableaux abonnements/transactions/factures, boutons → `/coach/abonnements/*` avec deep-link `?client=<id>&nouveau=1` qui ouvre le modal transaction pré-rempli (TransactionsPage).
+- **Santé** (`client-hub/SanteTab.jsx`) : 4 graphiques Recharts (poids/sommeil/humeur/activité), toggle 30/90 j.
+- Tout le nouveau code est dans `zevo/src/pages/coach/client-hub/` (le hub de 7,7k lignes n'a pris que ~40 lignes).
+
+### 🔍 Revue finale — bugs attrapés puis corrigés (`6145d0c`)
+- Routes `/coach/paiements/*` inexistantes (vraies routes : `/coach/abonnements/*`) — les 4 boutons Facturation 404aient.
+- `max-w-2xl` perdait contre le `max-w-md` interne du composant Modal (cascade CSS) → `!max-w-[42rem]` ; padding doublé (le Modal a déjà un `p-5` interne) → supprimé.
+- Durée de séance : temps horloge → chrono pause-aware (sinon les pauses gonflaient durée+calories).
+
+### ✅ Vérifié en preview (session coach magiclink, client "noa santos")
+Historique Fitness (statuts, filtres, modal détail 672px), historique Nutrition (logs de test insérés puis supprimés — barres, repas, ingrédients, ressenti OK), Facturation (données réelles : 187 € / abo 89 €/mois), deep-link paiement (modal pré-rempli ✓), Santé (courbes + états vides). Zéro erreur console.
+
+### ⏳ Reste — Partie 2 : Bilans (version complète Gymkee)
+Modèles personnalisables + planification récurrente (hebdo/bimensuel/mensuel) + remplissage client OU coach (photos face/dos/profil + mensurations + questions) + comparaison avant/après. 4 tables (`bilan_modeles`, `bilan_planifications`, `bilans`, `bilan_photos`) + bucket Storage privé + page client `BilansPage.jsx` + onglet coach. **Écrire le plan partie 2 d'abord** (writing-plans) — le spec section 5 fait foi.
+Note revue : la colonne Programme de l'historique Fitness n'est pas cliquable (le spec le prévoyait) — à ajouter en passant lors de la partie 2.
 
 ---
 
@@ -13,6 +54,8 @@ Migrations DB versionnées, **white-label complet** de l'app client (toute l'app
 
 | SHA | Description |
 |---|---|
+| `b8fa5a3` | fix(admin): confirmation avant de désactiver un coach (action impactante) |
+| `705d9e9` | ux(client): refonte affichage des offres (page Abonnement) — cartes premium en grille |
 | `1295f3d` | feat(coach): objectifs chiffrés flexibles (départ/cible/unité libre) + progression réelle |
 | `f9ee578` | fix(white-label): texte invisible mode clair (opacités hex sur var → color-mix, 50 occ.) |
 | `62bdc90` | fix(white-label): dériver --color-primary-light de la couleur du coach (dégradés violet→violet clair) |
