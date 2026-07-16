@@ -12,6 +12,7 @@ import ProgramBuilder from './ProgramBuilder'
 import SessionEditorModal from './SessionEditorModal'
 import FitnessHistorySection from './client-hub/FitnessHistorySection'
 import NutritionHistorySection from './client-hub/NutritionHistorySection'
+import FacturationTab from './client-hub/FacturationTab'
 import {
   Search, MessageCircle, Settings, UserPlus, Mail, Phone,
   Target, Apple, Scale, Activity, Dumbbell,
@@ -25,7 +26,7 @@ import {
   Ruler, Weight, ChevronUp, ChevronDown as ChevronDownIcon,
   FolderOpen, Paperclip, FileText,
   CheckCircle2, Circle, Footprints, BookOpen, Smile, Upload,
-  ClipboardList, AlertTriangle, Lock
+  ClipboardList, AlertTriangle, Lock, CreditCard
 } from 'lucide-react'
 
 // ── Couleurs avatar (palette atténuée, cohérence Fitness OS) ──
@@ -43,6 +44,7 @@ const TABS = [
   { id: 'objectifs', label: 'Objectifs', icon: Target },
   { id: 'calendar', label: 'Calendrier', icon: Calendar },
   { id: 'infos', label: 'Infos personnelles', icon: User },
+  { id: 'facturation', label: 'Facturation', icon: CreditCard },
 ]
 // Onglets cachés mais handlers conservés (accès via icônes header / deep-link)
 const HIDDEN_TABS = ['suivi', 'partage']
@@ -7653,8 +7655,12 @@ export default function CoachClientHub() {
               />
             )}
 
+            {activeTab === 'facturation' && (
+              <FacturationTab coachId={user?.id} clientId={selectedId} />
+            )}
+
             {/* Placeholder pour les autres onglets */}
-            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && activeTab !== 'infos' && activeTab !== 'suivi' && activeTab !== 'habitudes' && activeTab !== 'objectifs' && (
+            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && activeTab !== 'infos' && activeTab !== 'suivi' && activeTab !== 'habitudes' && activeTab !== 'objectifs' && activeTab !== 'facturation' && (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
                   <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-4">
