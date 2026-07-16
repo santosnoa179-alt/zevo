@@ -13,6 +13,7 @@ import SessionEditorModal from './SessionEditorModal'
 import FitnessHistorySection from './client-hub/FitnessHistorySection'
 import NutritionHistorySection from './client-hub/NutritionHistorySection'
 import FacturationTab from './client-hub/FacturationTab'
+import SanteTab from './client-hub/SanteTab'
 import {
   Search, MessageCircle, Settings, UserPlus, Mail, Phone,
   Target, Apple, Scale, Activity, Dumbbell,
@@ -40,6 +41,7 @@ const TABS = [
   { id: 'overview', label: 'Activité', icon: Eye },
   { id: 'sport', label: 'Fitness', icon: Dumbbell },
   { id: 'nutrition', label: 'Nutrition', icon: Apple },
+  { id: 'sante', label: 'Santé', icon: Heart },
   { id: 'habitudes', label: 'Habitudes', icon: Flame },
   { id: 'objectifs', label: 'Objectifs', icon: Target },
   { id: 'calendar', label: 'Calendrier', icon: Calendar },
@@ -7655,12 +7657,16 @@ export default function CoachClientHub() {
               />
             )}
 
+            {activeTab === 'sante' && (
+              <SanteTab clientId={selectedId} />
+            )}
+
             {activeTab === 'facturation' && (
               <FacturationTab coachId={user?.id} clientId={selectedId} />
             )}
 
             {/* Placeholder pour les autres onglets */}
-            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && activeTab !== 'infos' && activeTab !== 'suivi' && activeTab !== 'habitudes' && activeTab !== 'objectifs' && activeTab !== 'facturation' && (
+            {activeTab !== 'overview' && activeTab !== 'sport' && activeTab !== 'calendar' && activeTab !== 'nutrition' && activeTab !== 'infos' && activeTab !== 'suivi' && activeTab !== 'habitudes' && activeTab !== 'objectifs' && activeTab !== 'facturation' && activeTab !== 'sante' && (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
                   <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] flex items-center justify-center mx-auto mb-4">
