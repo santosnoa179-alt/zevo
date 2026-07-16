@@ -10,6 +10,7 @@ import { calculerScoreBienEtre, couleurScore, labelScore } from '../../utils/wel
 import Ring, { MultiRing } from '../../components/ui/Ring'
 import ProgramBuilder from './ProgramBuilder'
 import SessionEditorModal from './SessionEditorModal'
+import FitnessHistorySection from './client-hub/FitnessHistorySection'
 import {
   Search, MessageCircle, Settings, UserPlus, Mail, Phone,
   Target, Apple, Scale, Activity, Dumbbell,
@@ -7592,13 +7593,16 @@ export default function CoachClientHub() {
                   onBack={() => { setOpenProgramme(null); setActiveTab('overview') }}
                 />
               ) : (
-                <SportTab
-                  clientName={fullName}
-                  coachId={user?.id}
-                  clientId={selectedId}
-                  onOpenCalendar={() => setActiveTab('calendar')}
-                  onOpenProgramme={(p) => setOpenProgramme(p)}
-                />
+                <>
+                  <SportTab
+                    clientName={fullName}
+                    coachId={user?.id}
+                    clientId={selectedId}
+                    onOpenCalendar={() => setActiveTab('calendar')}
+                    onOpenProgramme={(p) => setOpenProgramme(p)}
+                  />
+                  <FitnessHistorySection coachId={user?.id} clientId={selectedId} />
+                </>
               )
             )}
 
