@@ -370,7 +370,9 @@ export default function WorkoutTrackerPage() {
       }
 
       const completedAt = new Date()
-      const dureeMin = Math.max(1, Math.round((completedAt - startedAtRef.current) / 60000))
+      // Durée d'effort = chrono pause-aware (globalTime, secondes) — le temps
+      // horloge compterait les pauses et gonflerait durée + calories.
+      const dureeMin = Math.max(1, Math.round(globalTime / 60))
       const { error } = await supabase
         .from('seances')
         .update({

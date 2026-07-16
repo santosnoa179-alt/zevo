@@ -106,17 +106,17 @@ export default function FacturationTab({ coachId, clientId }) {
       {/* Actions (deep-links vers l'espace Paiements global) */}
       <div className="flex flex-wrap gap-2">
         <button
-          onClick={() => navigate(`/coach/paiements/transactions?client=${clientId}&nouveau=1`)}
+          onClick={() => navigate(`/coach/abonnements/transactions?client=${clientId}&nouveau=1`)}
           className="flex items-center gap-1.5 bg-[#FF6B2B] text-white text-xs font-semibold px-3.5 py-2 rounded-xl hover:opacity-90 transition-opacity">
           <Plus size={14} /> Créer un paiement
         </button>
         <button
-          onClick={() => navigate('/coach/paiements/factures')}
+          onClick={() => navigate('/coach/abonnements/factures')}
           className="flex items-center gap-1.5 bg-[var(--bg-surface)] text-[var(--text-primary)] text-xs font-semibold px-3.5 py-2 rounded-xl hover:bg-[var(--bg-card)] transition-colors border border-[rgba(255,255,255,0.08)]">
           <FileText size={14} /> Factures
         </button>
         <button
-          onClick={() => navigate('/coach/paiements/abonnements')}
+          onClick={() => navigate('/coach/abonnements/abonnements')}
           className="flex items-center gap-1.5 bg-[var(--bg-surface)] text-[var(--text-primary)] text-xs font-semibold px-3.5 py-2 rounded-xl hover:bg-[var(--bg-card)] transition-colors border border-[rgba(255,255,255,0.08)]">
           <Repeat size={14} /> Abonnements
         </button>
@@ -218,7 +218,7 @@ export default function FacturationTab({ coachId, clientId }) {
                     <td className="py-2.5 pr-3 text-xs text-[var(--text-muted)] tabular-nums">{formatDate(f.date_emission)}</td>
                     <td className="py-2.5">
                       <button
-                        onClick={() => navigate('/coach/paiements/factures')}
+                        onClick={() => navigate('/coach/abonnements/factures')}
                         title="Voir dans Factures"
                         className="p-1.5 rounded-lg bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                         <Download size={13} />

@@ -117,8 +117,8 @@ function SeanceDetailModal({ seance, onClose }) {
   const kcal = seance.metadata?.calories_estimees
 
   return (
-    <Modal isOpen onClose={onClose} title={seance.titre} className="max-w-2xl max-h-[85vh] overflow-y-auto">
-      <div className="p-5 space-y-5">
+    <Modal isOpen onClose={onClose} title={seance.titre} className="!max-w-[42rem] max-h-[85vh] overflow-y-auto">
+      <div className="space-y-5">
         {/* En-tête stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[

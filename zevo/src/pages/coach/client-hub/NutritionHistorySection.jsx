@@ -37,8 +37,8 @@ function NutritionDayModal({ log, onClose }) {
   const ecart = cibles.kcal_cible ? (log.kcal_reel || 0) - cibles.kcal_cible : null
 
   return (
-    <Modal isOpen onClose={onClose} title={formatDateFr(log.date_jour)} className="max-w-2xl max-h-[85vh] overflow-y-auto">
-      <div className="p-5 space-y-5">
+    <Modal isOpen onClose={onClose} title={formatDateFr(log.date_jour)} className="!max-w-[42rem] max-h-[85vh] overflow-y-auto">
+      <div className="space-y-5">
         {log.nutrition_programmes?.nom && (
           <span className="inline-block text-[11px] px-2 py-0.5 rounded-full bg-[#FF6B2B]/10 text-[#FF6B2B] font-semibold">
             {log.nutrition_programmes.nom}
