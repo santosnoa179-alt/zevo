@@ -11,6 +11,7 @@ import Ring, { MultiRing } from '../../components/ui/Ring'
 import ProgramBuilder from './ProgramBuilder'
 import SessionEditorModal from './SessionEditorModal'
 import FitnessHistorySection from './client-hub/FitnessHistorySection'
+import NutritionHistorySection from './client-hub/NutritionHistorySection'
 import {
   Search, MessageCircle, Settings, UserPlus, Mail, Phone,
   Target, Apple, Scale, Activity, Dumbbell,
@@ -7607,14 +7608,17 @@ export default function CoachClientHub() {
             )}
 
             {activeTab === 'nutrition' && (
-              <NutritionTab
-                coachId={user?.id}
-                clientId={selectedId}
-                clientName={(() => {
-                  const c = clients.find(c => c.profiles?.id === selectedId)
-                  return c?.profiles?.nom || 'Client'
-                })()}
-              />
+              <>
+                <NutritionTab
+                  coachId={user?.id}
+                  clientId={selectedId}
+                  clientName={(() => {
+                    const c = clients.find(c => c.profiles?.id === selectedId)
+                    return c?.profiles?.nom || 'Client'
+                  })()}
+                />
+                <NutritionHistorySection clientId={selectedId} />
+              </>
             )}
 
             {activeTab === 'infos' && (
