@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { supabase } from '../../../lib/supabase'
 import {
@@ -26,6 +26,7 @@ const METHODES = [
 export default function TransactionsPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
@@ -55,6 +56,17 @@ export default function TransactionsPage() {
     loadTransactions()
     loadClients()
   }, [user])
+
+  // Deep-link depuis la fiche client : ?client=<id>&nouveau=1 → modal pré-rempli
+  useEffect(() => {
+    if (searchParams.get('nouveau') === '1') {
+      const clientId = searchParams.get('client') || ''
+      setForm(f => ({ ...f, clientId }))
+      setShowModal(true)
+      setSearchParams({}, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Fermer le menu si on clique ailleurs
   useEffect(() => {
